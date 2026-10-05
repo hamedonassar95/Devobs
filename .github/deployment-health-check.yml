@@ -1,0 +1,39 @@
+name: Deployment Health Check
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["pages-build-deployment"]
+    types:
+      - completed
+
+permissions:
+  contents: read
+
+jobs:
+  verify-production:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Verify deployed site
+        run: |
+          SITE_URL="https://hamedonassar95.github.io/Devobs/"
+
+          curl \
+            --fail \
+            --location \
+            --silent \
+            --show-error \
+            --retry 5 \
+            --retry-delay 5 \
+            --retry-all-errors \
+            "$SITE_URL" \
+            --output site.html
+
+          grep -q "AL-DALA MOBILE" site.html
+
+          echo "Deployment health check passed."
