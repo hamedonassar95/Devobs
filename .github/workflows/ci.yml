@@ -2,37 +2,31 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
-jobs:
-  validate:
-    runs-on: ubuntu-latest
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
+jobs:
+  # Keep this ID: the Protect main ruleset requires the validate check.
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - name: Validate static site
-        shell: bash
-        run: |
-          set -euo pipefail
+      - name: Test the validation guardrails
+        run: python3 -m unittest discover -s tests -v
 
-          test -f index.html
-          grep -q '<!DOCTYPE html>' index.html
-          grep -q '<html' index.html
-          grep -q '</html>' index.html
-          grep -q '<title>.*</title>' index.html
-
-          if grep -nE '^(<<<<<<<|=======|>>>>>>>)' index.html; then
-            echo "Merge conflict markers found in index.html"
-            exit 1
-          fi
-
-          echo "Static site validation passed."
+      - name: Check page contract and HTTP response
+        run: python3 scripts/check_site.py
