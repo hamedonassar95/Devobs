@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Validate static site
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test -f index.html
+          grep -q '<!DOCTYPE html>' index.html
+          grep -q '<html' index.html
+          grep -q '</html>' index.html
+          grep -q '<title>.*</title>' index.html
+
+          if grep -nE '^(<<<<<<<|=======|>>>>>>>)' index.html; then
+            echo "Merge conflict markers found in index.html"
+            exit 1
+          fi
+
+          echo "Static site validation passed."
