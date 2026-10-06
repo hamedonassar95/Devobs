@@ -40,6 +40,9 @@ jobs:
       - name: Test recovery verification controller
         run: python -m unittest tests.test_recovery_verifier -v
 
+      - name: Test human approval gate
+        run: python -m unittest tests.test_human_approval_gate -v
+
       - name: Check page contract and HTTP response
         run: python3 scripts/check_site.py
 
