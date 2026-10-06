@@ -30,3 +30,34 @@ jobs:
 
       - name: Check page contract and HTTP response
         run: python3 scripts/check_site.py
+
+      - name: Stage isolated PR preview
+        if: github.event_name == 'pull_request'
+        run: |
+          mkdir -p _preview
+          cp index.html _preview/index.html
+          if [ -d assets ]; then
+            cp -R assets _preview/assets
+          fi
+
+      - name: Upload PR preview
+        if: github.event_name == 'pull_request'
+        id: preview
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: preview-pr-${{ github.event.pull_request.number }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: _preview/
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Explain preview
+        if: github.event_name == 'pull_request'
+        env:
+          PREVIEW_URL: ${{ steps.preview.outputs.artifact-url }}
+        run: |
+          {
+            echo '## PR preview (downloadable HTML)'
+            echo "Download: $PREVIEW_URL"
+            echo 'Extract the ZIP and open index.html locally. This is not a hosted preview URL.'
+            echo 'The preview is retained for 7 days and has no production deployment permissions.'
+          } >> "$GITHUB_STEP_SUMMARY"
