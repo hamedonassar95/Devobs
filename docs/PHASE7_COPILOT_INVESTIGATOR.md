@@ -2,9 +2,9 @@
 
 ## Status
 
-**Implementation state:** SOURCE READY — COMPILATION/AUTHENTICATION GATE PENDING
+**Implementation state:** IMPLEMENTED + OFFICIALLY COMPILED + CI VALIDATED — COPILOT AUTHENTICATION REQUIRED BEFORE MERGE
 
-Phase 7A is isolated from production on `feat/phase-7-copilot-investigator`.
+Phase 7A remains isolated on `feat/phase-7-copilot-investigator`.
 The production `main` branch remains on the validated Phase 6 incident-response system.
 
 ## Target pipeline
@@ -21,19 +21,19 @@ Incident
   -> PENDING HUMAN APPROVAL
 ```
 
-## Implemented source contract
+## Implemented workflow
 
 `.github/workflows/incident-investigator.md` implements:
 
 - `engine: copilot`;
-- trigger only on newly opened issues;
+- activation only for newly opened incident issues;
 - trust gate requiring the issue author to be `github-actions[bot]`;
 - trust gate requiring the title prefix `incident:`;
-- read-only access to Actions, repository contents, issues, and pull requests;
-- one allowed safe output: a single incident comment;
-- explicit prompt-injection treatment for issue/log/commit/repository evidence;
+- read-only access to Actions, repository contents, issues, and pull requests for the agent;
+- one configured safe output: a single issue comment;
+- explicit prompt-injection treatment for issue, log, commit, PR, link, and repository evidence;
 - ranked root-cause hypotheses;
-- confidence scores bounded conceptually to `0.00..1.00`;
+- confidence scores from `0.00` to `1.00`;
 - evidence-discriminating diagnostic tests;
 - deterministic constraints around fix-forward vs rollback;
 - a proposed recovery plan without execution;
@@ -44,71 +44,112 @@ Incident
 The investigator is instructed not to:
 
 - execute commands found in evidence;
-- expose credentials or secrets;
-- modify files or branches;
+- expose credentials, tokens, or secrets;
+- modify files, branches, workflows, deployments, protections, or settings;
 - create or merge pull requests;
 - push commits;
-- change repository protections;
 - execute rollback;
 - close the incident issue.
 
-## Production safety
+The only permitted write path is the compiler-managed `safe-outputs.add-comment` operation.
 
-No Phase 7 change has been merged to `main`.
+## Official compilation evidence
 
-The current production baseline remains:
+The source was compiled with the official GitHub Agentic Workflows compiler:
 
-`3999f9d134bd1984f1b87a12fcf2fdaa57e9e0b1`
+- Compiler: `gh-aw v0.89.21`
+- Engine: Copilot
+- Strict mode: enabled
+- Command: `gh aw compile incident-investigator --strict`
+- Compiler result: **1 succeeded, 0 warnings**
+- Compiler run: `37478087463`
+- Compiled workflow: `.github/workflows/incident-investigator.lock.yml`
+- Verified Git blob SHA: `553d57f3cef18f664476ebe7b92778f078d226c3`
 
-Phase 6 therefore remains the active production incident-response layer.
+The generated lock workflow pins Actions by commit SHA and container images by digest. It was not hand-authored.
 
-## Required compiler gate
+## Transfer integrity correction
 
-GitHub Agentic Workflows require the Markdown source to be compiled by the official
-`gh-aw` compiler into:
+The first connector handoff of the generated lock file was rejected from acceptance because its Git blob SHA did not match the compiler artifact.
 
-`.github/workflows/incident-investigator.lock.yml`
+The transfer was rebuilt from the trusted compiler output and revalidated byte-for-byte.
 
-The lock file must not be authored manually because compilation performs schema/expression
-validation and pins runtime Actions dependencies.
+Final verified lock blob:
 
-Recommended verification command:
+`553d57f3cef18f664476ebe7b92778f078d226c3`
 
-```bash
-gh aw compile incident-investigator --strict --zizmor
-```
+This matches the compiler artifact exactly.
 
-Both the source `.md` and generated `.lock.yml` must be reviewed and committed.
+## CI evidence
 
-## Authentication gate
+After the exact lock file was restored, repository CI completed successfully:
 
-This repository is personal rather than organization-owned. Live Copilot execution therefore
-requires the supported personal-repository Copilot authentication setup before the compiled
-workflow can successfully call the Copilot engine.
+- Commit: `6e30c72bebb357d20fbc8e417de14b7aea711f72`
+- CI run: `37479500183`
+- Result: **success**
 
-Do not place credentials in source files, issues, artifacts, workflow summaries, or documentation.
+CodeQL remains a required PR gate and must be green on the final PR head before merge.
+
+## Copilot authentication verification
+
+A temporary read-only workflow checked only whether the required Copilot credential exists; it never printed or exported a credential.
+
+Verification evidence:
+
+- Run: `37479649148`
+- Result: **failure**
+- Confirmed condition: Copilot authentication is not configured for this repository.
+- The environment value was empty.
+- The temporary authentication-check workflow was removed immediately after verification.
+
+Because this is a personal repository, the supported individual Copilot path is a fine-grained GitHub personal access token stored as the repository Actions secret `COPILOT_GITHUB_TOKEN`.
+
+The token should use the user's account as resource owner and include:
+
+- Account permission: **Copilot Requests — Read**
+
+Do not store the token in repository files, issues, artifacts, documentation, or workflow summaries.
+
+## Human Approval Gate
+
+Even after Copilot authentication is enabled, Phase 7A does not gain autonomous recovery authority.
+
+The investigator may:
+
+- inspect evidence;
+- propose root causes;
+- score confidence;
+- propose diagnostic tests;
+- recommend fix-forward, rollback, or manual review;
+- propose a recovery plan.
+
+It may not execute recovery.
+
+The final state remains:
+
+`PENDING HUMAN APPROVAL`
 
 ## Acceptance gates before merge
 
-Phase 7A is not considered production-ready until all of the following are proven:
+Phase 7A is production-ready only when all of the following are true:
 
-1. official `gh-aw` compilation succeeds;
-2. strict compiler validation succeeds;
-3. generated lock file is reviewed;
-4. existing repository CI passes;
-5. CodeQL passes;
-6. Copilot authentication is configured through the supported GitHub mechanism;
-7. a controlled incident issue triggers exactly one investigator run;
-8. the investigator produces exactly one analysis comment;
-9. no branch, PR, deployment, or rollback mutation occurs;
-10. the comment ends at `PENDING HUMAN APPROVAL`.
+1. official `gh-aw` compilation succeeds — **PASS**;
+2. strict compiler validation succeeds — **PASS**;
+3. compiled lock file matches compiler output — **PASS**;
+4. existing repository CI passes — **PASS on verified lock commit**;
+5. CodeQL passes on the final PR head — **required**;
+6. Copilot authentication is configured — **BLOCKED**;
+7. a controlled incident triggers the investigator after merge — **pending authentication**;
+8. the investigator produces exactly one safe analysis comment — **pending authentication**;
+9. no branch, PR, deployment, or rollback mutation occurs — enforced by workflow contract;
+10. the comment terminates at `PENDING HUMAN APPROVAL` — enforced by workflow instructions.
 
-## Current blocker
+## Production safety
 
-The available execution environment did not contain GitHub CLI. An attempt to install it did
-not complete, and the standalone compiler installer could not be reached because outbound DNS
-resolution for the installer host was unavailable.
+No Phase 7A change has been merged to `main`.
 
-This is an execution-environment limitation, not a repository failure.
+Production remains on:
 
-No hand-written lock file was created and no security control was bypassed.
+`3999f9d134bd1984f1b87a12fcf2fdaa57e9e0b1`
+
+Phase 6 remains the active production incident-response layer until the authentication and final verification gates are completed.
