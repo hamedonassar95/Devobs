@@ -22,3 +22,5 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           gh workflow run incident-investigator.lock.yml             --repo "$GH_REPO"             --ref main             -f issue_number="21"
+
+# retest with Copilot auto model
