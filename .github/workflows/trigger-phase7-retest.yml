@@ -26,3 +26,5 @@ jobs:
 # retest with Copilot auto model
 
 # retest with Claude Sonnet 4.6 on main
+
+# retest with GPT-4.1 on main
