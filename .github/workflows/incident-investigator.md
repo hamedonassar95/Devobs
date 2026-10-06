@@ -39,7 +39,7 @@ safe-outputs:
     max: 1
 
 engine: copilot
-model: gpt-5-mini
+model: auto
 
 timeout-minutes: 10
 ---
