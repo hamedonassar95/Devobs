@@ -1,0 +1,26 @@
+name: Verify Copilot Authentication
+
+on:
+  push:
+    branches:
+      - feat/phase-7-copilot-investigator
+    paths:
+      - .github/workflows/verify-copilot-auth.yml
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Verify credential presence without exposure
+        env:
+          COPILOT_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+        run: |
+          if [ -z "$COPILOT_TOKEN" ]; then
+            echo "::error::Copilot authentication is not configured."
+            exit 1
+          fi
+          echo "Copilot authentication is configured."
