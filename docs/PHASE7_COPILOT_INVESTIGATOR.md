@@ -2,7 +2,7 @@
 
 ## Status
 
-**Implementation state:** IMPLEMENTED + OFFICIALLY COMPILED + CI VALIDATED — COPILOT AUTHENTICATION REQUIRED BEFORE MERGE
+**Implementation state:** IMPLEMENTED + OFFICIALLY COMPILED + CI/CODEQL VALIDATED — COPILOT AUTHENTICATION REQUIRED BEFORE MERGE
 
 Phase 7A remains isolated on `feat/phase-7-copilot-investigator`.
 The production `main` branch remains on the validated Phase 6 incident-response system.
@@ -88,7 +88,11 @@ After the exact lock file was restored, repository CI completed successfully:
 - CI run: `37479500183`
 - Result: **success**
 
-CodeQL remains a required PR gate and must be green on the final PR head before merge.
+Final PR-head validation evidence:
+
+- Final verified head: `12a43675e91635f168ae17b14174b08f2af5b16d`
+- CI run: `37479969930` — **success**
+- CodeQL run: `37479962278` — **success**
 
 ## Copilot authentication verification
 
@@ -137,7 +141,7 @@ Phase 7A is production-ready only when all of the following are true:
 2. strict compiler validation succeeds — **PASS**;
 3. compiled lock file matches compiler output — **PASS**;
 4. existing repository CI passes — **PASS on verified lock commit**;
-5. CodeQL passes on the final PR head — **required**;
+5. CodeQL passes on the verified PR head — **PASS**;
 6. Copilot authentication is configured — **BLOCKED**;
 7. a controlled incident triggers the investigator after merge — **pending authentication**;
 8. the investigator produces exactly one safe analysis comment — **pending authentication**;
