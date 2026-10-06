@@ -39,7 +39,7 @@ safe-outputs:
     max: 1
 
 engine: copilot
-model: auto
+model: claude-sonnet-4.6
 
 timeout-minutes: 10
 ---
