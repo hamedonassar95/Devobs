@@ -45,7 +45,7 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion != 'success'
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 8
 
     steps:
       - name: Checkout trusted incident tooling
@@ -106,7 +106,7 @@ jobs:
             echo "run_url=$RUN_URL"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Classify incident and prepare AI handoff
+      - name: Classify incident
         env:
           WORKFLOW: ${{ steps.context.outputs.workflow }}
           CONCLUSION: ${{ steps.context.outputs.conclusion }}
@@ -125,20 +125,43 @@ jobs:
             --out-json incident.json \
             --out-markdown incident.md
 
-      - name: Publish evidence bundle
+      - name: Investigate root cause and recovery options
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+        run: |
+          python3 scripts/ai_investigator.py \
+            --incident incident.json \
+            --jobs incident-jobs.json \
+            --workflow-run incident-workflow-run.json \
+            --out-json investigation.json \
+            --out-markdown investigation.md
+
+      - name: Build combined incident report
+        run: |
+          {
+            cat incident.md
+            printf '\n---\n\n'
+            cat investigation.md
+          } > incident-report.md
+
+      - name: Publish evidence and investigation bundle
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: incident-${{ steps.context.outputs.run_id }}-${{ github.run_attempt }}
           path: |
             incident.json
             incident.md
+            investigation.json
+            investigation.md
+            incident-report.md
             incident-workflow-run.json
             incident-jobs.json
           if-no-files-found: error
           retention-days: 14
 
-      - name: Add triage to workflow summary
-        run: cat incident.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Add investigation to workflow summary
+        run: cat incident-report.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create deduplicated incident issue
         if: github.event_name == 'workflow_run' || inputs.dry_run == false
@@ -165,4 +188,4 @@ jobs:
           gh issue create \
             --repo "$GH_REPO" \
             --title "incident: $WORKFLOW $CONCLUSION (run $RUN_ID)" \
-            --body-file incident.md
+            --body-file incident-report.md
