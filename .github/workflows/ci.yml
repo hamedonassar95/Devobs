@@ -28,6 +28,9 @@ jobs:
       - name: Test the validation guardrails
         run: python3 -m unittest discover -s tests -v
 
+      - name: Test incident idempotency and duplicate guards
+        run: node --test tests/incident_guard.test.cjs
+
       - name: Check page contract and HTTP response
         run: python3 scripts/check_site.py
 
