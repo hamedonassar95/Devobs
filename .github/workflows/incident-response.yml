@@ -1,0 +1,168 @@
+name: Incident Response
+
+on:
+  workflow_run:
+    workflows: ["CI", "Deploy Pages", "Deployment Health Check"]
+    branches: [main]
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      workflow:
+        description: Workflow to simulate
+        required: true
+        type: choice
+        options:
+          - CI
+          - Deploy Pages
+          - Deployment Health Check
+      conclusion:
+        description: Simulated conclusion
+        required: true
+        type: choice
+        options:
+          - failure
+          - timed_out
+          - cancelled
+      dry_run:
+        description: Build evidence without creating an incident issue
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+concurrency:
+  group: incident-response-${{ github.event.workflow_run.id || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  triage:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion != 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout trusted incident tooling
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Resolve incident context and collect structured evidence
+        id: context
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+          MONITORED_WORKFLOW: ${{ github.event.workflow_run.name }}
+          MONITORED_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          MONITORED_RUN_ID: ${{ github.event.workflow_run.id }}
+          MONITORED_SHA: ${{ github.event.workflow_run.head_sha }}
+          MONITORED_URL: ${{ github.event.workflow_run.html_url }}
+          INPUT_WORKFLOW: ${{ inputs.workflow }}
+          INPUT_CONCLUSION: ${{ inputs.conclusion }}
+        run: |
+          set -euo pipefail
+
+          if [ "$EVENT_NAME" = "workflow_run" ]; then
+            WORKFLOW="$MONITORED_WORKFLOW"
+            CONCLUSION="$MONITORED_CONCLUSION"
+            RUN_ID="$MONITORED_RUN_ID"
+            HEAD_SHA="$MONITORED_SHA"
+            RUN_URL="$MONITORED_URL"
+
+            gh api --method GET "repos/$GH_REPO/actions/runs/$RUN_ID" \
+              --jq '{id,name,event,status,conclusion,head_branch,head_sha,html_url,created_at,updated_at,run_attempt}' \
+              > incident-workflow-run.json
+
+            gh api --method GET "repos/$GH_REPO/actions/runs/$RUN_ID/jobs?per_page=100" \
+              --jq '{jobs:[.jobs[] | {id,name,status,conclusion,html_url,started_at,completed_at}]}' \
+              > incident-jobs.json
+          else
+            WORKFLOW="$INPUT_WORKFLOW"
+            CONCLUSION="$INPUT_CONCLUSION"
+            RUN_ID="simulation-${GITHUB_RUN_ID}"
+            HEAD_SHA="$GITHUB_SHA"
+            RUN_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+            printf '%s\n' \
+              '{"simulation":true,"source":"workflow_dispatch"}' \
+              > incident-workflow-run.json
+            printf '{"jobs":[{"name":"simulated-failure","status":"completed","conclusion":"%s"}]}\n' \
+              "$CONCLUSION" > incident-jobs.json
+          fi
+
+          {
+            echo "workflow=$WORKFLOW"
+            echo "conclusion=$CONCLUSION"
+            echo "run_id=$RUN_ID"
+            echo "head_sha=$HEAD_SHA"
+            echo "run_url=$RUN_URL"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Classify incident and prepare AI handoff
+        env:
+          WORKFLOW: ${{ steps.context.outputs.workflow }}
+          CONCLUSION: ${{ steps.context.outputs.conclusion }}
+          RUN_ID: ${{ steps.context.outputs.run_id }}
+          HEAD_SHA: ${{ steps.context.outputs.head_sha }}
+          RUN_URL: ${{ steps.context.outputs.run_url }}
+        run: |
+          python3 scripts/incident_triage.py \
+            --workflow "$WORKFLOW" \
+            --conclusion "$CONCLUSION" \
+            --run-id "$RUN_ID" \
+            --sha "$HEAD_SHA" \
+            --run-url "$RUN_URL" \
+            --repository "$GITHUB_REPOSITORY" \
+            --jobs-json incident-jobs.json \
+            --out-json incident.json \
+            --out-markdown incident.md
+
+      - name: Publish evidence bundle
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: incident-${{ steps.context.outputs.run_id }}-${{ github.run_attempt }}
+          path: |
+            incident.json
+            incident.md
+            incident-workflow-run.json
+            incident-jobs.json
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Add triage to workflow summary
+        run: cat incident.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create deduplicated incident issue
+        if: github.event_name == 'workflow_run' || inputs.dry_run == false
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ steps.context.outputs.run_id }}
+          WORKFLOW: ${{ steps.context.outputs.workflow }}
+          CONCLUSION: ${{ steps.context.outputs.conclusion }}
+        run: |
+          set -euo pipefail
+          MARKER="incident-run-id:$RUN_ID"
+          EXISTING="$(
+            gh api --method GET search/issues \
+              -f q="repo:$GH_REPO is:issue \"$MARKER\" in:body" \
+              --jq '.items[0].number // empty'
+          )"
+
+          if [ -n "$EXISTING" ]; then
+            echo "Incident already recorded in issue #$EXISTING." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          gh issue create \
+            --repo "$GH_REPO" \
+            --title "incident: $WORKFLOW $CONCLUSION (run $RUN_ID)" \
+            --body-file incident.md
