@@ -1,0 +1,67 @@
+# Incident Response — Phase 6
+
+## Objective
+
+The repository monitors the production delivery chain and converts failed workflow runs into a structured incident record. The system collects minimal evidence, classifies the failure, recommends a response, and creates an auditable GitHub issue. It does **not** automatically merge, push to `main`, disable protections, or execute a rollback.
+
+## Monitored workflows
+
+- `CI`
+- `Deploy Pages`
+- `Deployment Health Check`
+
+Only failures associated with `main` are monitored automatically. Pull-request failures remain inside the normal PR validation flow and do not receive production incident privileges.
+
+## Decision policy
+
+| Failure point | Category | Default severity | Recommendation |
+| --- | --- | --- | --- |
+| CI | validation | high | `FIX_FORWARD` |
+| Deploy Pages | deployment | high | `MANUAL_REVIEW` |
+| Deployment Health Check | production-verification | critical | `ROLLBACK_CANDIDATE` |
+| cancelled / stale / neutral | uncertain | medium | `MANUAL_REVIEW` |
+
+`ROLLBACK_CANDIDATE` is a recommendation, not an automated rollback. Any rollback must use the protected PR process documented in `docs/ROLLBACK_RUNBOOK.md`.
+
+## Evidence bundle
+
+Every incident run produces a 14-day artifact containing:
+
+- `incident.json` — machine-readable classification and AI handoff policy;
+- `incident.md` — human-readable incident report;
+- `incident-workflow-run.json` — minimal workflow-run metadata;
+- `incident-jobs.json` — job names, conclusions, timestamps, and links.
+
+Raw logs are deliberately excluded from the automatic artifact to reduce accidental exposure of sensitive operational data.
+
+## GitHub issue behavior
+
+Automatic incidents create one issue per monitored workflow run. The run ID is embedded in the issue body and checked before creation, so a rerun of the incident-response workflow does not intentionally create duplicates.
+
+## AI handoff boundary
+
+`incident.json` contains a constrained AI handoff contract. An approved agent may:
+
+- summarize evidence;
+- suggest likely root causes;
+- propose diagnostic steps;
+- recommend fix-forward or rollback for human approval.
+
+It may not:
+
+- merge pull requests;
+- push directly to `main`;
+- disable branch protections;
+- execute rollback without explicit approval.
+
+The AI execution layer is intentionally separate from the deterministic monitoring layer. This keeps observability operational even when an AI provider is unavailable and prevents model output from becoming an unreviewed production control path.
+
+## Safe end-to-end test
+
+Run **Incident Response** manually from GitHub Actions with:
+
+- workflow: `Deployment Health Check`
+- conclusion: `failure`
+- dry_run: `true`
+
+Expected result: the workflow succeeds, creates an incident artifact and summary with `ROLLBACK_CANDIDATE`, and does **not** create a GitHub issue or alter production.
