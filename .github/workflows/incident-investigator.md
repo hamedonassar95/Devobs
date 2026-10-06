@@ -14,18 +14,106 @@ on:
         description: Trusted incident issue number
         required: true
         type: string
+  permissions:
+    contents: read
+    issues: read
+  steps:
+    - name: Check trusted incident and existing investigation
+      id: incident_gate
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
+      with:
+        script: |
+          // Read-only gate shared by pre-activation and the final comment writer.
+          // Keep this function dependency-free: its source is embedded in the compiled workflow.
+          async function incidentGuard({ github, context, core }, requireEligible = false) {
+            core.setOutput('eligible', 'false');
+            const stop = (reason) => {
+              core.info(reason);
+              if (requireEligible) core.setFailed(reason);
+              return false;
+            };
+            const raw = context.payload.issue?.number ?? context.payload.inputs?.issue_number;
+            if (!/^[1-9][0-9]*$/.test(String(raw)) || !Number.isSafeInteger(Number(raw))) {
+              return stop('Invalid incident number; no investigation or comment permitted.');
+            }
+            const issue_number = Number(raw);
+            const params = { ...context.repo, issue_number };
+            const { data: issue } = await github.rest.issues.get(params);
+            if (issue.pull_request || issue.state !== 'open' ||
+                issue.user?.login !== 'github-actions[bot]' ||
+                !issue.title?.startsWith('incident:') ||
+                !/<!-- incident-run-id:(?:simulation-)?[0-9]+ -->/.test(issue.body ?? '')) {
+              return stop('Incident failed the trust gate; no investigation or comment permitted.');
+            }
+            // Paginate: an existing investigation may be beyond the first 100 comments.
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              ...params, per_page: 100,
+            });
+            const existing = comments.some(comment =>
+              comment.user?.login === 'github-actions[bot]' &&
+              (comment.body?.includes('## AI Incident Investigation') ||
+               comment.body?.includes('<!-- devobs-investigation:v1 -->')));
+            if (existing) return stop('Investigation already exists; duplicate skipped.');
+            core.setOutput('eligible', 'true');
+            return true;
+          }
+          await incidentGuard({ github, context, core }, false);
   bots:
     - github-actions[bot]
 
-if: >-
-  ${{
-    github.event_name == 'workflow_dispatch' ||
-    (
-      github.event_name == 'issues' &&
-      github.event.issue.user.login == 'github-actions[bot]' &&
-      startsWith(github.event.issue.title, 'incident:')
-    )
-  }}
+if: needs.pre_activation.outputs.eligible == 'true'
+
+concurrency:
+  group: "incident-investigator-${{ github.repository }}-${{ github.event.issue.number || inputs.issue_number }}"
+  cancel-in-progress: false
+  job-discriminator: "${{ github.event.issue.number || inputs.issue_number }}"
+
+jobs:
+  pre-activation:
+    outputs:
+      eligible: ${{ steps.incident_gate.outputs.eligible }}
+  safe_outputs:
+    pre-steps:
+      - name: Recheck trusted incident before writing
+        id: incident_gate
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
+        with:
+          script: |
+            // Read-only gate shared by pre-activation and the final comment writer.
+            // Keep this function dependency-free: its source is embedded in the compiled workflow.
+            async function incidentGuard({ github, context, core }, requireEligible = false) {
+              core.setOutput('eligible', 'false');
+              const stop = (reason) => {
+                core.info(reason);
+                if (requireEligible) core.setFailed(reason);
+                return false;
+              };
+              const raw = context.payload.issue?.number ?? context.payload.inputs?.issue_number;
+              if (!/^[1-9][0-9]*$/.test(String(raw)) || !Number.isSafeInteger(Number(raw))) {
+                return stop('Invalid incident number; no investigation or comment permitted.');
+              }
+              const issue_number = Number(raw);
+              const params = { ...context.repo, issue_number };
+              const { data: issue } = await github.rest.issues.get(params);
+              if (issue.pull_request || issue.state !== 'open' ||
+                  issue.user?.login !== 'github-actions[bot]' ||
+                  !issue.title?.startsWith('incident:') ||
+                  !/<!-- incident-run-id:(?:simulation-)?[0-9]+ -->/.test(issue.body ?? '')) {
+                return stop('Incident failed the trust gate; no investigation or comment permitted.');
+              }
+              // Paginate: an existing investigation may be beyond the first 100 comments.
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                ...params, per_page: 100,
+              });
+              const existing = comments.some(comment =>
+                comment.user?.login === 'github-actions[bot]' &&
+                (comment.body?.includes('## AI Incident Investigation') ||
+                 comment.body?.includes('<!-- devobs-investigation:v1 -->')));
+              if (existing) return stop('Investigation already exists; duplicate skipped.');
+              core.setOutput('eligible', 'true');
+              return true;
+            }
+            await incidentGuard({ github, context, core }, true);
 
 permissions:
   actions: read
@@ -34,8 +122,10 @@ permissions:
   pull-requests: read
 
 safe-outputs:
+  report-failure-as-issue: false
   add-comment:
-    target: "*"
+    target: "${{ github.event.issue.number || inputs.issue_number }}"
+    required-title-prefix: "incident:"
     max: 1
 
 engine: copilot
@@ -57,9 +147,8 @@ Before any analysis, fetch that issue and verify all three trust conditions:
 2. the title starts with `incident:`;
 3. the body contains an `incident-run-id:` marker.
 
-If any trust condition fails, do not analyze repository evidence. Post the single allowed
-comment stating that the record failed the trust gate and leave the decision at
-`MANUAL_REVIEW`.
+If any trust condition fails, stop without posting a comment. The deterministic gate
+rejects untrusted or already-investigated incidents before the agent starts.
 
 ## Safety contract
 
@@ -93,8 +182,13 @@ Read the issue and extract the deterministic Phase 6 record:
 - guardrails.
 
 Require the issue body to contain an `incident-run-id:` marker. If the marker is absent,
-do not investigate further. Comment that the record is not trusted enough for automated
-analysis and leave the decision at `MANUAL_REVIEW`.
+stop without posting a comment. Do not treat an untrusted record as an incident.
+
+If the run ID starts with `simulation-`, this is a controlled drill, not proof of a
+production outage. Keep the decision at `MANUAL_REVIEW`; do not invent a real failed
+job, logs, or a recovery baseline. Explicitly identify the simulation in the summary.
+If required evidence is inaccessible, do not infer a production failure or recommend
+rollback from the incident label alone.
 
 ## 2. Collect read-only evidence
 
@@ -202,6 +296,7 @@ State explicitly:
 Post exactly one comment using this structure:
 
 ```markdown
+<!-- devobs-investigation:v1 -->
 ## AI Incident Investigation
 
 ### Summary
