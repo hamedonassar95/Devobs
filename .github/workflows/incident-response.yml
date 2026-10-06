@@ -31,7 +31,7 @@ on:
         type: boolean
 
 permissions:
-  actions: read
+  actions: write
   contents: read
   issues: write
 
@@ -140,7 +140,7 @@ jobs:
       - name: Add triage to workflow summary
         run: cat incident.md >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Create deduplicated incident issue
+      - name: Create incident issue and dispatch investigator
         if: github.event_name == 'workflow_run' || inputs.dry_run == false
         env:
           GH_TOKEN: ${{ github.token }}
@@ -151,18 +151,38 @@ jobs:
         run: |
           set -euo pipefail
           MARKER="incident-run-id:$RUN_ID"
-          EXISTING="$(
+          ISSUE_NUMBER="$(
             gh api --method GET search/issues \
               -f q="repo:$GH_REPO is:issue \"$MARKER\" in:body" \
               --jq '.items[0].number // empty'
           )"
 
-          if [ -n "$EXISTING" ]; then
-            echo "Incident already recorded in issue #$EXISTING." >> "$GITHUB_STEP_SUMMARY"
+          if [ -z "$ISSUE_NUMBER" ]; then
+            ISSUE_URL="$(
+              gh issue create \
+                --repo "$GH_REPO" \
+                --title "incident: $WORKFLOW $CONCLUSION (run $RUN_ID)" \
+                --body-file incident.md
+            )"
+            ISSUE_NUMBER="${ISSUE_URL##*/}"
+            echo "Created incident issue #$ISSUE_NUMBER." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Incident already recorded in issue #$ISSUE_NUMBER." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          ANALYSIS_COUNT="$(
+            gh api --method GET "repos/$GH_REPO/issues/$ISSUE_NUMBER/comments?per_page=100" \
+              --jq '[.[] | select(.body | contains("## AI Incident Investigation"))] | length'
+          )"
+
+          if [ "$ANALYSIS_COUNT" -gt 0 ]; then
+            echo "AI investigation already exists on issue #$ISSUE_NUMBER; dispatch skipped." >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
-          gh issue create \
+          gh workflow run incident-investigator.lock.yml \
             --repo "$GH_REPO" \
-            --title "incident: $WORKFLOW $CONCLUSION (run $RUN_ID)" \
-            --body-file incident.md
+            --ref main \
+            -f issue_number="$ISSUE_NUMBER"
+
+          echo "Dispatched Copilot investigator for issue #$ISSUE_NUMBER." >> "$GITHUB_STEP_SUMMARY"

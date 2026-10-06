@@ -157,3 +157,62 @@ Production remains on:
 `3999f9d134bd1984f1b87a12fcf2fdaa57e9e0b1`
 
 Phase 6 remains the active production incident-response layer until the authentication and final verification gates are completed.
+
+
+## Controlled Incident Integration Finding
+
+A live controlled test exposed an important GitHub Actions behavior:
+
+- dispatcher run: `37488432382`
+- Incident Response run: `37488444547`
+- generated issue: `#17`
+- issue author: `github-actions[bot]`
+- deterministic decision: `ROLLBACK_CANDIDATE`
+- issue comments before the fix: `0`
+
+The issue was created correctly, but the Copilot investigator did not start from the
+`issues: opened` event. This is expected GitHub recursion protection: events created
+with the repository `GITHUB_TOKEN` do not start another workflow through ordinary
+repository events.
+
+### Production fix
+
+Phase 7 now uses an explicit dispatch chain:
+
+```text
+Incident Response
+  -> create or locate trusted incident issue
+  -> verify no AI investigation comment already exists
+  -> workflow_dispatch incident-investigator.lock.yml(issue_number)
+  -> Copilot Investigator
+  -> exactly one safe issue comment
+  -> PENDING HUMAN APPROVAL
+```
+
+The investigator still verifies the target issue before analysis:
+
+1. author must be `github-actions[bot]`;
+2. title must begin with `incident:`;
+3. body must contain an `incident-run-id:` marker.
+
+The workflow may write only one safe-output comment. It still cannot create/merge PRs,
+push commits, alter protections, deploy, or execute rollback.
+
+### Deduplication
+
+Before dispatching the investigator, Incident Response checks the target issue for an
+existing `## AI Incident Investigation` comment. If one already exists, dispatch is
+skipped. This prevents duplicate investigation comments when an incident workflow is
+retried.
+
+### Compiler verification
+
+The updated investigator source was recompiled with the official `gh-aw v0.89.21`
+compiler in strict mode. Compilation completed successfully and produced the updated
+lock blob:
+
+`ac54cc9a826314075783e0b4786d195cb5808597`
+
+Final live acceptance still requires merging this fix and repeating the controlled
+incident test to prove the Copilot run, one-comment limit, and no-mutation guardrails
+end to end.
