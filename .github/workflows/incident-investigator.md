@@ -8,11 +8,21 @@ description: |
 on:
   issues:
     types: [opened]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Trusted incident issue number
+        required: true
+        type: string
 
 if: >-
   ${{
-    github.event.issue.user.login == 'github-actions[bot]' &&
-    startsWith(github.event.issue.title, 'incident:')
+    github.event_name == 'workflow_dispatch' ||
+    (
+      github.event_name == 'issues' &&
+      github.event.issue.user.login == 'github-actions[bot]' &&
+      startsWith(github.event.issue.title, 'incident:')
+    )
   }}
 
 permissions:
@@ -23,6 +33,7 @@ permissions:
 
 safe-outputs:
   add-comment:
+    target: "*"
     max: 1
 
 engine: copilot
@@ -32,8 +43,20 @@ timeout-minutes: 10
 
 # Devobs Incident Investigator
 
-Investigate incident issue #${{ github.event.issue.number }} and produce one concise,
+Investigate incident issue #${{ github.event.issue.number || inputs.issue_number }} and produce one concise,
 evidence-backed investigation for human review.
+
+The target issue number is `${{ github.event.issue.number || inputs.issue_number }}`.
+
+Before any analysis, fetch that issue and verify all three trust conditions:
+
+1. the author is `github-actions[bot]`;
+2. the title starts with `incident:`;
+3. the body contains an `incident-run-id:` marker.
+
+If any trust condition fails, do not analyze repository evidence. Post the single allowed
+comment stating that the record failed the trust gate and leave the decision at
+`MANUAL_REVIEW`.
 
 ## Safety contract
 
