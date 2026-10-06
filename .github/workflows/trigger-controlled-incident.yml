@@ -1,4 +1,4 @@
-name: Trigger Controlled Incident
+name: Compile Phase 7 Investigator
 
 on:
   push:
@@ -6,19 +6,34 @@ on:
       - test/phase7-controlled-incident
     paths:
       - .github/workflows/trigger-controlled-incident.yml
+      - .github/workflows/incident-investigator.md
 
 permissions:
-  actions: write
   contents: read
 
 jobs:
-  dispatch:
+  compile:
     runs-on: ubuntu-24.04
-    timeout-minutes: 3
+    timeout-minutes: 10
     steps:
-      - name: Dispatch controlled Incident Response simulation
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
+      - name: Checkout branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Install gh-aw compiler
+        uses: github/gh-aw/actions/setup-cli@v0.89.21
+        with:
+          version: v0.89.21
+
+      - name: Compile strictly
+        run: gh aw compile incident-investigator --strict
+
+      - name: Verify generated lock file
+        run: test -s .github/workflows/incident-investigator.lock.yml
+
+      - name: Emit lock for trusted handoff
         run: |
-          gh workflow run incident-response.yml             --repo "$GH_REPO"             --ref main             -f workflow="Deployment Health Check"             -f conclusion="failure"             -f dry_run=false
+          printf 'LOCK_B64_BEGIN\n'
+          base64 -w 0 .github/workflows/incident-investigator.lock.yml | fold -w 8000 | sed 's/^/LOCK_B64:/'
+          printf '\nLOCK_B64_END\n'
