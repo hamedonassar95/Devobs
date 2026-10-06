@@ -1,5 +1,12 @@
 # Phase 7A — Copilot Incident Investigator
 
+> Current verification (2026-10-06): PR #16 was merged. Copilot produced one
+> investigation on controlled incident #30, run 37511642020 attempt 3, ending at
+> `PENDING HUMAN APPROVAL`. Issue #21 exposed duplicate comments across overlapping
+> runs. See [idempotency correction and acceptance](INVESTIGATOR_ACCEPTANCE.md).
+> The implementation/authentication statements below are historical checkpoints,
+> not the current production status.
+
 ## Status
 
 **Implementation state:** IMPLEMENTED + OFFICIALLY COMPILED + CI/CODEQL VALIDATED — COPILOT AUTHENTICATION REQUIRED BEFORE MERGE
