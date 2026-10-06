@@ -34,6 +34,9 @@ jobs:
       - name: Test guarded recovery planner
         run: python -m unittest tests.test_recovery_planner -v
 
+      - name: Test isolated recovery patch guard
+        run: python -m unittest tests.test_recovery_patch_guard -v
+
       - name: Check page contract and HTTP response
         run: python3 scripts/check_site.py
 
