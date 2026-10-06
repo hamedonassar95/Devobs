@@ -1,0 +1,104 @@
+name: Phase 8 Live Policy Evaluation
+
+on:
+  workflow_dispatch:
+    inputs:
+      incident_number:
+        description: Open incident issue number to evaluate
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  issues: read
+  actions: read
+  pull-requests: read
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate incident input
+        shell: bash
+        env:
+          INCIDENT_NUMBER: ${{ inputs.incident_number }}
+        run: |
+          set -euo pipefail
+          [[ "$INCIDENT_NUMBER" =~ ^[1-9][0-9]*$ ]] || {
+            echo "::error::incident_number must be a positive integer"
+            exit 1
+          }
+
+      - name: Collect live evidence and evaluate Phase 8A
+        uses: actions/github-script@v8
+        env:
+          INCIDENT_NUMBER: ${{ inputs.incident_number }}
+        with:
+          script: |
+            const fs = require("fs");
+            const cp = require("child_process");
+            const issue_number = Number(process.env.INCIDENT_NUMBER);
+            const { owner, repo } = context.repo;
+            const issue = await github.rest.issues.get({ owner, repo, issue_number });
+            const body = issue.data.body || "";
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number, per_page: 100
+            });
+            const marker = "<!-- devobs-investigation:v1 -->";
+            const investigations = comments.filter(c =>
+              (c.body || "").includes(marker) &&
+              (c.body || "").includes("## AI Incident Investigation")
+            );
+
+            // Live integration remains deliberately conservative. Fields that cannot
+            // yet be proven deterministically from trusted machine-readable evidence
+            // are set to fail-closed values rather than inferred from prose.
+            const record = {
+              trusted_incident:
+                issue.data.state === "open" &&
+                issue.data.title.startsWith("incident:") &&
+                /<!-- incident-run-id:[^>]+-->/.test(body),
+              incident_open: issue.data.state === "open",
+              conclusion: "unknown",
+              investigation_count: investigations.length,
+              decision: "UNKNOWN",
+              confidence: 0,
+              reversible: false,
+              repository_scoped: false,
+              existing_recovery_pr: true,
+              proposed_change: ""
+            };
+
+            fs.writeFileSync("phase8-live-planner-input.json", JSON.stringify(record, null, 2));
+            const output = cp.execFileSync(
+              "python",
+              ["scripts/recovery_planner.py", "phase8-live-planner-input.json"],
+              { encoding: "utf8" }
+            ).trim();
+            const result = JSON.parse(output);
+            fs.writeFileSync("phase8-live-policy-result.json", JSON.stringify(result, null, 2));
+
+            await core.summary
+              .addHeading("Phase 8 Live Policy Evaluation")
+              .addCodeBlock(JSON.stringify({
+                issue_number,
+                trusted_incident: record.trusted_incident,
+                investigation_count: record.investigation_count,
+                policy_result: result,
+                repository_write_authority: false
+              }, null, 2), "json")
+              .addRaw("\nFail-closed: unproven recovery fields are never inferred from AI prose.")
+              .write();
+
+      - name: Upload policy evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase8-live-policy-${{ inputs.incident_number }}
+          path: |
+            phase8-live-planner-input.json
+            phase8-live-policy-result.json
+          if-no-files-found: error
+          retention-days: 7
