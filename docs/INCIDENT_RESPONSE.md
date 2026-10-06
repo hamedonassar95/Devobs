@@ -65,3 +65,20 @@ Run **Incident Response** manually from GitHub Actions with:
 - dry_run: `true`
 
 Expected result: the workflow succeeds, creates an incident artifact and summary with `ROLLBACK_CANDIDATE`, and does **not** create a GitHub issue or alter production.
+
+
+## Phase 7 extension
+
+Phase 7 adds the guarded investigator documented in `docs/AI_INVESTIGATOR.md`.
+
+The incident workflow now performs:
+
+1. deterministic triage;
+2. guarded root-cause investigation;
+3. confidence scoring;
+4. recommended diagnostic tests;
+5. fix-forward vs rollback recommendation;
+6. proposed recovery PR plan;
+7. mandatory human approval gate.
+
+Provider output is advisory and cannot bypass Phase 6 deterministic safety policy.
