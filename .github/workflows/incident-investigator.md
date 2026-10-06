@@ -14,8 +14,7 @@ on:
         description: Trusted incident issue number
         required: true
         type: string
-  bots:
-    - github-actions[bot]
+  bots: ["github-actions[bot]"]
 
 if: >-
   ${{
