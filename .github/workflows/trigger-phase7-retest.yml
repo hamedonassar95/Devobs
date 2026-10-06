@@ -1,0 +1,24 @@
+name: Trigger Phase 7 Investigator Retest
+
+on:
+  push:
+    branches:
+      - test/phase7-controlled-incident
+    paths:
+      - .github/workflows/trigger-phase7-retest.yml
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Dispatch investigator for issue 21
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh workflow run incident-investigator.lock.yml             --repo "$GH_REPO"             --ref main             -f issue_number="21"
