@@ -1,0 +1,24 @@
+name: Trigger Controlled Incident
+
+on:
+  push:
+    branches:
+      - test/phase7-controlled-incident
+    paths:
+      - .github/workflows/trigger-controlled-incident.yml
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Dispatch controlled Incident Response simulation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh workflow run incident-response.yml             --repo "$GH_REPO"             --ref main             -f workflow="Deployment Health Check"             -f conclusion="failure"             -f dry_run=false
