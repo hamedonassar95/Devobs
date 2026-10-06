@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   compile:
@@ -20,7 +20,7 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          persist-credentials: true
+          persist-credentials: false
 
       - name: Install gh-aw compiler
         uses: github/gh-aw/actions/setup-cli@v0.89.21
@@ -33,15 +33,8 @@ jobs:
       - name: Verify lock file exists
         run: test -s .github/workflows/incident-investigator.lock.yml
 
-      - name: Commit compiled lock file
+      - name: Emit compiled lock for trusted handoff
         run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .github/workflows/incident-investigator.lock.yml
-          if git diff --cached --quiet; then
-            echo "Lock file already current."
-            exit 0
-          fi
-          git commit -m "build: compile Phase 7 agentic workflow"
-          git push
+          printf 'LOCK_B64_BEGIN\n'
+          base64 -w 0 .github/workflows/incident-investigator.lock.yml | fold -w 8000 | sed 's/^/LOCK_B64:/'
+          printf '\nLOCK_B64_END\n'
