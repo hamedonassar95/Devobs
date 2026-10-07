@@ -41,17 +41,23 @@ jobs:
             const comments = await github.paginate(github.rest.issues.listComments, {
               owner, repo, issue_number, per_page: 100
             });
-            const legacyMarker = "<!-- devobs-investigation:v1 -->";
-            const candidates = comments.filter(c =>
-              (c.body || "").includes(legacyMarker) &&
-              (c.body || "").includes("## AI Incident Investigation")
-            );
+            const trustedBot = "github-actions[bot]";
+            const trustedIssue = issue.data.state === "open" &&
+              issue.data.title.startsWith("incident:") &&
+              /<!-- incident-run-id:[^>]+-->/.test(issue.data.body || "") &&
+              issue.data.user?.login === trustedBot;
+            const candidates = comments.filter(c => {
+              const body = c.body || "";
+              const trustedAuthor = c.user?.login === trustedBot;
+              const heading = body.includes("## AI Incident Investigation");
+              const provenance = body.includes("<!-- devobs-investigation:v1 -->") ||
+                (body.includes("<!-- gh-aw-agentic-workflow: Devobs Incident Investigator") &&
+                 body.includes("workflow_id: incident-investigator"));
+              return trustedAuthor && heading && provenance;
+            });
 
             let contract = { valid: false, reason: "exactly one trusted investigation is required", data: null };
-            if (issue.data.state === "open" &&
-                issue.data.title.startsWith("incident:") &&
-                /<!-- incident-run-id:[^>]+-->/.test(issue.data.body || "") &&
-                candidates.length === 1) {
+            if (trustedIssue && candidates.length === 1) {
               fs.writeFileSync("investigation-comment.txt", candidates[0].body || "");
               const code = [
                 "import json, pathlib",
@@ -64,9 +70,7 @@ jobs:
 
             const result = {
               issue_number,
-              trusted_incident: issue.data.state === "open" &&
-                issue.data.title.startsWith("incident:") &&
-                /<!-- incident-run-id:[^>]+-->/.test(issue.data.body || ""),
+              trusted_incident: trustedIssue,
               investigation_count: candidates.length,
               contract,
               eligible_for_planner_input: contract.valid === true,
