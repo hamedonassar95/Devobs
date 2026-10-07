@@ -1,0 +1,7 @@
+Efficiency run summary (2026-10-07):
+- No prior memory found.
+- No open [efficiency-improver] PRs.
+- All baseline checks passed.
+- Minified index.html: 3225 → 2880 bytes (raw), 1477 → 1421 bytes (gzipped).
+- All post-change checks passed.
+- Draft PR created: efficiency/minify-index-html.

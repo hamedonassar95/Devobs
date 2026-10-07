@@ -1,0 +1,14 @@
+{
+  "checked_commit": "main",
+  "validated_commands": [
+    "python3 -m unittest discover -s tests -v",
+    "node --test tests/incident_guard.test.cjs",
+    "python3 scripts/check_site.py"
+  ],
+  "baseline_raw": 3225,
+  "baseline_gzip": 1477,
+  "after_raw": 2880,
+  "after_gzip": 1421,
+  "attempted_change": "Minified index.html by removing whitespace and newlines only.",
+  "pr_branch": "efficiency/minify-index-html"
+}
