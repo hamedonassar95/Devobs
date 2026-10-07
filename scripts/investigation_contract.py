@@ -6,7 +6,8 @@ import json, math, re
 from dataclasses import dataclass
 
 MARKER_V1 = "<!-- devobs-investigation-contract:v1 -->"
-MARKER_V2 = "<!-- devobs-investigation-contract:v2 -->"
+MARKER_V2 = "<!-- devobs-investigation-contract:v2 -->"MARKER_V2 = "..."
+MARKER = MARKER_V1
 FENCE = re.compile(r"\x60\x60\x60json\s*(\{.*?\})\s*\x60\x60\x60", re.S)
 ALLOWED_DECISIONS = {"FIX_FORWARD", "MANUAL_REVIEW", "NO_ACTION"}
 V1_KEYS = {"decision", "confidence", "reversible", "repository_scoped", "proposed_change"}
