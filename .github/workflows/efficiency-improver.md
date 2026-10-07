@@ -18,6 +18,12 @@ concurrency:
 network:
   allowed:
     - defaults
+features:
+  # Temporary compatibility fallback: the external detector failed to install
+  # in the compiled runtime. Keep threat detection fail-closed while using the
+  # legacy inline detector until the workflow is recompiled with a verified
+  # external threat-detect release pin.
+  gh-aw-detection: false
 safe-outputs:
   report-failure-as-issue: false
   threat-detection:
