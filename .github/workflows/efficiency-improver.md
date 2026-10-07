@@ -20,6 +20,9 @@ network:
     - defaults
 safe-outputs:
   report-failure-as-issue: false
+  threat-detection:
+    continue-on-error: false
+    report-as-issue: false
   create-pull-request:
     max: 1
     draft: true
@@ -73,7 +76,9 @@ only; report them for a separate maintainer-reviewed change.
    reduced transferred bytes, less redundant I/O or less rendering work while
    preserving Arabic, accessibility, page behavior and the existing site contract.
    Do not invent an optimization merely to produce a PR. The site is small;
-   concluding that no worthwhile change exists is a valid outcome.
+   concluding that no worthwhile change exists is a valid outcome. Do not submit
+   whitespace-only minification of the hand-maintained HTML: the readability
+   cost outweighs tiny byte savings for this site.
 4. Establish the baseline BEFORE editing. Choose a reproducible measurement
    (raw/compressed bytes for transfer size, or repeated timing/memory trials with
    warmup and spread). Record environment, commands, sample count and limitations.
@@ -89,7 +94,10 @@ only; report them for a separate maintainer-reviewed change.
    and test results. End with **PENDING HUMAN APPROVAL**. Explicitly state that
    local success does not prove hosted GitHub Actions CI ran. Maintainers must
    verify the required validate and CodeQL checks before any merge.
-7. Save short factual memory: checked commit, validated commands, measurements,
+7. A safe-output call records an intended PR; it does not prove GitHub created
+   one. Do not call noop after requesting a PR or claim a PR exists without
+   a verified URL. Record an unconfirmed request as pending safe-output processing.
+   Save short factual memory: checked commit, validated commands, measurements,
    attempted changes, and PR number if created. Store no credentials or sensitive
    logs. Provide a concise run summary even when no change is worthwhile.
 
