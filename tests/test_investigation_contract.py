@@ -1,4 +1,5 @@
-import unittest\nimport json
+import unittest
+import json
 from scripts.investigation_contract import MARKER, parse
 
 
