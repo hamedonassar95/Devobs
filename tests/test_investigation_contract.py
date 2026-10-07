@@ -1,4 +1,4 @@
-import unittest
+import unittest\nimport json
 from scripts.investigation_contract import MARKER, parse
 
 
@@ -40,3 +40,37 @@ class InvestigationContractTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class InvestigationContractV2Tests(unittest.TestCase):
+    def _text(self, incident_number=34, run_id="simulation-37537017304"):
+        data = {
+            "incident_number": incident_number,
+            "incident_run_id": run_id,
+            "decision": "MANUAL_REVIEW",
+            "confidence": 1.0,
+            "reversible": True,
+            "repository_scoped": True,
+            "proposed_change": "No repository change; human review only.",
+        }
+        return "<!-- devobs-investigation-contract:v2 -->\n\x60\x60\x60json\n" + json.dumps(data) + "\n\x60\x60\x60"
+
+    def test_v2_accepts_exact_trusted_binding(self):
+        result = parse(self._text(), expected_incident_number=34, expected_run_id="simulation-37537017304")
+        self.assertTrue(result.valid)
+
+    def test_v2_rejects_wrong_incident_number(self):
+        result = parse(self._text(35), expected_incident_number=34, expected_run_id="simulation-37537017304")
+        self.assertFalse(result.valid)
+
+    def test_v2_rejects_wrong_run_id(self):
+        result = parse(self._text(run_id="simulation-other"), expected_incident_number=34, expected_run_id="simulation-37537017304")
+        self.assertFalse(result.valid)
+
+    def test_v2_rejects_missing_trusted_binding_context(self):
+        result = parse(self._text())
+        self.assertFalse(result.valid)
+
+    def test_v2_rejects_boolean_incident_number(self):
+        result = parse(self._text(True), expected_incident_number=34, expected_run_id="simulation-37537017304")
+        self.assertFalse(result.valid)
