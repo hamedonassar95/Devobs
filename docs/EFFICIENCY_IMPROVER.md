@@ -94,3 +94,29 @@ existing deployment, investigator or recovery configuration is changed here.
 - https://github.github.com/gh-aw/reference/safe-outputs-pull-requests/
 - https://github.github.com/gh-aw/reference/engines/
 - https://github.github.com/gh-aw/reference/safe-outputs-triggering-ci/
+
+## First manual acceptance run and correction
+
+Run [37643815861](https://github.com/hamedonassar95/Devobs/actions/runs/37643815861)
+proved engine authentication and agent execution. It proposed whitespace-only
+minification (claimed 345 raw bytes / 56 gzip bytes saved). That proposal was
+not accepted as a worthwhile trade-off for this hand-maintained site.
+
+The detection job appeared successful, but its logs showed HTTP 429 and no
+detection_result.json. The compiler defaults to continue-on-error=true; strict
+compilation alone does not make this runtime gate fail closed. The workflow now
+sets safe-outputs.threat-detection.continue-on-error=false explicitly, so a
+detection failure blocks both safe outputs and memory persistence. Tracking
+issues for detection are disabled; diagnostics remain in the run logs.
+
+GitHub then rejected PR creation because the repository disables Actions-created
+PRs. The framework pushed branch efficiency/minify-index-html-41921c72efec71d4
+and created fallback Issue #56 despite fallback-as-issue=false. No actual PR was
+created; the agent's noop text claiming creation was premature. The prompt now
+distinguishes requested safe output from a confirmed GitHub PR and excludes
+whitespace-only HTML minification. Repository permissions have not been expanded.
+
+Live acceptance remains incomplete. Before another write-capable run, obtain
+explicit approval for the repository-wide Actions create/approve-PR setting,
+resolve or allow the inference rate limit to clear, and verify an actual detector
+result and PR-associated CI checks. Do not infer success from a green job badge.
