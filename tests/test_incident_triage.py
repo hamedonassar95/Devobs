@@ -87,6 +87,7 @@ class IncidentTriageTests(unittest.TestCase):
         )
         self.assertEqual(incident["category"], "controlled-drill")
         self.assertTrue(incident["controlled_drill"])
+        self.assertIn("- **Incident type:** `controlled-drill`", render_markdown(incident))
         self.assertEqual(incident["recommended_action"], "MANUAL_REVIEW")
 
     def test_additional_failed_step_keeps_ci_failure_as_validation(self):
