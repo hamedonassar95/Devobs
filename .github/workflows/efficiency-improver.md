@@ -78,29 +78,44 @@ only; report them for a separate maintainer-reviewed change.
    - python3 scripts/check_site.py
    These are local checks, never dispatch deployment or incident workflows.
    If the baseline fails, summarize the failure and stop without a PR.
-3. Find at most one substantive, measurable site efficiency opportunity. Prefer
+3. Screen each candidate before editing. Record its observation or source
+   (including the source URL or commit when external), affected component and
+   paths, evidence, and dependencies. Assign exactly one verdict:
+   - **APPLICABLE** when the candidate has a measurable site-efficiency effect,
+     stays within `index.html` or `assets/**`, and its dependencies are satisfied
+     within that scope.
+   - **NOT APPLICABLE** when it belongs to CI, recovery, infrastructure, or
+     another component outside this site's efficiency pilot. Summarize why and
+     make no patch.
+   - **BLOCKED** when required evidence is missing or a dependency needs a path
+     outside the allowlist. Summarize the blocker and make no patch.
+   Proceed only with an APPLICABLE candidate. Never copy an external patch
+   blindly; explain which parts apply to Devobs and preserve its source URL or
+   commit in the PR evidence.
+4. Find at most one substantive, measurable site efficiency opportunity. Prefer
    reduced transferred bytes, less redundant I/O or less rendering work while
    preserving Arabic, accessibility, page behavior and the existing site contract.
    Do not invent an optimization merely to produce a PR. The site is small;
    concluding that no worthwhile change exists is a valid outcome. Do not submit
    whitespace-only minification of the hand-maintained HTML: the readability
    cost outweighs tiny byte savings for this site.
-4. Establish the baseline BEFORE editing. Choose a reproducible measurement
+5. Establish the baseline BEFORE editing. Choose a reproducible measurement
    (raw/compressed bytes for transfer size, or repeated timing/memory trials with
    warmup and spread). Record environment, commands, sample count and limitations.
    Proxy measurements are not direct energy or carbon measurements; never claim
    energy savings, carbon savings or faster user experience from bytes alone.
-5. Change only index.html or assets/**. Measure again with the same method and
+6. Change only index.html or assets/**. Measure again with the same method and
    rerun all checks above. If the benefit is absent, within noise, or harms
    accessibility/behavior, revert and summarize with noop. Keep generated
    benchmarks, profiler output and reports out of the commit.
-6. Create at most one small draft PR only after a measurable benefit and passing
+7. Create at most one small draft PR only after a measurable benefit and passing
    local checks. Include the disclosure "🤖 Efficiency Improver", before/after
    values, metric, methodology, reproducibility commands, limitations, trade-offs
-   and test results. End with **PENDING HUMAN APPROVAL**. Explicitly state that
+   and test results. When following an external source, cite its URL or commit
+   and state what was adapted. End with **PENDING HUMAN APPROVAL**. Explicitly state that
    local success does not prove hosted GitHub Actions CI ran. Maintainers must
    verify the required validate and CodeQL checks before any merge.
-7. A safe-output call records an intended PR; it does not prove GitHub created
+8. A safe-output call records an intended PR; it does not prove GitHub created
    one. Do not call noop after requesting a PR or claim a PR exists without
    a verified URL. Record an unconfirmed request as pending safe-output processing.
    Save short factual memory: checked commit, validated commands, measurements,

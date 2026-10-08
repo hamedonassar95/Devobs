@@ -14,12 +14,19 @@ permissions:
   actions: read
   pull-requests: read
 
+concurrency:
+  group: phase8-live-policy-${{ github.repository }}-${{ inputs.incident_number }}
+  cancel-in-progress: false
+
 jobs:
   evaluate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Validate incident input
         shell: bash
@@ -33,6 +40,7 @@ jobs:
           }
 
       - name: Collect live evidence and evaluate Phase 8A
+        id: planner
         uses: actions/github-script@v8
         env:
           INCIDENT_NUMBER: ${{ inputs.incident_number }}
@@ -42,63 +50,99 @@ jobs:
             const cp = require("child_process");
             const issue_number = Number(process.env.INCIDENT_NUMBER);
             const { owner, repo } = context.repo;
-            const issue = await github.rest.issues.get({ owner, repo, issue_number });
-            const body = issue.data.body || "";
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              owner, repo, issue_number, per_page: 100
-            });
-            const marker = "<!-- devobs-investigation:v1 -->";
-            const investigations = comments.filter(c =>
-              (c.body || "").includes(marker) &&
-              (c.body || "").includes("## AI Incident Investigation")
-            );
+            const issueResponse = await github.rest.issues.get({ owner, repo, issue_number });
+            const issue = issueResponse.data;
+            const evidenceErrors = [];
+            let workflowRun = null;
+            let comments = null;
+            let openPullRequests = null;
 
-            // Live integration remains deliberately conservative. Fields that cannot
-            // yet be proven deterministically from trusted machine-readable evidence
-            // are set to fail-closed values rather than inferred from prose.
+            const markers = [...(issue.body || "").matchAll(/<!-- incident-run-id:([^\s]+) -->/g)]
+              .map(match => match[1]);
+            if (markers.length === 1 && /^[1-9][0-9]*$/.test(markers[0]) &&
+                Number.isSafeInteger(Number(markers[0]))) {
+              const runId = Number(markers[0]);
+              try {
+                const response = await github.rest.actions.getWorkflowRun({ owner, repo, run_id: runId });
+                const jobsResponse = await github.paginate(
+                  github.rest.actions.listJobsForWorkflowRun,
+                  { owner, repo, run_id: runId, per_page: 100 }
+                );
+                workflowRun = {
+                  id: response.data.id,
+                  name: response.data.name,
+                  status: response.data.status,
+                  conclusion: response.data.conclusion,
+                  head_branch: response.data.head_branch,
+                  head_sha: response.data.head_sha,
+                  jobs: jobsResponse.map(job => ({
+                    name: job.name,
+                    status: job.status,
+                    conclusion: job.conclusion
+                  }))
+                };
+              } catch {
+                evidenceErrors.push("source workflow run or jobs unavailable");
+              }
+            }
+
+            try {
+              const values = await github.paginate(github.rest.issues.listComments, {
+                owner, repo, issue_number, per_page: 100
+              });
+              comments = values.map(comment => ({
+                user: comment.user?.login || "",
+                body: comment.body || ""
+              }));
+            } catch {
+              evidenceErrors.push("incident comments unavailable");
+            }
+
+            try {
+              const values = await github.paginate(github.rest.pulls.list, {
+                owner, repo, state: "open", per_page: 100
+              });
+              openPullRequests = values.map(pr => ({
+                head_ref: pr.head?.ref || "",
+                body: pr.body || ""
+              }));
+            } catch {
+              evidenceErrors.push("open pull requests unavailable");
+            }
+
             const record = {
-              trusted_incident:
-                issue.data.state === "open" &&
-                issue.data.title.startsWith("incident:") &&
-                /<!-- incident-run-id:[^>]+-->/.test(body),
-              incident_open: issue.data.state === "open",
-              conclusion: "unknown",
-              investigation_count: investigations.length,
-              decision: "UNKNOWN",
-              confidence: 0,
-              reversible: false,
-              repository_scoped: false,
-              existing_recovery_pr: true,
-              proposed_change: ""
+              issue: {
+                number: issue.number,
+                title: issue.title,
+                state: issue.state,
+                user: issue.user?.login || "",
+                body: issue.body || ""
+              },
+              workflow_run: workflowRun,
+              comments,
+              open_pull_requests: openPullRequests,
+              evidence_errors: evidenceErrors
             };
-
-            fs.writeFileSync("phase8-live-planner-input.json", JSON.stringify(record, null, 2));
+            fs.writeFileSync("phase8-live-planner-input.json", JSON.stringify(record));
             const output = cp.execFileSync(
-              "python",
-              ["scripts/recovery_planner.py", "phase8-live-planner-input.json"],
+              "python3",
+              ["scripts/phase8_live_planner.py", "phase8-live-planner-input.json"],
               { encoding: "utf8" }
             ).trim();
             const result = JSON.parse(output);
             fs.writeFileSync("phase8-live-policy-result.json", JSON.stringify(result, null, 2));
-
+            core.setOutput("status", result.status);
+            core.setOutput("eligible", String(result.eligible));
             await core.summary
               .addHeading("Phase 8 Live Policy Evaluation")
-              .addCodeBlock(JSON.stringify({
-                issue_number,
-                trusted_incident: record.trusted_incident,
-                investigation_count: record.investigation_count,
-                policy_result: result,
-                repository_write_authority: false
-              }, null, 2), "json")
-              .addRaw("\nFail-closed: unproven recovery fields are never inferred from AI prose.")
+              .addCodeBlock(JSON.stringify(result, null, 2), "json")
+              .addRaw("\nRead-only evaluation: no branch, commit, PR, deployment, or rollback was created.")
               .write();
 
-      - name: Upload policy evidence
-        uses: actions/upload-artifact@v4
+      - name: Upload redacted policy result
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: phase8-live-policy-${{ inputs.incident_number }}
-          path: |
-            phase8-live-planner-input.json
-            phase8-live-policy-result.json
+          name: phase8-live-policy-${{ inputs.incident_number }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: phase8-live-policy-result.json
           if-no-files-found: error
           retention-days: 7

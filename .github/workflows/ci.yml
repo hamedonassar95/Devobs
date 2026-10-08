@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      controlled_incident_failure:
+        description: "Intentionally fail after all checks to exercise main-branch Incident Response; this creates an incident and may dispatch the AI investigator."
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -24,6 +30,29 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      - name: Verify Python version and compile scripts and tests
+        run: |
+          python3 - <<'PY'
+          import sys
+
+          if sys.version_info < (3, 10):
+              raise SystemExit("CI requires Python 3.10 or newer.")
+          print(f"Using Python {sys.version.split()[0]}")
+          PY
+          python3 -m compileall -q scripts tests
+
+      - name: Fail if unittest discovery finds no tests
+        run: |
+          python3 - <<'PY'
+          import unittest
+
+          suite = unittest.defaultTestLoader.discover("tests")
+          count = suite.countTestCases()
+          if count == 0:
+              raise SystemExit("Unittest discovery found no tests.")
+          print(f"Discovered {count} unittest cases.")
+          PY
 
       - name: Test the validation guardrails
         run: python3 -m unittest discover -s tests -v
@@ -54,6 +83,12 @@ jobs:
 
       - name: Check page contract and HTTP response
         run: python3 scripts/check_site.py
+
+      - name: Controlled main-branch incident-response drill
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.controlled_incident_failure == true
+        run: |
+          echo "Intentional Phase 8 drill failure after all validation checks; no deployment is triggered."
+          exit 1
 
       - name: Stage isolated PR preview
         if: github.event_name == 'pull_request'
