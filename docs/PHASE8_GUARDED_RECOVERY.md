@@ -74,7 +74,7 @@ Only after Phase 8A is accepted and separately enabled, Devobs may prepare a pat
 
 `recovery/incident-<issue-number>-<short-description>`
 
-Every proposed path must be explicitly approved before patch generation. A safe initial scope is `index.html` and `assets/**`. Workflow, security, test, automation, credential, and infrastructure changes remain maintainer-authored unless a later reviewed policy explicitly expands the allowlist.
+Every proposed path must be explicitly approved before patch generation. The deterministic guard enforces this initial exact allowlist: `index.html` and files beneath `assets/**`. Tests, source code, workflows, security policy, automation, credentials, and infrastructure remain maintainer-authored unless a later reviewed policy explicitly expands the allowlist. The strict guard is a prerequisite only; it does not create a patch or enable the Phase 8B builder.
 
 The builder must never modify branch protection, repository secrets, environments, or production infrastructure credentials. A patch can produce only an unmerged PR for human review.
 
