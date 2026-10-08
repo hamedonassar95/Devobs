@@ -42,9 +42,10 @@ jobs:
               owner, repo, issue_number, per_page: 100
             });
             const trustedBot = "github-actions[bot]";
+            const runMarkers = [...(issue.data.body || "").matchAll(/<!-- incident-run-id:((?:simulation-)?[0-9]+) -->/g)];
             const trustedIssue = issue.data.state === "open" &&
               issue.data.title.startsWith("incident:") &&
-              /<!-- incident-run-id:[^>]+-->/.test(issue.data.body || "") &&
+              runMarkers.length === 1 &&
               issue.data.user?.login === trustedBot;
             const candidates = comments.filter(c => {
               const body = c.body || "";
@@ -57,15 +58,15 @@ jobs:
             });
 
             let contract = { valid: false, reason: "exactly one trusted investigation is required", data: null };
-            if (trustedIssue && candidates.length === 1) {
+            if (trustedIssue && candidates.length === 1 && candidates[0].body.includes("<!-- devobs-investigation-contract:v2 -->")) {
               fs.writeFileSync("investigation-comment.txt", candidates[0].body || "");
               const code = [
-                "import json, pathlib",
+                "import json, pathlib, os",
                 "from scripts.investigation_contract import parse",
-                "r=parse(pathlib.Path('investigation-comment.txt').read_text())",
+                "r=parse(pathlib.Path('investigation-comment.txt').read_text(), expected_incident_number=int(os.environ['TRUSTED_INCIDENT_NUMBER']), expected_run_id=os.environ['TRUSTED_RUN_ID'])",
                 "print(json.dumps({'valid':r.valid,'reason':r.reason,'data':r.data}))"
               ].join("; ");
-              contract = JSON.parse(cp.execFileSync("python", ["-c", code], {encoding:"utf8"}));
+              contract = JSON.parse(cp.execFileSync("python", ["-c", code], {encoding:"utf8", env: {...process.env, TRUSTED_INCIDENT_NUMBER: String(issue_number), TRUSTED_RUN_ID: runMarkers[0][1]}}));
             }
 
             const result = {
