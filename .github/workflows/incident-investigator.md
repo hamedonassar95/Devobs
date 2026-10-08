@@ -246,7 +246,6 @@ Never recommend bypassing protections.
 Choose exactly one:
 
 - `FIX_FORWARD`
-- `ROLLBACK`
 - `MANUAL_REVIEW`
 
 Apply these deterministic constraints:
@@ -254,8 +253,8 @@ Apply these deterministic constraints:
 - If Phase 6 says `FIX_FORWARD`, do not upgrade directly to `ROLLBACK`.
   If evidence strongly conflicts, choose `MANUAL_REVIEW`.
 - If Phase 6 says `MANUAL_REVIEW`, keep `MANUAL_REVIEW`.
-- If Phase 6 says `ROLLBACK_CANDIDATE`, recommend `ROLLBACK` only when evidence
-  supports restoring a known-good state and the rollback runbook applies.
+- If Phase 6 says `ROLLBACK_CANDIDATE`, choose `MANUAL_REVIEW` and describe
+  rollback only as a maintainer-reviewed option.
 - Data migration uncertainty, irreversible external effects, security regression risk,
   or an unknown known-good baseline require `MANUAL_REVIEW`.
 
@@ -318,7 +317,7 @@ Post exactly one comment using this structure:
 
 ### Fix Forward vs Rollback
 
-- **Decision:** `FIX_FORWARD|ROLLBACK|MANUAL_REVIEW`
+- **Decision:** `FIX_FORWARD|MANUAL_REVIEW`
 - **Confidence:** `0.00-1.00`
 - **Reasoning:** ...
 
@@ -339,3 +338,38 @@ No code or configuration was changed, no PR was created, and no rollback was
 executed. A maintainer must explicitly approve the recovery direction before
 any write action.
 ```
+
+## Machine-readable investigation contract — v2
+
+For a trusted incident, include exactly one contract in the same investigation
+comment, immediately before Human Approval Gate. Keep the existing
+`devobs-investigation:v1` provenance marker unchanged.
+
+Add the separate marker `<!-- devobs-investigation-contract:v2 -->`, followed
+by exactly one fenced json block containing exactly these seven keys:
+
+- `incident_number`: verified target issue number as a positive integer.
+- `incident_run_id`: exact string from the trusted incident-run-id marker,
+  including any simulation- prefix.
+- `decision`: `FIX_FORWARD` or `MANUAL_REVIEW`.
+- `confidence`: a numeric value from 0.00 to 1.00, matching the narrative.
+- `reversible`: JSON boolean; true only when established by evidence.
+- `repository_scoped`: JSON boolean; true only when established by evidence.
+- `proposed_change`: nonempty string of at most 500 characters describing the
+  evidence-supported proposal or why human review is required.
+
+Do not emit placeholders, extra keys, duplicate markers, or additional JSON
+fences. The narrative decision must match the contract. If rollback appears
+necessary, use MANUAL_REVIEW and describe rollback only as an option requiring
+maintainer review.
+
+For simulations, conflicting evidence, or inaccessible required evidence,
+choose MANUAL_REVIEW and use false for unestablished scope or reversibility
+flags. Never invent evidence to obtain FIX_FORWARD.
+
+If trust checks pass but evidence is insufficient, produce the single permitted
+MANUAL_REVIEW comment and contract instead of a successful no-op. If policy
+prevents posting, respect it and report the blocker; never bypass restrictions.
+
+This contract grants no recovery authority.
+The final state remains PENDING HUMAN APPROVAL.
