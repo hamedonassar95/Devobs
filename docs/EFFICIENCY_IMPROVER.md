@@ -7,6 +7,12 @@ A measurement-driven agentic workflow adapted from GitHub Next's
 This is a repository automation capability, not a widget added to the public site.
 The first pilot focuses on `index.html` and `assets/**`; observations about CI or
 recovery efficiency stay in the run summary for a separate reviewed change.
+Before editing, the agent records each candidate's evidence, source, affected
+component, paths and dependencies. This applicability gate classifies it as `APPLICABLE`,
+`NOT APPLICABLE` or `BLOCKED`. Only measurable site changes whose dependencies
+fit the allowlist may proceed. External patches are evidence to assess, not code
+to copy; a resulting PR preserves the source URL or commit and explains what was
+adapted.
 
 The manual trigger, 15-minute agent timeout, one draft PR per run, read-only
 agent permissions, protected-file blocking and exclusive patch allowlist are
@@ -60,8 +66,9 @@ of this change. Review the compiled write jobs and patch restrictions before mer
    requires a valid `COPILOT_GITHUB_TOKEN` with Copilot access. Secret presence,
    validity, model access and quota have NOT been verified by this installation.
    Never paste tokens into PRs, issues, reports or chat.
-3. Verify that GitHub Actions is allowed to create pull requests under repository
-   and organization policy. Do not broaden settings preemptively.
+3. The repository owner enabled and saved **Allow GitHub Actions to create and
+   approve pull requests** on 2026-10-08. The default `GITHUB_TOKEN` permissions
+   remain read-only; workflow jobs request only their scoped write permissions.
 4. In Actions select the new Efficiency Improver workflow and Run workflow on main,
    or use `gh aw run efficiency-improver`. It has no automatic schedule.
 5. Inspect the run: no direct main write or deployment, no guardrail changes,
@@ -109,14 +116,17 @@ sets safe-outputs.threat-detection.continue-on-error=false explicitly, so a
 detection failure blocks both safe outputs and memory persistence. Tracking
 issues for detection are disabled; diagnostics remain in the run logs.
 
-GitHub then rejected PR creation because the repository disables Actions-created
-PRs. The framework pushed branch efficiency/minify-index-html-41921c72efec71d4
+GitHub then rejected PR creation because the repository disabled Actions-created
+PRs at that time. The framework pushed branch efficiency/minify-index-html-41921c72efec71d4
 and created fallback Issue #56 despite fallback-as-issue=false. No actual PR was
 created; the agent's noop text claiming creation was premature. The prompt now
 distinguishes requested safe output from a confirmed GitHub PR and excludes
-whitespace-only HTML minification. Repository permissions have not been expanded.
+whitespace-only HTML minification. On 2026-10-08 the repository owner enabled
+and saved the Actions create/approve-PR setting. The connected integration cannot
+read that administrative setting directly, so the owner's settings page is the
+current confirmation source.
 
-Live acceptance remains incomplete. Before another write-capable run, obtain
-explicit approval for the repository-wide Actions create/approve-PR setting,
-resolve or allow the inference rate limit to clear, and verify an actual detector
-result and PR-associated CI checks. Do not infer success from a green job badge.
+Live acceptance remains incomplete. Before another write-capable run, verify the
+Copilot and CI-trigger credentials, resolve or allow the inference rate limit to
+clear, and verify an actual detector result and PR-associated CI checks. Do not
+infer success from a green job badge.
