@@ -8,7 +8,7 @@ def request():
         "planner_status": "ELIGIBLE",
         "branch": "recovery/incident-123-fix-html-check",
         "base_branch": "main",
-        "files": ["index.html", "tests/test_site.py"],
+        "files": ["index.html", "assets/site.css"],
     }
 
 
@@ -39,20 +39,31 @@ class RecoveryPatchGuardTests(unittest.TestCase):
         value["files"] = ["../SECURITY.md"]
         self.assertFalse(evaluate(value).allowed)
 
-    def test_rejects_incident_workflow_mutation(self):
+    def test_allows_nested_assets_paths(self):
         value = request()
-        value["files"] = [".github/workflows/incident-response.yml"]
-        self.assertFalse(evaluate(value).allowed)
+        value["files"] = ["assets/css/site.css", "assets/images/logo.svg"]
+        self.assertTrue(evaluate(value).allowed)
 
-    def test_rejects_lock_workflow_mutation(self):
-        value = request()
-        value["files"] = [".github/workflows/incident-investigator.lock.yml"]
-        self.assertFalse(evaluate(value).allowed)
+    def test_rejects_every_path_outside_initial_allowlist(self):
+        for path in (
+            "tests/test_site.py",
+            "src/app.py",
+            ".github/workflows/incident-response.yml",
+            ".env.production",
+            "SECURITY.md",
+            "assets",
+        ):
+            with self.subTest(path=path):
+                value = request()
+                value["files"] = [path]
+                self.assertFalse(evaluate(value).allowed)
 
-    def test_rejects_secret_like_path(self):
-        value = request()
-        value["files"] = [".env.production"]
-        self.assertFalse(evaluate(value).allowed)
+    def test_rejects_noncanonical_asset_paths(self):
+        for path in ("assets//site.css", "assets/../index.html", "assets/./site.css"):
+            with self.subTest(path=path):
+                value = request()
+                value["files"] = [path]
+                self.assertFalse(evaluate(value).allowed)
 
     def test_rejects_large_patch_scope(self):
         value = request()
