@@ -30,7 +30,7 @@ Every incident run produces a 14-day artifact containing:
 - `incident.json` — machine-readable classification and AI handoff policy;
 - `incident.md` — human-readable incident report;
 - `incident-workflow-run.json` — minimal workflow-run metadata;
-- `incident-jobs.json` — job names, conclusions, timestamps, and links.
+- `incident-jobs.json` — job and step names, conclusions, timestamps, and links; no raw logs.
 
 Raw logs are deliberately excluded from the automatic artifact to reduce accidental exposure of sensitive operational data.
 
@@ -84,6 +84,12 @@ This exercises incident capture and live evidence binding. The recovery planner
 still decides eligibility from the investigation; the drill is not proof of a
 successful recovery unless it produces a valid eligible fix-forward plan. No
 automatic patch, merge, deployment, or rollback is authorized.
+
+Incident Response includes failed step names and conclusions in its minimal evidence.
+When the named controlled-drill step is the CI failure, deterministic triage marks
+the incident as `controlled-drill`, sets severity to `info`, and recommends
+`MANUAL_REVIEW`. The incident issue and AI handoff remain available for audit, but
+the record no longer presents the expected drill failure as a code defect.
 
 
 ## Phase 7 investigator dispatch

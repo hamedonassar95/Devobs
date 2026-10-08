@@ -12,6 +12,7 @@ from typing import Any
 
 UNUSABLE_CONCLUSIONS = {"cancelled", "neutral", "skipped", "stale"}
 FAILURE_CONCLUSIONS = {"failure", "timed_out", "action_required", "startup_failure"}
+CONTROLLED_DRILL_STEP = "Controlled main-branch incident-response drill"
 
 
 def _failed_jobs(jobs: dict[str, Any]) -> list[str]:
@@ -21,6 +22,15 @@ def _failed_jobs(jobs: dict[str, Any]) -> list[str]:
         if conclusion and conclusion not in {"success", "skipped", "neutral"}:
             names.append(job.get("name") or f"job-{job.get('id', 'unknown')}")
     return names
+
+
+def _has_controlled_drill_failure(jobs: dict[str, Any]) -> bool:
+    return any(
+        step.get("name") == CONTROLLED_DRILL_STEP
+        and (step.get("conclusion") or "").lower() in FAILURE_CONCLUSIONS
+        for job in jobs.get("jobs", [])
+        for step in job.get("steps", [])
+    )
 
 
 def build_incident(
@@ -40,7 +50,21 @@ def build_incident(
     action = "MANUAL_REVIEW"
     rationale = "The workflow state is not safe for an automated recovery decision."
 
-    if normalized == "success":
+    controlled_drill = (
+        workflow == "CI"
+        and normalized in FAILURE_CONCLUSIONS
+        and _has_controlled_drill_failure(jobs)
+    )
+
+    if controlled_drill:
+        category = "controlled-drill"
+        severity = "info"
+        action = "MANUAL_REVIEW"
+        rationale = (
+            "The opt-in incident-response drill intentionally failed after validation completed. "
+            "No deployment was triggered; treat this as a test signal, not a code regression."
+        )
+    elif normalized == "success":
         category = "healthy"
         severity = "info"
         action = "NONE"
@@ -82,6 +106,7 @@ def build_incident(
         "run_url": run_url,
         "head_sha": sha,
         "category": category,
+        "controlled_drill": controlled_drill,
         "severity": severity,
         "recommended_action": action,
         "rationale": rationale,
@@ -113,13 +138,16 @@ def render_markdown(incident: dict[str, Any]) -> str:
     failed = incident.get("failed_jobs") or []
     failed_text = "\n".join(f"- `{name}`" for name in failed) or "- None reported"
     rollback = "enabled" if incident["automation_policy"]["allow_automatic_rollback"] else "disabled"
-    return f"""# Automated Incident Triage
+    incident_type = "controlled-drill" if incident.get("controlled_drill") else "workflow-failure"
+    drill_marker = "<!-- incident-mode:controlled-drill -->\n" if incident.get("controlled_drill") else ""
+    return f"""{drill_marker}# Automated Incident Triage
 
 - **Repository:** `{incident['repository']}`
 - **Workflow:** `{incident['workflow']}`
 - **Conclusion:** `{incident['conclusion']}`
 - **Severity:** `{incident['severity']}`
 - **Category:** `{incident['category']}`
+- **Incident type:** `{incident_type}`
 - **Run ID:** `{incident['run_id']}`
 - **Head SHA:** `{incident['head_sha']}`
 - **Run:** {incident['run_url']}
