@@ -24,12 +24,23 @@ def _failed_jobs(jobs: dict[str, Any]) -> list[str]:
     return names
 
 
-def _has_controlled_drill_failure(jobs: dict[str, Any]) -> bool:
-    return any(
-        step.get("name") == CONTROLLED_DRILL_STEP
-        and (step.get("conclusion") or "").lower() in FAILURE_CONCLUSIONS
-        for job in jobs.get("jobs", [])
+def _has_only_controlled_drill_failure(jobs: dict[str, Any]) -> bool:
+    all_jobs = jobs.get("jobs", [])
+    failed_jobs = [
+        job for job in all_jobs
+        if (job.get("conclusion") or "").lower() in FAILURE_CONCLUSIONS
+    ]
+    failed_steps = [
+        (job, step)
+        for job in all_jobs
         for step in job.get("steps", [])
+        if (step.get("conclusion") or "").lower() in FAILURE_CONCLUSIONS
+    ]
+    return (
+        len(failed_jobs) == 1
+        and len(failed_steps) == 1
+        and failed_steps[0][0] is failed_jobs[0]
+        and failed_steps[0][1].get("name") == CONTROLLED_DRILL_STEP
     )
 
 
@@ -53,7 +64,7 @@ def build_incident(
     controlled_drill = (
         workflow == "CI"
         and normalized in FAILURE_CONCLUSIONS
-        and _has_controlled_drill_failure(jobs)
+        and _has_only_controlled_drill_failure(jobs)
     )
 
     if controlled_drill:
@@ -70,6 +81,7 @@ def build_incident(
         action = "NONE"
         rationale = "The monitored workflow completed successfully."
     elif normalized in UNUSABLE_CONCLUSIONS:
+        category = "uncertain"
         rationale = "The run did not produce a trustworthy failure signal; review it manually."
     elif workflow == "CI" and normalized in FAILURE_CONCLUSIONS:
         category = "validation"
@@ -138,7 +150,14 @@ def render_markdown(incident: dict[str, Any]) -> str:
     failed = incident.get("failed_jobs") or []
     failed_text = "\n".join(f"- `{name}`" for name in failed) or "- None reported"
     rollback = "enabled" if incident["automation_policy"]["allow_automatic_rollback"] else "disabled"
-    incident_type = "controlled-drill" if incident.get("controlled_drill") else "workflow-failure"
+    if incident.get("controlled_drill"):
+        incident_type = "controlled-drill"
+    elif incident.get("category") == "healthy":
+        incident_type = "healthy"
+    elif incident.get("category") == "uncertain":
+        incident_type = "uncertain"
+    else:
+        incident_type = "workflow-failure"
     drill_marker = "<!-- incident-mode:controlled-drill -->\n" if incident.get("controlled_drill") else ""
     return f"""{drill_marker}# Automated Incident Triage
 

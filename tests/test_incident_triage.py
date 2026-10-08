@@ -60,8 +60,101 @@ class IncidentTriageTests(unittest.TestCase):
             repository="example/repo",
             jobs={"jobs": []},
         )
+        self.assertEqual(incident["category"], "uncertain")
         self.assertEqual(incident["recommended_action"], "MANUAL_REVIEW")
+        self.assertIn("- **Incident type:** `uncertain`", render_markdown(incident))
         self.assertFalse(incident["automation_policy"]["allow_automatic_rollback"])
+
+    def test_controlled_drill_is_classified_when_it_is_the_only_failure(self):
+        incident = build_incident(
+            workflow="CI",
+            conclusion="failure",
+            run_id="606",
+            sha="ccc333",
+            run_url="https://github.com/example/repo/actions/runs/606",
+            repository="example/repo",
+            jobs={"jobs": [{
+                "name": "validate",
+                "conclusion": "failure",
+                "steps": [
+                    {"name": "Checkout repository", "conclusion": "success"},
+                    {
+                        "name": "Controlled main-branch incident-response drill",
+                        "conclusion": "failure",
+                    },
+                ],
+            }]},
+        )
+        self.assertEqual(incident["category"], "controlled-drill")
+        self.assertTrue(incident["controlled_drill"])
+        self.assertIn("- **Incident type:** `controlled-drill`", render_markdown(incident))
+        self.assertEqual(incident["recommended_action"], "MANUAL_REVIEW")
+
+    def test_additional_failed_step_keeps_ci_failure_as_validation(self):
+        incident = build_incident(
+            workflow="CI",
+            conclusion="failure",
+            run_id="607",
+            sha="ddd444",
+            run_url="https://github.com/example/repo/actions/runs/607",
+            repository="example/repo",
+            jobs={"jobs": [{
+                "name": "validate",
+                "conclusion": "failure",
+                "steps": [
+                    {
+                        "name": "Controlled main-branch incident-response drill",
+                        "conclusion": "failure",
+                    },
+                    {"name": "Post Checkout", "conclusion": "failure"},
+                ],
+            }]},
+        )
+        self.assertFalse(incident["controlled_drill"])
+        self.assertEqual(incident["category"], "validation")
+        self.assertEqual(incident["recommended_action"], "FIX_FORWARD")
+
+    def test_additional_failed_job_keeps_ci_failure_as_validation(self):
+        incident = build_incident(
+            workflow="CI",
+            conclusion="failure",
+            run_id="608",
+            sha="eee555",
+            run_url="https://github.com/example/repo/actions/runs/608",
+            repository="example/repo",
+            jobs={"jobs": [
+                {
+                    "name": "validate",
+                    "conclusion": "failure",
+                    "steps": [{
+                        "name": "Controlled main-branch incident-response drill",
+                        "conclusion": "failure",
+                    }],
+                },
+                {
+                    "name": "lint",
+                    "conclusion": "failure",
+                    "steps": [{"name": "ruff", "conclusion": "failure"}],
+                },
+            ]},
+        )
+        self.assertFalse(incident["controlled_drill"])
+        self.assertEqual(incident["category"], "validation")
+        self.assertEqual(incident["recommended_action"], "FIX_FORWARD")
+
+    def test_successful_report_is_not_labeled_as_workflow_failure(self):
+        incident = build_incident(
+            workflow="CI",
+            conclusion="success",
+            run_id="609",
+            sha="fff666",
+            run_url="https://github.com/example/repo/actions/runs/609",
+            repository="example/repo",
+            jobs={"jobs": [{"name": "validate", "conclusion": "success"}]},
+        )
+        markdown = render_markdown(incident)
+        self.assertIn("- **Incident type:** `healthy`", markdown)
+        self.assertNotIn("- **Incident type:** `workflow-failure`", markdown)
 
     def test_markdown_contains_evidence_and_guardrail(self):
         incident = build_incident(
