@@ -4,11 +4,20 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
 from scripts.phase8_live_planner import evaluate_live
 from scripts.recovery_patch_guard import evaluate as evaluate_patch
+
+
+SECRET_PATTERNS = (
+    re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
+    re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
+    re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,})\b"),
+    re.compile(r"(?i)\b(?:api[_-]?key|client[_-]?secret|password|token)\s*[:=]\s*['\"]?[A-Za-z0-9/+=_-]{20,}"),
+)
 
 
 def prepare(live_record: dict, payload: dict) -> dict:
@@ -35,6 +44,8 @@ def prepare(live_record: dict, payload: dict) -> dict:
         total_bytes += size
         if size > 100_000 or total_bytes > 200_000:
             return {"allowed": False, "status": "DENY", "reason": "patch content exceeds the size limit"}
+        if any(pattern.search(content) for pattern in SECRET_PATTERNS):
+            return {"allowed": False, "status": "DENY", "reason": "patch content resembles a credential or private key"}
         paths.append(path)
         prepared_files.append({"path": path, "content": content})
 
