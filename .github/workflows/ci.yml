@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      controlled_incident_failure:
+        description: "Intentionally fail after all checks to exercise main-branch Incident Response; this creates an incident and may dispatch the AI investigator."
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -77,6 +83,12 @@ jobs:
 
       - name: Check page contract and HTTP response
         run: python3 scripts/check_site.py
+
+      - name: Controlled main-branch incident-response drill
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.controlled_incident_failure == true
+        run: |
+          echo "Intentional Phase 8 drill failure after all validation checks; no deployment is triggered."
+          exit 1
 
       - name: Stage isolated PR preview
         if: github.event_name == 'pull_request'
