@@ -1,0 +1,193 @@
+name: Phase 8B Isolated Patch Publisher
+
+on:
+  workflow_dispatch:
+    inputs:
+      incident_number:
+        description: Open incident issue number with a currently eligible Phase 8A plan
+        required: true
+        type: string
+      patch_json:
+        description: JSON object containing files with path and content fields; contents are reviewed as data, never executed
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  issues: read
+  actions: read
+  pull-requests: write
+
+concurrency:
+  group: phase8b-patch-${{ github.repository }}-${{ inputs.incident_number }}
+  cancel-in-progress: false
+
+jobs:
+  prepare-review-pr:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Validate dispatch input
+        shell: bash
+        env:
+          INCIDENT_NUMBER: ${{ inputs.incident_number }}
+          PATCH_JSON: ${{ inputs.patch_json }}
+        run: |
+          set -euo pipefail
+          [[ "$INCIDENT_NUMBER" =~ ^[1-9][0-9]*$ ]] || {
+            echo "::error::incident_number must be a positive integer"
+            exit 1
+          }
+          [[ ${#PATCH_JSON} -le 60000 ]] || {
+            echo "::error::patch_json exceeds 60000 characters"
+            exit 1
+          }
+          python3 -c 'import json, os; json.loads(os.environ["PATCH_JSON"])'
+
+      - name: Collect live evidence and validate patch
+        id: preflight
+        uses: actions/github-script@v8
+        env:
+          INCIDENT_NUMBER: ${{ inputs.incident_number }}
+          PATCH_JSON: ${{ inputs.patch_json }}
+        with:
+          script: |
+            const fs = require("fs");
+            const cp = require("child_process");
+            const issue_number = Number(process.env.INCIDENT_NUMBER);
+            const { owner, repo } = context.repo;
+            const issue = (await github.rest.issues.get({ owner, repo, issue_number })).data;
+            const evidenceErrors = [];
+            let workflowRun = null;
+            let comments = null;
+            let openPullRequests = null;
+            const markers = [...(issue.body || "").matchAll(/<!-- incident-run-id:([^\s]+) -->/g)]
+              .map(match => match[1]);
+            if (markers.length === 1 && /^[1-9][0-9]*$/.test(markers[0]) &&
+                Number.isSafeInteger(Number(markers[0]))) {
+              const runId = Number(markers[0]);
+              try {
+                const response = await github.rest.actions.getWorkflowRun({ owner, repo, run_id: runId });
+                const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun,
+                  { owner, repo, run_id: runId, per_page: 100 });
+                workflowRun = {
+                  id: response.data.id, name: response.data.name,
+                  status: response.data.status, conclusion: response.data.conclusion,
+                  head_branch: response.data.head_branch, head_sha: response.data.head_sha,
+                  jobs: jobs.map(job => ({ name: job.name, conclusion: job.conclusion }))
+                };
+              } catch {
+                evidenceErrors.push("source workflow run or jobs unavailable");
+              }
+            }
+            try {
+              const values = await github.paginate(github.rest.issues.listComments,
+                { owner, repo, issue_number, per_page: 100 });
+              comments = values.map(item => ({ user: item.user?.login || "", body: item.body || "" }));
+            } catch {
+              evidenceErrors.push("incident comments unavailable");
+            }
+            try {
+              const values = await github.paginate(github.rest.pulls.list,
+                { owner, repo, state: "open", per_page: 100 });
+              openPullRequests = values.map(pr => ({ head_ref: pr.head?.ref || "", body: pr.body || "" }));
+            } catch {
+              evidenceErrors.push("open pull requests unavailable");
+            }
+            const record = {
+              issue: {
+                number: issue.number, title: issue.title, state: issue.state,
+                user: issue.user?.login || "", body: issue.body || ""
+              },
+              workflow_run: workflowRun,
+              comments,
+              open_pull_requests: openPullRequests,
+              evidence_errors: evidenceErrors
+            };
+            fs.writeFileSync("phase8b-live-evidence.json", JSON.stringify(record));
+            fs.writeFileSync("phase8b-patch-input.json", process.env.PATCH_JSON);
+            const raw = cp.execFileSync("python3", [
+              "scripts/phase8b_prepare_patch.py",
+              "phase8b-live-evidence.json",
+              "phase8b-patch-input.json"
+            ], { encoding: "utf8" }).trim();
+            const prepared = JSON.parse(raw);
+            if (!prepared.allowed) {
+              core.setFailed(`Phase 8B denied: ${prepared.reason}`);
+              return;
+            }
+            fs.writeFileSync("phase8b-prepared-patch.json", JSON.stringify(prepared));
+            core.setOutput("branch", prepared.branch);
+            core.setOutput("file_count", String(prepared.files.length));
+            const safePaths = JSON.stringify(prepared.files.map(file => file.path))
+              .replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" })[char]);
+            await core.summary.addHeading("Phase 8B Patch Preflight")
+              .addRaw(`Live plan: ELIGIBLE for issue #${prepared.incident_number} / run ${prepared.run_id}.<br>`)
+              .addRaw(`Approved paths: ${safePaths}<br>`)
+              .addRaw("The patch payload is treated as data. No payload content is executed.<br>")
+              .addRaw("Next action creates one isolated branch and an unmerged PR; CI must verify the PR head.")
+              .write();
+
+      - name: Create isolated commit and human-review PR
+        if: steps.preflight.outputs.branch != ''
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require("fs");
+            const prepared = JSON.parse(fs.readFileSync("phase8b-prepared-patch.json", "utf8"));
+            const { owner, repo } = context.repo;
+            const branch = prepared.branch;
+            const base = (await github.rest.git.getRef({ owner, repo, ref: "heads/main" })).data.object.sha;
+            const commit = (await github.rest.repos.getCommit({ owner, repo, ref: base })).data;
+            const blobs = await Promise.all(prepared.files.map(async file => {
+              const blob = await github.rest.git.createBlob({
+                owner, repo, content: file.content, encoding: "utf-8"
+              });
+              return { path: file.path, mode: "100644", type: "blob", sha: blob.data.sha };
+            }));
+            const tree = await github.rest.git.createTree({
+              owner, repo, base_tree: commit.commit.tree.sha, tree: blobs
+            });
+            const newCommit = await github.rest.git.createCommit({
+              owner, repo,
+              message: `recovery: prepare isolated patch for incident #${prepared.incident_number}`,
+              tree: tree.data.sha,
+              parents: [base]
+            });
+            await github.rest.git.createRef({
+              owner, repo, ref: `refs/heads/${branch}`, sha: newCommit.data.sha
+            });
+            try {
+              const files = JSON.stringify(prepared.files.map(file => file.path))
+                .replace(/[&<>]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[char])
+                .replace(/\x60/g, "&#96;");
+              const body = [
+                "## Guarded recovery candidate",
+                "",
+                `- Incident: #${prepared.incident_number}`,
+                `- Source run: ${prepared.run_id}`,
+                "- Root-cause evidence: see the trusted, run-bound investigator comment on the incident.",
+                `- Files: ${files}`,
+                "- Tests: pending CI on this PR head SHA.",
+                "- Uncertainty: patch content was supplied as data at manual dispatch and requires maintainer review.",
+                "- Rollback: no production action was taken; revert this PR if approved changes cause regressions.",
+                "",
+                "This PR is unmerged and remains **PENDING HUMAN APPROVAL**."
+              ].join("\n");
+              const pr = await github.rest.pulls.create({
+                owner, repo, head: branch, base: "main",
+                title: `[RECOVERY] Incident #${prepared.incident_number}: reviewed patch`,
+                body,
+                maintainer_can_modify: true
+              });
+              core.notice(`Created human-review PR #${pr.data.number}; no merge or deployment was performed.`);
+            } catch (error) {
+              try { await github.rest.git.deleteRef({ owner, repo, ref: `heads/${branch}` }); } catch {}
+              throw error;
+            }

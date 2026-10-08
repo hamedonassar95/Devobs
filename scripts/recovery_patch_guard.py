@@ -9,18 +9,10 @@ import re
 from dataclasses import asdict, dataclass
 from pathlib import PurePosixPath
 
-PROTECTED_EXACT = {
-    ".github/workflows/rollback-pages.yml",
-    ".github/workflows/incident-response.yml",
-    ".github/workflows/incident-investigator.md",
-    ".github/workflows/incident-investigator.lock.yml",
-    "SECURITY.md",
-}
-PROTECTED_PREFIXES = (".git/", ".github/ISSUE_TEMPLATE/")
-SECRET_PATTERNS = (
-    re.compile(r"(^|/)(\.env|\.env\..+)$"),
-    re.compile(r"(^|/).*(secret|credential|private[_-]?key).*$", re.I),
-)
+# Phase 8B's initial allowlist is intentionally narrow. Expand only through a
+# separately reviewed policy change.
+ALLOWED_EXACT = {"index.html"}
+ALLOWED_PREFIXES = ("assets/",)
 BRANCH_RE = re.compile(r"^recovery/incident-[1-9][0-9]*-[a-z0-9][a-z0-9-]{0,47}$")
 
 
@@ -36,9 +28,19 @@ def _safe_path(raw: object) -> str | None:
     if not isinstance(raw, str) or not raw or "\\" in raw or raw.startswith("/"):
         return None
     path = PurePosixPath(raw)
-    if ".." in path.parts or "." in path.parts:
+    normalized = str(path)
+    if raw != normalized or ".." in path.parts or "." in path.parts:
         return None
-    return str(path)
+    if any(ord(char) < 32 or ord(char) == 127 for char in raw):
+        return None
+    return normalized
+
+
+def _allowlisted(path: str) -> bool:
+    return path in ALLOWED_EXACT or any(
+        path.startswith(prefix) and len(path) > len(prefix)
+        for prefix in ALLOWED_PREFIXES
+    )
 
 
 def evaluate(request: dict) -> PatchDecision:
@@ -64,10 +66,8 @@ def evaluate(request: dict) -> PatchDecision:
         path = _safe_path(raw)
         if path is None:
             return PatchDecision(False, "DENY", f"unsafe path: {raw!r}")
-        if path in PROTECTED_EXACT or path.startswith(PROTECTED_PREFIXES):
-            return PatchDecision(False, "DENY", f"protected path: {path}")
-        if any(pattern.search(path) for pattern in SECRET_PATTERNS):
-            return PatchDecision(False, "DENY", f"sensitive path: {path}")
+        if not _allowlisted(path):
+            return PatchDecision(False, "DENY", f"path is outside the approved allowlist: {path}")
         normalized.append(path)
 
     if len(set(normalized)) != len(normalized):
