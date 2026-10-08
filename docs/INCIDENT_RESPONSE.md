@@ -66,6 +66,25 @@ Run **Incident Response** manually from GitHub Actions with:
 
 Expected result: the workflow succeeds, creates an incident artifact and summary with `ROLLBACK_CANDIDATE`, and does **not** create a GitHub issue or alter production.
 
+## Main-branch incident drill for Phase 8
+
+CI provides an opt-in `controlled_incident_failure` input, disabled by default. To
+exercise the real `workflow_run` route, an authorized maintainer selects the
+`main` branch in **Actions → CI → Run workflow** and enables that input. CI runs
+its normal checks first, then exits with an intentional failure. Do not create a
+failing site commit or bypass branch protection.
+
+This produces a completed CI failure bound to a real `main` SHA. Incident Response
+may create an incident issue and dispatch the Copilot investigator, which can
+consume configured AI quota. The failed CI run does not deploy: Deploy Pages only
+runs after successful CI. Confirm the investigator credentials and quota before
+starting the drill.
+
+This exercises incident capture and live evidence binding. The recovery planner
+still decides eligibility from the investigation; the drill is not proof of a
+successful recovery unless it produces a valid eligible fix-forward plan. No
+automatic patch, merge, deployment, or rollback is authorized.
+
 
 ## Phase 7 investigator dispatch
 
