@@ -86,10 +86,13 @@ successful recovery unless it produces a valid eligible fix-forward plan. No
 automatic patch, merge, deployment, or rollback is authorized.
 
 Incident Response includes failed step names and conclusions in its minimal evidence.
-When the named controlled-drill step is the CI failure, deterministic triage marks
-the incident as `controlled-drill`, sets severity to `info`, and recommends
-`MANUAL_REVIEW`. The incident issue and AI handoff remain available for audit, but
-the record no longer presents the expected drill failure as a code defect.
+Deterministic triage marks a CI run as `controlled-drill` only when the named drill
+step is the sole failed step and belongs to the sole failed job. The incident is
+then assigned `info` severity and `MANUAL_REVIEW`; any additional failed step or
+job keeps the normal CI failure classification. The incident issue and AI handoff
+remain available for audit, but the expected drill failure is not presented as a
+code defect. Reports also label successful runs as `healthy` and cancelled or
+otherwise unusable runs as `uncertain`.
 
 
 ## Phase 7 investigator dispatch
