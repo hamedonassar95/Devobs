@@ -48,6 +48,7 @@ def live_record():
             "conclusion": "failure",
             "head_branch": "main",
             "head_sha": SHA,
+            "jobs": [{"name": "validate", "conclusion": "failure"}],
         },
         "comments": [investigation()],
         "open_pull_requests": [],
@@ -60,10 +61,12 @@ class LiveRecoveryPlannerTests(unittest.TestCase):
         result = evaluate_live(live_record())
         self.assertTrue(result["eligible"])
         self.assertEqual(result["status"], "ELIGIBLE")
-        self.assertEqual(result["branch"], "recovery/incident-73-repair-site-validation")
-        self.assertEqual(result["files_to_change"], [])
+        self.assertEqual(result["proposal"]["branch"], "recovery/incident-73-repair-site-validation")
+        self.assertEqual(result["proposal"]["files_to_change"], [])
+        self.assertIn("python3 -m unittest discover -s tests -v", result["proposal"]["recommended_tests"])
         self.assertFalse(result["repository_write_authority"])
         self.assertEqual(result["final_state"], "PENDING HUMAN APPROVAL")
+        self.assertEqual(result["evidence"]["failed_jobs"], ["validate"])
 
     def test_simulated_incident_is_rejected(self):
         record = live_record()
