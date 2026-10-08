@@ -29,7 +29,7 @@ on:
           await evaluateLiveIncident({ github, context, core });
 if: github.ref == 'refs/heads/main' && needs.pre_activation.outputs.eligible == 'true'
 concurrency:
-  group: phase8b-ai-recovery-${{ github.repository }}-${{ inputs.incident_number }}
+  group: phase8b-patch-${{ github.repository }}-${{ inputs.incident_number }}
   cancel-in-progress: false
   job-discriminator: "${{ inputs.incident_number }}"
 jobs:
@@ -37,6 +37,8 @@ jobs:
     outputs:
       eligible: ${{ steps.live_policy.outputs.eligible }}
   safe_outputs:
+    permissions:
+      actions: read
     pre-steps:
       - name: Checkout trusted policy and guard code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -65,6 +67,7 @@ safe-outputs:
     max: 1
     draft: true
     title-prefix: "[RECOVERY] "
+    branch-prefix: "recovery/incident-${{ inputs.incident_number }}-"
     protected-files: blocked
     allowed-files:
       - index.html
