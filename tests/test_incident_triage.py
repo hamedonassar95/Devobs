@@ -62,7 +62,7 @@ class IncidentTriageTests(unittest.TestCase):
         )
         self.assertEqual(incident["category"], "uncertain")
         self.assertEqual(incident["recommended_action"], "MANUAL_REVIEW")
-        self.assertIn("Incident type: `uncertain`", render_markdown(incident))
+        self.assertIn("- **Incident type:** `uncertain`", render_markdown(incident))
         self.assertFalse(incident["automation_policy"]["allow_automatic_rollback"])
 
     def test_controlled_drill_is_classified_when_it_is_the_only_failure(self):
@@ -152,8 +152,8 @@ class IncidentTriageTests(unittest.TestCase):
             jobs={"jobs": [{"name": "validate", "conclusion": "success"}]},
         )
         markdown = render_markdown(incident)
-        self.assertIn("Incident type: `healthy`", markdown)
-        self.assertNotIn("Incident type: `workflow-failure`", markdown)
+        self.assertIn("- **Incident type:** `healthy`", markdown)
+        self.assertNotIn("- **Incident type:** `workflow-failure`", markdown)
 
     def test_markdown_contains_evidence_and_guardrail(self):
         incident = build_incident(
