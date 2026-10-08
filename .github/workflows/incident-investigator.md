@@ -127,6 +127,9 @@ safe-outputs:
     target: "${{ github.event.issue.number || inputs.issue_number }}"
     required-title-prefix: "incident:"
     max: 1
+  missing-data: false
+  noop: false
+  report-incomplete: false
 
 engine: copilot
 model: gpt-4.1
@@ -167,6 +170,12 @@ You MUST NOT:
 
 Your only permitted write is the single safe-output comment on this incident issue.
 If evidence is conflicting or insufficient, choose `MANUAL_REVIEW`.
+Every incident that passes the deterministic trust gates must receive exactly one
+`add_comment` report, including incidents whose decision is `MANUAL_REVIEW` or whose
+evidence is incomplete. For incomplete evidence, describe what is missing in the
+report instead of replacing the report with another safe-output action. Do not use
+`noop`, `missing_data`, or `report_incomplete` as substitutes for the required report.
+Do not say that a comment was posted until the `add_comment` call succeeds.
 
 ## 1. Establish trusted incident facts
 
@@ -293,7 +302,9 @@ State explicitly:
 
 ## Required safe-output comment
 
-Post exactly one comment using this structure:
+After completing the investigation, call `add_comment` exactly once on the configured
+target incident issue. This is required even when the result is `MANUAL_REVIEW`.
+Post the comment using this structure:
 
 ```markdown
 <!-- devobs-investigation:v1 -->

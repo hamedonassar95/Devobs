@@ -35,3 +35,25 @@ class IncidentGuardTests(unittest.TestCase):
         self.assertIn("needs.pre_activation.outputs.eligible == 'true'", lock)
         self.assertIn('await incidentGuard({ github, context, core }, true);', lock)
         self.assertIn('cancel-in-progress: false', lock)
+
+    def test_eligible_investigation_requires_comment_without_noop_fallback(self):
+        workflow = (ROOT / '.github/workflows/incident-investigator.md').read_text()
+        lock = (ROOT / '.github/workflows/incident-investigator.lock.yml').read_text()
+        frontmatter = workflow.split('---', 2)[1]
+        prompt = workflow.split('---', 2)[2]
+
+        self.assertIn('add-comment:', frontmatter)
+        self.assertIn('max: 1', frontmatter)
+        self.assertIn('missing-data: false', frontmatter)
+        self.assertIn('noop: false', frontmatter)
+        self.assertIn('report-incomplete: false', frontmatter)
+        self.assertIn('Every incident that passes the deterministic trust gates must receive exactly one', prompt)
+        self.assertIn('call `add_comment` exactly once', prompt)
+        self.assertIn('Do not say that a comment was posted until the `add_comment` call succeeds.', prompt)
+
+        self.assertIn('Tools: add_comment, missing_tool', lock)
+        self.assertIn('GH_AW_SAFE_OUTPUTS_CONFIG:', lock)
+        self.assertIn('\\"add_comment\\"', lock)
+        self.assertNotIn('"noop":', lock)
+        self.assertNotIn('"missing_data":', lock)
+        self.assertNotIn('"report_incomplete":', lock)
