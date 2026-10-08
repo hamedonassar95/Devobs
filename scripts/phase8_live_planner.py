@@ -15,7 +15,6 @@ BOT = "github-actions[bot]"
 MONITORED_WORKFLOWS = {"CI", "Deploy Pages", "Deployment Health Check"}
 RUN_MARKER = re.compile(r"<!-- incident-run-id:([0-9]+) -->")
 SHA_LINE = re.compile(r"- \*\*Head SHA:\*\* `([0-9a-f]{40})`")
-RECOVERY_BRANCH = re.compile(r"^recovery/incident-([1-9][0-9]*)-[a-z0-9][a-z0-9-]{0,47}$")
 REQUIRED_CHECKS = [
     "validate",
     "CodeQL",
@@ -28,8 +27,11 @@ REQUIRED_CHECKS = [
 def _result(status: str, reason: str, *, evidence: dict | None = None,
             risk: str = "unknown", proposal: dict | None = None) -> dict:
     proposal = proposal or {}
+    eligible = status == "ELIGIBLE"
     return {
-        "eligible": status == "ELIGIBLE",
+        "eligible": eligible,
+        "eligible_for_phase8a": eligible,
+        "phase8b_authorized": False,
         "status": status,
         "reason": reason,
         "risk": risk,
@@ -38,6 +40,7 @@ def _result(status: str, reason: str, *, evidence: dict | None = None,
         "proposal": {
             "branch": proposal.get("branch"),
             "pr_title": proposal.get("pr_title"),
+            "recommended_tests": proposal.get("recommended_tests", []),
             "files_to_change": [],
             "files_note": "Phase 8A authorizes no paths. Phase 8B requires a separately approved allowlist.",
             "required_checks": REQUIRED_CHECKS,
@@ -132,14 +135,15 @@ def evaluate_live(record: dict) -> dict:
     if not isinstance(recovery_prs, list):
         return _result("NOT_ELIGIBLE", "open recovery PR status is unknown", evidence=evidence)
     existing = False
+    branch_prefix = f"recovery/incident-{incident_number}-"
+    branch_exact = f"recovery/incident-{incident_number}"
+    marker = f"<!-- devobs-recovery-incident:{incident_number} -->"
     for pr in recovery_prs:
         if not isinstance(pr, dict):
             return _result("NOT_ELIGIBLE", "open PR evidence is malformed", evidence=evidence)
         branch = pr.get("head_ref", "")
         pr_body = pr.get("body", "") or ""
-        branch_match = RECOVERY_BRANCH.fullmatch(branch) if isinstance(branch, str) else None
-        marker = f"<!-- devobs-recovery-incident:{incident_number} -->"
-        if (branch_match and branch_match.group(1) == str(incident_number)) or marker in pr_body:
+        if (isinstance(branch, str) and (branch == branch_exact or branch.startswith(branch_prefix))) or marker in pr_body:
             existing = True
             break
 
