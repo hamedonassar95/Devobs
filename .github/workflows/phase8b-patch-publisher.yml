@@ -24,7 +24,7 @@ concurrency:
 
 jobs:
   prepare-review-pr:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -67,7 +67,7 @@ jobs:
             let workflowRun = null;
             let comments = null;
             let openPullRequests = null;
-            const markers = [...(issue.body || "").matchAll(/<!-- incident-run-id:([^\\s]+) -->/g)]
+            const markers = [...(issue.body || "").matchAll(/<!-- incident-run-id:([^\s]+) -->/g)]
               .map(match => match[1]);
             if (markers.length === 1 && /^[1-9][0-9]*$/.test(markers[0]) &&
                 Number.isSafeInteger(Number(markers[0]))) {
@@ -125,9 +125,11 @@ jobs:
             fs.writeFileSync("phase8b-prepared-patch.json", JSON.stringify(prepared));
             core.setOutput("branch", prepared.branch);
             core.setOutput("file_count", String(prepared.files.length));
+            const safePaths = JSON.stringify(prepared.files.map(file => file.path))
+              .replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" })[char]);
             await core.summary.addHeading("Phase 8B Patch Preflight")
               .addRaw(`Live plan: ELIGIBLE for issue #${prepared.incident_number} / run ${prepared.run_id}.<br>`)
-              .addRaw(`Approved paths: ${JSON.stringify(prepared.files.map(file => file.path))}<br>`)
+              .addRaw(`Approved paths: ${safePaths}<br>`)
               .addRaw("The patch payload is treated as data. No payload content is executed.<br>")
               .addRaw("Next action creates one isolated branch and an unmerged PR; CI must verify the PR head.")
               .write();
@@ -162,7 +164,9 @@ jobs:
               owner, repo, ref: `refs/heads/${branch}`, sha: newCommit.data.sha
             });
             try {
-              const files = JSON.stringify(prepared.files.map(file => file.path));
+              const files = JSON.stringify(prepared.files.map(file => file.path))
+                .replace(/[&<>]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[char])
+                .replace(/\x60/g, "&#96;");
               const body = [
                 "## Guarded recovery candidate",
                 "",
