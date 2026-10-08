@@ -74,7 +74,9 @@ Only after Phase 8A is accepted and separately enabled, Devobs may prepare a pat
 
 `recovery/incident-<issue-number>-<short-description>`
 
-Every proposed path must be explicitly approved before patch generation. The deterministic guard enforces this initial exact allowlist: `index.html` and files beneath `assets/**`. Tests, source code, workflows, security policy, automation, credentials, and infrastructure remain maintainer-authored unless a later reviewed policy explicitly expands the allowlist. The strict guard is a prerequisite only; it does not create a patch or enable the Phase 8B builder.
+Every proposed path must be explicitly approved before patch generation. The deterministic guard enforces this initial exact allowlist: `index.html` and files beneath `assets/**`. Tests, source code, workflows, security policy, automation, credentials, and infrastructure remain maintainer-authored unless a later reviewed policy explicitly expands the allowlist.
+
+The manually triggered publisher rechecks the live Phase 8A evidence immediately before use, accepts a JSON patch payload, rejects content that resembles common credential formats, creates one isolated commit and an unmerged PR, and leaves CI to verify that exact PR head. It runs only from `main`; its workflow token has write access only to contents and pull requests. It never merges, deploys, or rolls back. Dispatch payloads are visible in GitHub Actions metadata, so they must not contain secrets. Patch contents are operator supplied; this version does not generate code with a language model. A model-backed patch generator needs a separately reviewed provider, credential, and prompt-injection design.
 
 The builder must never modify branch protection, repository secrets, environments, or production infrastructure credentials. A patch can produce only an unmerged PR for human review.
 
