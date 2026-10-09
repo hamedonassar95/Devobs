@@ -394,5 +394,3 @@ No code or configuration was changed, no PR was created, and no rollback was
 executed. A maintainer must explicitly approve the recovery direction before
 any write action.
 ```
-Human review completed
-
