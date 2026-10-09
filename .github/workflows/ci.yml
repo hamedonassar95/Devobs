@@ -141,3 +141,5 @@ jobs:
             echo 'Extract the ZIP and open index.html locally. This is not a hosted preview URL.'
             echo 'The preview is retained for 7 days and has no production deployment permissions.'
           } >> "$GITHUB_STEP_SUMMARY"
+          Human review completed
+
