@@ -1,6 +1,8 @@
 {
   "schema_version": 1,
   "rail_template": {
+    "device_model": null,
+    "board_revision": null,
     "name": null,
     "target_effort": {
       "value": null,
@@ -8,7 +10,8 @@
     },
     "resistance": {
       "value": null,
-      "unit": null
+      "unit": null,
+      "measurement_condition": null
     },
     "tolerance_range": {
       "min": null,

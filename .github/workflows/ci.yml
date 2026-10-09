@@ -59,6 +59,9 @@ jobs:
       - name: Test the validation guardrails
         run: python3 -m unittest discover -s tests -v
 
+      - name: Test hardware rail reference data
+        run: python3 -m unittest discover -s tests -p 'test_hardware_rails.py' -v
+
       - name: Test incident idempotency and duplicate guards
         run: node --test tests/incident_guard.test.cjs
 
