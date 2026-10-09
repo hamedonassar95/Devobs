@@ -186,3 +186,4 @@ jobs:
             -f issue_number="$ISSUE_NUMBER"
 
           echo "Dispatched Copilot investigator for issue #$ISSUE_NUMBER." >> "$GITHUB_STEP_SUMMARY"
+Human review completed
