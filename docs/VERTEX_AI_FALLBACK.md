@@ -84,3 +84,4 @@ If the issue already has an investigation comment, the trust gate skips the
 fallback. Vertex AI has separate billing and quotas from Copilot; enabling it
 provides another inference path but does not guarantee the Google service will
 never rate-limit requests.
+Human review completed
