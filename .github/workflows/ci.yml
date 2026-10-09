@@ -5,6 +5,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
     inputs:
       controlled_incident_failure:
@@ -15,6 +16,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -29,6 +31,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Verify Python version and compile scripts and tests
@@ -57,6 +60,9 @@ jobs:
       - name: Test the validation guardrails
         run: python3 -m unittest discover -s tests -v
 
+      - name: Test hardware rail reference data
+        run: python3 -m unittest discover -s tests -p 'test_hardware_rails.py' -v
+
       - name: Test incident idempotency and duplicate guards
         run: node --test tests/incident_guard.test.cjs
 
@@ -83,6 +89,19 @@ jobs:
 
       - name: Check page contract and HTTP response
         run: python3 scripts/check_site.py
+
+      - name: Static analysis with Bandit
+        run: |
+          python3 -m pip install --disable-pip-version-check bandit==1.9.4
+          # check_site.py fetches only the local HTTP server started by the check above;
+          # Bandit reports that localhost URL as B310, so keep that helper out of the app scan.
+          python3 -m bandit -r scripts -x scripts/check_site.py
+
+      - name: Scan commits for leaked secrets with Gitleaks
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: "false"
 
       - name: Controlled main-branch incident-response drill
         if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.controlled_incident_failure == true
