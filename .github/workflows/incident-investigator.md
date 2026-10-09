@@ -115,6 +115,50 @@ jobs:
             }
             await incidentGuard({ github, context, core }, true);
 
+post-steps:
+  - name: Verify required incident report output
+    env:
+      GH_AW_SAFE_OUTPUTS: ${{ runner.temp }}/gh-aw/safeoutputs/outputs.jsonl
+    run: |
+      python3 - <<'PY'
+      import json
+      import os
+      import sys
+      from pathlib import Path
+
+      output_path = Path(os.environ["GH_AW_SAFE_OUTPUTS"])
+      try:
+          lines = output_path.read_text(encoding="utf-8").splitlines()
+      except OSError as error:
+          print(f"::error::Incident report output is unavailable: {error}")
+          sys.exit(1)
+
+      items = []
+      try:
+          items = [json.loads(line) for line in lines if line.strip()]
+      except json.JSONDecodeError as error:
+          print(f"::error::Incident report output is invalid JSONL: {error}")
+          sys.exit(1)
+
+      if any(not isinstance(item, dict) for item in items):
+          print("::error::Incident report output contains a non-object item.")
+          sys.exit(1)
+
+      comments = [item for item in items if item.get("type") == "add_comment"]
+      if len(comments) != 1:
+          print("::error::The investigation did not emit exactly one safe incident report comment.")
+          sys.exit(1)
+
+      body = comments[0].get("body", "")
+      if (
+          not isinstance(body, str)
+          or "<!-- devobs-investigation:v1 -->" not in body
+          or "## AI Incident Investigation" not in body
+      ):
+          print("::error::The safe comment output does not contain the required incident report markers.")
+          sys.exit(1)
+      PY
+
 permissions:
   actions: read
   contents: read

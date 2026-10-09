@@ -1,8 +1,11 @@
 """Run the real JS gate tests and verify the workflow embeds the tested code."""
-from pathlib import Path
-import subprocess
+import json
+import os
 import re
+import subprocess
+import tempfile
 import unittest
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -57,3 +60,52 @@ class IncidentGuardTests(unittest.TestCase):
         self.assertNotIn('"noop":', lock)
         self.assertNotIn('"missing_data":', lock)
         self.assertNotIn('"report_incomplete":', lock)
+
+    def test_missing_published_comment_fails_the_workflow(self):
+        workflow = (ROOT / '.github/workflows/incident-investigator.md').read_text()
+        lock = (ROOT / '.github/workflows/incident-investigator.lock.yml').read_text()
+
+        self.assertIn('post-steps:', workflow)
+        self.assertIn('Verify required incident report output', workflow)
+        self.assertIn('exactly one safe incident report comment', workflow)
+        self.assertIn('<!-- devobs-investigation:v1 -->', workflow)
+        self.assertIn('## AI Incident Investigation', workflow)
+
+        self.assertIn('Verify required incident report output', lock)
+        self.assertIn('exactly one safe incident report comment', lock)
+        self.assertIn('<!-- devobs-investigation:v1 -->', lock)
+        self.assertIn('## AI Incident Investigation', lock)
+
+    def test_publication_postcondition_accepts_one_report_and_rejects_noop(self):
+        workflow = (ROOT / '.github/workflows/incident-investigator.md').read_text()
+        frontmatter = workflow.split('---', 2)[1]
+        post_steps = frontmatter.split('post-steps:', 1)[1].split('\npermissions:', 1)[0]
+        self.assertIn('    run: |\n', post_steps)
+        raw_script = post_steps.split('    run: |\n', 1)[1]
+        script_lines = []
+        for line in raw_script.splitlines():
+            if line.startswith('      '):
+                script_lines.append(line[6:])
+            elif line.strip():
+                break
+            else:
+                script_lines.append('')
+        run_script = '\n'.join(script_lines)
+        body = '<!-- devobs-investigation:v1 -->\n## AI Incident Investigation\n'
+
+        with tempfile.TemporaryDirectory() as directory:
+            output_path = Path(directory) / 'outputs.jsonl'
+            env = {**os.environ, 'GH_AW_SAFE_OUTPUTS': str(output_path)}
+
+            output_path.write_text(json.dumps({'type': 'add_comment', 'body': body}) + '\n')
+            valid = subprocess.run(
+                ['bash', '-e', '-c', run_script], env=env, text=True, capture_output=True,
+            )
+            self.assertEqual(valid.returncode, 0, valid.stdout + valid.stderr)
+
+            output_path.write_text(json.dumps({'type': 'noop', 'message': 'see comment'}) + '\n')
+            missing = subprocess.run(
+                ['bash', '-e', '-c', run_script], env=env, text=True, capture_output=True,
+            )
+            self.assertNotEqual(missing.returncode, 0)
+            self.assertIn('exactly one safe incident report comment', missing.stdout)
