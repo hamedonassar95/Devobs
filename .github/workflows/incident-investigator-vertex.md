@@ -1,13 +1,10 @@
 ---
 description: |
-  Investigates trusted Devobs incident issues created by the production incident-response
-  workflow. Produces evidence-backed root-cause hypotheses, confidence scores,
-  recommended tests, a fix-forward vs rollback recommendation, and a proposed
-  recovery plan for human approval. Never performs recovery actions.
+  Manually invoked Vertex AI fallback for a trusted Devobs incident when the
+  primary Copilot investigator cannot complete. Produces an evidence-backed
+  report for human review and never performs recovery actions.
 
 on:
-  issues:
-    types: [opened]
   workflow_dispatch:
     inputs:
       issue_number:
@@ -120,6 +117,7 @@ permissions:
   contents: read
   issues: read
   pull-requests: read
+  id-token: write
 
 safe-outputs:
   report-failure-as-issue: false
@@ -130,14 +128,28 @@ safe-outputs:
   missing-data: false
   noop: false
   report-incomplete: false
+  threat-detection: false
 
-engine: copilot
-model: gpt-4.1
+engine:
+  id: gemini
+  auth:
+    type: github-oidc
+    provider: gcp
+    workload-identity-provider: "${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}"
+    service-account: "${{ vars.GCP_VERTEX_SERVICE_ACCOUNT }}"
+    project: "${{ vars.GCP_VERTEX_PROJECT_ID }}"
+    location: us-central1
+model: gemini-2.5-pro
 
 timeout-minutes: 10
 ---
 
-# Devobs Incident Investigator
+# Devobs Incident Investigator — Vertex AI fallback
+
+This workflow is a manual fallback for the primary Copilot investigator. Run it
+only after the Copilot run for this incident has failed and before another
+investigation comment has been posted. It uses Google Vertex AI through
+GitHub OIDC; it does not use a service-account JSON key.
 
 Investigate incident issue #${{ github.event.issue.number || inputs.issue_number }} and produce one concise,
 evidence-backed investigation for human review.
@@ -350,5 +362,3 @@ No code or configuration was changed, no PR was created, and no rollback was
 executed. A maintainer must explicitly approve the recovery direction before
 any write action.
 ```
-Human review completed
-

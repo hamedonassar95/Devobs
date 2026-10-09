@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "rail_template": {
+    "device_model": null,
+    "board_revision": null,
+    "name": null,
+    "target_effort": {
+      "value": null,
+      "unit": null
+    },
+    "resistance": {
+      "value": null,
+      "unit": null,
+      "measurement_condition": null
+    },
+    "tolerance_range": {
+      "min": null,
+      "max": null,
+      "unit": null
+    }
+  },
+  "rails": []
+}
