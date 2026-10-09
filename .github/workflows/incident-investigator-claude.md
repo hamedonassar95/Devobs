@@ -1,13 +1,10 @@
 ---
 description: |
-  Investigates trusted Devobs incident issues created by the production incident-response
-  workflow. Produces evidence-backed root-cause hypotheses, confidence scores,
-  recommended tests, a fix-forward vs rollback recommendation, and a proposed
-  recovery plan for human approval. Never performs recovery actions.
+  Manually invoked Claude Sonnet fallback for a trusted Devobs incident when the
+  primary Copilot investigator cannot complete. Produces an evidence-backed
+  report for human review and never performs recovery actions.
 
 on:
-  issues:
-    types: [opened]
   workflow_dispatch:
     inputs:
       issue_number:
@@ -115,50 +112,6 @@ jobs:
             }
             await incidentGuard({ github, context, core }, true);
 
-post-steps:
-  - name: Verify required incident report output
-    env:
-      GH_AW_SAFE_OUTPUTS: ${{ runner.temp }}/gh-aw/safeoutputs/outputs.jsonl
-    run: |
-      python3 - <<'PY'
-      import json
-      import os
-      import sys
-      from pathlib import Path
-
-      output_path = Path(os.environ["GH_AW_SAFE_OUTPUTS"])
-      try:
-          lines = output_path.read_text(encoding="utf-8").splitlines()
-      except OSError as error:
-          print(f"::error::Incident report output is unavailable: {error}")
-          sys.exit(1)
-
-      items = []
-      try:
-          items = [json.loads(line) for line in lines if line.strip()]
-      except json.JSONDecodeError as error:
-          print(f"::error::Incident report output is invalid JSONL: {error}")
-          sys.exit(1)
-
-      if any(not isinstance(item, dict) for item in items):
-          print("::error::Incident report output contains a non-object item.")
-          sys.exit(1)
-
-      comments = [item for item in items if item.get("type") == "add_comment"]
-      if len(comments) != 1:
-          print("::error::The investigation did not emit exactly one safe incident report comment.")
-          sys.exit(1)
-
-      body = comments[0].get("body", "")
-      if (
-          not isinstance(body, str)
-          or "<!-- devobs-investigation:v1 -->" not in body
-          or "## AI Incident Investigation" not in body
-      ):
-          print("::error::The safe comment output does not contain the required incident report markers.")
-          sys.exit(1)
-      PY
-
 permissions:
   actions: read
   contents: read
@@ -174,14 +127,20 @@ safe-outputs:
   missing-data: false
   noop: false
   report-incomplete: false
+  threat-detection: false
 
-engine: copilot
-model: gpt-4.1
+engine: claude
+model: sonnet-6x
 
 timeout-minutes: 10
 ---
 
-# Devobs Incident Investigator
+# Devobs Incident Investigator — Claude Sonnet fallback
+
+This workflow is a manual fallback for the primary Copilot investigator. Run it
+only after the Copilot run for this incident has failed and before another
+investigation comment has been posted. It uses Anthropic through gh-aw's
+credential proxy and requires the repository Actions secret ANTHROPIC_API_KEY.
 
 Investigate incident issue #${{ github.event.issue.number || inputs.issue_number }} and produce one concise,
 evidence-backed investigation for human review.
@@ -394,3 +353,4 @@ No code or configuration was changed, no PR was created, and no rollback was
 executed. A maintainer must explicitly approve the recovery direction before
 any write action.
 ```
+

@@ -61,7 +61,8 @@ def build_incident(
     action = "MANUAL_REVIEW"
     rationale = "The workflow state is not safe for an automated recovery decision."
 
-    controlled_drill = (
+    is_simulation = str(run_id).startswith("simulation-")
+    controlled_drill = is_simulation or (
         workflow == "CI"
         and normalized in FAILURE_CONCLUSIONS
         and _has_only_controlled_drill_failure(jobs)
@@ -71,10 +72,16 @@ def build_incident(
         category = "controlled-drill"
         severity = "info"
         action = "MANUAL_REVIEW"
-        rationale = (
-            "The opt-in incident-response drill intentionally failed after validation completed. "
-            "No deployment was triggered; treat this as a test signal, not a code regression."
-        )
+        if is_simulation:
+            rationale = (
+                "This record came from a workflow_dispatch simulation. Its outcome is synthetic "
+                "and is not evidence of a production outage; keep it at MANUAL_REVIEW."
+            )
+        else:
+            rationale = (
+                "The opt-in incident-response drill intentionally failed after validation completed. "
+                "No deployment was triggered; treat this as a test signal, not a code regression."
+            )
     elif normalized == "success":
         category = "healthy"
         severity = "info"

@@ -43,7 +43,10 @@ jobs:
   triage:
     if: >
       github.event_name == 'workflow_dispatch' ||
-      contains(fromJSON('["failure","timed_out"]'), github.event.workflow_run.conclusion)
+      (
+        github.event_name == 'workflow_run' &&
+        contains(fromJSON('["failure","timed_out"]'), github.event.workflow_run.conclusion)
+      )
     runs-on: ubuntu-24.04
     timeout-minutes: 5
 
@@ -186,4 +189,3 @@ jobs:
             -f issue_number="$ISSUE_NUMBER"
 
           echo "Dispatched Copilot investigator for issue #$ISSUE_NUMBER." >> "$GITHUB_STEP_SUMMARY"
-Human review completed

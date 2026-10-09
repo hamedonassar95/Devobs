@@ -90,6 +90,22 @@ class IncidentTriageTests(unittest.TestCase):
         self.assertIn("- **Incident type:** `controlled-drill`", render_markdown(incident))
         self.assertEqual(incident["recommended_action"], "MANUAL_REVIEW")
 
+    def test_workflow_dispatch_health_check_simulation_is_not_a_rollback_candidate(self):
+        incident = build_incident(
+            workflow="Deployment Health Check",
+            conclusion="failure",
+            run_id="simulation-37791966206",
+            sha="abc789",
+            run_url="https://github.com/example/repo/actions/runs/37791966206",
+            repository="example/repo",
+            jobs={"jobs": [{"name": "simulated-failure", "conclusion": "failure"}]},
+        )
+        self.assertTrue(incident["controlled_drill"])
+        self.assertEqual(incident["category"], "controlled-drill")
+        self.assertEqual(incident["severity"], "info")
+        self.assertEqual(incident["recommended_action"], "MANUAL_REVIEW")
+        self.assertIn("controlled-drill", render_markdown(incident))
+
     def test_additional_failed_step_keeps_ci_failure_as_validation(self):
         incident = build_incident(
             workflow="CI",

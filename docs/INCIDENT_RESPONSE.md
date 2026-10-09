@@ -64,7 +64,10 @@ Run **Incident Response** manually from GitHub Actions with:
 - conclusion: `failure`
 - dry_run: `true`
 
-Expected result: the workflow succeeds, creates an incident artifact and summary with `ROLLBACK_CANDIDATE`, and does **not** create a GitHub issue or alter production.
+Expected result: the workflow succeeds, creates an incident artifact and summary with
+`controlled-drill` / `MANUAL_REVIEW`, and does **not** create a GitHub issue or alter
+production. A `simulation-*` run ID must never be classified as a production
+`ROLLBACK_CANDIDATE`.
 
 ## Main-branch incident drill for Phase 8
 

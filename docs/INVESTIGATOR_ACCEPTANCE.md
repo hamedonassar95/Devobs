@@ -24,6 +24,9 @@ Do not replay the old workflow against that issue: it has no per-incident lock.
 - Disable automatic failure-issue reporting. Runtime incomplete/detection reporting
   remains framework-managed; this is not a claim that the whole framework is read-only.
 - Identify simulated incidents explicitly and require `MANUAL_REVIEW` for them.
+- Fail the investigator job with a clear error unless the agent emits exactly one
+  safe comment containing the required report markers. Safe-output application errors
+  must fail the workflow; never claim a report was posted when it was not.
 - Require one safe-output investigation comment for every eligible incident, including
   `MANUAL_REVIEW` and incomplete-evidence cases. Disable `noop`, `missing-data`, and
   `report-incomplete` as alternate outcomes; describe missing evidence in the comment.
