@@ -43,7 +43,7 @@ jobs:
   triage:
     if: >
       github.event_name == 'workflow_dispatch' ||
-      github.event.workflow_run.conclusion != 'success'
+      contains(fromJSON('["failure","timed_out"]'), github.event.workflow_run.conclusion)
     runs-on: ubuntu-24.04
     timeout-minutes: 5
 
@@ -82,7 +82,7 @@ jobs:
               > incident-workflow-run.json
 
             gh api --method GET "repos/$GH_REPO/actions/runs/$RUN_ID/jobs?per_page=100" \
-              --jq '{jobs:[.jobs[] | {id,name,status,conclusion,html_url,started_at,completed_at}]}' \
+              --jq '{jobs:[.jobs[] | {id,name,status,conclusion,html_url,started_at,completed_at,steps:[.steps[]? | {name,conclusion}]}]}' \
               > incident-jobs.json
           else
             WORKFLOW="$INPUT_WORKFLOW"

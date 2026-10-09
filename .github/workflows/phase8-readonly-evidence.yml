@@ -1,0 +1,80 @@
+name: Phase 8 Read-Only Evidence
+
+on:
+  workflow_dispatch:
+    inputs:
+      incident_number:
+        description: Open incident issue number to inspect
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  issues: read
+  actions: read
+  pull-requests: read
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Validate incident input
+        shell: bash
+        env:
+          INCIDENT_NUMBER: ${{ inputs.incident_number }}
+        run: |
+          set -euo pipefail
+          [[ "$INCIDENT_NUMBER" =~ ^[1-9][0-9]*$ ]] || {
+            echo "::error::incident_number must be a positive integer"
+            exit 1
+          }
+
+      - name: Collect trusted incident evidence
+        id: evidence
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const issue_number = Number(`${{ inputs.incident_number }}`);
+            const { owner, repo } = context.repo;
+            const issue = await github.rest.issues.get({ owner, repo, issue_number });
+            const body = issue.data.body || "";
+            const trustedTitle = issue.data.title.startsWith("incident:");
+            const hasRunMarker = /<!-- incident-run-id:[^>]+-->/.test(body);
+            const open = issue.data.state === "open";
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number, per_page: 100
+            });
+            const marker = "<!-- devobs-investigation:v1 -->";
+            const investigations = comments.filter(c =>
+              (c.body || "").includes(marker) &&
+              (c.body || "").includes("## AI Incident Investigation")
+            );
+
+            const evidence = {
+              issue_number,
+              open,
+              trusted_title: trustedTitle,
+              run_marker_present: hasRunMarker,
+              investigation_count: investigations.length,
+              evidence_only: true,
+              repository_write_authority: false,
+              final_state: "PENDING HUMAN APPROVAL"
+            };
+
+            const fs = require("fs");
+            fs.writeFileSync("phase8-evidence.json", JSON.stringify(evidence, null, 2));
+            await core.summary
+              .addHeading("Phase 8 Read-Only Evidence")
+              .addCodeBlock(JSON.stringify(evidence, null, 2), "json")
+              .addRaw("\nNo repository mutation, merge, deployment, or rollback was performed.")
+              .write();
+
+      - name: Upload evidence artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase8-readonly-evidence-${{ inputs.incident_number }}
+          path: phase8-evidence.json
+          if-no-files-found: error
+          retention-days: 7

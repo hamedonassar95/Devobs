@@ -5,10 +5,18 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
+    inputs:
+      controlled_incident_failure:
+        description: "Intentionally fail after all checks to exercise main-branch Incident Response; this creates an incident and may dispatch the AI investigator."
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -23,13 +31,83 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           persist-credentials: false
+
+      - name: Verify Python version and compile scripts and tests
+        run: |
+          python3 - <<'PY'
+          import sys
+
+          if sys.version_info < (3, 10):
+              raise SystemExit("CI requires Python 3.10 or newer.")
+          print(f"Using Python {sys.version.split()[0]}")
+          PY
+          python3 -m compileall -q scripts tests
+
+      - name: Fail if unittest discovery finds no tests
+        run: |
+          python3 - <<'PY'
+          import unittest
+
+          suite = unittest.defaultTestLoader.discover("tests")
+          count = suite.countTestCases()
+          if count == 0:
+              raise SystemExit("Unittest discovery found no tests.")
+          print(f"Discovered {count} unittest cases.")
+          PY
 
       - name: Test the validation guardrails
         run: python3 -m unittest discover -s tests -v
 
+      - name: Test hardware rail reference data
+        run: python3 -m unittest discover -s tests -p 'test_hardware_rails.py' -v
+
+      - name: Test incident idempotency and duplicate guards
+        run: node --test tests/incident_guard.test.cjs
+
+      - name: Test guarded recovery planner
+        run: python -m unittest tests.test_recovery_planner -v
+
+      - name: Test isolated recovery patch guard
+        run: python -m unittest tests.test_recovery_patch_guard -v
+
+      - name: Test recovery verification controller
+        run: python -m unittest tests.test_recovery_verifier -v
+
+      - name: Test human approval gate
+        run: python -m unittest tests.test_human_approval_gate -v
+
+      - name: Test end-to-end guarded recovery pipeline
+        run: python -m unittest tests.test_recovery_pipeline -v
+
+      - name: Test machine-readable investigation contract
+        run: python -m unittest tests.test_investigation_contract -v
+
+      - name: Test investigation trust detection
+        run: python -m unittest tests.test_investigation_trust -v
+
       - name: Check page contract and HTTP response
         run: python3 scripts/check_site.py
+
+      - name: Static analysis with Bandit
+        run: |
+          python3 -m pip install --disable-pip-version-check bandit==1.9.4
+          # check_site.py fetches only the local HTTP server started by the check above;
+          # Bandit reports that localhost URL as B310, so keep that helper out of the app scan.
+          python3 -m bandit -r scripts -x scripts/check_site.py
+
+      - name: Scan commits for leaked secrets with Gitleaks
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: "false"
+
+      - name: Controlled main-branch incident-response drill
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.controlled_incident_failure == true
+        run: |
+          echo "Intentional Phase 8 drill failure after all validation checks; no deployment is triggered."
+          exit 1
 
       - name: Stage isolated PR preview
         if: github.event_name == 'pull_request'

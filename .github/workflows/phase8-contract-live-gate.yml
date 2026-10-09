@@ -1,0 +1,93 @@
+name: Phase 8 Contract Live Gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      incident_number:
+        description: Open incident issue number to validate
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  validate-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate input
+        shell: bash
+        env:
+          INCIDENT_NUMBER: ${{ inputs.incident_number }}
+        run: |
+          set -euo pipefail
+          [[ "$INCIDENT_NUMBER" =~ ^[1-9][0-9]*$ ]] || exit 1
+
+      - name: Validate trusted machine-readable investigation
+        uses: actions/github-script@v8
+        env:
+          INCIDENT_NUMBER: ${{ inputs.incident_number }}
+        with:
+          script: |
+            const fs = require("fs");
+            const cp = require("child_process");
+            const issue_number = Number(process.env.INCIDENT_NUMBER);
+            const { owner, repo } = context.repo;
+            const issue = await github.rest.issues.get({ owner, repo, issue_number });
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number, per_page: 100
+            });
+            const trustedBot = "github-actions[bot]";
+            const trustedIssue = issue.data.state === "open" &&
+              issue.data.title.startsWith("incident:") &&
+              /<!-- incident-run-id:[^>]+-->/.test(issue.data.body || "") &&
+              issue.data.user?.login === trustedBot;
+            const candidates = comments.filter(c => {
+              const body = c.body || "";
+              const trustedAuthor = c.user?.login === trustedBot;
+              const heading = body.includes("## AI Incident Investigation");
+              const provenance = body.includes("<!-- devobs-investigation:v1 -->") ||
+                (body.includes("<!-- gh-aw-agentic-workflow: Devobs Incident Investigator") &&
+                 body.includes("workflow_id: incident-investigator"));
+              return trustedAuthor && heading && provenance;
+            });
+
+            let contract = { valid: false, reason: "exactly one trusted investigation is required", data: null };
+            if (trustedIssue && candidates.length === 1) {
+              fs.writeFileSync("investigation-comment.txt", candidates[0].body || "");
+              const code = [
+                "import json, pathlib",
+                "from scripts.investigation_contract import parse",
+                "r=parse(pathlib.Path('investigation-comment.txt').read_text())",
+                "print(json.dumps({'valid':r.valid,'reason':r.reason,'data':r.data}))"
+              ].join("; ");
+              contract = JSON.parse(cp.execFileSync("python", ["-c", code], {encoding:"utf8"}));
+            }
+
+            const result = {
+              issue_number,
+              trusted_incident: trustedIssue,
+              investigation_count: candidates.length,
+              contract,
+              eligible_for_planner_input: contract.valid === true,
+              repository_write_authority: false,
+              final_state: "PENDING HUMAN APPROVAL"
+            };
+            fs.writeFileSync("phase8-contract-gate.json", JSON.stringify(result, null, 2));
+            await core.summary
+              .addHeading("Phase 8 Contract Live Gate")
+              .addCodeBlock(JSON.stringify(result, null, 2), "json")
+              .addRaw("\nInvalid or missing contracts fail closed and are not promoted to planner input.")
+              .write();
+
+      - name: Upload gate evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase8-contract-gate-${{ inputs.incident_number }}
+          path: phase8-contract-gate.json
+          if-no-files-found: error
+          retention-days: 7

@@ -12,6 +12,7 @@ from typing import Any
 
 UNUSABLE_CONCLUSIONS = {"cancelled", "neutral", "skipped", "stale"}
 FAILURE_CONCLUSIONS = {"failure", "timed_out", "action_required", "startup_failure"}
+CONTROLLED_DRILL_STEP = "Controlled main-branch incident-response drill"
 
 
 def _failed_jobs(jobs: dict[str, Any]) -> list[str]:
@@ -21,6 +22,26 @@ def _failed_jobs(jobs: dict[str, Any]) -> list[str]:
         if conclusion and conclusion not in {"success", "skipped", "neutral"}:
             names.append(job.get("name") or f"job-{job.get('id', 'unknown')}")
     return names
+
+
+def _has_only_controlled_drill_failure(jobs: dict[str, Any]) -> bool:
+    all_jobs = jobs.get("jobs", [])
+    failed_jobs = [
+        job for job in all_jobs
+        if (job.get("conclusion") or "").lower() in FAILURE_CONCLUSIONS
+    ]
+    failed_steps = [
+        (job, step)
+        for job in all_jobs
+        for step in job.get("steps", [])
+        if (step.get("conclusion") or "").lower() in FAILURE_CONCLUSIONS
+    ]
+    return (
+        len(failed_jobs) == 1
+        and len(failed_steps) == 1
+        and failed_steps[0][0] is failed_jobs[0]
+        and failed_steps[0][1].get("name") == CONTROLLED_DRILL_STEP
+    )
 
 
 def build_incident(
@@ -40,12 +61,27 @@ def build_incident(
     action = "MANUAL_REVIEW"
     rationale = "The workflow state is not safe for an automated recovery decision."
 
-    if normalized == "success":
+    controlled_drill = (
+        workflow == "CI"
+        and normalized in FAILURE_CONCLUSIONS
+        and _has_only_controlled_drill_failure(jobs)
+    )
+
+    if controlled_drill:
+        category = "controlled-drill"
+        severity = "info"
+        action = "MANUAL_REVIEW"
+        rationale = (
+            "The opt-in incident-response drill intentionally failed after validation completed. "
+            "No deployment was triggered; treat this as a test signal, not a code regression."
+        )
+    elif normalized == "success":
         category = "healthy"
         severity = "info"
         action = "NONE"
         rationale = "The monitored workflow completed successfully."
     elif normalized in UNUSABLE_CONCLUSIONS:
+        category = "uncertain"
         rationale = "The run did not produce a trustworthy failure signal; review it manually."
     elif workflow == "CI" and normalized in FAILURE_CONCLUSIONS:
         category = "validation"
@@ -82,6 +118,7 @@ def build_incident(
         "run_url": run_url,
         "head_sha": sha,
         "category": category,
+        "controlled_drill": controlled_drill,
         "severity": severity,
         "recommended_action": action,
         "rationale": rationale,
@@ -113,13 +150,23 @@ def render_markdown(incident: dict[str, Any]) -> str:
     failed = incident.get("failed_jobs") or []
     failed_text = "\n".join(f"- `{name}`" for name in failed) or "- None reported"
     rollback = "enabled" if incident["automation_policy"]["allow_automatic_rollback"] else "disabled"
-    return f"""# Automated Incident Triage
+    if incident.get("controlled_drill"):
+        incident_type = "controlled-drill"
+    elif incident.get("category") == "healthy":
+        incident_type = "healthy"
+    elif incident.get("category") == "uncertain":
+        incident_type = "uncertain"
+    else:
+        incident_type = "workflow-failure"
+    drill_marker = "<!-- incident-mode:controlled-drill -->\n" if incident.get("controlled_drill") else ""
+    return f"""{drill_marker}# Automated Incident Triage
 
 - **Repository:** `{incident['repository']}`
 - **Workflow:** `{incident['workflow']}`
 - **Conclusion:** `{incident['conclusion']}`
 - **Severity:** `{incident['severity']}`
 - **Category:** `{incident['category']}`
+- **Incident type:** `{incident_type}`
 - **Run ID:** `{incident['run_id']}`
 - **Head SHA:** `{incident['head_sha']}`
 - **Run:** {incident['run_url']}
