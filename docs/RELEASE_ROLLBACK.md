@@ -30,17 +30,14 @@ Workflow:
 
 1. يطلب Tag بصيغة Semantic Versioning مثل `v1.0.0`.
 2. يطلب كتابة كلمة التأكيد `ROLLBACK` حرفيًا.
-3. يرفض التشغيل من أي فرع غير `main`.
-4. يتحقق من وجود الـTag داخل المستودع.
-5. يحول الـTag إلى Commit SHA محدد ويتحقق من وجوده في تاريخ `main`.
-6. يتحقق أن GitHub Release منشور وأن وسمه يطابق المطلوب.
-7. يرفض أي Pre-release.
-8. يعيد تشغيل اختبارات المشروع على Commit الإصدار المطلوب.
-9. ينشر نفس Commit المحدد إلى GitHub Pages.
-10. ينفذ Production HTTP health check بعد النشر.
-11. يسجل Release وCommit ونتيجة التحقق في GitHub Actions Job Summary.
-
-تصل مدخلات التشغيل إلى أوامر Bash عبر متغيرات بيئية بعد التحقق، ولا تُدرج مباشرة في نص الأوامر. احتفظ ببيئة `github-pages` مقيدة بفرع `main`، وفعّل مراجعًا مطلوبًا للنشر إذا كانت سياسة المؤسسة تتطلب موافقة قبل عمليات الإنتاج.
+3. يتحقق من وجود الـTag داخل المستودع.
+4. يحول الـTag إلى Commit SHA محدد.
+5. يتحقق أن GitHub Release منشور وليس Draft.
+6. يرفض أي Pre-release.
+7. يعيد تشغيل اختبارات المشروع على Commit الإصدار المطلوب.
+8. ينشر نفس Commit المحدد إلى GitHub Pages.
+9. ينفذ Production HTTP health check بعد النشر.
+10. يسجل Release وCommit ونتيجة التحقق في GitHub Actions Job Summary.
 
 ## طريقة التنفيذ
 

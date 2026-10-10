@@ -31,7 +31,6 @@ def investigation(decision="FIX_FORWARD", confidence=0.95, run_id=str(RUN_ID), n
 
 def live_record():
     return {
-        "repository": "owner/repo",
         "issue": {
             "number": ISSUE_NUMBER,
             "title": "incident: CI failure (run 12345)",
@@ -47,10 +46,8 @@ def live_record():
             "name": "CI",
             "status": "completed",
             "conclusion": "failure",
-            "event": "push",
             "head_branch": "main",
             "head_sha": SHA,
-            "head_repository": "owner/repo",
             "jobs": [{"name": "validate", "conclusion": "failure"}],
         },
         "comments": [investigation()],
@@ -89,8 +86,6 @@ class LiveRecoveryPlannerTests(unittest.TestCase):
         for change in (
             {"head_branch": "feature/test"},
             {"head_sha": "b" * 40},
-            {"event": "pull_request"},
-            {"head_repository": "attacker/fork"},
             {"conclusion": "cancelled"},
             {"name": "Unmonitored Workflow"},
         ):

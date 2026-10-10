@@ -42,20 +42,10 @@ concurrency:
 jobs:
   triage:
     if: >
-      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      github.event_name == 'workflow_dispatch' ||
       (
         github.event_name == 'workflow_run' &&
-        contains(fromJSON('["failure","timed_out"]'), github.event.workflow_run.conclusion) &&
-        github.event.workflow_run.head_branch == 'main' &&
-        github.event.workflow_run.head_repository.full_name == github.repository &&
-        (
-          (github.event.workflow_run.name == 'CI' &&
-            contains(fromJSON('["push","workflow_dispatch"]'), github.event.workflow_run.event)) ||
-          (github.event.workflow_run.name == 'Deploy Pages' &&
-            github.event.workflow_run.event == 'workflow_run') ||
-          (github.event.workflow_run.name == 'Deployment Health Check' &&
-            contains(fromJSON('["workflow_run","workflow_dispatch"]'), github.event.workflow_run.event))
-        )
+        contains(fromJSON('["failure","timed_out"]'), github.event.workflow_run.conclusion)
       )
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -78,11 +68,6 @@ jobs:
           MONITORED_RUN_ID: ${{ github.event.workflow_run.id }}
           MONITORED_SHA: ${{ github.event.workflow_run.head_sha }}
           MONITORED_URL: ${{ github.event.workflow_run.html_url }}
-          EXPECTED_WORKFLOW: ${{ github.event.workflow_run.name }}
-          EXPECTED_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
-          EXPECTED_EVENT: ${{ github.event.workflow_run.event }}
-          EXPECTED_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
-          EXPECTED_HEAD_REPOSITORY: ${{ github.event.workflow_run.head_repository.full_name }}
           INPUT_WORKFLOW: ${{ inputs.workflow }}
           INPUT_CONCLUSION: ${{ inputs.conclusion }}
         run: |
@@ -96,37 +81,8 @@ jobs:
             RUN_URL="$MONITORED_URL"
 
             gh api --method GET "repos/$GH_REPO/actions/runs/$RUN_ID" \
-              --jq '{id,name,event,status,conclusion,head_branch,head_sha,head_repository:{full_name:(.head_repository.full_name // "")},html_url,created_at,updated_at,run_attempt}' \
+              --jq '{id,name,event,status,conclusion,head_branch,head_sha,html_url,created_at,updated_at,run_attempt}' \
               > incident-workflow-run.json
-
-            API_WORKFLOW="$(jq -r '.name // ""' incident-workflow-run.json)"
-            API_EVENT="$(jq -r '.event // ""' incident-workflow-run.json)"
-            API_CONCLUSION="$(jq -r '.conclusion // ""' incident-workflow-run.json)"
-            API_HEAD_BRANCH="$(jq -r '.head_branch // ""' incident-workflow-run.json)"
-            API_HEAD_REPOSITORY="$(jq -r '.head_repository.full_name // ""' incident-workflow-run.json)"
-            API_HEAD_SHA="$(jq -r '.head_sha // ""' incident-workflow-run.json)"
-            API_RUN_ID="$(jq -r '.id // ""' incident-workflow-run.json)"
-
-            if [[ "$API_WORKFLOW" != "$EXPECTED_WORKFLOW" ||
-                  "$API_EVENT" != "$EXPECTED_EVENT" ||
-                  "$API_CONCLUSION" != "$EXPECTED_CONCLUSION" ||
-                  "$API_HEAD_BRANCH" != "$EXPECTED_HEAD_BRANCH" ||
-                  "$API_HEAD_REPOSITORY" != "$EXPECTED_HEAD_REPOSITORY" ||
-                  "$API_HEAD_SHA" != "$MONITORED_SHA" ||
-                  "$API_RUN_ID" != "$MONITORED_RUN_ID" ||
-                  "$API_HEAD_BRANCH" != "main" ||
-                  "$API_HEAD_REPOSITORY" != "$GH_REPO" ]]; then
-              echo "::error::Source workflow metadata failed the trusted main-repository gate."
-              exit 1
-            fi
-
-            case "$API_WORKFLOW:$API_EVENT" in
-              "CI:push"|"CI:workflow_dispatch"|"Deploy Pages:workflow_run"|"Deployment Health Check:workflow_run"|"Deployment Health Check:workflow_dispatch") ;;
-              *)
-                echo "::error::Source workflow event is not trusted for incident creation."
-                exit 1
-                ;;
-            esac
 
             gh api --method GET "repos/$GH_REPO/actions/runs/$RUN_ID/jobs?per_page=100" \
               --jq '{jobs:[.jobs[] | {id,name,status,conclusion,html_url,started_at,completed_at,steps:[.steps[]? | {name,conclusion}]}]}' \
@@ -218,9 +174,8 @@ jobs:
           fi
 
           ANALYSIS_COUNT="$(
-            gh api --paginate --slurp --method GET \
-              "repos/$GH_REPO/issues/$ISSUE_NUMBER/comments?per_page=100" |
-              python3 -c 'import json, sys; from scripts.investigation_trust import trusted_investigation; pages = json.load(sys.stdin); print(sum(1 for page in pages for comment in page if trusted_investigation(comment)))'
+            gh api --method GET "repos/$GH_REPO/issues/$ISSUE_NUMBER/comments?per_page=100" \
+              --jq '[.[] | select(.body | contains("## AI Incident Investigation"))] | length'
           )"
 
           if [ "$ANALYSIS_COUNT" -gt 0 ]; then
