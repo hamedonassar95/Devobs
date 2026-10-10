@@ -47,10 +47,8 @@ async function evaluateLiveIncident({ github, context, core }) {
         name: response.data.name,
         status: response.data.status,
         conclusion: response.data.conclusion,
-        event: response.data.event,
         head_branch: response.data.head_branch,
         head_sha: response.data.head_sha,
-        head_repository: response.data.head_repository?.full_name || "",
         jobs: jobs.map(job => ({ name: job.name, conclusion: job.conclusion }))
       };
     } catch {
@@ -83,7 +81,6 @@ async function evaluateLiveIncident({ github, context, core }) {
   }
 
   const record = {
-    repository: `${owner}/${repo}`,
     issue: {
       number: issue.number,
       title: issue.title,
