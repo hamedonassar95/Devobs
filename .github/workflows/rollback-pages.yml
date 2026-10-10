@@ -22,6 +22,7 @@ concurrency:
 
 jobs:
   validate:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
@@ -31,15 +32,18 @@ jobs:
     steps:
       - name: Validate rollback request
         shell: bash
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           set -euo pipefail
 
-          if [[ "${{ inputs.confirmation }}" != "ROLLBACK" ]]; then
+          if [[ "$CONFIRMATION" != "ROLLBACK" ]]; then
             echo "::error::Confirmation must be exactly ROLLBACK."
             exit 1
           fi
 
-          tag="${{ inputs.release_tag }}"
+          tag="$RELEASE_TAG"
           if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "::error::Release tag must use stable SemVer format such as v1.0.0."
             exit 1
@@ -54,10 +58,12 @@ jobs:
       - name: Resolve release tag to immutable commit
         id: resolve
         shell: bash
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           set -euo pipefail
 
-          tag="${{ inputs.release_tag }}"
+          tag="$RELEASE_TAG"
 
           if ! git show-ref --verify --quiet "refs/tags/$tag"; then
             echo "::error::Tag $tag does not exist in this repository."
@@ -67,6 +73,11 @@ jobs:
           commit_sha="$(git rev-list -n 1 "$tag")"
           if [[ -z "$commit_sha" ]]; then
             echo "::error::Could not resolve $tag to a commit."
+            exit 1
+          fi
+
+          if ! git merge-base --is-ancestor "$commit_sha" "$GITHUB_SHA"; then
+            echo "::error::Release tag $tag does not point to a commit in this main-branch history."
             exit 1
           fi
 
@@ -124,11 +135,16 @@ jobs:
               print("::error::Pre-releases cannot be rollback targets.")
               sys.exit(1)
 
+          if release.get("tag_name") != tag:
+              print("::error::GitHub Release tag does not match the requested rollback tag.")
+              sys.exit(1)
+
           print(f"Validated stable release: {release.get('name') or tag}")
           PY
 
   deploy:
     needs: validate
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     environment:

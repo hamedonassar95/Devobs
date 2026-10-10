@@ -13,6 +13,11 @@ from scripts.recovery_planner import evaluate as evaluate_plan
 
 BOT = "github-actions[bot]"
 MONITORED_WORKFLOWS = {"CI", "Deploy Pages", "Deployment Health Check"}
+MONITORED_EVENTS = {
+    "CI": {"push"},
+    "Deploy Pages": {"workflow_run"},
+    "Deployment Health Check": {"workflow_run", "workflow_dispatch"},
+}
 RUN_MARKER = re.compile(r"<!-- incident-run-id:([0-9]+) -->")
 SHA_LINE = re.compile(r"- \*\*Head SHA:\*\* `([0-9a-f]{40})`")
 REQUIRED_CHECKS = [
@@ -104,6 +109,11 @@ def evaluate_live(record: dict) -> dict:
         return _result("NOT_ELIGIBLE", "source workflow run does not match the incident marker", evidence=evidence)
     if run.get("name") not in MONITORED_WORKFLOWS:
         return _result("NOT_ELIGIBLE", "source workflow is not monitored for recovery", evidence=evidence)
+    repository = record.get("repository")
+    if not isinstance(repository, str) or not repository or run.get("head_repository") != repository:
+        return _result("NOT_ELIGIBLE", "source run did not originate from this repository", evidence=evidence)
+    if run.get("event") not in MONITORED_EVENTS[run["name"]]:
+        return _result("NOT_ELIGIBLE", "source workflow event is not eligible for production recovery", evidence=evidence)
     if run.get("status") != "completed" or run.get("conclusion") not in {"failure", "timed_out"}:
         return _result("NOT_ELIGIBLE", "source workflow conclusion is not eligible", evidence=evidence)
     if run.get("head_branch") != "main" or run.get("head_sha") != expected_sha:
