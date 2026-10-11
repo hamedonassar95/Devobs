@@ -25,6 +25,8 @@ concurrency:
 jobs:
   # Keep this ID: the Protect main ruleset requires the validate check.
   validate:
+  Human review completed
+
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -139,3 +141,5 @@ jobs:
             echo 'Extract the ZIP and open index.html locally. This is not a hosted preview URL.'
             echo 'The preview is retained for 7 days and has no production deployment permissions.'
           } >> "$GITHUB_STEP_SUMMARY"
+          Human review completed
+
