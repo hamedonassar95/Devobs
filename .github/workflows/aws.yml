@@ -27,7 +27,7 @@ jobs:
     if: ${{ vars.ECS_DEPLOY_ENABLED == 'true' }}
     name: Deploy
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     environment: production
     permissions:
       contents: read
@@ -44,7 +44,7 @@ jobs:
         run: |
           set -euo pipefail
           for name in AWS_REGION AWS_ROLE_ARN ECR_REPOSITORY ECS_SERVICE ECS_CLUSTER ECS_TASK_DEFINITION CONTAINER_NAME; do
-            value="${!name}"
+            value="$(printenv "$name" || true)"
             if [[ -z "$value" || "$value" == MY_* ]]; then
               printf "Missing or placeholder repository variable: %s\n" "$name" >&2
               exit 1
