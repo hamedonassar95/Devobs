@@ -93,4 +93,4 @@ jobs:
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
 
-      # Human review is enforced through the production environment and branch ruleset settings.
+      # Keep deployment disabled until production reviewers and main-branch PR approval are required.
