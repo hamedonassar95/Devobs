@@ -40,7 +40,7 @@ Resources:
             "rules": [
               {
                 "rulePriority": 1,
-                "description": "Keep the most recent 30 commit-tagged images for rollback",
+                "description": "Keep the most recent 30 immutable deployment-attempt images for rollback",
                 "selection": {
                   "tagStatus": "any",
                   "countType": "imageCountMoreThan",

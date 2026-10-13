@@ -41,7 +41,7 @@
 ### متطلبات المستودع وGitHub
 1. يبني `Dockerfile` الموقع الثابت الحالي باستخدام صورة `nginxinc/nginx-unprivileged` مثبتة على digest، ويشغّل NGINX كمستخدم غير root على المنفذ `8080`. ملف المهمة هو `ecs/task-definition.template.json` واسم الحاوية `devobs-web`؛ يفحص health check المسار `/health`. هذا مسار تجريبي موازٍ لـ GitHub Pages، وليس استبدالًا له.
 2. قالب المهمة يستخدم Fargate مع `awsvpc` و`X86_64`. قبل التسجيل، يحقن الـ workflow `ECS_TASK_EXECUTION_ROLE_ARN` ومنطقة AWS إلى نسخة مؤقتة من القالب، ثم يستبدل action صورة الحاوية بالصورة التي بُنيت من commit SHA.
-3. يوفّر `infra/ecs-foundation.yml` موارد الأساس: ECR `devobs-site` مع tags غير قابلة للتغيير وتشفير AES256 والاحتفاظ بآخر 30 صورة، وCloudWatch Logs `/ecs/devobs-site` باحتفاظ 30 يومًا، وECS cluster، ودوري IAM منفصلين للنشر وتنفيذ المهام. يحتفظ CloudFormation بمستودع الصور وسجلّات CloudWatch عند حذف الـ stack.
+3. يوفّر `infra/ecs-foundation.yml` موارد الأساس: ECR `devobs-site` مع tags غير قابلة للتغيير وتشفير AES256 والاحتفاظ بآخر 30 صورة نشر، وCloudWatch Logs `/ecs/devobs-site` باحتفاظ 30 يومًا، وECS cluster، ودوري IAM منفصلين للنشر وتنفيذ المهام. يحتفظ CloudFormation بمستودع الصور وسجلّات CloudWatch عند حذف الـ stack.
 4. بعد إنشاء foundation stack، أنشئ الشبكة الطرفية والخدمة عبر `infra/ecs-service.yml` كما هو موضح في القسم التالي. هذا القالب ينشئ ALB عامًا وHTTPS وDNS وخدمة Fargate في subnets خاصة، ولا يحتاج إلى صورة أولية داخل ECR.
 5. أضف متغيرات **Repository variables** التالية من Settings → Secrets and variables → Actions → Variables:
 
@@ -103,7 +103,7 @@ aws cloudformation describe-stacks \
 
 إدارة DNS اختيارية ومعطّلة افتراضيًا عبر `CreateDnsRecord=false`، لذلك لا يحتاج الإعداد الافتراضي إلى `HostedZoneId`. إذا كان DNS خارج Route 53، وجّه النطاق إلى ALB يدويًا. إذا أردت أن ينشئ القالب سجل A في Route 53، مرّر `CreateDnsRecord=true` ومعرّف hosted zone عامة؛ افعل ذلك فقط بعد التأكد من عدم وجود سجل A قائم بالاسم نفسه، لأن Route 53 قد يستبدله.
 
-يتطلب الإعداد شبكة VPC موجودة. يلزم subnet عام في كل من منطقتين مختلفتين للـ ALB (كل subnet يفضّل ألا يقل عن `/27` وأن يتوفر فيه 8 عناوين IP حرة)، وsubnet خاص للمهام في كل منطقة. تأكد من مسارات الإنترنت للـ public subnets، ومن خروج private subnets عبر NAT Gateway أو نقاط VPC الخاصة بـ ECR API وECR DKR وS3 وCloudWatch Logs. لا تُمنح المهام Public IP؛ قواعد الخروج تسمح بـ HTTPS وDNS فقط حسب النطاق المحدد بالقالب.
+يتطلب الإعداد شبكة VPC موجودة. يلزم subnet عام في كل من منطقتين مختلفتين للـ ALB (كل subnet يفضّل ألا يقل عن `/27` وأن يتوفر فيه 8 عناوين IP حرة)، وsubnet خاص للمهام في كل منطقة. تأكد من مسارات الإنترنت للـ public subnets. لمعرفة AWS-managed prefix list لـS3 في منطقتك، استخدم `aws ec2 describe-managed-prefix-lists --filters Name=prefix-list-name,Values=com.amazonaws.<region>.s3` ثم مرّر معرّفه في `S3PrefixListId`. تتطلب قواعد خروج المهام نقاط VPC خاصة: نقاط واجهة لـ ECR API وECR DKR وCloudWatch Logs مع تفعيل Private DNS، ونقطة S3 gateway مرتبطة بمسارات subnet الخاصة. أرفق مجموعة أمان مشتركة بنقاط الواجهة تسمح بدخول TCP/443 من `TaskSecurityGroup`، ومرّر معرّفها ومعرّف prefix list الخاص بـS3 إلى القالب. لا تُمنح المهام Public IP أو مسار NAT؛ NGINX لا يحتاج اتصالًا عامًا وقت التشغيل. تسمح قواعد الخروج بـHTTPS إلى مجموعة أمان نقاط الواجهة وprefix list الخاص بـS3، وDNS داخل نطاق VPC.
 
 ينشئ القالب مهمة NGINX تأسيسية مثبتة على digest، لكنه ينشئ الخدمة بـ `DesiredCount: 0` حتى لا تُشغّل صفحة NGINX الافتراضية. عند نشر commit إلى `main` بعد استيفاء الحماية وتفعيل المتغير، يمرر الـ workflow `desired-count: 1` إلى إجراء ECS المثبت ويشغّل نسخة واحدة من التطبيق. الخدمة تشير إلى عائلة task definition باسم `devobs-site` دون رقم revision؛ توثيق ECS يقرر أن هذا يستخدم أحدث revision نشط، الذي يسجله الـ workflow. يختبر ALB المسار `/` حتى تعمل مهمة التهيئة والتراجع، بينما يفحص container health check في تعريف التطبيق `/health`.
 
@@ -129,6 +129,8 @@ aws cloudformation deploy \
     EcsClusterName=devobs-production \
     EcsServiceName=devobs-site \
     TaskExecutionRoleArn=arn:aws:iam::123456789012:role/DevobsTaskExecutionRole \
+    EndpointSecurityGroupId=sg-0123456789abcdef0 \
+    S3PrefixListId=pl-0123456789abcdef0 \
   --no-execute-changeset
 ```
 

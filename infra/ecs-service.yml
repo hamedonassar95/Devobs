@@ -63,6 +63,14 @@ Parameters:
     Description: TaskExecutionRoleArn output from infra/ecs-foundation.yml.
     AllowedPattern: '^arn:aws(-[a-z0-9-]+)?:iam::[0-9]{12}:role/.+$'
     ConstraintDescription: Enter the task execution role ARN from the foundation stack.
+  EndpointSecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+    Description: Shared security group on the ECR API, ECR DKR, and CloudWatch Logs interface endpoints; allow TCP 443 ingress from TaskSecurityGroup.
+  S3PrefixListId:
+    Type: String
+    Description: AWS-managed S3 prefix list used by the private S3 gateway endpoint in this region.
+    AllowedPattern: '^pl-[0-9a-f]+$'
+    ConstraintDescription: Enter the AWS-managed prefix list ID for Amazon S3 in this region.
 
 Conditions:
   ManageRoute53Record: !Equals [!Ref CreateDnsRecord, 'true']
@@ -107,7 +115,11 @@ Resources:
         - IpProtocol: tcp
           FromPort: 443
           ToPort: 443
-          CidrIp: 0.0.0.0/0
+          DestinationSecurityGroupId: !Ref EndpointSecurityGroupId
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          DestinationPrefixListId: !Ref S3PrefixListId
         - IpProtocol: tcp
           FromPort: 53
           ToPort: 53
