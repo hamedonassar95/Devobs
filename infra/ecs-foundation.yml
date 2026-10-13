@@ -1,0 +1,220 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Reusable AWS foundation for the disabled Devobs ECS deployment path.
+  Creates ECR, CloudWatch Logs, an ECS cluster, and narrowly scoped IAM roles.
+  It does not create a VPC, load balancer, certificate, or ECS service.
+
+Parameters:
+  GitHubOidcProviderArn:
+    Type: String
+    Description: Existing IAM OIDC provider ARN for token.actions.githubusercontent.com.
+    AllowedPattern: '^arn:aws(-[a-z0-9-]+)?:iam::[0-9]{12}:oidc-provider/token[.]actions[.]githubusercontent[.]com$'
+    ConstraintDescription: Must be the ARN of the GitHub Actions OIDC provider in this AWS account.
+
+  GitHubOidcSubject:
+    Type: String
+    Default: repo:hamedonassar95@104053101/Devobs@1404102641:environment:production
+    Description: Exact GitHub OIDC subject for the production environment. Do not use a wildcard.
+    AllowedPattern: '^repo:[A-Za-z0-9._/@+-]+:environment:production$'
+    ConstraintDescription: Must identify this repository and the production environment with an exact subject.
+
+  EcsClusterName:
+    Type: String
+    Default: devobs-production
+    AllowedPattern: '^[A-Za-z0-9_-]{1,255}$'
+    ConstraintDescription: Use only letters, numbers, hyphens, and underscores.
+
+  EcsServiceName:
+    Type: String
+    Default: devobs-site
+    Description: Existing or planned ECS service name; this template grants deploy access but does not create the service.
+    AllowedPattern: '^[A-Za-z0-9_-]{1,255}$'
+    ConstraintDescription: Use only letters, numbers, hyphens, and underscores.
+
+Resources:
+  EcrRepository:
+    Type: AWS::ECR::Repository
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      RepositoryName: devobs-site
+      ImageTagMutability: IMMUTABLE
+      EncryptionConfiguration:
+        EncryptionType: AES256
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {
+            "rules": [
+              {
+                "rulePriority": 1,
+                "description": "Keep the most recent 30 commit-tagged images for rollback",
+                "selection": {
+                  "tagStatus": "any",
+                  "countType": "imageCountMoreThan",
+                  "countNumber": 30
+                },
+                "action": {
+                  "type": "expire"
+                }
+              }
+            ]
+          }
+      Tags:
+        - Key: Project
+          Value: Devobs
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  ApplicationLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      LogGroupName: /ecs/devobs-site
+      RetentionInDays: 30
+      Tags:
+        - Key: Project
+          Value: Devobs
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  EcsCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Ref EcsClusterName
+      Tags:
+        - Key: Project
+          Value: Devobs
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: Allows Fargate to pull the Devobs image and write application logs.
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                'aws:SourceAccount': !Ref AWS::AccountId
+              ArnLike:
+                'aws:SourceArn': !Sub 'arn:${AWS::Partition}:ecs:${AWS::Region}:${AWS::AccountId}:*'
+      Policies:
+        - PolicyName: devobs-task-execution
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: GetEcrAuthorizationToken
+                Effect: Allow
+                Action: ecr:GetAuthorizationToken
+                Resource: '*'
+              - Sid: PullOnlyDevobsImage
+                Effect: Allow
+                Action:
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:BatchGetImage
+                Resource: !GetAtt EcrRepository.Arn
+              - Sid: WriteOnlyDevobsLogs
+                Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/ecs/devobs-site:log-stream:*'
+      Tags:
+        - Key: Project
+          Value: Devobs
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  GitHubDeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: GitHub Actions role for the Devobs ECS deployment workflow.
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubOidcProviderArn
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                'token.actions.githubusercontent.com:aud': sts.amazonaws.com
+                'token.actions.githubusercontent.com:sub': !Ref GitHubOidcSubject
+      Policies:
+        - PolicyName: devobs-github-actions-deploy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: GetEcrAuthorizationToken
+                Effect: Allow
+                Action: ecr:GetAuthorizationToken
+                Resource: '*'
+              - Sid: PushOnlyDevobsImage
+                Effect: Allow
+                Action:
+                  - ecr:BatchCheckLayerAvailability
+                  - ecr:CompleteLayerUpload
+                  - ecr:InitiateLayerUpload
+                  - ecr:PutImage
+                  - ecr:UploadLayerPart
+                Resource: !GetAtt EcrRepository.Arn
+              - Sid: RegisterAndDescribeTaskDefinitions
+                Effect: Allow
+                Action:
+                  - ecs:RegisterTaskDefinition
+                  - ecs:DescribeTaskDefinition
+                Resource: '*'
+              - Sid: UpdateOnlyDevobsService
+                Effect: Allow
+                Action:
+                  - ecs:DescribeServices
+                  - ecs:UpdateService
+                Resource: !Sub 'arn:${AWS::Partition}:ecs:${AWS::Region}:${AWS::AccountId}:service/${EcsClusterName}/${EcsServiceName}'
+              - Sid: PassOnlyTaskExecutionRole
+                Effect: Allow
+                Action: iam:PassRole
+                Resource: !GetAtt TaskExecutionRole.Arn
+                Condition:
+                  StringEquals:
+                    'iam:PassedToService': ecs-tasks.amazonaws.com
+      Tags:
+        - Key: Project
+          Value: Devobs
+        - Key: ManagedBy
+          Value: CloudFormation
+
+Outputs:
+  EcrRepositoryName:
+    Description: Set this value as the ECR_REPOSITORY GitHub variable.
+    Value: !Ref EcrRepository
+
+  EcrRepositoryUri:
+    Description: Full URI of the private ECR repository.
+    Value: !GetAtt EcrRepository.RepositoryUri
+
+  EcsClusterName:
+    Description: Set this value as the ECS_CLUSTER GitHub variable.
+    Value: !Ref EcsCluster
+
+  EcsServiceName:
+    Description: Service name scoped by the GitHub deployment role.
+    Value: !Ref EcsServiceName
+
+  LogGroupName:
+    Description: Log group referenced by ecs/task-definition.template.json.
+    Value: !Ref ApplicationLogGroup
+
+  TaskExecutionRoleArn:
+    Description: Set this value as the ECS_TASK_EXECUTION_ROLE_ARN GitHub variable.
+    Value: !GetAtt TaskExecutionRole.Arn
+
+  GitHubDeployRoleArn:
+    Description: Set this value as the AWS_ROLE_ARN GitHub variable.
+    Value: !GetAtt GitHubDeployRole.Arn
