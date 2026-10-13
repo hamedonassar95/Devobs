@@ -1,12 +1,13 @@
 # مختبر Ansible المحلي لـ CBTA
 
-هذا المختبر يوضح كيف يصف Playbook الحالة المطلوبة بصيغة YAML، ثم يجعل Ansible النظام يقترب منها باستخدام modules. لا يحتاج إلى Agent دائم على localhost، لكنه يفترض وجود ansible-core على جهاز التحكم. عند إدارة أجهزة بعيدة، يلزم اتصال مناسب مثل SSH لأنظمة Linux أو WinRM لأنظمة Windows، وقد تتطلب modules Python أو متطلبات أخرى على الهدف.
+هذا المختبر يوضح كيف يصف Playbook الحالة المطلوبة بصيغة YAML، ثم يجعل Ansible النظام يقترب منها باستخدام modules. Ansible agentless في الاستخدام المعتاد: لا يتطلب تثبيت Ansible أو وكيل دائم على الأجهزة المُدارة، لكنه يحتاج ansible-core على جهاز التحكم. تتصل Ansible بأجهزة Linux عادةً عبر SSH، وتحتاج معظم modules إلى Python على الهدف. تستخدم أجهزة Windows غالبًا WinRM أو PSRP؛ تختلف المتطلبات حسب نظام التشغيل والـ module.
 
 ## حدود الأمان
 
 - يستهدف المثال localhost فقط.
 - يكتب ملفًا تجريبيًا داخل /tmp/devobs-cbta-demo ولا يستخدم sudo.
 - لا يقرأ أسرارًا ولا يتصل بـ AWS أو خدمة خارجية.
+- قد يعرض diff محتوى حساسًا؛ استخدمه لهذا المثال غير الحساس فقط، ولا تشارك مخرجات diff من إعدادات حقيقية قبل مراجعتها.
 - لا تغير hosts أو المسار إلى جهاز إنتاج.
 - check mode لا يحاكي كل module بالكامل؛ راجع توثيق module المستخدمة.
 
@@ -42,3 +43,9 @@
 بعد التأكد من المسار، احذف المجلد التجريبي المحدد فقط عند الحاجة:
 
     rm -r /tmp/devobs-cbta-demo
+
+## مراجع Ansible الرسمية
+
+- [Playbooks والحالة المطلوبة وidempotency](https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_intro.html)
+- [تثبيت Ansible ومتطلبات control node والأجهزة المُدارة](https://docs.ansible.com/projects/ansible/latest/installation_guide/intro_installation.html)
+- [حدود check mode وdiff mode](https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_checkmode.html)
