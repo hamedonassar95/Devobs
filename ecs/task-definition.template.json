@@ -1,0 +1,49 @@
+{
+  "family": "devobs-site",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "256",
+  "memory": "512",
+  "runtimePlatform": {
+    "cpuArchitecture": "X86_64",
+    "operatingSystemFamily": "LINUX"
+  },
+  "containerDefinitions": [
+    {
+      "name": "devobs-web",
+      "image": "REPLACED_BY_ECS_RENDER_TASK_DEFINITION_ACTION",
+      "essential": true,
+      "cpu": 128,
+      "memoryReservation": 128,
+      "user": "101:101",
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "wget -q -O /dev/null http://127.0.0.1:8080/health || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 15
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/devobs-site",
+          "awslogs-region": "INJECTED_BY_WORKFLOW",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "stopTimeout": 30
+    }
+  ]
+}

@@ -18,6 +18,7 @@ env:
   ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
   ECS_TASK_DEFINITION: ${{ vars.ECS_TASK_DEFINITION }}
   CONTAINER_NAME: ${{ vars.CONTAINER_NAME }}
+  ECS_TASK_EXECUTION_ROLE_ARN: ${{ vars.ECS_TASK_EXECUTION_ROLE_ARN }}
 
 permissions:
   contents: read
@@ -43,16 +44,37 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for name in AWS_REGION AWS_ROLE_ARN ECR_REPOSITORY ECS_SERVICE ECS_CLUSTER ECS_TASK_DEFINITION CONTAINER_NAME; do
+          for name in AWS_REGION AWS_ROLE_ARN ECR_REPOSITORY ECS_SERVICE ECS_CLUSTER ECS_TASK_DEFINITION CONTAINER_NAME ECS_TASK_EXECUTION_ROLE_ARN; do
             value="$(printenv "$name" || true)"
             if [[ -z "$value" || "$value" == MY_* ]]; then
               printf "Missing or placeholder repository variable: %s\n" "$name" >&2
               exit 1
             fi
           done
+          role_arn_pattern='^arn:aws(-[a-z0-9-]+)?:iam::[0-9]{12}:role/.+'
+          if [[ ! "$AWS_ROLE_ARN" =~ $role_arn_pattern || ! "$ECS_TASK_EXECUTION_ROLE_ARN" =~ $role_arn_pattern ]]; then
+            echo "AWS_ROLE_ARN and ECS_TASK_EXECUTION_ROLE_ARN must be IAM role ARNs." >&2
+            exit 1
+          fi
+          case "$ECS_TASK_DEFINITION" in
+            /*|..|../*|*/../*|*/..) echo "ECS_TASK_DEFINITION must be a repository-relative path." >&2; exit 1 ;;
+          esac
           test -f Dockerfile
           test -f "$ECS_TASK_DEFINITION"
-          jq -e --arg name "$CONTAINER_NAME" '.containerDefinitions | any(.name == $name)' "$ECS_TASK_DEFINITION" >/dev/null
+          task_definition_path="$(realpath -e -- "$ECS_TASK_DEFINITION")"
+          case "$task_definition_path" in
+            "$GITHUB_WORKSPACE"/*) ;;
+            *) echo "ECS task definition must resolve inside the repository workspace." >&2; exit 1 ;;
+          esac
+          jq -e --arg name "$CONTAINER_NAME" '
+            .networkMode == "awsvpc"
+            and (.requiresCompatibilities | index("FARGATE") != null)
+            and any(.containerDefinitions[]?;
+              .name == $name
+              and any(.portMappings[]?; .containerPort == 8080)
+              and .logConfiguration.logDriver == "awslogs"
+            )
+          ' "$ECS_TASK_DEFINITION" >/dev/null
 
       - name: Configure AWS credentials with OIDC
         uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
@@ -60,6 +82,22 @@ jobs:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           role-session-name: github-actions-${{ github.run_id }}
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Prepare task definition with account-specific runtime values
+        id: prepare-task-definition
+        shell: bash
+        run: |
+          set -euo pipefail
+          generated="$RUNNER_TEMP/ecs-task-definition.json"
+          jq --arg role "$ECS_TASK_EXECUTION_ROLE_ARN" --arg region "$AWS_REGION" --arg name "$CONTAINER_NAME" '
+            .executionRoleArn = $role
+            | .containerDefinitions |= map(
+                if .name == $name then
+                  .logConfiguration.options["awslogs-region"] = $region
+                else . end
+              )
+          ' "$ECS_TASK_DEFINITION" > "$generated"
+          echo "path=$generated" >> "$GITHUB_OUTPUT"
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -81,7 +119,7 @@ jobs:
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@8d79160660ad39c402a16e5fc7cd2a32e8f7d6b7 # v1.9.1
         with:
-          task-definition: ${{ env.ECS_TASK_DEFINITION }}
+          task-definition: ${{ steps.prepare-task-definition.outputs.path }}
           container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ steps.build-image.outputs.image }}
 

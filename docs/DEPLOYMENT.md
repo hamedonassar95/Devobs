@@ -36,32 +36,35 @@
 الفحص السابق للنشر يقلل خطر إعادة نشر commit قديم عند إعادة تشغيل CI؛ ليس قفلًا ذريًا يمنع تحرك main بين الفحص واكتمال النشر. concurrency يسلسل عمليات النشر. لا يُدّعى ضمان ذرية أو فحص بصري شامل للموقع.
 
 ## AWS ECS — مسار تجريبي معطّل افتراضيًا
-هذا مسار منفصل عن نشر GitHub Pages. لا يُعد جاهزًا للإنتاج حاليًا: فحص شجرة الفرع `codex/aws-ecs-workflow-hardening` في 13 أكتوبر 2026 لم يجد `Dockerfile` أو ملف تعريف مهمة ECS، ولم تُجهّز موارد AWS أو اختُبر النشر. يظل الـ workflow متخطّى ما لم تكن قيمة متغير المستودع `ECS_DEPLOY_ENABLED` هي النص `true` حرفيًا.
+هذا مسار تجريبي منفصل عن نشر GitHub Pages. أُضيف إلى هذا الفرع Dockerfile وقالب مهمة Fargate، لكن موارد AWS لم تُجهّز ولم يُبنَ image أو يُختبر النشر. المستودع أُنشئ في 4 أكتوبر 2026؛ لذلك يستخدم GitHub صيغة OIDC الثابتة التي تتضمن owner ID وrepository ID. يظل الـ workflow متخطّى ما لم تكن قيمة متغير المستودع `ECS_DEPLOY_ENABLED` هي النص `true` حرفيًا.
 
 ### متطلبات المستودع وGitHub
-1. أضف `Dockerfile` يبني التطبيق المقصود، وملف JSON لتعريف مهمة ECS. يجب أن يحتوي التعريف على container بالاسم نفسه المحدد في `CONTAINER_NAME`، وأن يحدد أدوار ECS المناسبة ومتطلبات الشبكة/السجلات للتطبيق.
-2. جهّز مسبقًا مستودع ECR، وECS cluster، وECS service متوافقًا مع عائلة المهمة والحاوية والصورة. الـ workflow يبني الصورة ويرفعها؛ لا ينشئ موارد ECR أو ECS.
+1. يبني `Dockerfile` الموقع الثابت الحالي باستخدام صورة `nginxinc/nginx-unprivileged` مثبتة على digest، ويشغّل NGINX كمستخدم غير root على المنفذ `8080`. ملف المهمة هو `ecs/task-definition.template.json` واسم الحاوية `devobs-web`؛ يفحص الـ health check المسار `/health`. هذا مسار تجريبي موازٍ لـ GitHub Pages، وليس استبدالًا له.
+2. قالب المهمة يستخدم Fargate مع `awsvpc` و`X86_64`. قبل التسجيل، يحقن الـ workflow `ECS_TASK_EXECUTION_ROLE_ARN` ومنطقة AWS إلى نسخة مؤقتة من القالب، ثم يستبدل action صورة الحاوية بالصورة التي بُنيت من commit SHA.
+3. جهّز مسبقًا مستودع ECR مع tag immutability وscan-on-push، وECS cluster، وFargate ECS service، ومجموعة CloudWatch Logs باسم `/ecs/devobs-site`. اربط الخدمة بـ Application Load Balancer HTTPS وشهادة ACM؛ اسم الحاوية والمنفذ في target group هما `devobs-web:8080` ومسار الصحة `/health`. يُفضّل إبقاء المهام في subnets خاصة وتوفير NAT أو VPC endpoints اللازمة لسحب image وإرسال logs. الـ workflow يبني الصورة ويرفعها ويحدّث خدمة موجودة؛ لا ينشئ هذه الموارد.
 3. أضف متغيرات **Repository variables** التالية من Settings → Secrets and variables → Actions → Variables:
 
 | المتغير | القيمة المطلوبة |
 | --- | --- |
 | `AWS_REGION` | منطقة AWS التي توجد فيها الموارد |
-| `AWS_ROLE_ARN` | ARN لدور IAM الذي يفترضه GitHub عبر OIDC |
+| `AWS_ROLE_ARN` | ARN لدور IAM للنشر يفترضه GitHub عبر OIDC |
+| `ECS_TASK_EXECUTION_ROLE_ARN` | ARN لدور تنفيذ مهام ECS، منفصل عن دور النشر |
 | `ECR_REPOSITORY` | اسم مستودع ECR، لا عنوانه الكامل |
 | `ECS_SERVICE` | اسم خدمة ECS الموجودة |
 | `ECS_CLUSTER` | اسم أو ARN للـ cluster |
-| `ECS_TASK_DEFINITION` | مسار ملف JSON لتعريف المهمة داخل المستودع |
-| `CONTAINER_NAME` | اسم container كما يظهر في `containerDefinitions` |
+| `ECS_TASK_DEFINITION` | `ecs/task-definition.template.json` |
+| `CONTAINER_NAME` | `devobs-web` كما يظهر في `containerDefinitions` |
 | `ECS_DEPLOY_ENABLED` | اتركه غير مضبوط أو `false` حتى إكمال كل المتطلبات والمراجعات |
 
 لا تضع مفاتيح AWS أو بيانات اعتماد طويلة العمر في Repository variables أو الملفات. المصادقة مصممة باستخدام OIDC.
 
 ### إعداد AWS OIDC وIAM
 1. أضف مزود الهوية `https://token.actions.githubusercontent.com` في حساب AWS، مع audience يساوي `sts.amazonaws.com`.
-2. اجعل trust policy للدور تقبل audience المذكور وsubject مقيدًا إلى `repo:hamedonassar95/Devobs:environment:production`. لا تسمح لكل المستودعات أو كل الفروع.
+2. اجعل trust policy لدور النشر تقبل audience المذكور وsubject مطابقًا تمامًا للصيغة الثابتة لهذا المستودع: `repo:hamedonassar95@104053101/Devobs@1404102641:environment:production`. أنشئ المستودع في 4 أكتوبر 2026، بعد بدء GitHub تطبيق الصيغة الثابتة؛ قيمة `repo:owner/repo:environment:production` القديمة لن تطابقه. لا تستخدم wildcard، وتحقق من subject الفعلي في إعدادات OIDC للمستودع قبل إنشاء trust policy.
 3. في GitHub، أنشئ/راجع Environment باسم `production`، واجعل فروع النشر المسموحة `main` فقط، وأضف required reviewers قبل استخدام الدور. قيد الـ subject على بيئة GitHub يجعل قواعد البيئة جزءًا من حاجز OIDC.
-4. امنح الدور أقل صلاحيات لازمة لرفع صورة إلى مستودع ECR المحدد، وتسجيل/وصف تعريف المهمة، وتحديث الخدمة المحددة وانتظار استقرارها. اسمح بـ `iam:PassRole` فقط لأدوار task/execution المحددة، مع قصر التمرير على خدمة `ecs-tasks.amazonaws.com`. راجع دعم نطاق الموارد لكل فعل IAM في وثائق AWS قبل اعتماد السياسة؛ بعض أفعال التسجيل تتطلب نطاقًا أوسع.
-5. أضف إلى حماية `main` اشتراط موافقة PR واحدة على الأقل إلى جانب الفحوص المطلوبة. المراجعة المسجلة في هذا المستودع وقت الفحص كانت بلا موافقات PR إلزامية (`required_approving_review_count: 0`)، لذلك لا تعتبر حماية البيئة وحدها بديلًا عن مراجعة تغييرات الكود.
+4. امنح دور النشر أقل صلاحيات لازمة لرفع صورة إلى مستودع ECR المحدد، وتسجيل تعريف المهمة، ووصف الخدمة وتحديثها وانتظار استقرارها. اسمح بـ `iam:PassRole` فقط إلى `ECS_TASK_EXECUTION_ROLE_ARN` المحدد، مع قصر التمرير على خدمة `ecs-tasks.amazonaws.com`. دور تنفيذ المهمة منفصل ويحتاج فقط إلى سحب image من ECR وكتابة logs إلى المجموعة المحددة. راجع نطاق الموارد لكل فعل IAM في الوثائق الرسمية قبل اعتماد السياسة.
+5. فعّل ECS deployment circuit breaker مع rollback للخدمة، وتأكد أن target group health check يطابق `/health`؛ انتظار استقرار الخدمة في GitHub Actions لا ينشئ rollback تلقائيًا.
+6. أضف إلى حماية `main` اشتراط موافقة PR واحدة على الأقل إلى جانب الفحوص المطلوبة. المراجعة المسجلة في هذا المستودع وقت الفحص كانت بلا موافقات PR إلزامية (`required_approving_review_count: 0`)، لذلك لا تعتبر حماية البيئة وحدها بديلًا عن مراجعة تغييرات الكود.
 
 ### التفعيل والتحقق
 - بعد إكمال المتطلبات ومراجعة ملف المهمة وسياسة IAM، غيّر `ECS_DEPLOY_ENABLED` إلى `true`. التغيير في المتغير وحده لا يبدأ تشغيلًا؛ الـ workflow يستجيب إلى push على `main`، ولذلك سينفذ عند الدفع التالي إلى الفرع.
@@ -90,7 +93,12 @@ PR #10: https://github.com/hamedonassar95/Devobs/pull/10
 
 ## مراجع AWS/GitHub لمسار ECS
 - https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services
+- https://docs.github.com/en/actions/reference/security/oidc
 - https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc.html
 - https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-push.html
 - https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html
 - https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_passrole.html
+- https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-circuit-breaker.html
+- https://github.com/aws-actions/amazon-ecs-deploy-task-definition#permissions
+- https://github.com/nginx/docker-nginx-unprivileged
+- https://hub.docker.com/r/nginxinc/nginx-unprivileged/tags
