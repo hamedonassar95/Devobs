@@ -99,7 +99,9 @@ aws cloudformation describe-stacks \
 
 قالب الأساس ينشئ ECR وCloudWatch Logs وECS cluster ودوري IAM فقط. القالب التالي ينشئ ALB وDNS وخدمة ECS، لكنه يعتمد على VPC وشبكاتك وشهادة ACM ونطاقك الموجود مسبقًا. لا يصبح مسار النشر جاهزًا لمجرد إنشاء stack واحد؛ راجع متطلبات الشبكة والمراجعات قبل التفعيل.
 ### إنشاء طبقة الشبكة وخدمة ECS
-القالب `infra/ecs-service.yml` يكمل stack الأساس بعد مراجعته: ينشئ Application Load Balancer عامًا في subnetين عامين من Availability Zones مختلفتين، ويعيد توجيه HTTP إلى HTTPS، وويمكنه اختياريًا إنشاء سجل Route 53 من نوع A (معطّل افتراضيًا لحماية سجلات DNS القائمة)، ويضع خدمة Fargate في subnetين خاصين. يستقبل task security group المنفذ 8080 من ALB فقط. شهادة ACM يجب أن تكون صادرة في منطقة هذا الـ stack وأن تغطي `DomainName`، إذا أُدير DNS خارج Route 53، وجّه النطاق إلى ALB يدويًا. افتراضيًا `CreateDnsRecord=false` ولا يحتاج `HostedZoneId`; فعّله فقط بعد التأكد من عدم وجود سجل A متعارض في المنطقة العامة.
+القالب `infra/ecs-service.yml` يكمل stack الأساس بعد مراجعته: ينشئ Application Load Balancer عامًا في subnetين عامين من Availability Zones مختلفتين، ويعيد توجيه HTTP إلى HTTPS، ويضع خدمة Fargate في subnetين خاصين. يستقبل task security group المنفذ 8080 من ALB فقط. يجب أن تكون شهادة ACM صادرة في منطقة هذا الـ stack وأن تغطي `DomainName`.
+
+إدارة DNS اختيارية ومعطّلة افتراضيًا عبر `CreateDnsRecord=false`، لذلك لا يحتاج الإعداد الافتراضي إلى `HostedZoneId`. إذا كان DNS خارج Route 53، وجّه النطاق إلى ALB يدويًا. إذا أردت أن ينشئ القالب سجل A في Route 53، مرّر `CreateDnsRecord=true` ومعرّف hosted zone عامة؛ افعل ذلك فقط بعد التأكد من عدم وجود سجل A قائم بالاسم نفسه، لأن Route 53 قد يستبدله.
 
 يتطلب الإعداد شبكة VPC موجودة. يلزم subnet عام في كل من منطقتين مختلفتين للـ ALB (كل subnet يفضّل ألا يقل عن `/27` وأن يتوفر فيه 8 عناوين IP حرة)، وsubnet خاص للمهام في كل منطقة. تأكد من مسارات الإنترنت للـ public subnets، ومن خروج private subnets عبر NAT Gateway أو نقاط VPC الخاصة بـ ECR API وECR DKR وS3 وCloudWatch Logs. لا تُمنح المهام Public IP؛ قواعد الخروج تسمح بـ HTTPS وDNS فقط حسب النطاق المحدد بالقالب.
 
