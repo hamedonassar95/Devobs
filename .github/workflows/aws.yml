@@ -76,14 +76,6 @@ jobs:
             )
           ' "$ECS_TASK_DEFINITION" >/dev/null
 
-      - name: Configure AWS credentials with OIDC
-        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
-        with:
-          role-to-assume: ${{ env.AWS_ROLE_ARN }}
-          role-session-name: github-actions-${{ github.run_id }}
-          aws-region: ${{ env.AWS_REGION }}
-
-
       - name: Prepare task definition with account-specific runtime values
         id: prepare-task-definition
         shell: bash
@@ -99,6 +91,15 @@ jobs:
               )
           ' "$ECS_TASK_DEFINITION" > "$generated"
           echo "path=$generated" >> "$GITHUB_OUTPUT"
+
+      - name: Configure AWS credentials with OIDC
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          role-session-name: github-actions-${{ github.run_id }}
+          aws-region: ${{ env.AWS_REGION }}
+
+
 
       - name: Login to Amazon ECR
         id: login-ecr
