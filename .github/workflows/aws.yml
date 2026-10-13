@@ -131,6 +131,8 @@ jobs:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: ${{ env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
+          # Start the service after its zero-task CloudFormation bootstrap.
+          desired-count: 1
           wait-for-service-stability: true
 
       # Keep deployment disabled until production reviewers and main-branch PR approval are required.
