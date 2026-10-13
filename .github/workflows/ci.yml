@@ -23,10 +23,158 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Keep this ID: the Protect main ruleset requires the validate check.
-  validate:
-  
+  security:
+    name: Security
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
+      - name: Review vulnerable dependency changes
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: high
+          vulnerability-check: true
+          license-check: false
+
+      - name: Scan repository and CloudFormation configuration
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: v0.75.0
+          scan-type: fs
+          scan-ref: .
+          scanners: misconfig
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          format: table
+
+      - name: Build container image for scanning
+        run: docker build --pull --tag devobs-site:ci .
+
+      - name: Scan container image for high and critical vulnerabilities
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          version: v0.75.0
+          scan-type: image
+          image-ref: devobs-site:ci
+          vuln-type: os,library
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          format: table
+
+      - name: Generate SPDX SBOM from the scanned container image
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          image: devobs-site:ci
+          format: spdx-json
+          output-file: devobs-site.spdx.json
+          syft-version: v1.54.1
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Package the exact scanned image
+        run: |
+          set -euo pipefail
+          docker save devobs-site:ci | gzip -1 > devobs-site-image.tar.gz
+          sha256sum devobs-site-image.tar.gz > devobs-site-image.tar.gz.sha256
+
+      - name: Upload scanned image and SBOM for the matching deployment
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ecs-container-${{ github.sha }}
+          path: |
+            devobs-site-image.tar.gz
+            devobs-site-image.tar.gz.sha256
+            devobs-site.spdx.json
+          if-no-files-found: error
+          retention-days: 7
+
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      pull-requests: read
+      security-events: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@9f759ee644a3e7c15c1390abf49868036c00067b # v3.38.3
+        with:
+          languages: javascript-typescript,python
+          queries: security-extended
+
+      - name: Analyze with CodeQL
+        id: codeql-analysis
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: github/codeql-action/analyze@9f759ee644a3e7c15c1390abf49868036c00067b # v3.38.3
+
+      - name: Analyze fork pull requests without uploading SARIF
+        id: codeql-fork-analysis
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
+        uses: github/codeql-action/analyze@9f759ee644a3e7c15c1390abf49868036c00067b # v3.38.3
+        with:
+          upload: never
+
+      - name: Fail on high and critical CodeQL findings
+        env:
+          SARIF_OUTPUT: ${{ steps.codeql-analysis.outputs.sarif-output || steps.codeql-fork-analysis.outputs.sarif-output }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          output_path = os.environ.get("SARIF_OUTPUT", "")
+          if not output_path:
+              raise SystemExit("CodeQL did not provide a SARIF output path; failing closed.")
+          root = Path(output_path)
+          sarif_files = sorted(root.rglob("*.sarif")) if root.exists() else []
+          if not sarif_files:
+              raise SystemExit("CodeQL did not produce SARIF output; failing closed.")
+
+          findings = []
+          for sarif_path in sarif_files:
+              document = json.loads(sarif_path.read_text(encoding="utf-8"))
+              for run in document.get("runs", []):
+                  rules = run.get("tool", {}).get("driver", {}).get("rules", [])
+                  for result in run.get("results", []):
+                      severity = result.get("properties", {}).get("security-severity")
+                      rule_index = result.get("ruleIndex")
+                      if severity is None and isinstance(rule_index, int) and 0 <= rule_index < len(rules):
+                          severity = rules[rule_index].get("properties", {}).get("security-severity")
+                      try:
+                          score = float(severity)
+                      except (TypeError, ValueError):
+                          continue
+                      if score >= 7.0:
+                          locations = result.get("locations") or [{}]
+                          location = locations[0].get("physicalLocation", {})
+                          artifact = location.get("artifactLocation", {}).get("uri", "unknown")
+                          line = location.get("region", {}).get("startLine", 0)
+                          findings.append((score, result.get("ruleId", "unknown"), artifact, line))
+
+          if findings:
+              for score, rule, artifact, line in findings:
+                  print(f"HIGH/CRITICAL CodeQL finding: {rule} severity={score:g} at {artifact}:{line}")
+              raise SystemExit(f"Blocking on {len(findings)} high or critical CodeQL finding(s).")
+          print("No CodeQL findings at security-severity 7.0 or higher.")
+
+  checks:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -143,3 +291,23 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
           echo "Human review completed" >> "$GITHUB_STEP_SUMMARY"
 
+  # Keep this ID: the Protect main ruleset requires the validate check.
+  # Aggregate both jobs so a failed or cancelled security scan fails the required check.
+  validate:
+    needs: [checks, security, codeql]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Require tests and security gates to pass
+        env:
+          CHECKS_RESULT: ${{ needs.checks.result }}
+          SECURITY_RESULT: ${{ needs.security.result }}
+          CODEQL_RESULT: ${{ needs.codeql.result }}
+        run: |
+          set -euo pipefail
+          if [[ "$CHECKS_RESULT" != "success" || "$SECURITY_RESULT" != "success" || "$CODEQL_RESULT" != "success" ]]; then
+            echo "Required checks failed: tests=$CHECKS_RESULT security=$SECURITY_RESULT codeql=$CODEQL_RESULT" >&2
+            exit 1
+          fi
+          echo "Validation and security gates passed."

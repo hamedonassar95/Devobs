@@ -9,6 +9,14 @@ This project currently supports the latest version available on the `main` branc
 | `main` | ✅ |
 | Older commits or branches | ❌ |
 
+## Automated Security Controls
+
+Pull requests run CodeQL analysis for Python and JavaScript/TypeScript, dependency review, Trivy infrastructure configuration scanning, and a Trivy scan of the built container image. Fork pull requests are scanned locally; SARIF upload is skipped when the token cannot write code-scanning results. High and critical findings block the required CI check. Bandit and Gitleaks remain part of the validation pipeline.
+
+CI also generates an SPDX SBOM and retains it with the exact scanned image artifact for seven days. The ECS workflow can deploy only after the matching CI run succeeds on `main`, and it verifies the image artifact checksum before pushing to ECR. Production deployment remains disabled until the AWS prerequisites and GitHub environment approvals are configured.
+
+See [CI and DevSecOps controls](docs/CI.md) and [deployment controls](docs/DEPLOYMENT.md) for details.
+
 ## Reporting a Vulnerability
 
 Please do not report security vulnerabilities through public GitHub Issues.

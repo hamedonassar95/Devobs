@@ -36,11 +36,13 @@
 الفحص السابق للنشر يقلل خطر إعادة نشر commit قديم عند إعادة تشغيل CI؛ ليس قفلًا ذريًا يمنع تحرك main بين الفحص واكتمال النشر. concurrency يسلسل عمليات النشر. لا يُدّعى ضمان ذرية أو فحص بصري شامل للموقع.
 
 ## AWS ECS — مسار تجريبي معطّل افتراضيًا
-هذا مسار تجريبي منفصل عن نشر GitHub Pages. أُضيف إلى هذا الفرع Dockerfile وقالب مهمة Fargate، لكن موارد AWS لم تُجهّز ولم يُبنَ image أو يُختبر النشر. المستودع أُنشئ في 4 أكتوبر 2026؛ لذلك يستخدم GitHub صيغة OIDC الثابتة التي تتضمن owner ID وrepository ID. يظل الـ workflow متخطّى ما لم تكن قيمة متغير المستودع `ECS_DEPLOY_ENABLED` هي النص `true` حرفيًا.
+هذا مسار تجريبي منفصل عن نشر GitHub Pages. تُبنى صورة Docker وتُفحص داخل CI، لكن موارد AWS لم تُجهّز ولم يُنفّذ نشر ECS. المستودع أُنشئ في 4 أكتوبر 2026؛ لذلك يستخدم GitHub صيغة OIDC الثابتة التي تتضمن owner ID وrepository ID. يظل النشر متخطّى ما لم تكن قيمة متغير المستودع `ECS_DEPLOY_ENABLED` هي النص `true` حرفيًا.
+
+قبل النشر، job الأمن في CI يشغّل CodeQL وDependency Review وTrivy لفحص IaC وصورة الحاوية، ويصدر SBOM بصيغة SPDX. يظل فحص `validate` المطلوب في حماية `main` تجميعيًا لفحوص الأمن والاختبارات. لا يعمل `aws.yml` مباشرة عند push؛ ينتظر اكتمال CI بنجاح لحدث push إلى `main` من المستودع نفسه، ويتأكد أن SHA المختبر ما زال رأس `main`، ثم ينزّل صورة الحاوية وSBOM من تشغيل CI نفسه ويتحقق من SHA-256 للصورة. يرفع الصورة المفحوصة نفسها إلى ECR دون إعادة بنائها، ويكون وسم ECR فريدًا لكل محاولة نشر. يحتفظ GitHub بالـ artifact 7 أيام.
 
 ### متطلبات المستودع وGitHub
 1. يبني `Dockerfile` الموقع الثابت الحالي باستخدام صورة `nginxinc/nginx-unprivileged` مثبتة على digest، ويشغّل NGINX كمستخدم غير root على المنفذ `8080`. ملف المهمة هو `ecs/task-definition.template.json` واسم الحاوية `devobs-web`؛ يفحص health check المسار `/health`. هذا مسار تجريبي موازٍ لـ GitHub Pages، وليس استبدالًا له.
-2. قالب المهمة يستخدم Fargate مع `awsvpc` و`X86_64`. قبل التسجيل، يحقن الـ workflow `ECS_TASK_EXECUTION_ROLE_ARN` ومنطقة AWS إلى نسخة مؤقتة من القالب، ثم يستبدل action صورة الحاوية بالصورة التي بُنيت من commit SHA.
+2. قالب المهمة يستخدم Fargate مع `awsvpc` و`X86_64`. قبل التسجيل، يحقن الـ workflow `ECS_TASK_EXECUTION_ROLE_ARN` ومنطقة AWS إلى نسخة مؤقتة من القالب، ثم يستبدل action صورة الحاوية بالصورة التي فحصها CI ورفعها إلى ECR بوسم يتضمن SHA وrun ID ورقم المحاولة.
 3. يوفّر `infra/ecs-foundation.yml` موارد الأساس: ECR `devobs-site` مع tags غير قابلة للتغيير وتشفير AES256 والاحتفاظ بآخر 30 صورة نشر، وCloudWatch Logs `/ecs/devobs-site` باحتفاظ 30 يومًا، وECS cluster، ودوري IAM منفصلين للنشر وتنفيذ المهام. يحتفظ CloudFormation بمستودع الصور وسجلّات CloudWatch عند حذف الـ stack.
 4. بعد إنشاء foundation stack، أنشئ الشبكة الطرفية والخدمة عبر `infra/ecs-service.yml` كما هو موضح في القسم التالي. هذا القالب ينشئ ALB عامًا وHTTPS وDNS وخدمة Fargate في subnets خاصة، ولا يحتاج إلى صورة أولية داخل ECR.
 5. أضف متغيرات **Repository variables** التالية من Settings → Secrets and variables → Actions → Variables:
@@ -59,7 +61,7 @@
 
 لا تضع مفاتيح AWS أو بيانات اعتماد طويلة العمر في Repository variables أو الملفات. المصادقة مصممة باستخدام OIDC.
 
-**فحص الصور:** لم يضف القالب إعدادًا للمسح لأن خاصية المسح على مستوى مستودع ECR في CloudFormation أصبحت deprecated؛ الإعداد الموصى به على مستوى registry والحساب. راجع قواعد المسح الحالية، ثم أضف قاعدة scan-on-push تطابق مستودع `devobs-site` مع الحفاظ على أي قواعد أخرى. لا تستبدل إعداد registry كاملًا دون مراجعة أثره على باقي المستودعات.
+**فحص الصور:** يفحص CI الصورة قبل النشر ويرفض ثغرات High وCritical، ويولّد SBOM. هذا لا يفعّل الفحص المستمر داخل ECR. أضف في إعداد registry والحساب قاعدة scan-on-push تطابق مستودع `devobs-site` مع الحفاظ على أي قواعد أخرى؛ خاصية المسح على مستوى المستودع في CloudFormation deprecated. لا تستبدل إعداد registry كاملًا دون مراجعة أثره على باقي المستودعات.
 ### إعداد AWS OIDC وIAM
 1. أضف مزود الهوية `https://token.actions.githubusercontent.com` في حساب AWS، مع audience يساوي `sts.amazonaws.com`.
 2. اجعل trust policy لدور النشر تقبل audience المذكور وsubject مطابقًا تمامًا للصيغة الثابتة لهذا المستودع: `repo:hamedonassar95@104053101/Devobs@1404102641:environment:production`. أنشئ المستودع في 4 أكتوبر 2026، بعد بدء GitHub تطبيق الصيغة الثابتة؛ قيمة `repo:owner/repo:environment:production` القديمة لن تطابقه. لا تستخدم wildcard. هذه القيمة تفترض إعداد GitHub الافتراضي لصيغة `sub`؛ إذا خُصصت claims في إعدادات OIDC، حدّث قيمة `token.actions.githubusercontent.com:sub` في trust policy إلى الـ subject الكامل الفعلي، مع إبقاء `StringEquals` ودون wildcard.
@@ -105,7 +107,7 @@ aws cloudformation describe-stacks \
 
 يتطلب الإعداد شبكة VPC موجودة. يلزم subnet عام في كل من منطقتين مختلفتين للـ ALB (كل subnet يفضّل ألا يقل عن `/27` وأن يتوفر فيه 8 عناوين IP حرة)، وsubnet خاص للمهام في كل منطقة. تأكد من مسارات الإنترنت للـ public subnets. لمعرفة AWS-managed prefix list لـS3 في منطقتك، استخدم `aws ec2 describe-managed-prefix-lists --filters Name=prefix-list-name,Values=com.amazonaws.<region>.s3` ثم مرّر معرّفه في `S3PrefixListId`. تتطلب قواعد خروج المهام نقاط VPC خاصة: نقاط واجهة لـ ECR API وECR DKR وCloudWatch Logs مع تفعيل Private DNS، ونقطة S3 gateway مرتبطة بمسارات subnet الخاصة. أرفق مجموعة أمان مشتركة بنقاط الواجهة تسمح بدخول TCP/443 من `TaskSecurityGroup`، ومرّر معرّفها ومعرّف prefix list الخاص بـS3 إلى القالب. لا تُمنح المهام Public IP أو مسار NAT؛ NGINX لا يحتاج اتصالًا عامًا وقت التشغيل. تسمح قواعد الخروج بـHTTPS إلى مجموعة أمان نقاط الواجهة وprefix list الخاص بـS3، وDNS داخل نطاق VPC.
 
-ينشئ القالب مهمة NGINX تأسيسية مثبتة على digest، لكنه ينشئ الخدمة بـ `DesiredCount: 0` حتى لا تُشغّل صفحة NGINX الافتراضية. عند نشر commit إلى `main` بعد استيفاء الحماية وتفعيل المتغير، يمرر الـ workflow `desired-count: 1` إلى إجراء ECS المثبت ويشغّل نسخة واحدة من التطبيق. الخدمة تشير إلى عائلة task definition باسم `devobs-site` دون رقم revision؛ توثيق ECS يقرر أن هذا يستخدم أحدث revision نشط، الذي يسجله الـ workflow. يختبر ALB المسار `/` حتى تعمل مهمة التهيئة والتراجع، بينما يفحص container health check في تعريف التطبيق `/health`.
+ينشئ القالب مهمة NGINX تأسيسية مثبتة على digest، لكنه ينشئ الخدمة بـ `DesiredCount: 0` حتى لا تُشغّل صفحة NGINX الافتراضية. بعد نجاح CI على commit دُفع إلى `main`، وإذا كانت الحماية مكتملة و`ECS_DEPLOY_ENABLED=true`، يمرر workflow نشر ECS `desired-count: 1` إلى الإجراء المثبت ويشغّل نسخة واحدة من التطبيق. الخدمة تشير إلى عائلة task definition باسم `devobs-site` دون رقم revision؛ توثيق ECS يقرر أن هذا يستخدم أحدث revision نشط، الذي يسجله الـ workflow. يختبر ALB المسار `/` حتى تعمل مهمة التهيئة والتراجع، بينما يفحص container health check في تعريف التطبيق `/health`.
 
 **تنبيه تكلفة:** تنفيذ قالب الخدمة ينشئ ALB ومجموعات أمان وخدمة ECS حتى مع صفر مهام؛ ينشئ سجل DNS فقط عند اختيار ذلك صراحةً. الـ ALB يفرض رسومًا مستمرة، وقد تضيف NAT Gateway رسومًا أخرى. لم أنفذ هذا القالب ولم أنشئ أي موارد.
 
@@ -146,9 +148,9 @@ aws cloudformation deploy \
 - https://github.com/aws-actions/amazon-ecs-deploy-task-definition/blob/v2.6.4/action.yml
 
 ### التفعيل والتحقق
-- بعد إكمال المتطلبات ومراجعة ملف المهمة وسياسة IAM، غيّر `ECS_DEPLOY_ENABLED` إلى `true`. التغيير في المتغير وحده لا يبدأ تشغيلًا؛ الـ workflow يستجيب إلى push على `main`، ولذلك سينفذ عند الدفع التالي إلى الفرع.
+- بعد إكمال المتطلبات ومراجعة ملف المهمة وسياسة IAM وضبط موافقات بيئة الإنتاج، غيّر `ECS_DEPLOY_ENABLED` إلى `true`. لا يبدأ النشر إلا بعد اكتمال CI بنجاح على push إلى `main`؛ عندها يستخدم `aws.yml` artifact الصورة المفحوصة لذلك التشغيل.
 - أوقف المسار بإزالة المتغير أو إرجاعه إلى `false`. يظل النشر محصورًا في `main`، وتُسلسل التشغيلات ولا يُلغى تشغيل نشر سابق.
-- خطوة ما قبل البناء تتحقق من المتغيرات والملفات ووجود اسم الحاوية. لا تثبت هذه الخطوة صحة الصورة أو ملاءمة إعدادات الشبكة وIAM؛ يلزم فحص إعدادات AWS الفعلية ومراجعة سجل التشغيل بعد أول نشر مخطط له.
+- قبل استخدام OIDC، يتحقق workflow من المتغيرات وملفات Docker وتعريف المهمة، ويتحقق من SHA-256 لصورة CI. لا يثبت ذلك صحة إعدادات الشبكة وIAM؛ يلزم مراجعة موارد AWS وسجل التشغيل بعد أول نشر مخطط له.
 - لا يوجد في هذه المرحلة إثبات أن خدمة ECS موجودة أو أن التطبيق يعمل داخل حاوية. لا تفعّل المتغير قبل إتمام قائمة المتطلبات أعلاه ومراجعتها.
 
 ## الموافقة والرجوع

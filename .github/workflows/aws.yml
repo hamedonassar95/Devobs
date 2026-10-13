@@ -1,13 +1,15 @@
-# Deploy a container image to Amazon ECR and update an Amazon ECS service.
-# Set ECS_DEPLOY_ENABLED=true as a repository variable only after AWS and Docker prerequisites are ready.
+# Deploy only the exact image artifact produced by a successful CI run on main.
+# Set ECS_DEPLOY_ENABLED=true only after the AWS, Docker, and production-approval prerequisites are ready.
 name: Deploy to Amazon ECS
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
     branches: ["main"]
+    types: [completed]
 
 concurrency:
-  group: ecs-production-${{ github.ref }}
+  group: ecs-production-${{ github.event.workflow_run.head_branch }}
   cancel-in-progress: false
 
 env:
@@ -24,21 +26,69 @@ permissions:
   contents: read
 
 jobs:
+  eligible:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    outputs:
+      current: ${{ steps.head.outputs.current }}
+    steps:
+      - name: Confirm the tested commit is still the head of main
+        id: head
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TESTED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          current_sha="$(gh api "repos/$GH_REPO/git/ref/heads/main" --jq '.object.sha')"
+          if [[ "$current_sha" == "$TESTED_SHA" ]]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "current=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping an outdated CI run; main has moved." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
   deploy:
-    if: ${{ vars.ECS_DEPLOY_ENABLED == 'true' }}
+    needs: eligible
+    if: ${{ needs.eligible.outputs.current == 'true' && vars.ECS_DEPLOY_ENABLED == 'true' }}
     name: Deploy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     environment: production
     permissions:
+      actions: read
       contents: read
       id-token: write
 
     steps:
-      - name: Checkout
+      - name: Checkout tested commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.workflow_run.head_sha }}
           persist-credentials: false
+
+      - name: Download the CI-scanned image artifact
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ecs-container-${{ github.event.workflow_run.head_sha }}
+          path: ${{ runner.temp }}/ecs-container
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Verify and load the scanned image
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/ecs-container"
+          sha256sum --check devobs-site-image.tar.gz.sha256
+          gzip --decompress --stdout devobs-site-image.tar.gz | docker load
+          docker image inspect devobs-site:ci >/dev/null
 
       - name: Validate deployment configuration and files
         shell: bash
@@ -105,15 +155,15 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2.1.7
 
-      - name: Build, tag, and push image to Amazon ECR
+      - name: Tag and push the CI-scanned image to Amazon ECR
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          IMAGE_TAG: ${{ github.event.workflow_run.head_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
         run: |
           set -euo pipefail
           image="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-          docker build -t "$image" .
+          docker tag devobs-site:ci "$image"
           docker push "$image"
           echo "image=$image" >> "$GITHUB_OUTPUT"
 
