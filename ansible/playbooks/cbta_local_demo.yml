@@ -1,0 +1,24 @@
+---
+- name: Apply the Devobs CBTA demo state on localhost
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    demo_root: /tmp/devobs-cbta-demo
+  tasks:
+    - name: Ensure the isolated demo directory exists
+      ansible.builtin.file:
+        path: "{{ demo_root }}"
+        state: directory
+        mode: "0755"
+
+    - name: Ensure the demo page matches the desired state
+      ansible.builtin.copy:
+        dest: "{{ demo_root }}/index.html"
+        content: |
+          <!doctype html>
+          <html lang="en">
+          <head><meta charset="utf-8"><title>Devobs Ansible CBTA lab</title></head>
+          <body><main><h1>Desired state applied</h1></main></body>
+          </html>
+        mode: "0644"

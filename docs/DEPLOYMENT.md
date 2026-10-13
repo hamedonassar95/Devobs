@@ -53,3 +53,7 @@ PR #10: https://github.com/hamedonassar95/Devobs/pull/10
 - https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments
 - https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_run
 - https://github.com/actions/upload-artifact/releases/tag/v7.0.1
+
+## الجاهزية البشرية والتدريب
+
+استخدم إطار [CBTA](CBTA_FRAMEWORK.md) ومصفوفة [التقييم](CBTA_ASSESSMENT_MATRIX.md) لتدريب من يتولى مراجعة أو تشغيل مسار الإصدار. يثبت المتدرب فهم المصدر والفحوص والتحقق والرجوع بأدلة من PR أو محاكاة آمنة. لا تتطلب التقييمات الوصول إلى الإنتاج، ولا تمنح نتيجة CBTA صلاحيات GitHub أو AWS. تظل حماية main وموافقات النشر والفحوص الإلزامية حواجز مستقلة.
