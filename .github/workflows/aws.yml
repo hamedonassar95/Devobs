@@ -83,6 +83,7 @@ jobs:
           role-session-name: github-actions-${{ github.run_id }}
           aws-region: ${{ env.AWS_REGION }}
 
+
       - name: Prepare task definition with account-specific runtime values
         id: prepare-task-definition
         shell: bash
