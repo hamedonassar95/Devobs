@@ -35,8 +35,42 @@
 
 الفحص السابق للنشر يقلل خطر إعادة نشر commit قديم عند إعادة تشغيل CI؛ ليس قفلًا ذريًا يمنع تحرك main بين الفحص واكتمال النشر. concurrency يسلسل عمليات النشر. لا يُدّعى ضمان ذرية أو فحص بصري شامل للموقع.
 
+## AWS ECS — مسار تجريبي معطّل افتراضيًا
+هذا مسار منفصل عن نشر GitHub Pages. لا يُعد جاهزًا للإنتاج حاليًا: فحص شجرة الفرع `codex/aws-ecs-workflow-hardening` في 13 أكتوبر 2026 لم يجد `Dockerfile` أو ملف تعريف مهمة ECS، ولم تُجهّز موارد AWS أو اختُبر النشر. يظل الـ workflow متخطّى ما لم تكن قيمة متغير المستودع `ECS_DEPLOY_ENABLED` هي النص `true` حرفيًا.
+
+### متطلبات المستودع وGitHub
+1. أضف `Dockerfile` يبني التطبيق المقصود، وملف JSON لتعريف مهمة ECS. يجب أن يحتوي التعريف على container بالاسم نفسه المحدد في `CONTAINER_NAME`، وأن يحدد أدوار ECS المناسبة ومتطلبات الشبكة/السجلات للتطبيق.
+2. جهّز مسبقًا مستودع ECR، وECS cluster، وECS service متوافقًا مع عائلة المهمة والحاوية والصورة. الـ workflow يبني الصورة ويرفعها؛ لا ينشئ موارد ECR أو ECS.
+3. أضف متغيرات **Repository variables** التالية من Settings → Secrets and variables → Actions → Variables:
+
+| المتغير | القيمة المطلوبة |
+| --- | --- |
+| `AWS_REGION` | منطقة AWS التي توجد فيها الموارد |
+| `AWS_ROLE_ARN` | ARN لدور IAM الذي يفترضه GitHub عبر OIDC |
+| `ECR_REPOSITORY` | اسم مستودع ECR، لا عنوانه الكامل |
+| `ECS_SERVICE` | اسم خدمة ECS الموجودة |
+| `ECS_CLUSTER` | اسم أو ARN للـ cluster |
+| `ECS_TASK_DEFINITION` | مسار ملف JSON لتعريف المهمة داخل المستودع |
+| `CONTAINER_NAME` | اسم container كما يظهر في `containerDefinitions` |
+| `ECS_DEPLOY_ENABLED` | اتركه غير مضبوط أو `false` حتى إكمال كل المتطلبات والمراجعات |
+
+لا تضع مفاتيح AWS أو بيانات اعتماد طويلة العمر في Repository variables أو الملفات. المصادقة مصممة باستخدام OIDC.
+
+### إعداد AWS OIDC وIAM
+1. أضف مزود الهوية `https://token.actions.githubusercontent.com` في حساب AWS، مع audience يساوي `sts.amazonaws.com`.
+2. اجعل trust policy للدور تقبل audience المذكور وsubject مقيدًا إلى `repo:hamedonassar95/Devobs:environment:production`. لا تسمح لكل المستودعات أو كل الفروع.
+3. في GitHub، أنشئ/راجع Environment باسم `production`، واجعل فروع النشر المسموحة `main` فقط، وأضف required reviewers قبل استخدام الدور. قيد الـ subject على بيئة GitHub يجعل قواعد البيئة جزءًا من حاجز OIDC.
+4. امنح الدور أقل صلاحيات لازمة لرفع صورة إلى مستودع ECR المحدد، وتسجيل/وصف تعريف المهمة، وتحديث الخدمة المحددة وانتظار استقرارها. اسمح بـ `iam:PassRole` فقط لأدوار task/execution المحددة، مع قصر التمرير على خدمة `ecs-tasks.amazonaws.com`. راجع دعم نطاق الموارد لكل فعل IAM في وثائق AWS قبل اعتماد السياسة؛ بعض أفعال التسجيل تتطلب نطاقًا أوسع.
+5. أضف إلى حماية `main` اشتراط موافقة PR واحدة على الأقل إلى جانب الفحوص المطلوبة. المراجعة المسجلة في هذا المستودع وقت الفحص كانت بلا موافقات PR إلزامية (`required_approving_review_count: 0))، لذلك لا تعتبر حماية البيئة وحدها بديلًا عن مراجعة تغييرات الكود.
+
+### التفعيل والتحقق
+- بعد إكمال المتطلبات ومراجعة ملف المهمة وسياسة IAM، غيّر `ECS_DEPLOY_ENABLED` إلى `true`. التغيير في المتغير وحده لا يبدأ تشغيلًا؛ الـ workflow يستجيب إلى push على `main`، ولذلك سينفذ عند الدفع التالي إلى الفرع.
+- أوقف المسار بإزالة المتغير أو إرجاعه إلى `false`. يظل النشر محصورًا في `main`، وتُسلسل التشغيلات ولا يُلغى تشغيل نشر سابق.
+- خطوة ما قبل البناء تتحقق من المتغيرات والملفات ووجود اسم الحاوية. لا تثبت هذه الخطوة صحة الصورة أو ملاءمة إعدادات الشبكة وIAM؛ يلزم فحص إعدادات AWS الفعلية ومراجعة سجل التشغيل بعد أول نشر مخطط له.
+- لا يوجد في هذه المرحلة إثبات أن خدمة ECS موجودة أو أن التطبيق يعمل داخل حاوية. لا تفعّل المتغير قبل إتمام قائمة المتطلبات أعلاه ومراجعتها.
+
 ## الموافقة والرجوع
-المسار المعتمد نشر تلقائي بعد الدمج وفحص main؛ لا توجد موافقة إضافية لكل نشر.
+المسار المعتمد لنشر Pages هو النشر بعد الدمج وفحص main؛ لا توجد موافقة إضافية لكل نشر.
 للرجوع: أنشئ فرعًا من main الحالي، اعكس التغيير المسبب عبر revert، افتح PR واترك الفحوص تنجح ثم ادمجه. يصبح التراجع commit جديدًا يُختبر وينشر بالطريقة نفسها.
 لا تستخدم force-push ولا تعطّل حماية main. إعادة تشغيل CI قديم ليست آلية rollback معتمدة.
 لتعطيل حزم المعاينة أو إلغاء هذا التعديل، اعكس PR الذي أضافه عبر PR جديد.
@@ -53,3 +87,10 @@ PR #10: https://github.com/hamedonassar95/Devobs/pull/10
 - https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments
 - https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_run
 - https://github.com/actions/upload-artifact/releases/tag/v7.0.1
+
+## مراجع AWS/GitHub لمسار ECS
+- https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services
+- https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc.html
+- https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-push.html
+- https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html
+- https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_passrole.html
