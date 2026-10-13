@@ -99,13 +99,13 @@ aws cloudformation describe-stacks \
 
 قالب الأساس ينشئ ECR وCloudWatch Logs وECS cluster ودوري IAM فقط. القالب التالي ينشئ ALB وDNS وخدمة ECS، لكنه يعتمد على VPC وشبكاتك وشهادة ACM ونطاقك الموجود مسبقًا. لا يصبح مسار النشر جاهزًا لمجرد إنشاء stack واحد؛ راجع متطلبات الشبكة والمراجعات قبل التفعيل.
 ### إنشاء طبقة الشبكة وخدمة ECS
-القالب `infra/ecs-service.yml` يكمل stack الأساس بعد مراجعته: ينشئ Application Load Balancer عامًا في subnetين عامين من Availability Zones مختلفتين، ويعيد توجيه HTTP إلى HTTPS، ويربط اسم النطاق بسجل Route 53 من نوع A، ويضع خدمة Fargate في subnetين خاصين. يستقبل task security group المنفذ 8080 من ALB فقط. شهادة ACM يجب أن تكون صادرة في منطقة هذا الـ stack وأن تغطي `DomainName`، ويجب أن يكون `HostedZoneId` لمنطقة Route 53 عامة تخدم ذلك النطاق.
+القالب `infra/ecs-service.yml` يكمل stack الأساس بعد مراجعته: ينشئ Application Load Balancer عامًا في subnetين عامين من Availability Zones مختلفتين، ويعيد توجيه HTTP إلى HTTPS، وويمكنه اختياريًا إنشاء سجل Route 53 من نوع A (معطّل افتراضيًا لحماية سجلات DNS القائمة)، ويضع خدمة Fargate في subnetين خاصين. يستقبل task security group المنفذ 8080 من ALB فقط. شهادة ACM يجب أن تكون صادرة في منطقة هذا الـ stack وأن تغطي `DomainName`، إذا أُدير DNS خارج Route 53، وجّه النطاق إلى ALB يدويًا. افتراضيًا `CreateDnsRecord=false` ولا يحتاج `HostedZoneId`; فعّله فقط بعد التأكد من عدم وجود سجل A متعارض في المنطقة العامة.
 
 يتطلب الإعداد شبكة VPC موجودة. يلزم subnet عام في كل من منطقتين مختلفتين للـ ALB (كل subnet يفضّل ألا يقل عن `/27` وأن يتوفر فيه 8 عناوين IP حرة)، وsubnet خاص للمهام في كل منطقة. تأكد من مسارات الإنترنت للـ public subnets، ومن خروج private subnets عبر NAT Gateway أو نقاط VPC الخاصة بـ ECR API وECR DKR وS3 وCloudWatch Logs. لا تُمنح المهام Public IP؛ قواعد الخروج تسمح بـ HTTPS وDNS فقط حسب النطاق المحدد بالقالب.
 
 ينشئ القالب مهمة NGINX تأسيسية مثبتة على digest، لكنه ينشئ الخدمة بـ `DesiredCount: 0` حتى لا تُشغّل صفحة NGINX الافتراضية. عند نشر commit إلى `main` بعد استيفاء الحماية وتفعيل المتغير، يمرر الـ workflow `desired-count: 1` إلى إجراء ECS المثبت ويشغّل نسخة واحدة من التطبيق. الخدمة تشير إلى عائلة task definition باسم `devobs-site` دون رقم revision؛ توثيق ECS يقرر أن هذا يستخدم أحدث revision نشط، الذي يسجله الـ workflow. يختبر ALB المسار `/` حتى تعمل مهمة التهيئة والتراجع، بينما يفحص container health check في تعريف التطبيق `/health`.
 
-**تنبيه تكلفة:** تنفيذ قالب الخدمة ينشئ ALB وسجل DNS ومجموعات أمان وخدمة ECS حتى مع صفر مهام. الـ ALB يفرض رسومًا مستمرة، وقد تضيف NAT Gateway رسومًا أخرى. لم أنفذ هذا القالب ولم أنشئ أي موارد.
+**تنبيه تكلفة:** تنفيذ قالب الخدمة ينشئ ALB ومجموعات أمان وخدمة ECS حتى مع صفر مهام؛ ينشئ سجل DNS فقط عند اختيار ذلك صراحةً. الـ ALB يفرض رسومًا مستمرة، وقد تضيف NAT Gateway رسومًا أخرى. لم أنفذ هذا القالب ولم أنشئ أي موارد.
 
 بعد مراجعة CloudFormation change set وقيم الشبكة والشهادة والنطاق، هذا مثال لإعداد change set فقط؛ لا ينفذ التغييرات بسبب `--no-execute-changeset`. استبدل القيم التجريبية. القالب لا ينشئ أدوار IAM جديدة:
 
@@ -122,7 +122,7 @@ aws cloudformation deploy \
     PrivateSubnetA=subnet-01111111111111111 \
     PrivateSubnetB=subnet-02222222222222222 \
     DomainName=www.example.com \
-    HostedZoneId=Z012345678EXAMPLE \
+    CreateDnsRecord=false \
     AcmCertificateArn=arn:aws:acm:us-east-1:123456789012:certificate/01234567-89ab-cdef-0123-456789abcdef \
     EcsClusterName=devobs-production \
     EcsServiceName=devobs-site \
