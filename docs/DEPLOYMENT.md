@@ -60,7 +60,7 @@
 
 ### إعداد AWS OIDC وIAM
 1. أضف مزود الهوية `https://token.actions.githubusercontent.com` في حساب AWS، مع audience يساوي `sts.amazonaws.com`.
-2. اجعل trust policy لدور النشر تقبل audience المذكور وsubject مطابقًا تمامًا للصيغة الثابتة لهذا المستودع: `repo:hamedonassar95@104053101/Devobs@1404102641:environment:production`. أنشئ المستودع في 4 أكتوبر 2026، بعد بدء GitHub تطبيق الصيغة الثابتة؛ قيمة `repo:owner/repo:environment:production` القديمة لن تطابقه. لا تستخدم wildcard، وتحقق من subject الفعلي في إعدادات OIDC للمستودع قبل إنشاء trust policy.
+2. اجعل trust policy لدور النشر تقبل audience المذكور وsubject مطابقًا تمامًا للصيغة الثابتة لهذا المستودع: `repo:hamedonassar95@104053101/Devobs@1404102641:environment:production`. أنشئ المستودع في 4 أكتوبر 2026، بعد بدء GitHub تطبيق الصيغة الثابتة؛ قيمة `repo:owner/repo:environment:production` القديمة لن تطابقه. لا تستخدم wildcard. هذه القيمة تفترض إعداد GitHub الافتراضي لصيغة `sub`؛ إذا خُصصت claims في إعدادات OIDC، طابق policy مع subject الناتج قبل التفعيل.
 3. في GitHub، أنشئ/راجع Environment باسم `production`، واجعل فروع النشر المسموحة `main` فقط، وأضف required reviewers قبل استخدام الدور. قيد الـ subject على بيئة GitHub يجعل قواعد البيئة جزءًا من حاجز OIDC.
 4. امنح دور النشر أقل صلاحيات لازمة لرفع صورة إلى مستودع ECR المحدد، وتسجيل تعريف المهمة، ووصف الخدمة وتحديثها وانتظار استقرارها. اسمح بـ `iam:PassRole` فقط إلى `ECS_TASK_EXECUTION_ROLE_ARN` المحدد، مع قصر التمرير على خدمة `ecs-tasks.amazonaws.com`. دور تنفيذ المهمة منفصل ويحتاج فقط إلى سحب image من ECR وكتابة logs إلى المجموعة المحددة. راجع نطاق الموارد لكل فعل IAM في الوثائق الرسمية قبل اعتماد السياسة.
 5. فعّل ECS deployment circuit breaker مع rollback للخدمة، وتأكد أن target group health check يطابق `/health`؛ انتظار استقرار الخدمة في GitHub Actions لا ينشئ rollback تلقائيًا.
@@ -99,6 +99,7 @@ PR #10: https://github.com/hamedonassar95/Devobs/pull/10
 - https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definitions.html
 - https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_passrole.html
 - https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-circuit-breaker.html
+- https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_execution_IAM_role.html
 - https://github.com/aws-actions/amazon-ecs-deploy-task-definition#permissions
 - https://github.com/nginx/docker-nginx-unprivileged
 - https://hub.docker.com/r/nginxinc/nginx-unprivileged/tags
