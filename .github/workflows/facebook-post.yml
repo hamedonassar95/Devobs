@@ -1,0 +1,46 @@
+name: Publish Facebook Page post
+
+on:
+  workflow_dispatch:
+    inputs:
+      message:
+        description: Text to publish on the configured Facebook Page
+        required: true
+        type: string
+      confirm_publication:
+        description: Confirm that this message should be published publicly
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    if: ${{ inputs.confirm_publication == true }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Validate configuration
+        env:
+          FACEBOOK_PAGE_ID: ${{ vars.FACEBOOK_PAGE_ID }}
+          FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
+        run: |
+          test -n "$FACEBOOK_PAGE_ID" || { echo "Set the FACEBOOK_PAGE_ID repository variable."; exit 1; }
+          test -n "$FACEBOOK_PAGE_TOKEN" || { echo "Set the FACEBOOK_PAGE_TOKEN repository secret."; exit 1; }
+          case "$FACEBOOK_PAGE_ID" in
+            *[!0-9]*|'') echo "FACEBOOK_PAGE_ID must contain only digits."; exit 1 ;;
+          esac
+
+      - name: Publish the confirmed post
+        env:
+          FACEBOOK_PAGE_ID: ${{ vars.FACEBOOK_PAGE_ID }}
+          FACEBOOK_PAGE_TOKEN: ${{ secrets.FACEBOOK_PAGE_TOKEN }}
+          FACEBOOK_MESSAGE: ${{ inputs.message }}
+        run: |
+          curl --silent --show-error --fail-with-body \
+            --request POST \
+            --header "Authorization: Bearer $FACEBOOK_PAGE_TOKEN" \
+            --data-urlencode "message=$FACEBOOK_MESSAGE" \
+            "https://graph.facebook.com/v22.0/$FACEBOOK_PAGE_ID/feed"
