@@ -1,0 +1,308 @@
+name: One-click deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_ref:
+        description: "Commit SHA to deploy, or main for its latest commit"
+        required: true
+        default: main
+        type: string
+      rollback_release_tag:
+        description: "Published stable release to restore automatically if health check fails"
+        required: true
+        default: v1.0.0
+        type: string
+      confirm_deploy:
+        description: "Confirm that this run may deploy to production"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    if: ${{ inputs.confirm_deploy == true }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      candidate_sha: ${{ steps.resolve.outputs.candidate_sha }}
+      rollback_sha: ${{ steps.resolve.outputs.rollback_sha }}
+      rollback_tag: ${{ steps.resolve.outputs.rollback_tag }}
+    steps:
+      - name: Check out repository history and tags
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate target and rollback release
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          CANDIDATE_REF: ${{ inputs.candidate_ref }}
+          ROLLBACK_RELEASE_TAG: ${{ inputs.rollback_release_tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "$CANDIDATE_REF" == "main" ]]; then
+            candidate_sha="$(git rev-parse refs/remotes/origin/main^{commit})"
+          elif [[ "$CANDIDATE_REF" =~ ^[0-9a-fA-F]{40}$ ]] && git cat-file -e "$CANDIDATE_REF^{commit}"; then
+            candidate_sha="$(git rev-parse "$CANDIDATE_REF^{commit}")"
+          else
+            echo "::error::Candidate must be main or a full commit SHA present in this repository."
+            exit 1
+          fi
+
+          if [[ ! "$ROLLBACK_RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Rollback release must use stable SemVer such as v1.0.0."
+            exit 1
+          fi
+          if ! git show-ref --verify --quiet "refs/tags/$ROLLBACK_RELEASE_TAG"; then
+            echo "::error::Rollback tag does not exist in this repository."
+            exit 1
+          fi
+
+          rollback_sha="$(git rev-list -n 1 "$ROLLBACK_RELEASE_TAG")"
+          if [[ "$candidate_sha" == "$rollback_sha" ]]; then
+            echo "::error::Candidate and rollback release resolve to the same commit."
+            exit 1
+          fi
+
+          release_json="$(gh release view "$ROLLBACK_RELEASE_TAG" --repo "$GH_REPO" --json isDraft,isPrerelease)"
+          RELEASE_JSON="$release_json" python3 - <<'PY'
+          import json
+          import os
+          import sys
+
+          release = json.loads(os.environ["RELEASE_JSON"])
+          if release.get("isDraft") or release.get("isPrerelease"):
+              print("::error::Rollback target must be a published stable GitHub Release.")
+              sys.exit(1)
+          PY
+
+          {
+            echo "candidate_sha=$candidate_sha"
+            echo "rollback_sha=$rollback_sha"
+            echo "rollback_tag=$ROLLBACK_RELEASE_TAG"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Deployment request validated"
+            echo
+            echo "- Candidate commit: \`$candidate_sha\`"
+            echo "- Automatic rollback release: \`$ROLLBACK_RELEASE_TAG\` (\`$rollback_sha\`)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    needs: validate
+    if: ${{ needs.validate.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    environment:
+      name: github-pages
+      url: ${{ steps.candidate-deploy.outputs.page_url }}
+    outputs:
+      status: ${{ steps.report.outputs.status }}
+      site_url: ${{ steps.candidate-deploy.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Check out candidate commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.validate.outputs.candidate_sha }}
+          persist-credentials: false
+
+      - name: Compile Python sources
+        run: python3 -m compileall -q scripts tests
+
+      - name: Run Python test suite
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Run Node guard tests
+        run: node --test tests/incident_guard.test.cjs
+
+      - name: Check the page contract and local HTTP response
+        run: python3 scripts/check_site.py
+
+      - name: Install pinned Bandit version
+        run: python3 -m pip install --disable-pip-version-check bandit==1.9.4
+
+      - name: Scan Python scripts with Bandit
+        run: python3 -m bandit -r scripts -x scripts/check_site.py
+
+      - name: Stage candidate site
+        run: |
+          mkdir -p _site
+          cp index.html _site/index.html
+          if [ -d assets ]; then
+            cp -R assets _site/assets
+          fi
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - name: Upload candidate artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          name: github-pages-candidate
+          path: _site
+
+      - name: Deploy candidate
+        id: candidate-deploy
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+        with:
+          artifact_name: github-pages-candidate
+
+      - name: Check candidate in production
+        id: candidate-health
+        env:
+          SITE_URL: ${{ steps.candidate-deploy.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error \
+            --retry 5 --retry-delay 5 --retry-all-errors \
+            "$SITE_URL" --output site.html
+          grep -q "AL-DALA MOBILE" site.html
+          echo "Production health check passed for the candidate."
+
+      - name: Check out rollback release
+        id: rollback-checkout
+        if: ${{ failure() && steps.candidate-deploy.outcome != 'skipped' }}
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.validate.outputs.rollback_sha }}
+          persist-credentials: false
+
+      - name: Stage rollback release
+        if: ${{ always() && steps.rollback-checkout.outcome == 'success' }}
+        run: |
+          rm -rf _site
+          mkdir -p _site
+          cp index.html _site/index.html
+          if [ -d assets ]; then
+            cp -R assets _site/assets
+          fi
+
+      - name: Configure Pages for rollback
+        if: ${{ always() && steps.rollback-checkout.outcome == 'success' }}
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - name: Upload rollback artifact
+        if: ${{ always() && steps.rollback-checkout.outcome == 'success' }}
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          name: github-pages-rollback
+          path: _site
+
+      - name: Automatically redeploy the stable release
+        id: rollback-deploy
+        if: ${{ always() && steps.rollback-checkout.outcome == 'success' }}
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+        with:
+          artifact_name: github-pages-rollback
+
+      - name: Verify production after automatic rollback
+        id: rollback-health
+        if: ${{ always() && steps.rollback-deploy.outcome == 'success' }}
+        env:
+          SITE_URL: ${{ steps.rollback-deploy.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error \
+            --retry 5 --retry-delay 5 --retry-all-errors \
+            "$SITE_URL" --output rollback-site.html
+          grep -q "AL-DALA MOBILE" rollback-site.html
+          echo "Production health check passed after automatic rollback."
+
+      - name: Record deployment report
+        id: report
+        if: ${{ always() }}
+        env:
+          CANDIDATE_HEALTH: ${{ steps.candidate-health.outcome }}
+          CANDIDATE_DEPLOY: ${{ steps.candidate-deploy.outcome }}
+          ROLLBACK_CHECKOUT: ${{ steps.rollback-checkout.outcome }}
+          ROLLBACK_DEPLOY: ${{ steps.rollback-deploy.outcome }}
+          ROLLBACK_HEALTH: ${{ steps.rollback-health.outcome }}
+          CANDIDATE_SHA: ${{ needs.validate.outputs.candidate_sha }}
+          ROLLBACK_TAG: ${{ needs.validate.outputs.rollback_tag }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          CANDIDATE_URL: ${{ steps.candidate-deploy.outputs.page_url }}
+          ROLLBACK_URL: ${{ steps.rollback-deploy.outputs.page_url }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "$CANDIDATE_HEALTH" == "success" ]]; then
+            status="deployed"
+            result_url="$CANDIDATE_URL"
+          elif [[ "$ROLLBACK_HEALTH" == "success" ]]; then
+            status="rolled_back"
+            result_url="$ROLLBACK_URL"
+          elif [[ "$CANDIDATE_DEPLOY" != "" && "$CANDIDATE_DEPLOY" != "skipped" ]]; then
+            status="rollback_failed"
+            result_url="$CANDIDATE_URL"
+          else
+            status="validation_failed"
+            result_url=""
+          fi
+
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          {
+            echo "## Deployment outcome: $status"
+            echo
+            echo "- Candidate commit: \`$CANDIDATE_SHA\`"
+            echo "- Rollback target: \`$ROLLBACK_TAG\`"
+            echo "- Candidate deploy step: $CANDIDATE_DEPLOY"
+            echo "- Candidate health check: $CANDIDATE_HEALTH"
+            echo "- Automatic rollback: $ROLLBACK_CHECKOUT / $ROLLBACK_DEPLOY / $ROLLBACK_HEALTH"
+            echo "- Run log: $RUN_URL"
+            if [[ -n "$result_url" ]]; then echo "- Site: $result_url"; fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+
+  report:
+    needs: [validate, deploy]
+    if: ${{ always() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      contents: read
+    steps:
+      - name: Check out notification helper from main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Publish GitHub, Slack, and email report
+        if: ${{ needs.validate.result == 'failure' || needs.deploy.outputs.status != '' }}
+        continue-on-error: true
+        env:
+          DEPLOYMENT_STATUS: ${{ needs.deploy.outputs.status }}
+          VALIDATION_RESULT: ${{ needs.validate.result }}
+          DEPLOYMENT_RESULT: ${{ needs.deploy.result }}
+          DEPLOYMENT_REPOSITORY: ${{ github.repository }}
+          DEPLOYMENT_COMMIT: ${{ needs.validate.outputs.candidate_sha || inputs.candidate_ref }}
+          DEPLOYMENT_ROLLBACK_TAG: ${{ needs.validate.outputs.rollback_tag || inputs.rollback_release_tag }}
+          DEPLOYMENT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          DEPLOYMENT_SITE_URL: ${{ needs.deploy.outputs.site_url }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SMTP_HOST: ${{ vars.SMTP_HOST }}
+          SMTP_PORT: ${{ vars.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          DEPLOYMENT_EMAIL_TO: ${{ vars.DEPLOYMENT_EMAIL_TO }}
+          DEPLOYMENT_EMAIL_FROM: ${{ vars.DEPLOYMENT_EMAIL_FROM }}
+        run: python3 scripts/deployment_notifications.py
