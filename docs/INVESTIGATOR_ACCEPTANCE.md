@@ -90,10 +90,16 @@ do not substitute for a live GitHub concurrency test.
   read-only `safeoutputs/outputs.jsonl` in place and raised `PermissionError`;
   safe-output processing still published the unmarked report. No deployment,
   rollback, branch, PR, or code change resulted.
-- The remediation uses a same-directory atomic replacement that preserves the
-  file mode. A regression case reproduces the read-only file and verifies the
-  output is normalized without making the final file writable.
+- Investigator run [38797753128](https://github.com/hamedonassar95/Devobs/actions/runs/38797753128)
+  on simulated issue [#120](https://github.com/hamedonassar95/Devobs/issues/120)
+  completed successfully and posted one report, but the published comment still
+  lacked the marker. The compiled workflow copies safe outputs to
+  `/tmp/gh-aw/safeoutputs.jsonl` before post-steps; the first atomic replacement
+  updated only the source file, leaving the staged copy unchanged.
+- The follow-up now normalizes both source and staged files atomically, preserves
+  each file mode, and checks the staged copy that the publisher consumes. The
+  regression case makes both files read-only and verifies both contain the marker.
 
 This correction does not enable or approve deployment. Full live acceptance remains
 pending until a fresh simulation completes with one marked report and a successful
-investigator run.
+investigator run using the follow-up change.

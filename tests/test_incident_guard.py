@@ -96,15 +96,22 @@ class IncidentGuardTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as directory:
             output_path = Path(directory) / 'outputs.jsonl'
-            env = {**os.environ, 'GH_AW_SAFE_OUTPUTS': str(output_path)}
+            copy_path = Path(directory) / 'safeoutputs.jsonl'
+            env = {
+                **os.environ,
+                'GH_AW_SAFE_OUTPUTS': str(output_path),
+                'GH_AW_SAFE_OUTPUTS_COPY': str(copy_path),
+            }
 
             output_path.write_text(json.dumps({'type': 'add_comment', 'body': body}) + '\n')
+            copy_path.write_text(output_path.read_text())
             valid = subprocess.run(
                 ['bash', '-e', '-c', run_script], env=env, text=True, capture_output=True,
             )
             self.assertEqual(valid.returncode, 0, valid.stdout + valid.stderr)
 
             output_path.write_text(json.dumps({'type': 'noop', 'message': 'see comment'}) + '\n')
+            copy_path.write_text(output_path.read_text())
             missing = subprocess.run(
                 ['bash', '-e', '-c', run_script], env=env, text=True, capture_output=True,
             )
@@ -116,14 +123,22 @@ class IncidentGuardTests(unittest.TestCase):
                 'body': '## AI Incident Investigation\n\nA concise report.\n',
             }
             output_path.write_text(json.dumps(missing_marker) + '\n')
+            copy_path.write_text(output_path.read_text())
             output_path.chmod(stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+            copy_path.chmod(stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
             normalized = subprocess.run(
                 ['bash', '-e', '-c', run_script], env=env, text=True, capture_output=True,
             )
             self.assertEqual(normalized.returncode, 0, normalized.stdout + normalized.stderr)
             result = json.loads(output_path.read_text().splitlines()[0])
             self.assertTrue(result['body'].startswith('<!-- devobs-investigation:v1 -->\n\n'))
+            staged_result = json.loads(copy_path.read_text().splitlines()[0])
+            self.assertTrue(staged_result['body'].startswith('<!-- devobs-investigation:v1 -->\n\n'))
             self.assertEqual(
                 stat.S_IMODE(output_path.stat().st_mode),
+                stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH,
+            )
+            self.assertEqual(
+                stat.S_IMODE(copy_path.stat().st_mode),
                 stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH,
             )
