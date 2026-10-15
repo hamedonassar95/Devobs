@@ -42,6 +42,7 @@ jobs:
           fi
 
   deploy:
+    name: Publish production site
     needs: eligible
     if: needs.eligible.outputs.current == 'true'
     permissions:
@@ -62,12 +63,22 @@ jobs:
           persist-credentials: false
 
       - name: Stage static site
+        env:
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
+          set -euo pipefail
+
+          if [[ ! "$SOURCE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "::error::The tested source SHA is invalid."
+            exit 1
+          fi
+
           mkdir -p _site
           cp index.html _site/index.html
           if [ -d assets ]; then
             cp -R assets _site/assets
           fi
+          printf '{"schema_version":1,"source_sha":"%s"}\n' "$SOURCE_SHA" > _site/deployment.json
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0

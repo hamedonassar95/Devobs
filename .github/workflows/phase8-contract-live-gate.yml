@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Validate input
         shell: bash
@@ -28,7 +28,7 @@ jobs:
           [[ "$INCIDENT_NUMBER" =~ ^[1-9][0-9]*$ ]] || exit 1
 
       - name: Validate trusted machine-readable investigation
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           INCIDENT_NUMBER: ${{ inputs.incident_number }}
         with:
@@ -85,7 +85,7 @@ jobs:
               .write();
 
       - name: Upload gate evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: phase8-contract-gate-${{ inputs.incident_number }}
           path: phase8-contract-gate.json

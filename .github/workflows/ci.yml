@@ -47,6 +47,9 @@ jobs:
           PY
           python3 -m compileall -q scripts tests
 
+      - name: Require immutable GitHub Actions references
+        run: python3 scripts/check_action_pins.py
+
       - name: Fail if unittest discovery finds no tests
         run: |
           python3 - <<'PY'
