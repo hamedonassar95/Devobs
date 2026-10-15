@@ -56,19 +56,23 @@ gcloud iam service-accounts add-iam-policy-binding "$SERVICE_ACCOUNT" \
   --member="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL_ID}/attribute.repository/hamedonassar95/Devobs"
 ```
 
-In **Devobs → Settings → Secrets and variables → Actions → Variables**, add
-these repository variables (they are identifiers, not credentials):
+In **Devobs → Settings → Secrets and variables → Actions**, add these values
+as repository variables or repository secrets, using the exact names below.
+Repository variables are suitable because these are resource identifiers; secrets
+also work if the repository already stores them that way. Do not put them in a
+GitHub Environment: this workflow does not bind to an environment.
 
-| Variable | Value |
+| Setting name | Example value |
 |---|---|
 | `GCP_WORKLOAD_IDENTITY_PROVIDER` | `projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL_ID/providers/PROVIDER_ID` |
 | `GCP_VERTEX_SERVICE_ACCOUNT` | `devobs-vertex-investigator@PROJECT_ID.iam.gserviceaccount.com` |
 | `GCP_VERTEX_PROJECT_ID` | Google Cloud project ID |
 
-Before launching Gemini, the workflow now checks that all three variables are
-nonempty and stops with an explicit setup error when one is missing. This check
-does not verify the project's IAM trust, enabled APIs, model access, quota, or
-billing; confirm those separately before retrying.
+Before launching Gemini, the workflow now checks that all three values are
+nonempty, preferring repository variables and falling back to repository secrets.
+It stops with an explicit setup error when a value is missing. This check does
+not verify the project's IAM trust, enabled APIs, model access, quota, or billing;
+confirm those separately before retrying.
 
 The workflow uses `us-central1` for Vertex AI. Confirm the chosen model and
 region are available to your Google Cloud project and that billing/quota are
@@ -99,6 +103,15 @@ incident trust gate and activation. Gemini then exited with code 41 before
 inference, reporting that Vertex AI requires `GOOGLE_CLOUD_PROJECT` and
 `GOOGLE_CLOUD_LOCATION`. The compiled workflow sets the location to `us-central1`
 and maps the project from `GCP_VERTEX_PROJECT_ID`, so verify that the repository
-variable is configured along with the workload identity provider and service
-account variables above. The run posted no comment; do not rerun the fallback until
-the Google Cloud configuration and project quota are verified.
+value is configured along with the workload identity provider and service account
+values above. The run posted no comment; do not rerun the fallback until the
+Google Cloud configuration and project quota are verified.
+
+## Repository configuration check — 15 October 2026
+
+Run
+[38811637323](https://github.com/hamedonassar95/Devobs/actions/runs/38811637323)
+for issue [#124](https://github.com/hamedonassar95/Devobs/issues/124) stopped
+before Gemini because the three `vars.*` inputs were empty. The workflow now
+accepts each setting as either a repository variable or a repository secret.
+It still rejects missing values before any Vertex request.

@@ -58,23 +58,23 @@ on:
     - name: Validate Vertex AI configuration
       if: steps.incident_gate.outputs.eligible == 'true'
       env:
-        GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-        GCP_VERTEX_SERVICE_ACCOUNT: ${{ vars.GCP_VERTEX_SERVICE_ACCOUNT }}
-        GCP_VERTEX_PROJECT_ID: ${{ vars.GCP_VERTEX_PROJECT_ID }}
+        GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+        GCP_VERTEX_SERVICE_ACCOUNT: ${{ vars.GCP_VERTEX_SERVICE_ACCOUNT || secrets.GCP_VERTEX_SERVICE_ACCOUNT }}
+        GCP_VERTEX_PROJECT_ID: ${{ vars.GCP_VERTEX_PROJECT_ID || secrets.GCP_VERTEX_PROJECT_ID }}
       shell: bash
       run: |
         set -euo pipefail
         missing=()
         for name in GCP_WORKLOAD_IDENTITY_PROVIDER GCP_VERTEX_SERVICE_ACCOUNT GCP_VERTEX_PROJECT_ID; do
           if [[ -z "${!name}" ]]; then
-            echo "::error::Configure the repository Actions variable ${name} before using the Vertex fallback."
+            echo "::error::Configure the repository Actions variable or secret ${name} before using the Vertex fallback."
             missing+=("$name")
           fi
         done
         if (( ${#missing[@]} > 0 )); then
           exit 1
         fi
-        echo "Vertex AI configuration variables are present."
+        echo "Vertex AI configuration is present."
   bots:
     - github-actions[bot]
 
@@ -155,9 +155,9 @@ engine:
   auth:
     type: github-oidc
     provider: gcp
-    workload-identity-provider: "${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}"
-    service-account: "${{ vars.GCP_VERTEX_SERVICE_ACCOUNT }}"
-    project: "${{ vars.GCP_VERTEX_PROJECT_ID }}"
+    workload-identity-provider: "${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}"
+    service-account: "${{ vars.GCP_VERTEX_SERVICE_ACCOUNT || secrets.GCP_VERTEX_SERVICE_ACCOUNT }}"
+    project: "${{ vars.GCP_VERTEX_PROJECT_ID || secrets.GCP_VERTEX_PROJECT_ID }}"
     location: us-central1
 model: gemini-2.5-pro
 
