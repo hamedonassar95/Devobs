@@ -76,7 +76,7 @@ def send_email(subject: str, body: str) -> str:
     password = value("DEPLOY_SMTP_PASSWORD")
     sender = value("DEPLOY_EMAIL_FROM")
     recipients = [item.strip() for item in value("DEPLOY_EMAIL_TO").split(",") if item.strip()]
-    if not recipients or any("\n" in item or "\\r" in item for item in [sender, *recipients]):
+    if not recipients or any("\n" in item or "\r" in item for item in [sender, *recipients]):
         print("::warning::Email alert addresses are invalid; email was not sent.")
         return "invalid-config"
 

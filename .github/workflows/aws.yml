@@ -64,7 +64,11 @@ jobs:
               print("::error::Missing repository variables: " + ", ".join(missing))
               sys.exit(1)
 
-          task_path = pathlib.Path(os.environ["ECS_TASK_DEFINITION"])
+          workspace = pathlib.Path.cwd().resolve()
+          task_path = (workspace / os.environ["ECS_TASK_DEFINITION"]).resolve()
+          if task_path != workspace and workspace not in task_path.parents:
+              print("::error::ECS_TASK_DEFINITION must resolve inside the checked-out repository.")
+              sys.exit(1)
           if not pathlib.Path("Dockerfile").is_file():
               print("::error::Dockerfile is missing; ECS deployment cannot build an image.")
               sys.exit(1)
@@ -153,7 +157,7 @@ jobs:
           {
             echo "## ECS deployment"
             echo
-            echo "- Source commit: ${{ github.sha }}"
-            echo "- Region: ${{ vars.AWS_REGION }}"
+            echo "- Source commit: $GITHUB_SHA"
+            echo "- Region: $AWS_REGION"
             echo "- ECS service stability: see the preceding deployment step"
           } >> "$GITHUB_STEP_SUMMARY"

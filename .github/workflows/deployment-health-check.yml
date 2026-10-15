@@ -54,8 +54,8 @@ jobs:
           UPSTREAM_WORKFLOW: ${{ github.event.workflow_run.name || 'Manual health check' }}
           UPSTREAM_EVENT: ${{ github.event.workflow_run.event || 'workflow_dispatch' }}
           UPSTREAM_CONCLUSION: ${{ github.event.workflow_run.conclusion || 'manual' }}
-          UPSTREAM_STARTED_AT: ${{ github.event.workflow_run.run_started_at || github.run_started_at }}
-          UPSTREAM_UPDATED_AT: ${{ github.event.workflow_run.updated_at || github.run_started_at }}
+          UPSTREAM_STARTED_AT: ${{ github.event.workflow_run.run_started_at || '' }}
+          UPSTREAM_UPDATED_AT: ${{ github.event.workflow_run.updated_at || '' }}
           SOURCE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
           SOURCE_BRANCH: ${{ github.event.workflow_run.head_branch || github.ref_name }}
           HEALTH_CHECK_RESULT: ${{ steps.health.outcome || 'skipped' }}
