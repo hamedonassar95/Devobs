@@ -9,7 +9,7 @@ class DeploymentNotificationTests(unittest.TestCase):
         self.assertNotIn("secret-webhook", body); self.assertNotIn("secret-password", body)
 
     def test_resolves_terminal_statuses_without_mutating_environment(self):
-        cases = [({"VALIDATION_RESULT":"failure"}, "validation_failed"), ({"VALIDATION_RESULT":"success", "DEPLOYMENT_RESULT":"failure"}, "deployment_failed"), ({"VALIDATION_RESULT":"success", "DEPLOYMENT_RESULT":"cancelled"}, "cancelled"), ({"VALIDATION_RESULT":"skipped", "DEPLOYMENT_RESULT":"skipped"}, "not_run"), ({"DEPLOYMENT_STATUS":"rolled_back"}, "rolled_back")]
+        cases = [({"VALIDATION_RESULT":"failure"}, "validation_failed"), ({"VALIDATION_RESULT":"success", "DEPLOYMENT_RESULT":"failure"}, "deployment_failed"), ({"VALIDATION_RESULT":"success", "DEPLOYMENT_RESULT":"cancelled"}, "cancelled"), ({"VALIDATION_RESULT":"cancelled", "DEPLOYMENT_RESULT":"skipped"}, "cancelled"), ({"VALIDATION_RESULT":"skipped", "DEPLOYMENT_RESULT":"skipped"}, "not_run"), ({"DEPLOYMENT_STATUS":"rolled_back"}, "rolled_back")]
         for env, expected in cases:
             with self.subTest(env=env):
                 self.assertEqual(notifications.resolve_status(env), expected)

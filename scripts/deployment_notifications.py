@@ -21,6 +21,7 @@ def deployment_message(environment: dict[str, str]) -> tuple[str, str]:
     rollback_tag = environment.get("DEPLOYMENT_ROLLBACK_TAG", "unknown")
     run_url = environment.get("DEPLOYMENT_RUN_URL", "")
     site_url = environment.get("DEPLOYMENT_SITE_URL", "")
+    rollback_run_url = environment.get("DEPLOYMENT_ROLLBACK_RUN_URL", "")
 
     subject = f"Devobs deployment {status}: {repository}"
     lines = [
@@ -31,6 +32,8 @@ def deployment_message(environment: dict[str, str]) -> tuple[str, str]:
     ]
     if site_url:
         lines.append(f"Site: {site_url}")
+    if rollback_run_url:
+        lines.append(f"Rollback workflow: {rollback_run_url}")
     if run_url:
         lines.append(f"GitHub Actions report: {run_url}")
     return subject, "\n".join(lines)
@@ -121,6 +124,8 @@ def resolve_status(environment: dict[str, str]) -> str:
     deployment_result = environment.get("DEPLOYMENT_RESULT", "unknown")
     if validation_result == "failure":
         return "validation_failed"
+    if validation_result == "cancelled" or deployment_result == "cancelled":
+        return "cancelled"
     if validation_result == "skipped" and deployment_result == "skipped":
         return "not_run"
     if validation_result == "success" and deployment_result == "failure":
@@ -178,6 +183,8 @@ def main() -> int:
                 summary.write(f"- GitHub run: {environment['DEPLOYMENT_RUN_URL']}\n")
             if environment.get("DEPLOYMENT_SITE_URL"):
                 summary.write(f"- Site: {environment['DEPLOYMENT_SITE_URL']}\n")
+            if environment.get("DEPLOYMENT_ROLLBACK_RUN_URL"):
+                summary.write(f"- Rollback workflow: {environment['DEPLOYMENT_ROLLBACK_RUN_URL']}\n")
             summary.write("\n## Notification status\n\n")
             for channel, outcome in outcomes:
                 summary.write(f"- {channel}: {outcome}\n")

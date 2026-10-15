@@ -1,4 +1,5 @@
 name: Rollback Pages
+run-name: Rollback Pages / ${{ inputs.dispatch_id || inputs.release_tag }}
 
 on:
   workflow_dispatch:
@@ -7,6 +8,10 @@ on:
         description: "Published stable release tag to redeploy (for example v1.0.0)"
         required: true
         default: "v1.0.0"
+        type: string
+      dispatch_id:
+        description: "Unique identifier for automatic rollback tracking"
+        required: false
         type: string
       expected_commit_sha:
         description: "Expected immutable commit SHA (set by the automatic rollback handoff)"
@@ -211,6 +216,8 @@ jobs:
           echo "Rollback production health check passed."
 
       - name: Record rollback summary
+        env:
+          DISPATCH_ID: ${{ inputs.dispatch_id }}
         run: |
           {
             echo "## Production rollback completed"
@@ -219,4 +226,5 @@ jobs:
             echo "- Commit: \`${{ needs.validate.outputs.commit_sha }}\`"
             echo "- Site: ${{ steps.deployment.outputs.page_url }}"
             echo "- Validation: tests + production HTTP health check passed"
+            if [[ -n "$DISPATCH_ID" ]]; then echo "- Dispatch ID: \`$DISPATCH_ID\`"; fi
           } >> "$GITHUB_STEP_SUMMARY"
