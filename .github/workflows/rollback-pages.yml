@@ -30,16 +30,19 @@ jobs:
 
     steps:
       - name: Validate rollback request
+        env:
+          ROLLBACK_CONFIRMATION: ${{ inputs.confirmation }}
+          REQUESTED_RELEASE_TAG: ${{ inputs.release_tag }}
         shell: bash
         run: |
           set -euo pipefail
 
-          if [[ "${{ inputs.confirmation }}" != "ROLLBACK" ]]; then
+          if [[ "$ROLLBACK_CONFIRMATION" != "ROLLBACK" ]]; then
             echo "::error::Confirmation must be exactly ROLLBACK."
             exit 1
           fi
 
-          tag="${{ inputs.release_tag }}"
+          tag="$REQUESTED_RELEASE_TAG"
           if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "::error::Release tag must use stable SemVer format such as v1.0.0."
             exit 1
@@ -54,10 +57,12 @@ jobs:
       - name: Resolve release tag to immutable commit
         id: resolve
         shell: bash
+        env:
+          REQUESTED_RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           set -euo pipefail
 
-          tag="${{ inputs.release_tag }}"
+          tag="$REQUESTED_RELEASE_TAG"
 
           if ! git show-ref --verify --quiet "refs/tags/$tag"; then
             echo "::error::Tag $tag does not exist in this repository."

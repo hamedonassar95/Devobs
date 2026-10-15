@@ -87,8 +87,9 @@ obtain an OIDC token, preflight requires:
 - A valid ECS task-definition JSON file whose container name matches
   ECS_CONTAINER_NAME
 - An AWS IAM OIDC trust policy restricted to
-  repo:hamedonassar95/Devobs:ref:refs/heads/main, with only the ECR push and
-  ECS task/service permissions required by this workflow
+  repo:hamedonassar95/Devobs:environment:production and aud=sts.amazonaws.com.
+  Restrict the production environment to the main branch and require reviewers;
+  the environment claim replaces the branch ref in the OIDC subject.
 - A protected GitHub environment named production; configure required reviewers
   before enabling production deployment
 

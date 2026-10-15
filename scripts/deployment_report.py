@@ -76,7 +76,7 @@ def send_email(subject: str, body: str) -> str:
     password = value("DEPLOY_SMTP_PASSWORD")
     sender = value("DEPLOY_EMAIL_FROM")
     recipients = [item.strip() for item in value("DEPLOY_EMAIL_TO").split(",") if item.strip()]
-    if not recipients or any("\\n" in item or "\\r" in item for item in [sender, *recipients]):
+    if not recipients or any("\n" in item or "\\r" in item for item in [sender, *recipients]):
         print("::warning::Email alert addresses are invalid; email was not sent.")
         return "invalid-config"
 
@@ -132,12 +132,12 @@ def main() -> int:
 
     commit = sha[:12] if sha else "unknown"
     message = (
-        f"Devobs deployment {result.upper()}\\n"
-        f"Workflow: {report['source_workflow']} ({upstream})\\n"
-        f"Health check: {health}\\n"
-        f"Commit: {commit}\\n"
-        f"Duration: {duration if duration is not None else 'unavailable'} seconds\\n"
-        f"Site: {site_url}\\n"
+        f"Devobs deployment {result.upper()}\n"
+        f"Workflow: {report['source_workflow']} ({upstream})\n"
+        f"Health check: {health}\n"
+        f"Commit: {commit}\n"
+        f"Duration: {duration if duration is not None else 'unavailable'} seconds\n"
+        f"Site: {site_url}\n"
         f"Run: {run_url}"
     )
     subject = f"[Devobs] Deployment {result.upper()} - {commit}"
@@ -146,7 +146,7 @@ def main() -> int:
     report["notification_status"] = {"slack": slack_state, "email": email_state}
 
     Path("deployment-report.json").write_text(
-        json.dumps(report, ensure_ascii=False, indent=2) + "\\n",
+        json.dumps(report, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
 
@@ -167,7 +167,7 @@ def main() -> int:
             "Duration is the GitHub Actions run duration, not a before/after business-impact measurement.",
         ]
         with Path(summary_path).open("a", encoding="utf-8") as summary:
-            summary.write("\\n".join(lines) + "\\n")
+            summary.write("\n".join(lines) + "\n")
 
     print(f"Deployment report recorded. Slack={slack_state}; email={email_state}.")
     return 0
