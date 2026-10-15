@@ -119,12 +119,14 @@ do not substitute for a live GitHub concurrency test.
   created controlled-drill issue [#124](https://github.com/hamedonassar95/Devobs/issues/124).
 - Investigator runs [38801501034](https://github.com/hamedonassar95/Devobs/actions/runs/38801501034)
   and [38802220883](https://github.com/hamedonassar95/Devobs/actions/runs/38802220883)
-  both failed in Copilot execution after repeated `429 Too Many Requests` responses.
-  Neither produced a report comment; issue #124 remained open with zero comments.
+  failed in Copilot execution after repeated `429 Too Many Requests` responses.
+  A single retry after a cooldown, [38804420993](https://github.com/hamedonassar95/Devobs/actions/runs/38804420993),
+  also exhausted all four Copilot attempts with the same response. All three runs
+  produced no report comment; issue #124 remains open with zero comments.
   Safe-output publication had no item to process, so the new postcondition was not
   exercised in these live runs. No branch, PR, code change, recovery, or deployment
-  was created by either investigator run. Further live acceptance waits on the
-  external Copilot rate limit; the local publication test and strict compilation pass.
+  was created by any investigator run. Further live acceptance waits on the external
+  Copilot rate limit; the local publication test and strict compilation pass.
 
 This correction does not enable or approve deployment. Full live acceptance remains
 pending until a fresh simulation completes with one marked report and a successful

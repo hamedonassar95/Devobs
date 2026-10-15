@@ -142,10 +142,12 @@ Pages, and Deployment Health Check passed. The next controlled drill,
 created [issue #124](https://github.com/hamedonassar95/Devobs/issues/124). Investigator
 runs [38801501034](https://github.com/hamedonassar95/Devobs/actions/runs/38801501034)
 and [38802220883](https://github.com/hamedonassar95/Devobs/actions/runs/38802220883)
-hit repeated Copilot `429 Too Many Requests` responses and produced no report comments;
-issue #124 has zero comments. No recovery, code change, PR, branch, or deployment was
-created. Live acceptance remains pending until Copilot rate limiting clears and a
-fresh investigator run posts a marked report.
+hit repeated Copilot `429 Too Many Requests` responses. A single retry after a cooldown,
+[38804420993](https://github.com/hamedonassar95/Devobs/actions/runs/38804420993),
+also exhausted all four Copilot attempts with the same response. No run produced a
+report comment; issue #124 has zero comments. No recovery, code change, PR, branch, or
+deployment was created. Live acceptance remains pending until Copilot rate limiting
+clears and a fresh investigator run posts a marked report.
 
 ## Phase 7 investigator dispatch
 
