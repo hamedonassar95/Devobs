@@ -14,6 +14,7 @@ on:
   permissions:
     contents: read
     issues: read
+    id-token: write
   steps:
     - name: Check trusted incident and existing investigation
       id: incident_gate
@@ -75,6 +76,21 @@ on:
           exit 1
         fi
         echo "Vertex AI configuration is present."
+    - name: Verify Google Cloud Workload Identity Federation
+      id: gcp_auth
+      if: steps.incident_gate.outputs.eligible == 'true'
+      uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+      with:
+        project_id: ${{ vars.GCP_VERTEX_PROJECT_ID || secrets.GCP_VERTEX_PROJECT_ID }}
+        workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+        service_account: ${{ vars.GCP_VERTEX_SERVICE_ACCOUNT || secrets.GCP_VERTEX_SERVICE_ACCOUNT }}
+        audience: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+        token_format: access_token
+        create_credentials_file: false
+        export_environment_variables: false
+    - name: Confirm Google Cloud authentication
+      if: steps.gcp_auth.outcome == 'success'
+      run: echo "Google Cloud WIF and service-account authentication succeeded."
   bots:
     - github-actions[bot]
 
