@@ -73,11 +73,11 @@ GitHub Environment: this workflow does not bind to an environment.
 Before launching Gemini, the workflow now checks that all three values are
 nonempty, preferring repository variables and falling back to repository secrets.
 It then verifies Workload Identity Federation and service-account impersonation
-before Gemini starts, using the same provider and audience. This reports Google's
-authentication error before model inference. The access token is masked and is
-not exported to later steps; no credentials file is created. A successful
-preflight does not verify Vertex model access, quota, or billing, so confirm
-those separately.
+before Gemini starts, using Google's default OIDC audience derived from the
+configured provider. This reports Google's authentication error before model
+inference. The access token is masked and is not exported to later steps; no
+credentials file is created. A successful preflight does not verify Vertex
+model access, quota, or billing, so confirm those separately.
 
 The workflow uses `us-central1` for Vertex AI. Confirm the chosen model and
 region are available to your Google Cloud project and that billing/quota are
@@ -139,3 +139,10 @@ service-account binding, and GitHub `id-token: write` access before Gemini
 starts. If it fails, use that step's Google error to correct the provider
 resource path, repository/ref condition, enabled IAM APIs, or service-account
 permissions. The preflight does not call Vertex AI or publish an issue comment.
+
+Run
+[38822537862](https://github.com/hamedonassar95/Devobs/actions/runs/38822537862)
+confirmed all three configuration values were present but the preflight failed
+because its explicit OIDC audience was not in Google's accepted provider format.
+The workflow now leaves `audience` unset so the Google auth action derives its
+default audience from the provider resource.

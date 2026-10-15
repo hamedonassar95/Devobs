@@ -84,7 +84,6 @@ on:
         project_id: ${{ vars.GCP_VERTEX_PROJECT_ID || secrets.GCP_VERTEX_PROJECT_ID }}
         workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
         service_account: ${{ vars.GCP_VERTEX_SERVICE_ACCOUNT || secrets.GCP_VERTEX_SERVICE_ACCOUNT }}
-        audience: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
         token_format: access_token
         create_credentials_file: false
         export_environment_variables: false
