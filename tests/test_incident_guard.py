@@ -97,35 +97,57 @@ class IncidentGuardTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             output_path = Path(directory) / 'outputs.jsonl'
             copy_path = Path(directory) / 'safeoutputs.jsonl'
+            agent_output_path = Path(directory) / 'agent_output.json'
             env = {
                 **os.environ,
                 'GH_AW_SAFE_OUTPUTS': str(output_path),
                 'GH_AW_SAFE_OUTPUTS_COPY': str(copy_path),
+                'GH_AW_AGENT_OUTPUT': str(agent_output_path),
             }
 
-            output_path.write_text(json.dumps({'type': 'add_comment', 'body': body}) + '\n')
-            copy_path.write_text(output_path.read_text())
+            def write_outputs(item, agent_item=None):
+                serialized = json.dumps(item) + '\n'
+                output_path.write_text(serialized)
+                copy_path.write_text(serialized)
+                agent_output_path.write_text(
+                    json.dumps({'items': [agent_item or item], 'errors': []}) + '\n'
+                )
+
+            write_outputs({'type': 'add_comment', 'body': body})
             valid = subprocess.run(
                 ['bash', '-e', '-c', run_script], env=env, text=True, capture_output=True,
             )
             self.assertEqual(valid.returncode, 0, valid.stdout + valid.stderr)
 
-            output_path.write_text(json.dumps({'type': 'noop', 'message': 'see comment'}) + '\n')
-            copy_path.write_text(output_path.read_text())
+            write_outputs({'type': 'noop', 'message': 'see comment'})
             missing = subprocess.run(
                 ['bash', '-e', '-c', run_script], env=env, text=True, capture_output=True,
             )
             self.assertNotEqual(missing.returncode, 0)
             self.assertIn('exactly one safe incident report comment', missing.stdout)
 
+            write_outputs(
+                {'type': 'add_comment', 'body': body},
+                {'type': 'noop', 'message': 'publisher has no report'},
+            )
+            missing_published = subprocess.run(
+                ['bash', '-e', '-c', run_script], env=env, text=True, capture_output=True,
+            )
+            self.assertNotEqual(missing_published.returncode, 0)
+            self.assertIn('Validated agent output must contain exactly one', missing_published.stdout)
+
             missing_marker = {
                 'type': 'add_comment',
                 'body': '## AI Incident Investigation\n\nA concise report.\n',
             }
-            output_path.write_text(json.dumps(missing_marker) + '\n')
-            copy_path.write_text(output_path.read_text())
-            output_path.chmod(stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
-            copy_path.chmod(stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+            canonical_agent_comment = {
+                'type': 'add_comment',
+                'body': '## AI Incident Investigation\n\nA canonicalized report.\n',
+            }
+            write_outputs(missing_marker, canonical_agent_comment)
+            read_only_mode = stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH
+            for path in (output_path, copy_path, agent_output_path):
+                path.chmod(read_only_mode)
             normalized = subprocess.run(
                 ['bash', '-e', '-c', run_script], env=env, text=True, capture_output=True,
             )
@@ -134,11 +156,10 @@ class IncidentGuardTests(unittest.TestCase):
             self.assertTrue(result['body'].startswith('<!-- devobs-investigation:v1 -->\n\n'))
             staged_result = json.loads(copy_path.read_text().splitlines()[0])
             self.assertTrue(staged_result['body'].startswith('<!-- devobs-investigation:v1 -->\n\n'))
-            self.assertEqual(
-                stat.S_IMODE(output_path.stat().st_mode),
-                stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH,
+            published_agent = json.loads(agent_output_path.read_text())
+            self.assertTrue(
+                published_agent['items'][0]['body'].startswith('<!-- devobs-investigation:v1 -->\n\n')
             )
-            self.assertEqual(
-                stat.S_IMODE(copy_path.stat().st_mode),
-                stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH,
-            )
+            self.assertIn('A canonicalized report.', published_agent['items'][0]['body'])
+            for path in (output_path, copy_path, agent_output_path):
+                self.assertEqual(stat.S_IMODE(path.stat().st_mode), read_only_mode)
