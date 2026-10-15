@@ -10,9 +10,9 @@ Open **Actions → One-click deploy → Run workflow** and choose:
 - `rollback_release_tag`: a published stable release such as `v1.0.0` to restore if the production health check fails.
 - `confirm_deploy`: select the confirmation box.
 
-The workflow validates both commits and the published stable fallback release, runs Python and Node checks, validates the static page, runs Bandit, deploys the candidate to GitHub Pages, and checks the public page. If the deploy action has started and the candidate health check fails, it attempts to redeploy the selected stable release and checks production again. Both attempts, their commit SHAs, and health results appear in the GitHub Actions summary.
+The workflow validates both commits and the published stable fallback release, runs Python and Node checks, validates the static page, runs Bandit, deploys the candidate to GitHub Pages, and checks the public page. If the candidate deploy succeeds but its production health check fails, the workflow dispatches the existing `Rollback Pages` workflow as a separate run pinned to the rollback commit. The separate run gives GitHub Pages a unique deployment build version. The report links to that run and records whether it completed successfully. If candidate preparation fails before deploy, rollback is not started.
 
-The workflow does not rewrite Git history. Its fallback is a published GitHub Release, matching the existing controlled rollback policy. A failed validation before deployment does not trigger rollback.
+The workflow does not rewrite Git history. Its fallback is a published stable GitHub Release, matching the existing controlled rollback policy. Candidate validation, deployment preparation, deployment, health-check, and rollback outcomes are reported separately. Rollback dispatch uses the run-scoped `GITHUB_TOKEN` with `actions: write`; no personal token is required. A run that is not confirmed records a GitHub summary but sends no Slack or email notification.
 
 ## Optional Slack and email reports
 
