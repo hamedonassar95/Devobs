@@ -157,10 +157,15 @@ jobs:
 
       - name: Stage candidate site
         id: stage-candidate
+        env:
+          SOURCE_SHA: ${{ needs.validate.outputs.candidate_sha }}
         run: |
+          set -euo pipefail
+
           mkdir -p _site
           cp index.html _site/index.html
           if [ -d assets ]; then cp -R assets _site/assets; fi
+          printf '{"schema_version":1,"source_sha":"%s"}\n' "$SOURCE_SHA" > _site/deployment.json
 
       - name: Configure GitHub Pages
         id: configure-candidate
@@ -183,12 +188,27 @@ jobs:
         id: candidate-health
         env:
           SITE_URL: ${{ steps.candidate-deploy.outputs.page_url }}
+          EXPECTED_SHA: ${{ needs.validate.outputs.candidate_sha }}
         run: |
           set -euo pipefail
+          SITE_ROOT="${SITE_URL%/}"
           curl --fail --location --silent --show-error \
             --retry 5 --retry-delay 5 --retry-all-errors \
             "$SITE_URL" --output site.html
           grep -q "AL-DALA MOBILE" site.html
+
+          curl --fail --location --silent --show-error \
+            --retry 5 --retry-delay 5 --retry-all-errors \
+            --header "Cache-Control: no-cache" \
+            "$SITE_ROOT/deployment.json?run_id=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" \
+            --output deployment.json
+
+          deployed_sha="$(jq -er 'select(.schema_version == 1) | .source_sha' deployment.json)"
+          if [[ ! "$deployed_sha" =~ ^[0-9a-f]{40}$ || "$deployed_sha" != "$EXPECTED_SHA" ]]; then
+            echo "::error::The deployed source SHA does not match the candidate commit."
+            exit 1
+          fi
+          echo "Verified deployed source commit: $deployed_sha"
 
       - name: Dispatch isolated rollback workflow
         id: rollback-dispatch

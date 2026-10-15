@@ -36,7 +36,7 @@ Workflow:
 6. يرفض أي Pre-release.
 7. يعيد تشغيل اختبارات المشروع على Commit الإصدار المطلوب.
 8. ينشر نفس Commit المحدد إلى GitHub Pages.
-9. ينفذ Production HTTP health check بعد النشر.
+9. ينفذ Production HTTP health check بعد النشر، ويتحقق من `deployment.json` لمقارنة SHA المنشور بالإصدار المستعاد عندما يستخدم workflow الحالي.
 10. يسجل Release وCommit ونتيجة التحقق في GitHub Actions Job Summary.
 
 ## طريقة التنفيذ

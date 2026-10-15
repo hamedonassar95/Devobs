@@ -176,12 +176,17 @@ jobs:
           python3 scripts/check_site.py
 
       - name: Stage static site
+        env:
+          SOURCE_SHA: ${{ needs.validate.outputs.commit_sha }}
         run: |
+          set -euo pipefail
+
           mkdir -p _site
           cp index.html _site/index.html
           if [ -d assets ]; then
             cp -R assets _site/assets
           fi
+          printf '{"schema_version":1,"source_sha":"%s"}\n' "$SOURCE_SHA" > _site/deployment.json
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
@@ -198,8 +203,10 @@ jobs:
       - name: Verify production after rollback
         env:
           SITE_URL: ${{ steps.deployment.outputs.page_url }}
+          EXPECTED_SHA: ${{ needs.validate.outputs.commit_sha }}
         run: |
           set -euo pipefail
+          SITE_ROOT="${SITE_URL%/}"
 
           curl \
             --fail \
@@ -213,7 +220,25 @@ jobs:
             --output site.html
 
           grep -q "AL-DALA MOBILE" site.html
-          echo "Rollback production health check passed."
+
+          curl \
+            --fail \
+            --location \
+            --silent \
+            --show-error \
+            --retry 5 \
+            --retry-delay 5 \
+            --retry-all-errors \
+            --header "Cache-Control: no-cache" \
+            "$SITE_ROOT/deployment.json?run_id=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" \
+            --output deployment.json
+
+          deployed_sha="$(jq -er 'select(.schema_version == 1) | .source_sha' deployment.json)"
+          if [[ ! "$deployed_sha" =~ ^[0-9a-f]{40}$ || "$deployed_sha" != "$EXPECTED_SHA" ]]; then
+            echo "::error::The rollback source SHA does not match the restored commit."
+            exit 1
+          fi
+          echo "Rollback production health check passed for commit $deployed_sha."
 
       - name: Record rollback summary
         env:

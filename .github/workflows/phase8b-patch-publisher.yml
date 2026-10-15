@@ -12,21 +12,25 @@ on:
         required: true
         type: string
 
-permissions:
-  contents: write
-  issues: read
-  actions: read
-  pull-requests: write
+permissions: {}
 
 concurrency:
   group: phase8b-patch-${{ github.repository }}-${{ inputs.incident_number }}
   cancel-in-progress: false
 
 jobs:
-  prepare-review-pr:
+  preflight:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: read
+      issues: read
+      pull-requests: read
+    outputs:
+      branch: ${{ steps.validate.outputs.branch }}
+      prepared_patch_b64: ${{ steps.validate.outputs.prepared_patch_b64 }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -51,8 +55,8 @@ jobs:
           python3 -c 'import json, os; json.loads(os.environ["PATCH_JSON"])'
 
       - name: Collect live evidence and validate patch
-        id: preflight
-        uses: actions/github-script@v8
+        id: validate
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           INCIDENT_NUMBER: ${{ inputs.incident_number }}
           PATCH_JSON: ${{ inputs.patch_json }}
@@ -124,6 +128,7 @@ jobs:
             }
             fs.writeFileSync("phase8b-prepared-patch.json", JSON.stringify(prepared));
             core.setOutput("branch", prepared.branch);
+            core.setOutput("prepared_patch_b64", Buffer.from(JSON.stringify(prepared), "utf8").toString("base64"));
             core.setOutput("file_count", String(prepared.files.length));
             const safePaths = JSON.stringify(prepared.files.map(file => file.path))
               .replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" })[char]);
@@ -134,13 +139,26 @@ jobs:
               .addRaw("Next action creates one isolated branch and an unmerged PR; CI must verify the PR head.")
               .write();
 
+  create-review-pr:
+    needs: preflight
+    if: github.ref == 'refs/heads/main' && needs.preflight.outputs.branch != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
       - name: Create isolated commit and human-review PR
-        if: steps.preflight.outputs.branch != ''
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          PREPARED_PATCH_B64: ${{ needs.preflight.outputs.prepared_patch_b64 }}
+          EXPECTED_BRANCH: ${{ needs.preflight.outputs.branch }}
         with:
           script: |
-            const fs = require("fs");
-            const prepared = JSON.parse(fs.readFileSync("phase8b-prepared-patch.json", "utf8"));
+            const prepared = JSON.parse(Buffer.from(process.env.PREPARED_PATCH_B64, "base64").toString("utf8"));
+            if (!prepared || prepared.branch !== process.env.EXPECTED_BRANCH || !Array.isArray(prepared.files)) {
+              throw new Error("Prepared patch handoff is invalid.");
+            }
             const { owner, repo } = context.repo;
             const branch = prepared.branch;
             const base = (await github.rest.git.getRef({ owner, repo, ref: "heads/main" })).data.object.sha;
