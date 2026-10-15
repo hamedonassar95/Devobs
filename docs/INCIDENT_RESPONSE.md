@@ -69,6 +69,13 @@ Expected result: the workflow succeeds, creates an incident artifact and summary
 production. A `simulation-*` run ID must never be classified as a production
 `ROLLBACK_CANDIDATE`.
 
+### Recorded safe drill — 15 October 2026
+
+- [Incident Response run 38780183818](https://github.com/hamedonassar95/Devobs/actions/runs/38780183818) used the inputs above.
+- Triage reported `info`, `controlled-drill`, and `MANUAL_REVIEW`.
+- Evidence artifact `incident-simulation-38780183818-1` uploaded successfully with the normal 14-day retention.
+- The issue creation and investigator dispatch step was skipped; no incident issue or production change resulted.
+
 ## Main-branch incident drill for Phase 8
 
 CI provides an opt-in `controlled_incident_failure` input, disabled by default. To
