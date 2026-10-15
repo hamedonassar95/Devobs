@@ -13,7 +13,7 @@ from pathlib import Path
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW_ROOT = REPOSITORY_ROOT / ".github" / "workflows"
-USES_PATTERN = re.compile(r"^\s*uses:\s*(?P<reference>[^\s#]+)")
+USES_PATTERN = re.compile(r"^\s*(?:-\s*)?uses:\s*(?P<reference>[^\s#]+)")
 REMOTE_ACTION_PATTERN = re.compile(
     r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_./-]+)?@"
     r"(?P<sha>[0-9a-fA-F]{40})$"

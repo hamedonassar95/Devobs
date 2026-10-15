@@ -74,23 +74,29 @@ jobs:
           grep -q "AL-DALA MOBILE" site.html
 
           manifest_url="$SITE_ROOT/deployment.json?run_id=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          if [[ -n "$EXPECTED_SHA" ]]; then
-            curl \
-              --fail \
-              --location \
-              --silent \
-              --show-error \
-              --retry 5 \
-              --retry-delay 5 \
-              --retry-all-errors \
-              --header "Cache-Control: no-cache" \
-              "$manifest_url" \
-              --output deployment.json
-          elif ! curl --fail --location --silent --header "Cache-Control: no-cache" "$manifest_url" --output deployment.json; then
-            echo "::warning::This legacy deployment has no source manifest; HTTP and page content are healthy, but its commit cannot be verified."
-            echo "Deployment health check passed for a legacy deployment without a source manifest." >> "$GITHUB_STEP_SUMMARY"
-            echo "Deployment health check passed."
-            exit 0
+          if ! manifest_status="$(curl \
+            --location \
+            --silent \
+            --show-error \
+            --retry 5 \
+            --retry-delay 5 \
+            --header "Cache-Control: no-cache" \
+            "$manifest_url" \
+            --output deployment.json \
+            --write-out '%{http_code}')"; then
+            echo "::error::Could not retrieve the deployment manifest."
+            exit 1
+          fi
+
+          if [[ "$manifest_status" != "200" ]]; then
+            if [[ "$manifest_status" == "404" && -z "$EXPECTED_SHA" ]]; then
+              echo "::warning::This legacy deployment has no source manifest; HTTP and page content are healthy, but its commit cannot be verified."
+              echo "Deployment health check passed for a legacy deployment without a source manifest." >> "$GITHUB_STEP_SUMMARY"
+              echo "Deployment health check passed."
+              exit 0
+            fi
+            echo "::error::Deployment manifest request returned HTTP $manifest_status."
+            exit 1
           fi
 
           deployed_sha="$(jq -er 'select(.schema_version == 1) | .source_sha' deployment.json)"
