@@ -113,7 +113,15 @@ otherwise unusable runs as `uncertain`.
 - [Investigator run 38781330421](https://github.com/hamedonassar95/Devobs/actions/runs/38781330421) posted a structured report on issue #113 recommending `MANUAL_REVIEW`; it made no code, deployment, or recovery changes. The run remained failed because the report omitted `<!-- devobs-investigation:v1 -->`, even though it contained the required `## AI Incident Investigation` heading. Threat detection and safe-output processing succeeded.
 - CI, CodeQL, Pages, and the [Deployment Health Check](https://github.com/hamedonassar95/Devobs/actions/runs/38782052926) passed for PR #114's merge. The health check confirmed the deployed source SHA was `73f0b3b667a1257ce6f8d240dd289d32c2f37e10`.
 
-The investigator's deterministic post-step now adds the missing version marker only when exactly one safe comment also contains the required report heading. It continues to fail closed when the report heading or single-comment contract is missing. CI validates this change, but it has not been live-retested with another AI-consuming drill.
+The first live recheck after the marker-normalization change exposed a permissions
+issue: investigator run [38796208977](https://github.com/hamedonassar95/Devobs/actions/runs/38796208977)
+read the safe-output JSONL but could not rewrite it in place because the framework
+marks it read-only. Safe-output processing still posted an unmarked comment on the
+simulated issue [#118](https://github.com/hamedonassar95/Devobs/issues/118), while
+the agent job correctly failed its required-output postcondition. The remediation
+uses a same-directory atomic replacement and a regression case for a read-only file.
+Live acceptance remains pending until a fresh simulation completes successfully
+with one marked report. The investigator still has no recovery or deployment path.
 
 ## Phase 7 investigator dispatch
 

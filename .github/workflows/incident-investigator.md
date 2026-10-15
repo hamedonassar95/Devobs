@@ -123,7 +123,9 @@ post-steps:
       python3 - <<'PY'
       import json
       import os
+      import stat
       import sys
+      import tempfile
       from pathlib import Path
 
       output_path = Path(os.environ["GH_AW_SAFE_OUTPUTS"])
@@ -157,10 +159,29 @@ post-steps:
       ):
           # Normalize only the missing version marker on an otherwise valid report.
           comments[0]["body"] = f"<!-- devobs-investigation:v1 -->\n\n{body}"
-          output_path.write_text(
-              "\n".join(json.dumps(item, ensure_ascii=False) for item in items) + "\n",
-              encoding="utf-8",
-          )
+          normalized = "\n".join(json.dumps(item, ensure_ascii=False) for item in items) + "\n"
+          try:
+              metadata = output_path.lstat()
+              if not stat.S_ISREG(metadata.st_mode):
+                  raise OSError("safe-output path is not a regular file")
+              descriptor, temporary_name = tempfile.mkstemp(
+                  prefix=f".{output_path.name}.", dir=output_path.parent
+              )
+              try:
+                  with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as temporary:
+                      temporary.write(normalized)
+                      temporary.flush()
+                      os.fsync(temporary.fileno())
+                  # The framework marks this file read-only after the agent writes it.
+                  # Replace it atomically in the same directory and preserve that mode.
+                  os.chmod(temporary_name, stat.S_IMODE(metadata.st_mode))
+                  os.replace(temporary_name, output_path)
+              finally:
+                  if os.path.exists(temporary_name):
+                      os.unlink(temporary_name)
+          except OSError as error:
+              print(f"::error::Could not safely normalize the incident report output: {error}")
+              sys.exit(1)
           body = comments[0]["body"]
 
       if (

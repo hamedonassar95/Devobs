@@ -2,6 +2,7 @@
 import json
 import os
 import re
+import stat
 import subprocess
 import tempfile
 import unittest
@@ -109,3 +110,20 @@ class IncidentGuardTests(unittest.TestCase):
             )
             self.assertNotEqual(missing.returncode, 0)
             self.assertIn('exactly one safe incident report comment', missing.stdout)
+
+            missing_marker = {
+                'type': 'add_comment',
+                'body': '## AI Incident Investigation\n\nA concise report.\n',
+            }
+            output_path.write_text(json.dumps(missing_marker) + '\n')
+            output_path.chmod(stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
+            normalized = subprocess.run(
+                ['bash', '-e', '-c', run_script], env=env, text=True, capture_output=True,
+            )
+            self.assertEqual(normalized.returncode, 0, normalized.stdout + normalized.stderr)
+            result = json.loads(output_path.read_text().splitlines()[0])
+            self.assertTrue(result['body'].startswith('<!-- devobs-investigation:v1 -->\n\n'))
+            self.assertEqual(
+                stat.S_IMODE(output_path.stat().st_mode),
+                stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH,
+            )
