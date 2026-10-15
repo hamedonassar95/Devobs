@@ -112,6 +112,19 @@ do not substitute for a live GitHub concurrency test.
   and a canonical agent comment whose body was normalized independently. Live
   acceptance remains pending until a fresh simulation produces one marked report
   with a successful investigator run.
+- PR [#123](https://github.com/hamedonassar95/Devobs/pull/123) merged this correction
+  as `d219295f6e50be2edfb54d1a4c95242d1ef1fe1c`. CI, CodeQL, Deploy Pages, and
+  Deployment Health Check passed on that SHA. Incident Response run
+  [38801479974](https://github.com/hamedonassar95/Devobs/actions/runs/38801479974)
+  created controlled-drill issue [#124](https://github.com/hamedonassar95/Devobs/issues/124).
+- Investigator runs [38801501034](https://github.com/hamedonassar95/Devobs/actions/runs/38801501034)
+  and [38802220883](https://github.com/hamedonassar95/Devobs/actions/runs/38802220883)
+  both failed in Copilot execution after repeated `429 Too Many Requests` responses.
+  Neither produced a report comment; issue #124 remained open with zero comments.
+  Safe-output publication had no item to process, so the new postcondition was not
+  exercised in these live runs. No branch, PR, code change, recovery, or deployment
+  was created by either investigator run. Further live acceptance waits on the
+  external Copilot rate limit; the local publication test and strict compilation pass.
 
 This correction does not enable or approve deployment. Full live acceptance remains
 pending until a fresh simulation completes with one marked report and a successful
