@@ -127,6 +127,12 @@ do not substitute for a live GitHub concurrency test.
   exercised in these live runs. No branch, PR, code change, recovery, or deployment
   was created by any investigator run. Further live acceptance waits on the external
   Copilot rate limit; the local publication test and strict compilation pass.
+- Vertex fallback run [38806920363](https://github.com/hamedonassar95/Devobs/actions/runs/38806920363)
+  passed the trust gate and activation, but Gemini exited before inference because
+  it did not receive the required Google Cloud project configuration. It produced no
+  comment, so issue #124 remains open and the primary safe-output postcondition is
+  still untested live. Configure and verify the documented Vertex variables before
+  another fallback attempt.
 
 This correction does not enable or approve deployment. Full live acceptance remains
 pending until a fresh simulation completes with one marked report and a successful
