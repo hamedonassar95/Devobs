@@ -28,6 +28,8 @@ successful and failed runs before making a before/after business claim.
 
 ## Slack and email setup
 
+Manual health-check dispatch is restricted to `main`; feature branches cannot run the reporter with Slack or SMTP secrets in scope.
+
 Add only the relevant values under GitHub repository Settings → Secrets and
 variables → Actions. Do not commit webhook URLs, SMTP credentials, or recipient
 addresses.
