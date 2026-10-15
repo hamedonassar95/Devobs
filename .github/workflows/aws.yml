@@ -57,11 +57,19 @@ jobs:
               "ECS_CONTAINER_NAME",
           )
           missing = [name for name in required if not os.environ.get(name)]
+          placeholders = [name for name in required if os.environ.get(name, "").startswith("MY_")]
           if os.environ.get("ECS_DEPLOY_ENABLED") != "true":
               print("::error::Set repository variable ECS_DEPLOY_ENABLED=true only after AWS and production protections are ready.")
               sys.exit(1)
           if missing:
               print("::error::Missing repository variables: " + ", ".join(missing))
+              sys.exit(1)
+          if placeholders:
+              print("::error::Replace placeholder values for: " + ", ".join(placeholders))
+              sys.exit(1)
+          role_arn = os.environ["AWS_ROLE_ARN"]
+          if not role_arn.startswith("arn:aws:iam::") or ":role/" not in role_arn:
+              print("::error::AWS_ROLE_ARN must identify an IAM role ARN.")
               sys.exit(1)
 
           workspace = pathlib.Path.cwd().resolve()

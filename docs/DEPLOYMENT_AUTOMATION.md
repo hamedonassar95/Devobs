@@ -89,7 +89,11 @@ obtain an OIDC token, preflight requires:
 - An AWS IAM OIDC trust policy restricted to
   repo:hamedonassar95/Devobs:environment:production and aud=sts.amazonaws.com.
   Restrict the production environment to the main branch and require reviewers;
-  the environment claim replaces the branch ref in the OIDC subject.
+  the environment claim replaces the branch ref in the OIDC subject. The role
+  needs ECR authorization and image-push permissions scoped to the target repo,
+  ECS task-definition registration and service update/describe permissions scoped
+  to the target resources, and iam:PassRole only for the ECS task and execution
+  roles with PassedToService set to ecs-tasks.amazonaws.com.
 - A protected GitHub environment named production; configure required reviewers
   before enabling production deployment
 
