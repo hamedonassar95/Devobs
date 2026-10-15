@@ -7,10 +7,12 @@ inference HTTP 429) and no investigation comment has been published.
 
 The fallback uses `gh-aw v0.89.21`'s supported Gemini engine with Vertex AI and
 GitHub Actions OIDC Workload Identity Federation (WIF). It does not require a
-service-account key or a GitHub secret. The two workflows use the same
-incident concurrency key, revalidate the issue immediately before writing, and
-skip when a prior investigation comment exists. This prevents simultaneous
-Copilot and Vertex runs from publishing duplicate reports.
+long-lived service-account key; the GitHub settings contain only resource
+identifiers and can be stored as repository variables or secrets. The two
+workflows use the same incident concurrency key, revalidate the issue
+immediately before writing, and skip when a prior investigation comment exists.
+This prevents simultaneous Copilot and Vertex runs from publishing duplicate
+reports.
 
 ## One-time Google Cloud setup
 
@@ -70,9 +72,12 @@ GitHub Environment: this workflow does not bind to an environment.
 
 Before launching Gemini, the workflow now checks that all three values are
 nonempty, preferring repository variables and falling back to repository secrets.
-It stops with an explicit setup error when a value is missing. This check does
-not verify the project's IAM trust, enabled APIs, model access, quota, or billing;
-confirm those separately before retrying.
+It then verifies Workload Identity Federation and service-account impersonation
+before Gemini starts, using the same provider and audience. This reports Google's
+authentication error before model inference. The access token is masked and is
+not exported to later steps; no credentials file is created. A successful
+preflight does not verify Vertex model access, quota, or billing, so confirm
+those separately.
 
 The workflow uses `us-central1` for Vertex AI. Confirm the chosen model and
 region are available to your Google Cloud project and that billing/quota are
@@ -115,3 +120,22 @@ for issue [#124](https://github.com/hamedonassar95/Devobs/issues/124) stopped
 before Gemini because the three `vars.*` inputs were empty. The workflow now
 accepts each setting as either a repository variable or a repository secret.
 It still rejects missing values before any Vertex request.
+
+## WIF retry result — 15 October 2026
+
+The failed-job rerun of
+[38819361315](https://github.com/hamedonassar95/Devobs/actions/runs/38819361315)
+again reached Gemini but could not obtain the Vertex OIDC token. Gemini retried
+10 times and used no model tokens; no investigation comment was posted. The new
+preflight below checks Google authentication separately, so its next run can
+show whether the failure is in WIF/service-account setup or later in the Vertex
+model request.
+
+## Google Cloud authentication preflight
+
+The Vertex fallback uses the pinned `google-github-actions/auth` action in the
+trusted pre-activation job. This checks the Workload Identity provider,
+service-account binding, and GitHub `id-token: write` access before Gemini
+starts. If it fails, use that step's Google error to correct the provider
+resource path, repository/ref condition, enabled IAM APIs, or service-account
+permissions. The preflight does not call Vertex AI or publish an issue comment.
