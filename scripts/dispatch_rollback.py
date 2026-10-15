@@ -1,15 +1,15 @@
-"""Dispatch an isolated rollback workflow and return its run link without waiting.
+"""Dispatch a rollback supported by historical workflow revisions.
 
-The parent and rollback workflows share the production concurrency group. The
-child must be allowed to queue until the parent run exits, so this helper only
-confirms dispatch and identifies the queued run.
+The target release ref can contain an older rollback workflow definition, so
+only its original inputs are sent. After GitHub accepts the dispatch, compare
+workflow-run IDs before and after to find the new run without blocking on the
+shared production concurrency group.
 """
 from __future__ import annotations
 
 import json
 import os
 import time
-import uuid
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
@@ -37,41 +37,46 @@ def dispatch_and_find_run() -> tuple[str, str]:
     rollback_sha = os.environ["ROLLBACK_SHA"]
     rollback_tag = os.environ["ROLLBACK_TAG"]
     api_base = os.environ.get("GH_API_URL", "https://api.github.com").rstrip("/")
+    server_url = os.environ.get("GH_SERVER_URL", "https://github.com").rstrip("/")
     base = f"{api_base}/repos/{repository}"
     workflow = quote("rollback-pages.yml", safe="")
-    dispatch_id = uuid.uuid4().hex
-    run_title = f"Rollback Pages / {dispatch_id}"
+    runs_url = f"{base}/actions/workflows/{workflow}/runs?event=workflow_dispatch&per_page=100"
+    workflow_url = f"{server_url}/{repository}/actions/workflows/rollback-pages.yml"
 
-    # Use the release tag as workflow_dispatch ref. The child validates that
-    # the tag still points to this exact SHA before deploying its static site.
+    # Snapshot IDs before dispatch. Only the original input fields are sent,
+    # since the workflow file selected by a release tag may be older.
+    _, before_result = api_request(runs_url, token)
+    before_runs = before_result.get("workflow_runs", [])
+    existing_ids = {run.get("id") for run in before_runs}
+    latest_run_number = max((run.get("run_number", 0) for run in before_runs), default=0)
     api_request(
         f"{base}/actions/workflows/{workflow}/dispatches",
         token,
         "POST",
-        {
-            "ref": rollback_tag,
-            "inputs": {
-                "release_tag": rollback_tag,
-                "expected_commit_sha": rollback_sha,
-                "confirmation": "ROLLBACK",
-                "dispatch_id": dispatch_id,
-            },
-        },
+        {"ref": rollback_tag, "inputs": {"release_tag": rollback_tag, "confirmation": "ROLLBACK"}},
     )
 
-    # workflow_dispatch returns HTTP 204 without a run ID. The unique run-name
-    # lets us find precisely our queued child; do not wait for it to complete.
+    # The dispatch endpoint returns 204 rather than the run ID. Do not wait
+    # for completion: the child shares the production concurrency group and
+    # must start after the parent deployment workflow releases it.
     deadline = time.monotonic() + 45
     while time.monotonic() < deadline:
-        _, result = api_request(
-            f"{base}/actions/workflows/{workflow}/runs?event=workflow_dispatch&per_page=100",
-            token,
-        )
-        for run in result.get("workflow_runs", []):
-            if run.get("head_sha") == rollback_sha and run.get("display_title") == run_title:
-                return "dispatched", run.get("html_url", "")
+        _, result = api_request(runs_url, token)
+        new_runs = [
+            run for run in result.get("workflow_runs", [])
+            if run.get("id") not in existing_ids
+            and run.get("run_number", 0) > latest_run_number
+            and run.get("head_sha") == rollback_sha
+            and run.get("event") == "workflow_dispatch"
+        ]
+        if len(new_runs) == 1:
+            return "dispatched", new_runs[0].get("html_url") or workflow_url
+        if len(new_runs) > 1:
+            # Several same-release runs appeared at once; avoid linking the
+            # parent report to a possibly unrelated rollback run.
+            return "accepted", workflow_url
         time.sleep(3)
-    return "accepted", ""
+    return "accepted", workflow_url
 
 
 def main() -> int:
@@ -84,7 +89,7 @@ def main() -> int:
     with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
         output.write(f"status={status}\nrun_url={run_url}\n")
     if run_url:
-        print(f"Rollback workflow queued: {run_url}")
+        print(f"Rollback workflow accepted: {run_url}")
     return 0
 
 
