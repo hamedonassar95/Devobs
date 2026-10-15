@@ -104,6 +104,16 @@ remain available for audit, but the expected drill failure is not presented as a
 code defect. Reports also label successful runs as `healthy` and cancelled or
 otherwise unusable runs as `uncertain`.
 
+### Recorded main-branch drill — 15 October 2026
+
+- [CI run 38781259428](https://github.com/hamedonassar95/Devobs/actions/runs/38781259428) intentionally failed the named drill step on `main` at SHA `59d78d0bd69131a74514032a989f9ae75a8d05e9`, after the normal validation checks passed.
+- [Deploy Pages](https://github.com/hamedonassar95/Devobs/actions/runs/38781303288) and [Deployment Health Check](https://github.com/hamedonassar95/Devobs/actions/runs/38781311845) were skipped. No production deployment or rollback occurred.
+- [Incident Response run 38781302998](https://github.com/hamedonassar95/Devobs/actions/runs/38781302998) classified the event as `info` / `controlled-drill` / `MANUAL_REVIEW`, uploaded its evidence bundle, created [issue #113](https://github.com/hamedonassar95/Devobs/issues/113), and dispatched the investigator.
+- That Incident Response run failed after dispatch because its final shell line was `Human review completed` without an `echo` command. [PR #114](https://github.com/hamedonassar95/Devobs/pull/114) corrected the summary command and merged as `73f0b3b667a1257ce6f8d240dd289d32c2f37e10`.
+- [Investigator run 38781330421](https://github.com/hamedonassar95/Devobs/actions/runs/38781330421) posted a structured report on issue #113 recommending `MANUAL_REVIEW`; it made no code, deployment, or recovery changes. The run remained failed because the report omitted `<!-- devobs-investigation:v1 -->`, even though it contained the required `## AI Incident Investigation` heading. Threat detection and safe-output processing succeeded.
+- CI, CodeQL, Pages, and the [Deployment Health Check](https://github.com/hamedonassar95/Devobs/actions/runs/38782052926) passed for PR #114's merge. The health check confirmed the deployed source SHA was `73f0b3b667a1257ce6f8d240dd289d32c2f37e10`.
+
+The Incident Response shell fix has passed CI but has not yet been exercised by a second main-branch failure drill. Resolve the investigator output-marker mismatch before scheduling another AI-consuming drill.
 
 ## Phase 7 investigator dispatch
 
