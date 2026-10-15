@@ -118,10 +118,16 @@ issue: investigator run [38796208977](https://github.com/hamedonassar95/Devobs/a
 read the safe-output JSONL but could not rewrite it in place because the framework
 marks it read-only. Safe-output processing still posted an unmarked comment on the
 simulated issue [#118](https://github.com/hamedonassar95/Devobs/issues/118), while
-the agent job correctly failed its required-output postcondition. The remediation
-uses a same-directory atomic replacement and a regression case for a read-only file.
-Live acceptance remains pending until a fresh simulation completes successfully
-with one marked report. The investigator still has no recovery or deployment path.
+the agent job correctly failed its required-output postcondition.
+
+A second recheck, [run 38797753128](https://github.com/hamedonassar95/Devobs/actions/runs/38797753128),
+completed successfully but still posted an unmarked report on [issue #120](https://github.com/hamedonassar95/Devobs/issues/120).
+The compiled framework copies the safe-output file before the post-step, so updating
+only the original left the staged publisher input unchanged. The follow-up normalizes
+and verifies both files using same-directory atomic replacement while preserving their
+permissions. Regression coverage makes both files read-only. Live acceptance remains
+pending until a fresh simulation produces one marked report. The investigator still
+has no recovery or deployment path.
 
 ## Phase 7 investigator dispatch
 

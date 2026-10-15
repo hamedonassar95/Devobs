@@ -119,6 +119,7 @@ post-steps:
   - name: Verify required incident report output
     env:
       GH_AW_SAFE_OUTPUTS: ${{ runner.temp }}/gh-aw/safeoutputs/outputs.jsonl
+      GH_AW_SAFE_OUTPUTS_COPY: /tmp/gh-aw/safeoutputs.jsonl
     run: |
       python3 - <<'PY'
       import json
@@ -129,10 +130,21 @@ post-steps:
       from pathlib import Path
 
       output_path = Path(os.environ["GH_AW_SAFE_OUTPUTS"])
+      staged_path = Path(os.environ["GH_AW_SAFE_OUTPUTS_COPY"])
       try:
-          lines = output_path.read_text(encoding="utf-8").splitlines()
+          output_metadata = output_path.lstat()
+          staged_metadata = staged_path.lstat()
+          if not stat.S_ISREG(output_metadata.st_mode) or not stat.S_ISREG(staged_metadata.st_mode):
+              raise OSError("safe-output paths must be regular files")
+          source_text = output_path.read_text(encoding="utf-8")
+          lines = source_text.splitlines()
+          staged_text = staged_path.read_text(encoding="utf-8")
       except OSError as error:
           print(f"::error::Incident report output is unavailable: {error}")
+          sys.exit(1)
+
+      if staged_text != source_text:
+          print("::error::Staged safe-output copy does not match its source.")
           sys.exit(1)
 
       items = []
@@ -160,36 +172,51 @@ post-steps:
           # Normalize only the missing version marker on an otherwise valid report.
           comments[0]["body"] = f"<!-- devobs-investigation:v1 -->\n\n{body}"
           normalized = "\n".join(json.dumps(item, ensure_ascii=False) for item in items) + "\n"
-          try:
-              metadata = output_path.lstat()
-              if not stat.S_ISREG(metadata.st_mode):
-                  raise OSError("safe-output path is not a regular file")
-              descriptor, temporary_name = tempfile.mkstemp(
-                  prefix=f".{output_path.name}.", dir=output_path.parent
-              )
+          for target, metadata in (
+              (staged_path, staged_metadata),
+              (output_path, output_metadata),
+          ):
               try:
-                  with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as temporary:
-                      temporary.write(normalized)
-                      temporary.flush()
-                      os.fsync(temporary.fileno())
-                  # The framework marks this file read-only after the agent writes it.
-                  # Replace it atomically in the same directory and preserve that mode.
-                  os.chmod(temporary_name, stat.S_IMODE(metadata.st_mode))
-                  os.replace(temporary_name, output_path)
-              finally:
-                  if os.path.exists(temporary_name):
-                      os.unlink(temporary_name)
-          except OSError as error:
-              print(f"::error::Could not safely normalize the incident report output: {error}")
-              sys.exit(1)
+                  descriptor, temporary_name = tempfile.mkstemp(
+                      prefix=f".{target.name}.", dir=target.parent
+                  )
+                  try:
+                      with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as temporary:
+                          temporary.write(normalized)
+                          temporary.flush()
+                          os.fsync(temporary.fileno())
+                      # The source can be read-only; the staged copy was made before this step.
+                      # Replace both atomically and preserve each file's original mode.
+                      os.chmod(temporary_name, stat.S_IMODE(metadata.st_mode))
+                      os.replace(temporary_name, target)
+                  finally:
+                      if os.path.exists(temporary_name):
+                          os.unlink(temporary_name)
+              except OSError as error:
+                  print(f"::error::Could not safely normalize {target.name}: {error}")
+                  sys.exit(1)
           body = comments[0]["body"]
+
+      try:
+          published = [json.loads(line) for line in staged_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+      except (OSError, json.JSONDecodeError) as error:
+          print(f"::error::Staged incident report output is invalid: {error}")
+          sys.exit(1)
+      published_comments = [item for item in published if isinstance(item, dict) and item.get("type") == "add_comment"]
+      if len(published_comments) != 1:
+          print("::error::Staged output must contain exactly one safe incident report comment.")
+          sys.exit(1)
+      staged_body = published_comments[0].get("body", "")
 
       if (
           not isinstance(body, str)
           or "<!-- devobs-investigation:v1 -->" not in body
           or "## AI Incident Investigation" not in body
+          or not isinstance(staged_body, str)
+          or "<!-- devobs-investigation:v1 -->" not in staged_body
+          or "## AI Incident Investigation" not in staged_body
       ):
-          print("::error::The safe comment output does not contain the required incident report markers.")
+          print("::error::Source and staged safe comments must contain the required incident report markers.")
           sys.exit(1)
       PY
 
