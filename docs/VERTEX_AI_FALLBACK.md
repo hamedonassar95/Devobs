@@ -65,6 +65,11 @@ these repository variables (they are identifiers, not credentials):
 | `GCP_VERTEX_SERVICE_ACCOUNT` | `devobs-vertex-investigator@PROJECT_ID.iam.gserviceaccount.com` |
 | `GCP_VERTEX_PROJECT_ID` | Google Cloud project ID |
 
+Before launching Gemini, the workflow now checks that all three variables are
+nonempty and stops with an explicit setup error when one is missing. This check
+does not verify the project's IAM trust, enabled APIs, model access, quota, or
+billing; confirm those separately before retrying.
+
 The workflow uses `us-central1` for Vertex AI. Confirm the chosen model and
 region are available to your Google Cloud project and that billing/quota are
 configured there.
