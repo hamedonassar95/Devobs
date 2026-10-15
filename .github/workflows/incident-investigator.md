@@ -151,6 +151,19 @@ post-steps:
 
       body = comments[0].get("body", "")
       if (
+          isinstance(body, str)
+          and "<!-- devobs-investigation:v1 -->" not in body
+          and "## AI Incident Investigation" in body
+      ):
+          # Normalize only the missing version marker on an otherwise valid report.
+          comments[0]["body"] = f"<!-- devobs-investigation:v1 -->\n\n{body}"
+          output_path.write_text(
+              "\n".join(json.dumps(item, ensure_ascii=False) for item in items) + "\n",
+              encoding="utf-8",
+          )
+          body = comments[0]["body"]
+
+      if (
           not isinstance(body, str)
           or "<!-- devobs-investigation:v1 -->" not in body
           or "## AI Incident Investigation" not in body

@@ -113,7 +113,7 @@ otherwise unusable runs as `uncertain`.
 - [Investigator run 38781330421](https://github.com/hamedonassar95/Devobs/actions/runs/38781330421) posted a structured report on issue #113 recommending `MANUAL_REVIEW`; it made no code, deployment, or recovery changes. The run remained failed because the report omitted `<!-- devobs-investigation:v1 -->`, even though it contained the required `## AI Incident Investigation` heading. Threat detection and safe-output processing succeeded.
 - CI, CodeQL, Pages, and the [Deployment Health Check](https://github.com/hamedonassar95/Devobs/actions/runs/38782052926) passed for PR #114's merge. The health check confirmed the deployed source SHA was `73f0b3b667a1257ce6f8d240dd289d32c2f37e10`.
 
-The Incident Response shell fix has passed CI but has not yet been exercised by a second main-branch failure drill. Resolve the investigator output-marker mismatch before scheduling another AI-consuming drill.
+The investigator's deterministic post-step now adds the missing version marker only when exactly one safe comment also contains the required report heading. It continues to fail closed when the report heading or single-comment contract is missing. CI validates this change, but it has not been live-retested with another AI-consuming drill.
 
 ## Phase 7 investigator dispatch
 
