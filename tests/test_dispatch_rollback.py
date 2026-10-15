@@ -16,12 +16,14 @@ class RollbackDispatchTests(unittest.TestCase):
     @patch("scripts.dispatch_rollback.api_request")
     def test_dispatches_only_historical_inputs_and_finds_new_run(self, api, monotonic, sleep):
         api.side_effect = [
-            (200, {"workflow_runs": [{"id": 6, "head_sha": "a" * 40, "event": "workflow_dispatch"}]}),
+            (200, {"workflow_runs": [{"id": 6, "run_number": 22, "head_sha": "a" * 40, "event": "workflow_dispatch"}]}),
             (204, None),
             (200, {"workflow_runs": [
-                {"id": 6, "head_sha": "a" * 40, "event": "workflow_dispatch",
+                {"id": 6, "run_number": 22, "head_sha": "a" * 40, "event": "workflow_dispatch",
                  "html_url": "https://github.com/o/r/actions/runs/6"},
-                {"id": 7, "head_sha": "a" * 40, "event": "workflow_dispatch",
+                {"id": 1, "run_number": 3, "head_sha": "a" * 40, "event": "workflow_dispatch",
+                 "html_url": "https://github.com/o/r/actions/runs/1"},
+                {"id": 7, "run_number": 23, "head_sha": "a" * 40, "event": "workflow_dispatch",
                  "html_url": "https://github.com/o/r/actions/runs/7"},
             ]}),
         ]
@@ -49,8 +51,8 @@ class RollbackDispatchTests(unittest.TestCase):
     @patch("scripts.dispatch_rollback.time.monotonic", side_effect=[0, 1])
     @patch("scripts.dispatch_rollback.api_request", side_effect=[
         (200, {"workflow_runs": []}), (204, None), (200, {"workflow_runs": [
-            {"id": 10, "head_sha": "a" * 40, "event": "workflow_dispatch"},
-            {"id": 11, "head_sha": "a" * 40, "event": "workflow_dispatch"},
+            {"id": 10, "run_number": 23, "head_sha": "a" * 40, "event": "workflow_dispatch"},
+            {"id": 11, "run_number": 24, "head_sha": "a" * 40, "event": "workflow_dispatch"},
         ]})])
     def test_avoids_claiming_a_run_when_multiple_new_runs_match(self, api, monotonic, sleep):
         status, url = dispatch_rollback.dispatch_and_find_run()

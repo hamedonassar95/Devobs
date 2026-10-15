@@ -46,7 +46,9 @@ def dispatch_and_find_run() -> tuple[str, str]:
     # Snapshot IDs before dispatch. Only the original input fields are sent,
     # since the workflow file selected by a release tag may be older.
     _, before_result = api_request(runs_url, token)
-    existing_ids = {run.get("id") for run in before_result.get("workflow_runs", [])}
+    before_runs = before_result.get("workflow_runs", [])
+    existing_ids = {run.get("id") for run in before_runs}
+    latest_run_number = max((run.get("run_number", 0) for run in before_runs), default=0)
     api_request(
         f"{base}/actions/workflows/{workflow}/dispatches",
         token,
@@ -63,6 +65,7 @@ def dispatch_and_find_run() -> tuple[str, str]:
         new_runs = [
             run for run in result.get("workflow_runs", [])
             if run.get("id") not in existing_ids
+            and run.get("run_number", 0) > latest_run_number
             and run.get("head_sha") == rollback_sha
             and run.get("event") == "workflow_dispatch"
         ]
