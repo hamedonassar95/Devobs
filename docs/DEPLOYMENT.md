@@ -12,6 +12,17 @@
 - الملفات تحتوي مسار نشر Pages واحدًا؛ Health Check يفحص الناتج ولا ينشر.
 - مصدر GitHub Actions لا يربط Pages باسم workflow محدد؛ يجب مراجعة أي تغيير مستقبلي في ملفات workflows. لا يمثل ذلك تدقيقًا شاملًا لتطبيقات وخدمات خارجية.
 
+## مراجعة حية بعد الدمج — 15 أكتوبر 2026
+- إعداد Pages الحالي: `workflow`، المصدر `main` من جذر المستودع، والحالة `built`.
+- سياسة بيئة `github-pages` الحالية تسمح بفرع `main` فقط.
+- تعذرت قراءة حماية `main` عبر رمز GitHub الحالي (HTTP 403)، لذلك تبقى مراجعة حماية الفرع المؤرخة في 6 أكتوبر هي آخر دليل متاح هنا.
+
+## أدلة آخر نشر إنتاجي — 15 أكتوبر 2026
+- دُمج PR [#110](https://github.com/hamedonassar95/Devobs/pull/110) في commit [`ce625cd`](https://github.com/hamedonassar95/Devobs/commit/ce625cdcebbb438c5db2529b3e5dd2bc5c076ec2).
+- نجح [CI](https://github.com/hamedonassar95/Devobs/actions/runs/38773344512) على commit الدمج.
+- نجح [Deploy Pages](https://github.com/hamedonassar95/Devobs/actions/runs/38773391874) ونشر SHA المختبر.
+- نجح [Deployment Health Check](https://github.com/hamedonassar95/Devobs/actions/runs/38773488015)، وتطابق SHA في `deployment.json` مع commit الدمج.
+
 ## Preview
 بعد نجاح فحوص PR، ينتج CI حزمة ZIP باسم يبدأ بـ `preview-pr-`.
 افتح تشغيل CI من تبويب Checks، ثم قسم Artifacts أو رابط Download في Summary، ونزّل الحزمة وفك ضغطها وافتح `index.html`.
