@@ -30,7 +30,7 @@ The published site is static HTML on GitHub Pages. It does not currently need a 
 2. Review required checks, environment restrictions, and Pages source in GitHub Settings after workflow changes.
 3. Confirm CI, deployment, and health-check runs succeed on the current main commit; the 2026-10-15 evidence is recorded in `docs/DEPLOYMENT.md`.
 4. Review security scan findings and Dependabot pull requests regularly.
-5. Run the documented incident-response dry run and confirm it produces evidence without changing production.
+5. The safe incident-response dry run completed on 2026-10-15 and produced evidence without changing production; see `docs/INCIDENT_RESPONSE.md`. The separate main-branch drill can create an incident and consume AI quota, so confirm credentials and quota before running it.
 6. Revisit containers, cloud infrastructure, metrics, and cost controls only when the project adds a backend, a metered service, or a team need.
 
 ## Operational evidence
