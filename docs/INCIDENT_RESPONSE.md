@@ -125,9 +125,15 @@ completed successfully but still posted an unmarked report on [issue #120](https
 The compiled framework copies the safe-output file before the post-step, so updating
 only the original left the staged publisher input unchanged. The follow-up normalizes
 and verifies both files using same-directory atomic replacement while preserving their
-permissions. Regression coverage makes both files read-only. Live acceptance remains
-pending until a fresh simulation produces one marked report. The investigator still
-has no recovery or deployment path.
+permissions. A later acceptance run, [38799430581](https://github.com/hamedonassar95/Devobs/actions/runs/38799430581),
+on [issue #122](https://github.com/hamedonassar95/Devobs/issues/122) succeeded but
+again posted an unmarked report. The safe-output processor consumes the canonical
+`/tmp/gh-aw/agent_output.json` produced by ingestion, so the source and staged JSONL
+were not the publisher's actual input. The current follow-up normalizes and verifies
+that canonical item as well as both JSONL files; regression coverage makes all three
+read-only and checks the publisher's input. Live acceptance remains pending until a
+fresh simulation produces one marked report. The investigator still has no recovery
+or deployment path.
 
 ## Phase 7 investigator dispatch
 

@@ -99,7 +99,20 @@ do not substitute for a live GitHub concurrency test.
 - The follow-up now normalizes both source and staged files atomically, preserves
   each file mode, and checks the staged copy that the publisher consumes. The
   regression case makes both files read-only and verifies both contain the marker.
+- Investigator run [38799430581](https://github.com/hamedonassar95/Devobs/actions/runs/38799430581)
+  on simulated issue [#122](https://github.com/hamedonassar95/Devobs/issues/122)
+  succeeded across all jobs and posted one report with the expected drill details,
+  but the marker was still absent. The safe-output processor reads the canonical
+  `/tmp/gh-aw/agent_output.json` produced by the ingestion step; checking only the
+  JSONL source and its staged copy did not check the publisher's actual input.
+- The current follow-up normalizes and verifies the report in all three files,
+  including the canonical agent output. It keeps the source and staged JSONL equal,
+  validates the agent output's `items` array, and preserves file modes with
+  same-directory atomic replacement. Regression coverage includes read-only inputs
+  and a canonical agent comment whose body was normalized independently. Live
+  acceptance remains pending until a fresh simulation produces one marked report
+  with a successful investigator run.
 
 This correction does not enable or approve deployment. Full live acceptance remains
 pending until a fresh simulation completes with one marked report and a successful
-investigator run using the follow-up change.
+investigator run using the current follow-up change.
