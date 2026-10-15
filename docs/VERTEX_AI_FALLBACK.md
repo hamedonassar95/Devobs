@@ -84,3 +84,16 @@ If the issue already has an investigation comment, the trust gate skips the
 fallback. Vertex AI has separate billing and quotas from Copilot; enabling it
 provides another inference path but does not guarantee the Google service will
 never rate-limit requests.
+
+## Live setup check — 15 October 2026
+
+Fallback run
+[38806920363](https://github.com/hamedonassar95/Devobs/actions/runs/38806920363)
+for issue [#124](https://github.com/hamedonassar95/Devobs/issues/124) passed the
+incident trust gate and activation. Gemini then exited with code 41 before
+inference, reporting that Vertex AI requires `GOOGLE_CLOUD_PROJECT` and
+`GOOGLE_CLOUD_LOCATION`. The compiled workflow sets the location to `us-central1`
+and maps the project from `GCP_VERTEX_PROJECT_ID`, so verify that the repository
+variable is configured along with the workload identity provider and service
+account variables above. The run posted no comment; do not rerun the fallback until
+the Google Cloud configuration and project quota are verified.

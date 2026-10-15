@@ -147,7 +147,11 @@ hit repeated Copilot `429 Too Many Requests` responses. A single retry after a c
 also exhausted all four Copilot attempts with the same response. No run produced a
 report comment; issue #124 has zero comments. No recovery, code change, PR, branch, or
 deployment was created. Live acceptance remains pending until Copilot rate limiting
-clears and a fresh investigator run posts a marked report.
+clears and a fresh investigator run posts a marked report. Vertex fallback run
+[38806920363](https://github.com/hamedonassar95/Devobs/actions/runs/38806920363)
+passed the trust gate and activation but exited before Gemini inference because the
+Google Cloud project configuration was not available to the CLI. It created no
+comment; verify the repository's Vertex project variable before another fallback run.
 
 ## Phase 7 investigator dispatch
 
