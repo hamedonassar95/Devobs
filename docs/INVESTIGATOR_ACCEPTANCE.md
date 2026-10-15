@@ -7,9 +7,10 @@ On 2026-10-06, issue #21 had two investigation comments from overlapping runs
 The dispatcher checked for a comment before dispatch, but both runs could pass that
 check before either comment existed.
 
-Issue #30 already has one investigation comment from run 37511642020, attempt 3,
-ending at **PENDING HUMAN APPROVAL** with decision `MANUAL_REVIEW`.
-Do not replay the old workflow against that issue: it has no per-incident lock.
+At the time of the original correction, issue #30 had one investigation comment
+from run 37511642020, attempt 3, ending at **PENDING HUMAN APPROVAL** with decision
+`MANUAL_REVIEW`. A later live recheck found two comments; see the recorded results
+below. Do not replay the old workflow against that issue: it has no per-incident lock.
 
 ## Correction
 
@@ -61,7 +62,9 @@ do not substitute for a live GitHub concurrency test.
 
 1. Record main SHA, branches, PRs, workflow runs, and the comment count on #30.
 2. Dispatch the corrected investigator twice for #30. Both runs must skip the
-   agent and writer, leaving the existing comment untouched and count at one.
+   agent and writer, leaving existing comments untouched. On 2026-10-15 the
+   issue had two bot investigation comments (IDs `6024809302` and `6195064915`);
+   recheck the count before any future replay.
 3. Create one fresh simulation through Incident Response (`dry_run: false`),
    using `Deployment Health Check` / `failure`. Do not fail production CI.
 4. After completion, require exactly one bot investigation comment, explicit
@@ -71,5 +74,26 @@ do not substitute for a live GitHub concurrency test.
 6. Verify no investigator-created branch, PR, commit, deployment, or rollback.
    Report unrelated maintainer activity separately rather than attributing it to AI.
 
-This correction does not enable or approve deployment. Production integration and
-live replay acceptance remain pending until the reviewed change is merged.
+### Live acceptance attempt — 15 October 2026
+
+- Issue #30 had two existing bot investigation comments, superseding the earlier
+  one-comment baseline. Dispatches [38796030593](https://github.com/hamedonassar95/Devobs/actions/runs/38796030593)
+  and [38796101824](https://github.com/hamedonassar95/Devobs/actions/runs/38796101824)
+  both logged `Investigation already exists; duplicate skipped`; activation,
+  agent, detection, and safe-output jobs were skipped. The two comments remained.
+- Incident Response run [38796181954](https://github.com/hamedonassar95/Devobs/actions/runs/38796181954)
+  created simulated incident [#118](https://github.com/hamedonassar95/Devobs/issues/118)
+  and classified it as `info` / `controlled-drill` / `MANUAL_REVIEW`.
+- Investigator run [38796208977](https://github.com/hamedonassar95/Devobs/actions/runs/38796208977)
+  posted one report with the expected simulation facts and decision, but the agent
+  job failed its postcondition. The normalizer attempted to edit the framework's
+  read-only `safeoutputs/outputs.jsonl` in place and raised `PermissionError`;
+  safe-output processing still published the unmarked report. No deployment,
+  rollback, branch, PR, or code change resulted.
+- The remediation uses a same-directory atomic replacement that preserves the
+  file mode. A regression case reproduces the read-only file and verifies the
+  output is normalized without making the final file writable.
+
+This correction does not enable or approve deployment. Full live acceptance remains
+pending until a fresh simulation completes with one marked report and a successful
+investigator run.
