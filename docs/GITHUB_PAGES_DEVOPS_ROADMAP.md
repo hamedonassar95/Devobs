@@ -30,7 +30,7 @@ The published site is static HTML on GitHub Pages. It does not currently need a 
 2. Review required checks, environment restrictions, and Pages source in GitHub Settings after workflow changes.
 3. Confirm CI, deployment, and health-check runs succeed on the current main commit; the 2026-10-15 evidence is recorded in `docs/DEPLOYMENT.md`.
 4. Review security scan findings and Dependabot pull requests regularly.
-5. The safe incident-response dry run and a main-branch drill completed on 2026-10-15; see `docs/INCIDENT_RESPONSE.md`. The main-branch drill produced the expected controlled incident without a deployment. PR #114 fixed a shell error after investigator dispatch. The investigator posted a report, but its run failed the required output-marker check; resolve that mismatch before another AI-consuming drill.
+5. The safe incident-response dry run and a main-branch drill completed on 2026-10-15; see `docs/INCIDENT_RESPONSE.md`. The main-branch drill produced the expected controlled incident without a deployment. PR #114 fixed a shell error after investigator dispatch. The investigator posted a report, but its run failed the output-marker check; a narrow deterministic normalization now handles that marker when the required report heading exists. Live revalidation awaits another AI-consuming drill.
 6. Revisit containers, cloud infrastructure, metrics, and cost controls only when the project adds a backend, a metered service, or a team need.
 
 ## Operational evidence
