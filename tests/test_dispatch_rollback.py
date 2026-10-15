@@ -19,7 +19,8 @@ class RollbackDispatchTests(unittest.TestCase):
         self.assertEqual(dispatch_call.args[0], "https://api.github.com/repos/owner/repo/actions/workflows/rollback-pages.yml/dispatches")
         self.assertEqual(dispatch_call.args[2], "POST")
         body = dispatch_call.args[3]
-        self.assertEqual(body["ref"], "a"*40)
+        self.assertEqual(body["ref"], "v1.2.3")
+        self.assertEqual(body["inputs"]["expected_commit_sha"], "a"*40)
         self.assertEqual(body["inputs"]["confirmation"], "ROLLBACK")
 
 if __name__ == "__main__": unittest.main()

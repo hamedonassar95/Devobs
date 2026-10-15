@@ -8,7 +8,8 @@ class OneClickDeployContractTests(unittest.TestCase):
         self.assertIn('actions: write', WORKFLOW)
         self.assertIn('run: python3 scripts/dispatch_rollback.py', WORKFLOW)
         helper = Path('scripts/dispatch_rollback.py').read_text()
-        self.assertIn('"ref": rollback_sha', helper)
+        self.assertIn('"ref": rollback_tag', helper)
+        self.assertIn('EXPECTED_COMMIT_SHA', Path('.github/workflows/rollback-pages.yml').read_text())
         self.assertIn('rollback-pages.yml', helper)
         self.assertNotIn('id: rollback-deploy', WORKFLOW)
 

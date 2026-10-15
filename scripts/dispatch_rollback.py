@@ -29,8 +29,8 @@ def dispatch_and_wait() -> tuple[str, str]:
     workflow = quote("rollback-pages.yml", safe="")
     before = time.time()
     api_request(f"{base}/actions/workflows/{workflow}/dispatches", token, "POST", {
-        "ref": rollback_sha,
-        "inputs": {"release_tag": rollback_tag, "confirmation": "ROLLBACK"},
+        "ref": rollback_tag,
+        "inputs": {"release_tag": rollback_tag, "expected_commit_sha": rollback_sha, "confirmation": "ROLLBACK"},
     })
     created_after = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(before - 5))
     deadline = before + 18 * 60
