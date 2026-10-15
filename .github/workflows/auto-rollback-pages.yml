@@ -1,0 +1,53 @@
+name: Guarded automatic Pages rollback
+
+on:
+  workflow_run:
+    workflows: ["Deployment Health Check"]
+    branches: [main]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: pages-auto-rollback
+  cancel-in-progress: false
+
+jobs:
+  dispatch-rollback:
+    if: >-
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.event == 'workflow_run' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      vars.PAGES_AUTO_ROLLBACK_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Validate a published stable rollback release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ vars.PAGES_ROLLBACK_RELEASE_TAG }}
+          FAILED_CHECK_RUN: ${{ github.event.workflow_run.html_url }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Set PAGES_ROLLBACK_RELEASE_TAG to a stable tag such as v1.2.3."
+            exit 1
+          fi
+          gh api "repos/$GH_REPO/releases/tags/$RELEASE_TAG" --jq 'select(.draft == false and .prerelease == false) | .tag_name' >/dev/null
+          {
+            echo "## Automatic rollback authorized by configuration"
+            echo
+            echo "- Failed production health check: $FAILED_CHECK_RUN"
+            echo "- Stable release target: $RELEASE_TAG"
+            echo "- This job only dispatches the existing validated rollback workflow."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Dispatch the protected rollback workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ vars.PAGES_ROLLBACK_RELEASE_TAG }}
+        run: gh workflow run rollback-pages.yml --ref main --field release_tag="$RELEASE_TAG" --field confirmation=ROLLBACK

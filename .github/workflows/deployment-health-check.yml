@@ -5,36 +5,76 @@ on:
   workflow_run:
     workflows: ["Deploy Pages"]
     branches: [main]
-    types:
-      - completed
+    types: [completed]
 
 permissions:
   contents: read
 
+concurrency:
+  group: deployment-health-check
+  cancel-in-progress: false
+
 jobs:
   verify-production:
-    if: >
+    if: >-
       github.event_name == 'workflow_dispatch' ||
-      github.event.workflow_run.conclusion == 'success'
+      (
+        github.event_name == 'workflow_run' &&
+        github.event.workflow_run.event == 'workflow_run' &&
+        github.event.workflow_run.head_branch == 'main' &&
+        github.event.workflow_run.head_repository.full_name == github.repository
+      )
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
-
+    timeout-minutes: 10
     steps:
+      - name: Checkout the deployed source revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+
       - name: Verify deployed site
+        id: health
+        if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+        env:
+          SITE_URL: https://hamedonassar95.github.io/Devobs/
         run: |
-          SITE_URL="https://hamedonassar95.github.io/Devobs/"
-
-          curl \
-            --fail \
-            --location \
-            --silent \
-            --show-error \
-            --retry 5 \
-            --retry-delay 5 \
-            --retry-all-errors \
-            "$SITE_URL" \
-            --output site.html
-
+          set -euo pipefail
+          curl --fail --location --silent --show-error --retry 5 --retry-delay 5 --retry-all-errors "$SITE_URL" --output site.html
           grep -q "AL-DALA MOBILE" site.html
-
           echo "Deployment health check passed."
+
+      - name: Write deployment report and send configured notifications
+        if: always()
+        continue-on-error: true
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id || github.run_id }}
+          WORKFLOW_RUN_URL: ${{ github.event.workflow_run.html_url || format('{0}/{1}/actions/runs/{2}', github.server_url, github.repository, github.run_id) }}
+          UPSTREAM_WORKFLOW: ${{ github.event.workflow_run.name || 'Manual health check' }}
+          UPSTREAM_EVENT: ${{ github.event.workflow_run.event || 'workflow_dispatch' }}
+          UPSTREAM_CONCLUSION: ${{ github.event.workflow_run.conclusion || 'manual' }}
+          UPSTREAM_STARTED_AT: ${{ github.event.workflow_run.run_started_at || github.run_started_at }}
+          UPSTREAM_UPDATED_AT: ${{ github.event.workflow_run.updated_at || github.run_started_at }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          SOURCE_BRANCH: ${{ github.event.workflow_run.head_branch || github.ref_name }}
+          HEALTH_CHECK_RESULT: ${{ steps.health.outcome || 'skipped' }}
+          SITE_URL: https://hamedonassar95.github.io/Devobs/
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          DEPLOY_SMTP_HOST: ${{ secrets.DEPLOY_SMTP_HOST }}
+          DEPLOY_SMTP_PORT: ${{ secrets.DEPLOY_SMTP_PORT }}
+          DEPLOY_SMTP_USERNAME: ${{ secrets.DEPLOY_SMTP_USERNAME }}
+          DEPLOY_SMTP_PASSWORD: ${{ secrets.DEPLOY_SMTP_PASSWORD }}
+          DEPLOY_EMAIL_FROM: ${{ secrets.DEPLOY_EMAIL_FROM }}
+          DEPLOY_EMAIL_TO: ${{ secrets.DEPLOY_EMAIL_TO }}
+        run: python3 scripts/deployment_report.py
+
+      - name: Upload deployment metrics artifact
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: deployment-report-${{ github.run_id }}-${{ github.run_attempt }}
+          path: deployment-report.json
+          if-no-files-found: warn
+          retention-days: 90
