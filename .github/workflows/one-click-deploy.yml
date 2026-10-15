@@ -113,6 +113,7 @@ jobs:
     outputs:
       status: ${{ steps.report.outputs.status }}
       site_url: ${{ steps.candidate-deploy.outputs.page_url }}
+      rollback_run_url: ${{ steps.rollback-dispatch.outputs.run_url }}
     permissions:
       actions: write
       contents: read
@@ -123,6 +124,13 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.validate.outputs.candidate_sha }}
+          persist-credentials: false
+
+      - name: Check out trusted rollback helper from the workflow revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: .trusted-tools
           persist-credentials: false
 
       - name: Compile Python sources
@@ -191,7 +199,8 @@ jobs:
           ROLLBACK_SHA: ${{ needs.validate.outputs.rollback_sha }}
           ROLLBACK_TAG: ${{ needs.validate.outputs.rollback_tag }}
           GH_API_URL: ${{ github.api_url }}
-        run: python3 scripts/dispatch_rollback.py
+          SOURCE_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python3 .trusted-tools/scripts/dispatch_rollback.py
 
       - name: Record deployment report
         id: report
@@ -211,8 +220,8 @@ jobs:
           set -euo pipefail
           if [[ "$CANDIDATE_HEALTH" == "success" ]]; then
             status="deployed"
-          elif [[ "$ROLLBACK_STATUS" == "success" ]]; then
-            status="rolled_back"
+          elif [[ "$ROLLBACK_STATUS" == "dispatched" || "$ROLLBACK_STATUS" == "accepted" ]]; then
+            status="rollback_pending"
           elif [[ "$CANDIDATE_DEPLOY" == "success" ]]; then
             status="rollback_failed"
           elif [[ "$VALIDATION_RESULT" != "passed" ]]; then
@@ -260,6 +269,7 @@ jobs:
           DEPLOYMENT_ROLLBACK_TAG: ${{ needs.validate.outputs.rollback_tag || inputs.rollback_release_tag }}
           DEPLOYMENT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           DEPLOYMENT_SITE_URL: ${{ needs.deploy.outputs.site_url }}
+          DEPLOYMENT_ROLLBACK_RUN_URL: ${{ needs.deploy.outputs.rollback_run_url }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SMTP_HOST: ${{ vars.SMTP_HOST }}
           SMTP_PORT: ${{ vars.SMTP_PORT }}
