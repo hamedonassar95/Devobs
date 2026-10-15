@@ -24,4 +24,4 @@ Configure an IAM OIDC provider for `token.actions.githubusercontent.com`. Restri
 
 Configure the GitHub `production` environment with required reviewers if deployment approval is needed. Then open **Actions → Deploy to Amazon ECS → Run workflow**, select the confirmation checkbox, and review the run summary.
 
-Until all variables, IAM trust, the task definition, and the Dockerfile are configured, a confirmed run stops at preflight validation before any AWS authentication or deployment request.
+If a required variable or file is missing, a confirmed run stops at preflight validation before AWS authentication. If the role trust or permissions are missing or too narrow, the OIDC assume-role step fails before any ECR or ECS operation.
