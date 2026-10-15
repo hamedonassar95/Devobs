@@ -75,6 +75,10 @@ on:
         if (( ${#missing[@]} > 0 )); then
           exit 1
         fi
+        if [[ ! "$GCP_WORKLOAD_IDENTITY_PROVIDER" =~ ^projects/[0-9]+/locations/global/workloadIdentityPools/[^/[:space:]]+/providers/[^/[:space:]]+$ ]]; then
+          echo "::error::GCP_WORKLOAD_IDENTITY_PROVIDER must be projects/<PROJECT_NUMBER>/locations/global/workloadIdentityPools/<POOL_ID>/providers/<PROVIDER_ID>, without an https:// or //iam.googleapis.com/ prefix."
+          exit 1
+        fi
         echo "Vertex AI configuration is present."
     - name: Verify Google Cloud Workload Identity Federation
       id: gcp_auth

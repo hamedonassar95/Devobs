@@ -70,6 +70,14 @@ GitHub Environment: this workflow does not bind to an environment.
 | `GCP_VERTEX_SERVICE_ACCOUNT` | `devobs-vertex-investigator@PROJECT_ID.iam.gserviceaccount.com` |
 | `GCP_VERTEX_PROJECT_ID` | Google Cloud project ID |
 
+Set `GCP_WORKLOAD_IDENTITY_PROVIDER` to the provider resource name in exactly
+this form: `projects/<PROJECT_NUMBER>/locations/global/workloadIdentityPools/<POOL_ID>/providers/<PROVIDER_ID>`.
+Use the numeric project number and do not add an `https://` or
+`//iam.googleapis.com/` prefix. The preflight checks this shape without printing
+the configured value. If Google still reports an invalid audience when the
+shape is correct, check the provider's allowed audiences; the Google auth action
+requests its default audience, `https://iam.googleapis.com/<provider-resource>`.
+
 Before launching Gemini, the workflow now checks that all three values are
 nonempty, preferring repository variables and falling back to repository secrets.
 It then verifies Workload Identity Federation and service-account impersonation
@@ -142,7 +150,10 @@ permissions. The preflight does not call Vertex AI or publish an issue comment.
 
 Run
 [38822537862](https://github.com/hamedonassar95/Devobs/actions/runs/38822537862)
-confirmed all three configuration values were present but the preflight failed
-because its explicit OIDC audience was not in Google's accepted provider format.
-The workflow now leaves `audience` unset so the Google auth action derives its
-default audience from the provider resource.
+confirmed all three configuration values were present but Google STS rejected
+the OIDC audience. The workflow now leaves `audience` unset so the Google auth
+action derives its default audience from the provider resource. The next run,
+[38822860325](https://github.com/hamedonassar95/Devobs/actions/runs/38822860325),
+received the same Google rejection. The preflight now validates the provider
+resource-name format; if it passes but Google still rejects the audience, verify
+the provider's allowed audiences and trust configuration in Google Cloud.
