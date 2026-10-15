@@ -199,7 +199,7 @@ jobs:
           ROLLBACK_SHA: ${{ needs.validate.outputs.rollback_sha }}
           ROLLBACK_TAG: ${{ needs.validate.outputs.rollback_tag }}
           GH_API_URL: ${{ github.api_url }}
-          SOURCE_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GH_SERVER_URL: ${{ github.server_url }}
         run: python3 .trusted-tools/scripts/dispatch_rollback.py
 
       - name: Record deployment report

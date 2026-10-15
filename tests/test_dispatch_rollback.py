@@ -4,46 +4,59 @@ from scripts import dispatch_rollback
 
 
 class RollbackDispatchTests(unittest.TestCase):
-    @patch.dict("os.environ", {"GH_TOKEN": "token", "GH_REPOSITORY": "owner/repo",
-        "ROLLBACK_SHA": "a" * 40, "ROLLBACK_TAG": "v1.2.3", "GH_API_URL": "https://api.github.com"})
+    ENV = {
+        "GH_TOKEN": "token", "GH_REPOSITORY": "owner/repo",
+        "ROLLBACK_SHA": "a" * 40, "ROLLBACK_TAG": "v1.2.3",
+        "GH_API_URL": "https://api.github.com", "GH_SERVER_URL": "https://github.com",
+    }
+
+    @patch.dict("os.environ", ENV)
     @patch("scripts.dispatch_rollback.time.sleep")
     @patch("scripts.dispatch_rollback.time.monotonic", side_effect=[0, 1])
-    @patch("scripts.dispatch_rollback.uuid.uuid4")
     @patch("scripts.dispatch_rollback.api_request")
-    def test_dispatches_supported_tag_and_finds_exact_queued_child(self, api, uuid4, monotonic, sleep):
-        uuid4.return_value.hex = "unique-dispatch"
+    def test_dispatches_only_historical_inputs_and_finds_new_run(self, api, monotonic, sleep):
         api.side_effect = [
+            (200, {"workflow_runs": [{"id": 6, "head_sha": "a" * 40, "event": "workflow_dispatch"}]}),
             (204, None),
             (200, {"workflow_runs": [
-                {"head_sha": "a" * 40, "display_title": "Rollback Pages / other",
+                {"id": 6, "head_sha": "a" * 40, "event": "workflow_dispatch",
                  "html_url": "https://github.com/o/r/actions/runs/6"},
-                {"head_sha": "a" * 40, "display_title": "Rollback Pages / unique-dispatch",
-                 "status": "queued", "html_url": "https://github.com/o/r/actions/runs/7"},
+                {"id": 7, "head_sha": "a" * 40, "event": "workflow_dispatch",
+                 "html_url": "https://github.com/o/r/actions/runs/7"},
             ]}),
         ]
         status, url = dispatch_rollback.dispatch_and_find_run()
-        self.assertEqual(status, "dispatched")
-        self.assertEqual(url, "https://github.com/o/r/actions/runs/7")
-        dispatch_call = api.call_args_list[0]
-        self.assertEqual(dispatch_call.args[0],
-            "https://api.github.com/repos/owner/repo/actions/workflows/rollback-pages.yml/dispatches")
+        self.assertEqual((status, url), ("dispatched", "https://github.com/o/r/actions/runs/7"))
+        dispatch_call = api.call_args_list[1]
         body = dispatch_call.args[3]
-        self.assertEqual(body["ref"], "v1.2.3")
-        self.assertEqual(body["inputs"]["expected_commit_sha"], "a" * 40)
-        self.assertEqual(body["inputs"]["dispatch_id"], "unique-dispatch")
-        self.assertIn("workflow_dispatch", api.call_args_list[1].args[0])
+        self.assertEqual(body, {"ref": "v1.2.3",
+            "inputs": {"release_tag": "v1.2.3", "confirmation": "ROLLBACK"}})
+        self.assertIn("workflow_dispatch", api.call_args_list[0].args[0])
 
-    @patch.dict("os.environ", {"GH_TOKEN": "token", "GH_REPOSITORY": "owner/repo",
-        "ROLLBACK_SHA": "a" * 40, "ROLLBACK_TAG": "v1.2.3", "GH_API_URL": "https://api.github.com"})
+    @patch.dict("os.environ", ENV)
     @patch("scripts.dispatch_rollback.time.sleep")
     @patch("scripts.dispatch_rollback.time.monotonic", side_effect=[0, 1, 46])
-    @patch("scripts.dispatch_rollback.uuid.uuid4")
-    @patch("scripts.dispatch_rollback.api_request", side_effect=[(204, None), (200, {"workflow_runs": []})])
-    def test_returns_accepted_without_waiting_for_child_completion(self, api, uuid4, monotonic, sleep):
-        uuid4.return_value.hex = "unique-dispatch"
+    @patch("scripts.dispatch_rollback.api_request", side_effect=[
+        (200, {"workflow_runs": []}), (204, None), (200, {"workflow_runs": []})])
+    def test_reports_accepted_and_links_to_workflow_when_run_list_lags(self, api, monotonic, sleep):
         status, url = dispatch_rollback.dispatch_and_find_run()
-        self.assertEqual((status, url), ("accepted", ""))
+        self.assertEqual(status, "accepted")
+        self.assertEqual(url, "https://github.com/owner/repo/actions/workflows/rollback-pages.yml")
         sleep.assert_called_once_with(3)
+
+    @patch.dict("os.environ", ENV)
+    @patch("scripts.dispatch_rollback.time.sleep")
+    @patch("scripts.dispatch_rollback.time.monotonic", side_effect=[0, 1])
+    @patch("scripts.dispatch_rollback.api_request", side_effect=[
+        (200, {"workflow_runs": []}), (204, None), (200, {"workflow_runs": [
+            {"id": 10, "head_sha": "a" * 40, "event": "workflow_dispatch"},
+            {"id": 11, "head_sha": "a" * 40, "event": "workflow_dispatch"},
+        ]})])
+    def test_avoids_claiming_a_run_when_multiple_new_runs_match(self, api, monotonic, sleep):
+        status, url = dispatch_rollback.dispatch_and_find_run()
+        self.assertEqual(status, "accepted")
+        self.assertTrue(url.endswith("/actions/workflows/rollback-pages.yml"))
+        sleep.assert_not_called()
 
 if __name__ == "__main__":
     unittest.main()
