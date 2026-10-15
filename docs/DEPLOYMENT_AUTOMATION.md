@@ -63,8 +63,9 @@ these repository variables:
 - PAGES_AUTO_ROLLBACK_ENABLED=true
 - PAGES_ROLLBACK_RELEASE_TAG=vX.Y.Z for a published, non-draft, non-prerelease release
 
-The guard accepts only a failed health check caused by the trusted
-Deploy Pages → Deployment Health Check workflow chain on main. It then
+The guard accepts only a failure of the named production site-verification step
+in the trusted Deploy Pages → Deployment Health Check workflow chain on main. A
+checkout, reporting, or artifact error alone cannot authorize rollback. It then
 dispatches Rollback Pages, which revalidates the release, reruns project
 checks, deploys the exact release commit, and checks the public site. It does not
 rewrite main history. This rollback covers the static GitHub Pages site only;

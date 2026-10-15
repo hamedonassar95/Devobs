@@ -25,7 +25,24 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
+      - name: Confirm the production health-check step itself failed
+        id: eligibility
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          FAILED_RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          failed_steps="$(gh api "repos/$GH_REPO/actions/runs/$FAILED_RUN_ID/jobs?per_page=100" --jq '[.jobs[].steps[]? | select(.name == "Verify deployed site" and .conclusion == "failure")] | length')"
+          if [[ "$failed_steps" == "1" ]]; then
+            echo "health_failed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "health_failed=false" >> "$GITHUB_OUTPUT"
+            echo "Rollback not dispatched: the production site verification step did not fail." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Validate a published stable rollback release
+        if: steps.eligibility.outputs.health_failed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -47,6 +64,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Dispatch the protected rollback workflow
+        if: steps.eligibility.outputs.health_failed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ vars.PAGES_ROLLBACK_RELEASE_TAG }}
