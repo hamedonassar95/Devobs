@@ -114,17 +114,27 @@ def send_email(environment: dict[str, str], subject: str, body: str) -> None:
                 pass
 
 
+def resolve_status(environment: dict[str, str]) -> str:
+    if environment.get("DEPLOYMENT_STATUS"):
+        return environment["DEPLOYMENT_STATUS"]
+    validation_result = environment.get("VALIDATION_RESULT", "unknown")
+    deployment_result = environment.get("DEPLOYMENT_RESULT", "unknown")
+    if validation_result == "failure":
+        return "validation_failed"
+    if validation_result == "skipped" and deployment_result == "skipped":
+        return "not_run"
+    if validation_result == "success" and deployment_result == "failure":
+        return "deployment_failed"
+    if validation_result == "success" and deployment_result == "cancelled":
+        return "cancelled"
+    return "deployment_not_completed"
+
 def notify(environment: dict[str, str]) -> list[tuple[str, str]]:
     environment = dict(environment)
-    if not environment.get("DEPLOYMENT_STATUS"):
-        validation_result = environment.get("VALIDATION_RESULT", "unknown")
-        deployment_result = environment.get("DEPLOYMENT_RESULT", "unknown")
-        if validation_result == "failure":
-            environment["DEPLOYMENT_STATUS"] = "validation_failed"
-        elif validation_result == "skipped" and deployment_result == "skipped":
-            environment["DEPLOYMENT_STATUS"] = "not_run"
-        else:
-            environment["DEPLOYMENT_STATUS"] = "deployment_not_completed"
+    environment["DEPLOYMENT_STATUS"] = resolve_status(environment)
+    if environment["DEPLOYMENT_STATUS"] == "not_run":
+        return [("Slack", "not sent (deployment not confirmed)"),
+                ("Email", "not sent (deployment not confirmed)")]
 
     subject, body = deployment_message(environment)
     message = f"{subject}\n{body}"
@@ -161,14 +171,13 @@ def main() -> int:
     if summary_path:
         with open(summary_path, "a", encoding="utf-8") as summary:
             summary.write("## Deployment integration report\n\n")
-            summary.write(f"- Result: {environment['DEPLOYMENT_STATUS']}\n")
+            summary.write(f"- Result: {resolve_status(environment)}\n")
             summary.write(f"- Commit: {environment.get('DEPLOYMENT_COMMIT', 'unknown')}\n")
             summary.write(f"- Rollback release: {environment.get('DEPLOYMENT_ROLLBACK_TAG', 'unknown')}\n")
             if environment.get("DEPLOYMENT_RUN_URL"):
                 summary.write(f"- GitHub run: {environment['DEPLOYMENT_RUN_URL']}\n")
             if environment.get("DEPLOYMENT_SITE_URL"):
                 summary.write(f"- Site: {environment['DEPLOYMENT_SITE_URL']}\n")
-            summary.write("\n")
             summary.write("\n## Notification status\n\n")
             for channel, outcome in outcomes:
                 summary.write(f"- {channel}: {outcome}\n")
