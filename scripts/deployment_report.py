@@ -105,7 +105,7 @@ def send_email(subject: str, body: str) -> str:
 def main() -> int:
     upstream = value("UPSTREAM_CONCLUSION", "manual")
     health = value("HEALTH_CHECK_RESULT", "skipped")
-    result = "failure" if upstream not in ("success", "manual") or health == "failure" else "success"
+    result = "success" if upstream in ("success", "manual") and health == "success" else "failure"
     duration = duration_seconds(value("UPSTREAM_STARTED_AT"), value("UPSTREAM_UPDATED_AT"))
     sha = value("SOURCE_SHA")
     run_id = value("WORKFLOW_RUN_ID")
