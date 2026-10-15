@@ -135,6 +135,18 @@ read-only and checks the publisher's input. Live acceptance remains pending unti
 fresh simulation produces one marked report. The investigator still has no recovery
 or deployment path.
 
+PR [#123](https://github.com/hamedonassar95/Devobs/pull/123) merged the canonical
+publisher-input correction as `d219295f6e50be2edfb54d1a4c95242d1ef1fe1c`; CI, CodeQL,
+Pages, and Deployment Health Check passed. The next controlled drill,
+[Incident Response run 38801479974](https://github.com/hamedonassar95/Devobs/actions/runs/38801479974),
+created [issue #124](https://github.com/hamedonassar95/Devobs/issues/124). Investigator
+runs [38801501034](https://github.com/hamedonassar95/Devobs/actions/runs/38801501034)
+and [38802220883](https://github.com/hamedonassar95/Devobs/actions/runs/38802220883)
+hit repeated Copilot `429 Too Many Requests` responses and produced no report comments;
+issue #124 has zero comments. No recovery, code change, PR, branch, or deployment was
+created. Live acceptance remains pending until Copilot rate limiting clears and a
+fresh investigator run posts a marked report.
+
 ## Phase 7 investigator dispatch
 
 When a real incident issue is created, the workflow now explicitly dispatches the
