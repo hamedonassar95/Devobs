@@ -1,0 +1,50 @@
+name: بلاغ عن مشكلة
+description: أبلغ عن خلل يمكن إعادة إنتاجه في الموقع أو السكربتات أو سير العمل.
+title: "[خلل]: "
+body:
+  - type: markdown
+    attributes:
+      value: "للإبلاغ عن ثغرة أمنية، استخدم رابط البلاغ الخاص في صفحة Security بالمستودع. لا تضع كلمات مرور أو رموز وصول أو أسرارًا هنا."
+  - type: textarea
+    id: summary
+    attributes:
+      label: ماذا حدث؟
+      description: اشرح المشكلة وحدد مكان ظهورها.
+      placeholder: صف الخلل الذي واجهته.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: خطوات إعادة المشكلة
+      description: اكتب الخطوات اللازمة لظهور المشكلة.
+      placeholder: |
+        1. افتح ...
+        2. اختر ...
+        3. لاحظ ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: السلوك المتوقع
+      description: ماذا كنت تتوقع أن يحدث؟
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: البيئة والتفاصيل الداعمة
+      description: أضف المتصفح أو نظام التشغيل أو رابط تشغيل سير العمل أو سجلًا لا يحتوي معلومات حساسة.
+      render: text
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: قبل الإرسال
+      options:
+        - label: بحثت في المشكلات الموجودة عن هذا الخلل.
+          required: true
+        - label: حذفت المعلومات الخاصة وبيانات الاعتماد من البلاغ.
+          required: true

@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: الإبلاغ عن ثغرة أمنية بشكل خاص
+    url: https://github.com/hamedonassar95/Devobs/security/advisories/new
+    about: اتبع SECURITY.md واستخدم بلاغًا أمنيًا خاصًا. لا تنشر تفاصيل الثغرات في المشكلات العامة.
