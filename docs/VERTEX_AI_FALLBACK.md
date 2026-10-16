@@ -157,3 +157,22 @@ action derives its default audience from the provider resource. The next run,
 received the same Google rejection. The preflight now validates the provider
 resource-name format; if it passes but Google still rejects the audience, verify
 the provider's allowed audiences and trust configuration in Google Cloud.
+
+## Controlled evaluation attempt — 16 October 2026
+
+Vertex fallback run
+[38843374720](https://github.com/hamedonassar95/Devobs/actions/runs/38843374720)
+passed the trust gate for controlled-drill issue
+[#140](https://github.com/hamedonassar95/Devobs/issues/140), then stopped in
+`Validate Vertex AI configuration`. The configured
+`GCP_WORKLOAD_IDENTITY_PROVIDER` did not match the required resource-name form:
+
+```text
+projects/<PROJECT_NUMBER>/locations/global/workloadIdentityPools/<POOL_ID>/providers/<PROVIDER_ID>
+```
+
+The value must use the numeric project number and omit both `https://` and the
+`//iam.googleapis.com/` prefix. Since this check failed, Google WIF and Vertex
+model inference did not run, and the workflow posted no report. Replace the
+repository variable or secret with the exact provider resource name from Google
+Cloud before retrying; do not paste the configured value into an issue or log.

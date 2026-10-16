@@ -200,11 +200,21 @@ causal relevance, and exact evidence) with no unsupported root-cause claim.
   The log reports an unrecognized token format and requires a fine-grained PAT
   beginning with `github_pat_`. The agent and safe-output jobs were skipped; no
   model inference or investigation comment occurred.
-- **Measured outcome:** end-to-end deterministic triage passed; AI inference
-  availability failed at credential preflight; AI quality score is not
-  applicable for this run. Keep the historical report score at `0/5`; do not
-  count this no-inference attempt as either a model pass or failure.
-- **Next prerequisite:** replace the repository Actions secret
-  `COPILOT_GITHUB_TOKEN` with an eligible fine-grained GitHub PAT through the
-  repository Settings UI. Never put the token in an issue, source file, or log.
-  Rerun the controlled evaluation only after the secret is updated.
+- Vertex fallback run
+  [38843374720](https://github.com/hamedonassar95/Devobs/actions/runs/38843374720)
+  passed the incident trust gate but failed `Validate Vertex AI configuration`:
+  `GCP_WORKLOAD_IDENTITY_PROVIDER` did not match the required provider resource
+  name. Workload Identity authentication and model inference were skipped; no
+  investigation comment was posted.
+- **Measured outcome:** deterministic triage and artifact upload passed; both
+  AI-provider attempts stopped at credential preflight (`0/2` reached inference).
+  AI quality score is not applicable for this evaluation. Keep the historical
+  report score at `0/5`; do not count either no-inference attempt as a model pass
+  or failure.
+- **Next prerequisites:** in GitHub repository Settings → Secrets and variables
+  → Actions, update `COPILOT_GITHUB_TOKEN` to an eligible fine-grained GitHub PAT
+  beginning with `github_pat_`, and set `GCP_WORKLOAD_IDENTITY_PROVIDER` to
+  `projects/<numeric-project-number>/locations/global/workloadIdentityPools/<POOL_ID>/providers/<PROVIDER_ID>`
+  without a URL scheme or `//iam.googleapis.com/` prefix. Never put token values
+  in issues, source files, or logs. Rerun the controlled evaluation only after
+  the settings have been updated.
