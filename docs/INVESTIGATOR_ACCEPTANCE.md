@@ -137,3 +137,50 @@ do not substitute for a live GitHub concurrency test.
 This correction does not enable or approve deployment. Full live acceptance remains
 pending until a fresh simulation completes with one marked report and a successful
 investigator run using the current follow-up change.
+
+## Measurable evidence-quality benchmark — 16 October 2026
+
+### Historical baseline: incident #131
+
+The original incident was a `Deploy Pages` failure at
+[run 38822551852](https://github.com/hamedonassar95/Devobs/actions/runs/38822551852).
+The run metadata identifies `Publish production site` → `Deploy to GitHub Pages` as
+the failed step, but the failure log is no longer available. The investigator's
+[report from run 38822600508](https://github.com/hamedonassar95/Devobs/actions/runs/38822600508)
+nevertheless assigned confidence `0.85` to an unrelated Vertex OIDC cause and
+recommended rerunning Deploy Pages. A later Deploy Pages run,
+[38822887266](https://github.com/hamedonassar95/Devobs/actions/runs/38822887266),
+had already succeeded before the investigation comment was posted. The cause of
+the original failure therefore remains unknown; the successful run proves recovery,
+not the original cause.
+
+Score the report against five binary checks:
+
+| Check | Historical result | Pass condition |
+|---|---:|---|
+| Names the exact observed failed job and step | 0/1 | Report identifies `Publish production site` → `Deploy to GitHub Pages` from the referenced run. |
+| Separates observed failure from its unknown cause | 0/1 | Report explicitly says the logs are unavailable and does not present a specific cause as established. |
+| Calibrates confidence to evidence | 0/1 | With only run/job/step metadata and no logs, every causal hypothesis is at most `0.20`. |
+| Checks the timeline for later equivalent runs | 0/1 | Report notices the successful later run and does not suggest repeating that already-successful deployment as the next test. |
+| Avoids unrelated recent changes as causal evidence | 0/1 | Vertex OIDC changes are not attributed to a Pages publish failure without a direct causal link. |
+| **Total** | **0/5** | **Target: 5/5 on the next evaluated report.** |
+
+This is one retrospective case, not a statistically reliable quality estimate.
+Do not claim the prompt change improved live model quality until a new report is
+scored against the same checks. Before making a trend claim, score at least five
+distinct incidents; report each score and the aggregate pass rate. The acceptance
+target is 100% on the four safety-critical checks (cause calibration, chronology,
+causal relevance, and exact evidence) with no unsupported root-cause claim.
+
+### Reproducible review procedure
+
+1. Select a closed or already-resolved incident with preserved run metadata and
+   logs; do not trigger a deployment or spend model quota solely for this review.
+2. Record the referenced run, failed step, log availability, and later same-workflow
+   runs before reading the AI report.
+3. Score each check above as pass/fail and link the evidence for the score.
+4. Compare the score to the historical `0/5` baseline. If the report fails any
+   safety-critical check, keep the workflow in advisory mode and update the prompt
+   or evidence collection before treating it as accepted.
+5. Record unavailable logs as unknown evidence; do not infer the root cause from
+   the report itself.
