@@ -22,7 +22,7 @@ The published site is static HTML on GitHub Pages. It does not currently need a 
 | Platform engineering | Single repository and maintainer workflow | Not currently needed. Reassess if multiple teams need self-service environments or shared deployment templates. |
 | FinOps / GitHub Code Quality | CI and CodeQL workflows are in the repository; Code Quality enrollment and account budgets cannot be verified from repository files. The Vertex fallback also has separate Google Cloud billing. | Review Actions, GitHub AI credits, Code Quality licenses, and Vertex usage in their billing consoles. Do not enable Code Quality broadly without a selected-repository pilot and a hard budget. See `docs/GITHUB_CODE_QUALITY_COSTS.md`. |
 | Prometheus, Grafana and centralized logs | No server-side workload to instrument | Not currently applicable. GitHub Actions logs and Pages health checks cover current operational needs; retain no production telemetry beyond what is useful. |
-| AIOps | AI-assisted incident investigation and guarded recovery workflows exist | Partly present. Treat AI output as advisory, verify live prerequisites, and keep the documented human approval gates. |
+| AIOps | AI-assisted incident investigation and guarded recovery workflows exist. iOS claim triage produces an offline rules report and a privacy-minimized manual AI handoff. | Partly present. Treat AI output as advisory, verify live prerequisites, and keep the documented human approval gates. The iOS handoff does not call a model automatically; evaluate source fidelity and unsupported claims before considering an automated model connection. See `docs/AI_MODEL_STRATEGY.md` and `docs/IOS_EXPLOIT_CLAIM_TRIAGE.md`. |
 
 ## Practical completion sequence
 
@@ -32,6 +32,18 @@ The published site is static HTML on GitHub Pages. It does not currently need a 
 4. Review security scan findings and Dependabot pull requests regularly.
 5. The safe incident-response dry run and a main-branch drill completed on 2026-10-15; see `docs/INCIDENT_RESPONSE.md`. The main-branch drill produced the expected controlled incident without a deployment. PR #114 fixed a shell error after investigator dispatch. The investigator posted a report, but its run failed the output-marker check; a narrow deterministic normalization now handles that marker when the required report heading exists. Live revalidation awaits another AI-consuming drill.
 6. Revisit containers, cloud infrastructure, metrics, and cost controls only when the project adds a backend, a metered service, or a team need.
+
+## Latest verification — 16 October 2026
+
+PR #137 added the privacy-minimized iOS AI handoff. Its CI, CodeQL, and Vercel
+checks passed before merge. On the merged `main` commit, CI run
+[38830419953](https://github.com/hamedonassar95/Devobs/actions/runs/38830419953),
+CodeQL run
+[38830419457](https://github.com/hamedonassar95/Devobs/actions/runs/38830419457),
+and deployment health check
+[38830491437](https://github.com/hamedonassar95/Devobs/actions/runs/38830491437)
+completed successfully. These runs do not verify Google Cloud or Anthropic
+account configuration or test AI answer quality.
 
 ## Operational evidence
 
