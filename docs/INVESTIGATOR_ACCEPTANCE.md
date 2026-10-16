@@ -237,3 +237,18 @@ new prompt's still-unverified live performance.
   without a URL scheme or `//iam.googleapis.com/` prefix. Never put token values
   in issues, source files, or logs. Rerun the controlled evaluation only after
   the settings have been updated.
+
+### Credential preflight
+
+Use **Actions → AI Provider Preflight → Run workflow** on the `main` branch after
+updating the repository variables or secrets. Select `copilot` to check that
+`COPILOT_GITHUB_TOKEN` is present and has the required `github_pat_` prefix,
+`vertex` to validate the provider resource name and verify Google Workload
+Identity Federation, or `both` to run both checks.
+
+This workflow does not call Copilot or Vertex AI and does not publish an incident
+comment. The Copilot check verifies token format only; it cannot confirm the
+Copilot Requests permission without contacting the service. A successful Vertex
+check confirms WIF and service-account authentication but does not verify Vertex
+model access, quota, or billing. Run the controlled AI evaluation only after the
+relevant preflight passes.

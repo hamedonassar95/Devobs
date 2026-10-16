@@ -1,0 +1,88 @@
+name: AI Provider Preflight
+
+on:
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: Select which provider configuration to validate
+        required: true
+        type: choice
+        options:
+          - both
+          - copilot
+          - vertex
+        default: both
+
+permissions:
+  contents: none
+
+jobs:
+  copilot:
+    if: github.ref == 'refs/heads/main' && (inputs.provider == 'copilot' || inputs.provider == 'both')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      contents: read
+    steps:
+      - name: Validate Copilot token format
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$COPILOT_GITHUB_TOKEN" ]]; then
+            echo "::error::Add the COPILOT_GITHUB_TOKEN repository secret before running this check."
+            exit 1
+          fi
+          if [[ "$COPILOT_GITHUB_TOKEN" != github_pat_* ]]; then
+            echo "::error::COPILOT_GITHUB_TOKEN must be a fine-grained PAT beginning with github_pat_."
+            exit 1
+          fi
+          echo "Token format accepted. This check does not verify Copilot Requests permission or call a model."
+
+  vertex:
+    if: github.ref == 'refs/heads/main' && (inputs.provider == 'vertex' || inputs.provider == 'both')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Validate Vertex configuration
+        env:
+          GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          GCP_VERTEX_SERVICE_ACCOUNT: ${{ vars.GCP_VERTEX_SERVICE_ACCOUNT || secrets.GCP_VERTEX_SERVICE_ACCOUNT }}
+          GCP_VERTEX_PROJECT_ID: ${{ vars.GCP_VERTEX_PROJECT_ID || secrets.GCP_VERTEX_PROJECT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          missing=()
+          for name in GCP_WORKLOAD_IDENTITY_PROVIDER GCP_VERTEX_SERVICE_ACCOUNT GCP_VERTEX_PROJECT_ID; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Configure the repository Actions variable or secret ${name}."
+              missing+=("$name")
+            fi
+          done
+          if (( ${#missing[@]} > 0 )); then
+            exit 1
+          fi
+          if [[ ! "$GCP_WORKLOAD_IDENTITY_PROVIDER" =~ ^projects/[0-9]+/locations/global/workloadIdentityPools/[^/[:space:]]+/providers/[^/[:space:]]+$ ]]; then
+            echo "::error::GCP_WORKLOAD_IDENTITY_PROVIDER must use projects/<PROJECT_NUMBER>/locations/global/workloadIdentityPools/<POOL_ID>/providers/<PROVIDER_ID>, without a URL prefix."
+            exit 1
+          fi
+          echo "Required Vertex settings are present and the provider resource name has the expected format."
+
+      - name: Verify Google Cloud Workload Identity Federation
+        id: google_auth
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          project_id: ${{ vars.GCP_VERTEX_PROJECT_ID || secrets.GCP_VERTEX_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_VERTEX_SERVICE_ACCOUNT || secrets.GCP_VERTEX_SERVICE_ACCOUNT }}
+          token_format: access_token
+          create_credentials_file: false
+          export_environment_variables: false
+
+      - name: Report preflight result
+        if: steps.google_auth.outcome == 'success'
+        run: echo "Google Cloud authentication succeeded. No Vertex model request was made."
