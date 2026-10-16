@@ -252,3 +252,20 @@ Copilot Requests permission without contacting the service. A successful Vertex
 check confirms WIF and service-account authentication but does not verify Vertex
 model access, quota, or billing. Run the controlled AI evaluation only after the
 relevant preflight passes.
+
+### Latest credential preflight — 16 October 2026, 04:11 UTC
+
+Preflight run
+[38849359527](https://github.com/hamedonassar95/Devobs/actions/runs/38849359527)
+ran both checks on `main` and confirmed neither provider is ready:
+
+- Copilot failed the token-format check because `COPILOT_GITHUB_TOKEN` does not
+  begin with `github_pat_`.
+- Vertex failed the format check because `GCP_WORKLOAD_IDENTITY_PROVIDER` does
+  not match the required `projects/<PROJECT_NUMBER>/locations/global/workloadIdentityPools/<POOL_ID>/providers/<PROVIDER_ID>` form.
+- No Copilot or Vertex model request was made, no issue comment was posted, and
+  no secret value was printed.
+
+Update these values in **Settings → Secrets and variables → Actions**, then rerun
+the corresponding preflight. Do not rerun the incident investigator until the
+preflight for the chosen provider passes.
