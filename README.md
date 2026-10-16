@@ -4,7 +4,11 @@
 
 مشروع عملي لتعلّم DevOps وCI/CD باستخدام GitHub Actions وGitHub Pages.
 
-## Operations
+## مركز الأتمتة
+
+- **ابدأ من هنا:** [مركز الأتمتة وسير التشغيل الموحد](docs/AUTOMATION_HUB.md)
+
+## التشغيل والتوثيق
 
 - CI documentation: [docs/CI.md](docs/CI.md)
 - GitHub Pages DevOps roadmap: [docs/GITHUB_PAGES_DEVOPS_ROADMAP.md](docs/GITHUB_PAGES_DEVOPS_ROADMAP.md)
