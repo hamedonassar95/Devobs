@@ -2,7 +2,7 @@
 
 ## Objective
 
-The repository monitors the production delivery chain and converts failed workflow runs into a structured incident record. The system collects minimal evidence, classifies the failure, recommends a response, and creates an auditable GitHub issue. It does **not** automatically merge, push to `main`, disable protections, or execute a rollback.
+The repository monitors the production delivery chain and converts failed workflow runs into a structured incident record. The system collects minimal evidence, classifies the failure, recommends a response, and creates an auditable GitHub issue. Incident Response and the AI investigator do **not** merge, push to `main`, disable protections, or execute rollback. Separately, the normal Pages deployment workflow may restore the previous published site after a failed health check, but only when its manifest, current-main, and rollback-quality guards pass.
 
 ## Monitored workflows
 
@@ -20,7 +20,7 @@ Normal validation, deployment, and post-deployment health verification now run a
 | CI production health check (`Deployment Health Check`) | production-verification | critical | `ROLLBACK_CANDIDATE` |
 | cancelled / stale / neutral | uncertain | medium | `MANUAL_REVIEW` |
 
-`ROLLBACK_CANDIDATE` is a recommendation, not an automated rollback. Any rollback must use the protected PR process documented in `docs/ROLLBACK_RUNBOOK.md`.
+`ROLLBACK_CANDIDATE` remains the incident classification and recommendation. The normal Pages workflow makes its own deterministic, guarded restoration attempt before the incident is processed. If that attempt is unavailable or fails, use the protected PR process documented in `docs/ROLLBACK_RUNBOOK.md`.
 
 ## Evidence bundle
 
@@ -51,7 +51,7 @@ It may not:
 - merge pull requests;
 - push directly to `main`;
 - disable branch protections;
-- execute rollback without explicit approval.
+- execute rollback from an AI recommendation or incident label.
 
 The AI execution layer is intentionally separate from the deterministic monitoring layer. This keeps observability operational even when an AI provider is unavailable and prevents model output from becoming an unreviewed production control path.
 

@@ -31,11 +31,37 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ inputs.validation_profile || 'standard' }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
 
 jobs:
+  change-analysis:
+    name: Change impact and risk assessment
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      python_required: ${{ steps.assess.outputs.python_required }}
+      node_required: ${{ steps.assess.outputs.node_required }}
+      risk_score: ${{ steps.assess.outputs.risk_score }}
+      risk_level: ${{ steps.assess.outputs.risk_level }}
+    steps:
+      - name: Check out change history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.source_ref || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Select checks and estimate change risk
+        id: assess
+        env:
+          VALIDATION_PROFILE: ${{ inputs.validation_profile || 'standard' }}
+        run: python3 scripts/assess_change.py
+
   python-tests:
+    needs: change-analysis
+    if: inputs.validation_profile == 'rollback' || needs.change-analysis.outputs.python_required == 'true'
     permissions:
       contents: read
     uses: ./.github/workflows/reusable-python-ci.yml
@@ -47,7 +73,8 @@ jobs:
       source_ref: ${{ inputs.source_ref || github.sha }}
 
   node-tests:
-    if: inputs.validation_profile != 'rollback'
+    needs: change-analysis
+    if: inputs.validation_profile != 'rollback' && needs.change-analysis.outputs.node_required == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -131,7 +158,7 @@ jobs:
   # Keep this ID: the Protect main ruleset requires the validate check.
   validate:
     if: always()
-    needs: [python-tests, node-tests, security, site-contract]
+    needs: [change-analysis, python-tests, node-tests, security, site-contract]
     runs-on: ubuntu-24.04
     timeout-minutes: 2
     steps:
@@ -141,9 +168,16 @@ jobs:
           NODE_RESULT: ${{ needs.node-tests.result }}
           SECURITY_RESULT: ${{ needs.security.result }}
           SITE_RESULT: ${{ needs.site-contract.result }}
+          CHANGE_ANALYSIS_RESULT: ${{ needs.change-analysis.result }}
+          PYTHON_REQUIRED: ${{ needs.change-analysis.outputs.python_required }}
+          NODE_REQUIRED: ${{ needs.change-analysis.outputs.node_required }}
           VALIDATION_PROFILE: ${{ inputs.validation_profile || 'standard' }}
         run: |
           set -euo pipefail
+          if [[ "$CHANGE_ANALYSIS_RESULT" != "success" ]]; then
+            echo "::error::Change impact analysis did not succeed: $CHANGE_ANALYSIS_RESULT"
+            exit 1
+          fi
           if [[ "$VALIDATION_PROFILE" == "rollback" ]]; then
             required_results=("$PYTHON_RESULT" "$SITE_RESULT")
             if [[ "$NODE_RESULT" != "skipped" || "$SECURITY_RESULT" != "skipped" ]]; then
@@ -151,7 +185,23 @@ jobs:
               exit 1
             fi
           else
-            required_results=("$PYTHON_RESULT" "$NODE_RESULT" "$SECURITY_RESULT" "$SITE_RESULT")
+            if [[ "$PYTHON_REQUIRED" == "true" && "$PYTHON_RESULT" != "success" ]]; then
+              echo "::error::The selected Python test suite did not succeed: $PYTHON_RESULT"
+              exit 1
+            fi
+            if [[ "$PYTHON_REQUIRED" == "false" && "$PYTHON_RESULT" != "skipped" ]]; then
+              echo "::error::Python tests ran unexpectedly for this change: $PYTHON_RESULT"
+              exit 1
+            fi
+            if [[ "$NODE_REQUIRED" == "true" && "$NODE_RESULT" != "success" ]]; then
+              echo "::error::The selected Node guard tests did not succeed: $NODE_RESULT"
+              exit 1
+            fi
+            if [[ "$NODE_REQUIRED" == "false" && "$NODE_RESULT" != "skipped" ]]; then
+              echo "::error::Node tests ran unexpectedly for this change: $NODE_RESULT"
+              exit 1
+            fi
+            required_results=("$SECURITY_RESULT" "$SITE_RESULT")
           fi
           for result in "${required_results[@]}"; do
             if [[ "$result" != "success" ]]; then

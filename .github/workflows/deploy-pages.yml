@@ -55,6 +55,7 @@ jobs:
     timeout-minutes: 10
     outputs:
       page_url: ${{ steps.deployment.outputs.page_url }}
+      previous_sha: ${{ steps.previous.outputs.previous_sha }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -65,6 +66,33 @@ jobs:
         with:
           ref: ${{ inputs.source_sha }}
           persist-credentials: false
+
+      - name: Record the currently published source commit
+        id: previous
+        env:
+          CANDIDATE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+
+          site_root="https://hamedonassar95.github.io/Devobs"
+          manifest_url="$site_root/deployment.json?before_run=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          status="$(curl --location --silent --show-error --max-time 15 \
+            --header 'Cache-Control: no-cache' \
+            "$manifest_url" --output deployment-before.json --write-out '%{http_code}' || true)"
+          previous_sha=""
+          if [[ "$status" == "200" ]]; then
+            previous_sha="$(jq -er 'select(.schema_version == 1) | .source_sha | select(test("^[0-9a-f]{40}$"))' deployment-before.json 2>/dev/null || true)"
+          fi
+          if [[ "$previous_sha" == "$CANDIDATE_SHA" ]]; then
+            previous_sha=""
+          fi
+
+          echo "previous_sha=$previous_sha" >> "$GITHUB_OUTPUT"
+          if [[ -n "$previous_sha" ]]; then
+            echo "Captured currently published source commit: $previous_sha" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No valid, distinct source commit was found in the current Pages manifest. Automatic restoration will be unavailable if this deployment fails its health check." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Stage static site
         env:
@@ -104,3 +132,160 @@ jobs:
     uses: ./.github/workflows/deployment-health-check.yml
     with:
       expected_sha: ${{ inputs.source_sha }}
+
+  rollback-eligibility:
+    name: Check automatic restoration target
+    needs: [eligible, deploy, verify]
+    if: ${{ always() && needs.eligible.outputs.current == 'true' && needs.deploy.result == 'success' && needs.verify.result == 'failure' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      safe: ${{ steps.guard.outputs.safe }}
+      target_sha: ${{ steps.guard.outputs.target_sha }}
+    steps:
+      - name: Check out current main history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate the previous deployment target
+        id: guard
+        env:
+          CANDIDATE_SHA: ${{ inputs.source_sha }}
+          PREVIOUS_SHA: ${{ needs.deploy.outputs.previous_sha }}
+        run: |
+          set -euo pipefail
+          safe=false
+          target_sha=""
+          reason="No valid prior deployment manifest was captured."
+
+          main_sha="$(git rev-parse 'refs/remotes/origin/main^{commit}')"
+          if [[ ! "$PREVIOUS_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            reason="The previous deployment manifest did not contain a valid full commit SHA."
+          elif [[ "$PREVIOUS_SHA" == "$CANDIDATE_SHA" ]]; then
+            reason="The previous deployment already points to the candidate commit."
+          elif [[ "$main_sha" != "$CANDIDATE_SHA" ]]; then
+            reason="main advanced while the deployment was running; automatic restoration was stopped to avoid overwriting a newer release."
+          elif ! git cat-file -e "$PREVIOUS_SHA^{commit}" 2>/dev/null; then
+            reason="The previous deployment commit is not present in repository history."
+          elif ! git merge-base --is-ancestor "$PREVIOUS_SHA" "$main_sha"; then
+            reason="The previous deployment commit is not an ancestor of current main."
+          else
+            safe=true
+            target_sha="$PREVIOUS_SHA"
+            reason="The previous deployment commit is a distinct ancestor of unchanged main."
+          fi
+
+          {
+            echo "safe=$safe"
+            echo "target_sha=$target_sha"
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo "## Automatic restoration eligibility"
+            echo
+            echo "- Eligible: **$safe**"
+            echo "- Reason: $reason"
+            if [[ -n "$target_sha" ]]; then echo "- Target commit: \`$target_sha\`"; fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  rollback-validation:
+    name: Validate previous deployment
+    needs: rollback-eligibility
+    if: needs.rollback-eligibility.outputs.safe == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/rollback-quality-check.yml
+    with:
+      source_ref: ${{ needs.rollback-eligibility.outputs.target_sha }}
+
+  rollback-deploy:
+    name: Restore previous Pages deployment
+    needs: [rollback-eligibility, rollback-validation]
+    if: ${{ needs.rollback-eligibility.outputs.safe == 'true' && needs.rollback-validation.result == 'success' }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out exact previous deployment
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.rollback-eligibility.outputs.target_sha }}
+          persist-credentials: false
+      - name: Recheck main immediately before restoring
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          CANDIDATE_SHA: ${{ inputs.source_sha }}
+        run: |
+          set -euo pipefail
+          current_main_sha="$(gh api "repos/$GH_REPO/git/ref/heads/main" --jq '.object.sha')"
+          if [[ "$current_main_sha" != "$CANDIDATE_SHA" ]]; then
+            echo "::error::main advanced after rollback validation; refusing to overwrite the newer deployment."
+            exit 1
+          fi
+      - name: Stage previous site
+        env:
+          SOURCE_SHA: ${{ needs.rollback-eligibility.outputs.target_sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p _site
+          cp index.html _site/index.html
+          if [ -d assets ]; then cp -R assets _site/assets; fi
+          printf '{"schema_version":1,"source_sha":"%s"}\n' "$SOURCE_SHA" > _site/deployment.json
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - name: Upload previous Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          name: github-pages-auto-rollback-${{ github.run_id }}-${{ github.run_attempt }}
+          path: _site
+      - name: Restore previous Pages deployment
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+        with:
+          artifact_name: github-pages-auto-rollback-${{ github.run_id }}-${{ github.run_attempt }}
+
+  rollback-verify:
+    name: Verify restored production site
+    needs: [rollback-eligibility, rollback-deploy]
+    if: needs.rollback-deploy.outputs.page_url != ''
+    permissions:
+      contents: read
+    uses: ./.github/workflows/deployment-health-check.yml
+    with:
+      expected_sha: ${{ needs.rollback-eligibility.outputs.target_sha }}
+
+  rollback-summary:
+    name: Report automatic restoration outcome
+    needs: [deploy, verify, rollback-eligibility, rollback-validation, rollback-deploy, rollback-verify]
+    if: ${{ always() && needs.deploy.result == 'success' && needs.verify.result == 'failure' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Summarize restoration result
+        env:
+          SAFE: ${{ needs.rollback-eligibility.outputs.safe }}
+          TARGET_SHA: ${{ needs.rollback-eligibility.outputs.target_sha }}
+          VALIDATION_RESULT: ${{ needs.rollback-validation.result }}
+          DEPLOY_RESULT: ${{ needs.rollback-deploy.result }}
+          VERIFY_RESULT: ${{ needs.rollback-verify.result }}
+        run: |
+          set -euo pipefail
+          if [[ "$VERIFY_RESULT" == "success" ]]; then
+            echo "The previous healthy commit \`$TARGET_SHA\` was restored and verified. This CI run remains failed because the candidate release failed its production health check." >> "$GITHUB_STEP_SUMMARY"
+          elif [[ "$SAFE" != "true" ]]; then
+            echo "Automatic restoration was not attempted because no safe previous deployment target was available. Use the incident response and guarded manual rollback runbook." >> "$GITHUB_STEP_SUMMARY"
+          elif [[ "$VALIDATION_RESULT" != "success" ]]; then
+            echo "Automatic restoration was stopped because the previous deployment did not pass rollback quality checks (result: $VALIDATION_RESULT)." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "The previous deployment was selected, but restoration or its production verification did not succeed (deploy: $DEPLOY_RESULT, verify: $VERIFY_RESULT). Follow the incident response and guarded manual rollback runbook." >> "$GITHUB_STEP_SUMMARY"
+          fi

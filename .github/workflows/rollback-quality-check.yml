@@ -1,0 +1,39 @@
+name: Rollback target quality check
+
+on:
+  workflow_call:
+    inputs:
+      source_ref:
+        description: Exact source commit to validate before restoring it
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  site-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out trusted workflow revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+      - name: Fetch target HTML as data
+        env:
+          TARGET_SHA: ${{ inputs.source_ref }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Rollback target must be a full commit SHA."
+            exit 1
+          fi
+          git fetch --no-tags --depth=1 origin "$TARGET_SHA"
+          mkdir -p rollback-target
+          git show "$TARGET_SHA:index.html" > rollback-target/index.html
+      - name: Check target page with trusted validator
+        env:
+          SITE_ROOT: rollback-target
+        run: python3 scripts/check_site.py

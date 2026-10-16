@@ -1,6 +1,6 @@
 # One-click deployment, rollback, and notifications
 
-The `One-click deploy` workflow provides a manually confirmed production deployment for GitHub Pages. It is separate from the existing automatic deployment that runs after CI succeeds on `main`.
+The `One-click deploy` workflow provides a manually confirmed production deployment for GitHub Pages. It is separate from the automatic deployment that runs after CI succeeds on `main`; the two paths use different guarded rollback targets.
 
 ## Run a deployment
 
@@ -32,4 +32,4 @@ Slack and email are optional independently. Unconfigured channels are skipped. N
 
 ## Current deployment behavior
 
-The repository also has an automatic Pages deployment after successful `CI` on `main`, plus a separate manually confirmed `Rollback Pages` workflow. This new workflow is intended for a deliberate one-click release with a selected rollback target and an integrated report. The automatic deployment path remains unchanged.
+The automatic `main` path now records the currently published manifest and, if candidate health verification fails, can restore that exact prior commit after checking it is still an ancestor of unchanged `main` and passes rollback quality checks. The confirmed one-click path retains its explicitly selected stable-release tag fallback and integrated deployment report. The separate `Rollback Pages` workflow remains available for manual recovery.
