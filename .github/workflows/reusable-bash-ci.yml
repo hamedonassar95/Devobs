@@ -13,6 +13,11 @@ on:
         required: false
         type: string
         default: "[]"
+      scan_mode:
+        description: Scan all tracked Bash scripts or only changed Bash scripts for pull_request and push events
+        required: false
+        type: string
+        default: all
       shellcheck_severity:
         description: Minimum ShellCheck severity that fails validation
         required: false
@@ -39,13 +44,17 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.source_ref || github.sha }}
+          fetch-depth: 2
           persist-credentials: false
 
-      - name: Validate inputs, check Bash syntax, and run ShellCheck
+      - name: Validate inputs and run ShellCheck
         env:
           WORKING_DIRECTORY: ${{ inputs.working_directory }}
           SCRIPT_FILES_JSON: ${{ inputs.script_files_json }}
+          SCAN_MODE: ${{ inputs.scan_mode }}
           SHELLCHECK_SEVERITY: ${{ inputs.shellcheck_severity }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_PATH: ${{ github.event_path }}
         run: |
           python3 - <<'PY'
           import json
@@ -65,6 +74,10 @@ jobs:
           if not project.is_dir() or (project != root and root not in project.parents):
               raise SystemExit("working_directory must be a directory inside the caller repository.")
 
+          scan_mode = os.environ["SCAN_MODE"]
+          if scan_mode not in {"all", "changed"}:
+              raise SystemExit("scan_mode must be all or changed.")
+
           severity = os.environ["SHELLCHECK_SEVERITY"]
           if severity not in {"error", "warning", "info", "style"}:
               raise SystemExit("shellcheck_severity must be error, warning, info, or style.")
@@ -78,6 +91,77 @@ jobs:
           ):
               raise SystemExit("script_files_json must be a JSON array of non-empty paths.")
 
+          def git_changed_paths(base):
+              return subprocess.run(
+                  ["git", "diff", "--name-only", "-z", "--diff-filter=ACMRT", base, "HEAD"],
+                  cwd=root,
+                  check=True,
+                  capture_output=True,
+              ).stdout.split(b"\0")
+
+          def changed_paths_from_event():
+              with open(os.environ["EVENT_PATH"], encoding="utf-8") as event_file:
+                  event = json.load(event_file)
+
+              event_name = os.environ["EVENT_NAME"]
+              if event_name == "pull_request":
+                  base = event.get("pull_request", {}).get("base", {}).get("sha")
+                  if not base:
+                      raise SystemExit("The pull request event does not include its base commit.")
+                  return git_changed_paths(base)
+
+              if event_name == "push":
+                  before = event.get("before", "")
+                  if before and set(before) == {"0"}:
+                      return None
+                  if before:
+                      available = subprocess.run(
+                          ["git", "cat-file", "-e", f"{before}^{{commit}}"],
+                          cwd=root,
+                          check=False,
+                          stdout=subprocess.DEVNULL,
+                          stderr=subprocess.DEVNULL,
+                      ).returncode == 0
+                      if available:
+                          return git_changed_paths(before)
+
+                  commits = event.get("commits")
+                  if isinstance(commits, list):
+                      paths = set()
+                      for commit in commits:
+                          paths.update(commit.get("added", []))
+                          paths.update(commit.get("modified", []))
+                      return [os.fsencode(path) for path in sorted(paths)]
+
+              # Manual runs and initial pushes have no reliable comparison base;
+              # scan the full tracked project to avoid missing a script.
+              return None
+
+          project_relative = project.relative_to(root)
+          if not configured and scan_mode == "changed":
+              changed_paths = changed_paths_from_event()
+              if changed_paths is None:
+                  print("No reliable change base; falling back to all tracked Bash scripts.")
+              else:
+                  for entry in changed_paths:
+                      if not entry:
+                          continue
+                      changed_path = Path(os.fsdecode(entry))
+                      if changed_path.suffix != ".sh":
+                          continue
+                      try:
+                          relative_path = (
+                              changed_path
+                              if project == root
+                              else changed_path.relative_to(project_relative)
+                          )
+                          configured.append(relative_path.as_posix())
+                      except ValueError:
+                          continue
+                  if not configured:
+                      print("No Bash scripts changed within working_directory; nothing to scan.")
+                      raise SystemExit(0)
+
           if not configured:
               tracked = subprocess.run(
                   ["git", "ls-files", "-z"],
@@ -85,7 +169,6 @@ jobs:
                   check=True,
                   capture_output=True,
               ).stdout
-              project_relative = project.relative_to(root)
               for entry in tracked.split(b"\0"):
                   if not entry:
                       continue
@@ -124,13 +207,9 @@ jobs:
                   resolved_paths.append(value)
                   seen.add(value)
 
-          print(f"Checking Bash syntax for {len(resolved_paths)} script(s).")
-          for path in resolved_paths:
-              subprocess.run(["bash", "-n", path], check=True)
-
-          print(f"Running ShellCheck at severity: {severity}.")
+          print(f"Running ShellCheck in Bash mode on {len(resolved_paths)} script(s), severity {severity}.")
           subprocess.run(
-              ["shellcheck", f"--severity={severity}", *resolved_paths],
+              ["shellcheck", "--shell=bash", f"--severity={severity}", *resolved_paths],
               check=True,
           )
           PY

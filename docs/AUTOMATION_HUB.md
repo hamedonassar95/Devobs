@@ -33,7 +33,7 @@
 | فحص التغيير والنشر والتحقق | [CI](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml) | المسار التلقائي الأساسي؛ تشغيل واحد من الفحوص إلى التحقق بعد النشر. |
 | CI مشترك لمشاريع Node.js/npm | [Reusable Node.js CI](https://github.com/hamedonassar95/Devobs/blob/main/.github/workflows/reusable-node-ci.yml) | يستعيد ذاكرة npm، يثبت `package-lock.json` بواسطة `npm ci`، ثم يشغّل `test` و`lint` و`typecheck` و`build` إذا كانت معرفة في `package.json`. |
 | CI مشترك لمشاريع Python | [Reusable Python CI](https://github.com/hamedonassar95/Devobs/blob/main/.github/workflows/reusable-python-ci.yml) | يجهز إصدار Python، يدعم تخزين pip المؤقت عند تحديد ملف المتطلبات، ثم يترجم المسارات ويشغّل `unittest` أو `pytest` حسب إعداد المشروع. |
-| CI مشترك لسكربتات Bash | [Reusable Bash CI](https://github.com/hamedonassar95/Devobs/blob/main/.github/workflows/reusable-bash-ci.yml) | يتحقق من صياغة Bash عبر `bash -n` ويشغّل ShellCheck بمستوى `warning` افتراضيًا. يكتشف ملفات `.sh` المتتبعة تلقائيًا أو يقبل قائمة صريحة؛ ولا ينفذ السكربتات أو يحتاج أسرارًا. |
+| CI مشترك لسكربتات Bash | [Reusable Bash CI](https://github.com/hamedonassar95/Devobs/blob/main/.github/workflows/reusable-bash-ci.yml) | يشغّل ShellCheck بوضع Bash لفحص الصياغة والأنماط بمستوى `warning` افتراضيًا. يفحص كل ملفات `.sh` المتتبعة افتراضيًا، ويقبل فحص الملفات المتغيرة في PR/push لتسريع CI أو قائمة صريحة؛ ولا ينفذ السكربتات أو يحتاج أسرارًا. |
 | وحدة النشر القابلة لإعادة الاستخدام | [Deploy Pages](https://github.com/hamedonassar95/Devobs/actions/workflows/deploy-pages.yml) | يستدعيها CI بعد نجاح جميع الفحوص؛ لا تشغلها منفردة. |
 | وحدة فحص الموقع | [Deployment Health Check](https://github.com/hamedonassar95/Devobs/actions/workflows/deployment-health-check.yml) | يستدعيها النشر تلقائيًا، وتبقى متاحة أيضًا للفحص اليدوي. |
 | فرز فشل CI أو فحص يدوي | [Incident Response](https://github.com/hamedonassar95/Devobs/actions/workflows/incident-response.yml) | يتابع فشل CI وفحص الصحة اليدوي ويجمع الأدلة؛ لا يغيّر الشيفرة ولا ينشرها. |
@@ -94,7 +94,7 @@ jobs:
       test_path: tests
 ```
 
-مثال Bash (إذا كانت القائمة فارغة، تُكتشف ملفات `.sh` المتتبعة داخل مجلد المشروع):
+مثال Bash (يفحص ملفات `.sh` المتغيرة في PR/push؛ استخدم `all` للفحص الكامل):
 
 ```yaml
 jobs:
@@ -104,7 +104,7 @@ jobs:
     uses: hamedonassar95/Devobs/.github/workflows/reusable-bash-ci.yml@<DEVOBS_SHA>
     with:
       working_directory: .
-      script_files_json: '["scripts/deploy.sh", "scripts/backup.sh"]'
+      scan_mode: changed
       shellcheck_severity: warning
 ```
 
