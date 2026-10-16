@@ -1,0 +1,136 @@
+name: Reusable Bash CI
+
+on:
+  workflow_call:
+    inputs:
+      working_directory:
+        description: Project directory relative to the repository root
+        required: false
+        type: string
+        default: "."
+      script_files_json:
+        description: JSON array of Bash script paths relative to working_directory; an empty array discovers tracked .sh files
+        required: false
+        type: string
+        default: "[]"
+      shellcheck_severity:
+        description: Minimum ShellCheck severity that fails validation
+        required: false
+        type: string
+        default: warning
+      source_ref:
+        description: Optional commit or ref to validate instead of the triggering commit
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Bash validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the caller repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.source_ref || github.sha }}
+          persist-credentials: false
+
+      - name: Validate inputs, check Bash syntax, and run ShellCheck
+        env:
+          WORKING_DIRECTORY: ${{ inputs.working_directory }}
+          SCRIPT_FILES_JSON: ${{ inputs.script_files_json }}
+          SHELLCHECK_SEVERITY: ${{ inputs.shellcheck_severity }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import subprocess
+          from pathlib import Path
+
+          root = Path(os.environ["GITHUB_WORKSPACE"]).resolve()
+          working_directory = Path(os.environ["WORKING_DIRECTORY"])
+          if working_directory.is_absolute() or ".." in working_directory.parts:
+              raise SystemExit("working_directory must stay inside the caller repository.")
+
+          try:
+              project = (root / working_directory).resolve(strict=True)
+          except FileNotFoundError as error:
+              raise SystemExit(f"working_directory does not exist: {working_directory}") from error
+          if not project.is_dir() or (project != root and root not in project.parents):
+              raise SystemExit("working_directory must be a directory inside the caller repository.")
+
+          severity = os.environ["SHELLCHECK_SEVERITY"]
+          if severity not in {"error", "warning", "info", "style"}:
+              raise SystemExit("shellcheck_severity must be error, warning, info, or style.")
+
+          try:
+              configured = json.loads(os.environ["SCRIPT_FILES_JSON"])
+          except json.JSONDecodeError as error:
+              raise SystemExit("script_files_json must be a JSON array of paths.") from error
+          if not isinstance(configured, list) or not all(
+              isinstance(item, str) and item for item in configured
+          ):
+              raise SystemExit("script_files_json must be a JSON array of non-empty paths.")
+
+          if not configured:
+              tracked = subprocess.run(
+                  ["git", "ls-files", "-z"],
+                  cwd=root,
+                  check=True,
+                  capture_output=True,
+              ).stdout
+              project_relative = project.relative_to(root)
+              for entry in tracked.split(b"\0"):
+                  if not entry:
+                      continue
+                  tracked_path = Path(os.fsdecode(entry))
+                  if tracked_path.suffix != ".sh":
+                      continue
+                  try:
+                      relative_path = (
+                          tracked_path
+                          if project == root
+                          else tracked_path.relative_to(project_relative)
+                      )
+                      configured.append(relative_path.as_posix())
+                  except ValueError:
+                      continue
+
+          if not configured:
+              raise SystemExit(
+                  "No Bash scripts were selected. Set script_files_json or add a tracked .sh file."
+              )
+
+          resolved_paths = []
+          seen = set()
+          for item in configured:
+              relative = Path(item)
+              if relative.is_absolute() or ".." in relative.parts:
+                  raise SystemExit("Script paths must stay inside working_directory.")
+              try:
+                  resolved = (project / relative).resolve(strict=True)
+              except FileNotFoundError as error:
+                  raise SystemExit(f"Configured script does not exist: {item}") from error
+              if not resolved.is_file() or (resolved != project and project not in resolved.parents):
+                  raise SystemExit(f"Configured script must be a file inside working_directory: {item}")
+              value = str(resolved)
+              if value not in seen:
+                  resolved_paths.append(value)
+                  seen.add(value)
+
+          print(f"Checking Bash syntax for {len(resolved_paths)} script(s).")
+          for path in resolved_paths:
+              subprocess.run(["bash", "-n", path], check=True)
+
+          print(f"Running ShellCheck at severity: {severity}.")
+          subprocess.run(
+              ["shellcheck", f"--severity={severity}", *resolved_paths],
+              check=True,
+          )
+          PY
