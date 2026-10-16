@@ -151,8 +151,20 @@ jobs:
           print(f"Validated stable release: {release.get('name') or tag}")
           PY
 
-  deploy:
+  quality:
     needs: validate
+    if: needs.validate.result == 'success'
+    permissions:
+      contents: read
+      pull-requests: read
+    uses: ./.github/workflows/ci.yml
+    with:
+      source_ref: ${{ needs.validate.outputs.commit_sha }}
+      validation_profile: rollback
+
+  deploy:
+    needs: [validate, quality]
+    if: needs.quality.result == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     environment:
@@ -169,11 +181,6 @@ jobs:
         with:
           ref: ${{ needs.validate.outputs.commit_sha }}
           persist-credentials: false
-
-      - name: Re-run release validation tests
-        run: |
-          python3 -m unittest discover -s tests -v
-          python3 scripts/check_site.py
 
       - name: Stage static site
         env:

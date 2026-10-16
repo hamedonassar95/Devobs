@@ -44,6 +44,33 @@ def _has_only_controlled_drill_failure(jobs: dict[str, Any]) -> bool:
     )
 
 
+def _ci_failure_stage(jobs: dict[str, Any]) -> str:
+    """Separate validation, deployment, and production-check failures in unified CI runs."""
+    failures = []
+    for job in jobs.get("jobs", []):
+        if (job.get("conclusion") or "").lower() not in FAILURE_CONCLUSIONS:
+            continue
+        names = [job.get("name") or ""]
+        names.extend(
+            step.get("name") or ""
+            for step in job.get("steps", [])
+            if (step.get("conclusion") or "").lower() in FAILURE_CONCLUSIONS
+        )
+        failures.append(" ".join(names).lower())
+
+    combined = " ".join(failures)
+    if any(marker in combined for marker in (
+        "deployment health check", "verify-production", "verify deployed site",
+    )):
+        return "Deployment Health Check"
+    if any(marker in combined for marker in (
+        "production-release", "deploy pages", "publish production site",
+        "deploy to github pages",
+    )):
+        return "Deploy Pages"
+    return "CI"
+
+
 def build_incident(
     *,
     workflow: str,
@@ -62,6 +89,7 @@ def build_incident(
     rationale = "The workflow state is not safe for an automated recovery decision."
 
     is_simulation = str(run_id).startswith("simulation-")
+    failure_stage = _ci_failure_stage(jobs) if workflow == "CI" else workflow
     controlled_drill = is_simulation or (
         workflow == "CI"
         and normalized in FAILURE_CONCLUSIONS
@@ -90,7 +118,7 @@ def build_incident(
     elif normalized in UNUSABLE_CONCLUSIONS:
         category = "uncertain"
         rationale = "The run did not produce a trustworthy failure signal; review it manually."
-    elif workflow == "CI" and normalized in FAILURE_CONCLUSIONS:
+    elif failure_stage == "CI" and normalized in FAILURE_CONCLUSIONS:
         category = "validation"
         severity = "high"
         action = "FIX_FORWARD"
@@ -98,7 +126,7 @@ def build_incident(
             "CI failed before production deployment, so fixing the validation or code failure "
             "is safer than reverting production."
         )
-    elif workflow == "Deploy Pages" and normalized in FAILURE_CONCLUSIONS:
+    elif failure_stage == "Deploy Pages" and normalized in FAILURE_CONCLUSIONS:
         category = "deployment"
         severity = "high"
         action = "MANUAL_REVIEW"
@@ -106,7 +134,7 @@ def build_incident(
             "Deployment failed after CI; determine whether the cause is GitHub Pages, workflow "
             "configuration, or the release before choosing fix-forward or rollback."
         )
-    elif workflow == "Deployment Health Check" and normalized in FAILURE_CONCLUSIONS:
+    elif failure_stage == "Deployment Health Check" and normalized in FAILURE_CONCLUSIONS:
         category = "production-verification"
         severity = "critical"
         action = "ROLLBACK_CANDIDATE"

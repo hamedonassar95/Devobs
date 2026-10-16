@@ -1,11 +1,16 @@
 name: Deploy Pages
 
 on:
-  workflow_run:
-    workflows: ["CI"]
-    branches: [main]
-    types:
-      - completed
+  workflow_call:
+    inputs:
+      source_sha:
+        description: Immutable commit SHA already validated by the parent CI run
+        required: true
+        type: string
+    outputs:
+      page_url:
+        description: URL returned by the Pages deployment, empty when this run was stale
+        value: ${{ jobs.deploy.outputs.page_url }}
 
 permissions:
   contents: read
@@ -16,11 +21,7 @@ concurrency:
 
 jobs:
   eligible:
-    if: >
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_branch == 'main' &&
-      github.event.workflow_run.head_repository.full_name == github.repository
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 2
     outputs:
@@ -31,8 +32,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          TESTED_SHA: ${{ github.event.workflow_run.head_sha }}
+          TESTED_SHA: ${{ inputs.source_sha }}
         run: |
+          set -euo pipefail
           CURRENT_SHA="$(gh api "repos/$GH_REPO/git/ref/heads/main" --jq '.object.sha')"
           if [ "$CURRENT_SHA" = "$TESTED_SHA" ]; then
             echo "current=true" >> "$GITHUB_OUTPUT"
@@ -51,6 +53,8 @@ jobs:
       id-token: write
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -59,12 +63,12 @@ jobs:
       - name: Checkout tested commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ inputs.source_sha }}
           persist-credentials: false
 
       - name: Stage static site
         env:
-          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
         run: |
           set -euo pipefail
 
@@ -91,3 +95,12 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+  verify:
+    needs: deploy
+    if: needs.deploy.outputs.page_url != ''
+    permissions:
+      contents: read
+    uses: ./.github/workflows/deployment-health-check.yml
+    with:
+      expected_sha: ${{ inputs.source_sha }}

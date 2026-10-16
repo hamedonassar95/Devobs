@@ -7,18 +7,17 @@ The repository monitors the production delivery chain and converts failed workfl
 ## Monitored workflows
 
 - `CI`
-- `Deploy Pages`
-- `Deployment Health Check`
+- `Deployment Health Check` when started manually
 
-Only failures associated with `main` are monitored automatically. Pull-request failures remain inside the normal PR validation flow and do not receive production incident privileges.
+Normal validation, deployment, and post-deployment health verification now run as jobs in one `CI` workflow run. Only failures associated with `main` are monitored automatically. The incident classifier inspects failed job and step names to keep validation, deployment, and production-verification recommendations distinct. Pull-request failures remain inside the normal PR validation flow and do not receive production incident privileges.
 
 ## Decision policy
 
 | Failure point | Category | Default severity | Recommendation |
 | --- | --- | --- | --- |
-| CI | validation | high | `FIX_FORWARD` |
-| Deploy Pages | deployment | high | `MANUAL_REVIEW` |
-| Deployment Health Check | production-verification | critical | `ROLLBACK_CANDIDATE` |
+| CI validation jobs | validation | high | `FIX_FORWARD` |
+| CI deployment jobs (`Deploy Pages`) | deployment | high | `MANUAL_REVIEW` |
+| CI production health check (`Deployment Health Check`) | production-verification | critical | `ROLLBACK_CANDIDATE` |
 | cancelled / stale / neutral | uncertain | medium | `MANUAL_REVIEW` |
 
 `ROLLBACK_CANDIDATE` is a recommendation, not an automated rollback. Any rollback must use the protected PR process documented in `docs/ROLLBACK_RUNBOOK.md`.
