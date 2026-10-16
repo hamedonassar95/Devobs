@@ -14,7 +14,7 @@
 | المجال | المستودع | الاستخدام وحدود المسؤولية |
 | --- | --- | --- |
 | مركز الأتمتة ووحدات CI المشتركة | [Devobs](https://github.com/hamedonassar95/Devobs) | فهرس وحدات CI المشتركة لـNode.js وPython وBash، بالإضافة إلى CI وفحص النشر والاستجابة للحوادث الخاصة بـDevobs. Pages ينشر `index.html` من جذر المستودع فقط؛ لا ينشر `devobs/index.html`. |
-| مكتبة سكربتات مرجعية | [DevOps-Bash-tools](https://github.com/hamedonassar95/DevOps-Bash-tools) | نسخة Fork عامة لمكتبة سكربتات. تُراجع السكربتات المطلوبة قبل استخدامها؛ لا تُنسخ المكتبة كاملة إلى Devobs. |
+| مكتبة سكربتات مرجعية | [DevOps-Bash-tools](https://github.com/hamedonassar95/DevOps-Bash-tools) | نسخة Fork عامة لمكتبة سكربتات تستهلك وحدة Bash CI من Devobs عبر SHA ثابت؛ تفحص ملفات `.sh` المتغيرة في PR/push وتتيح فحص المكتبة كاملة يدويًا. تُراجع السكربتات المطلوبة قبل استخدامها؛ لا تُنسخ المكتبة كاملة إلى Devobs. |
 | بوابة وكلاء الذكاء الاصطناعي | [unity-gateway](https://github.com/hamedonassar95/unity-gateway) | مشروع Fork منفصل للتجربة والتقييم؛ ليس جزءًا من نشر Devobs الحالي. |
 | تطبيق صيانة الهواتف | [phone-repair-assistant-v2](https://github.com/hamedonassar95/phone-repair-assistant-v2) | تطبيق مستقل وخاص. تبقى بيانات العملاء وأسراره وإصداراته في مستودعه. |
 | موقع الخدمات | [al-dala-mobile](https://github.com/hamedonassar95/al-dala-mobile) | مستودع مستقل بوصف موقع الخدمات. جرد الملفات الحالي أظهر `README.md` فقط؛ لا يوجد نشر مستقل مثبت. صفحة Pages التجريبية الحالية تُبنى من الملف `index.html` في جذر مستودع `Devobs`، لذلك لا يوجد حتى الآن مسار نشر مستقل مثبت لهذا الموقع. |
