@@ -31,11 +31,19 @@
   عربية للمراجعة. هذا المسار لا يستدعي نموذجًا ولا يرسل بيانات تلقائيًا؛
   ينسخ المراجع التعليمات يدويًا إلى أداة ذكاء اصطناعي معتمدة.
 
-**تنبيه تشغيل حالي:** محاولة التقييم الحي في 16 أكتوبر 2026 توقفت قبل استدعاء
-Copilot لأن تنسيق سر `COPILOT_GITHUB_TOKEN` لم يُقبل. يتطلب سير gh-aw رمز GitHub
-fine-grained PAT يبدأ بـ `github_pat_`. تفاصيل التشغيل والخطوات اللازمة مسجلة في
-`docs/INVESTIGATOR_ACCEPTANCE.md`. لا تُعد المحاولة قبل تحديث السر من إعدادات
-GitHub Actions؛ لا يمكن قراءة قيمته أو استعادتها من سجل التشغيل.
+**حالة التشغيل الحالية (16 أكتوبر 2026):** الأساس التشغيلي ناجح، لكن استدعاء
+نماذج التحقيق لم يجتز فحص الاعتمادات في آخر تقييم مضبوط. محاولة Copilot توقفت
+لأن `COPILOT_GITHUB_TOKEN` لم يقبل تنسيق fine-grained PAT الذي يبدأ بـ
+`github_pat_`. ومحاولة Vertex توقفت لأن `GCP_WORKLOAD_IDENTITY_PROVIDER` لم يكن
+بصيغة مورد WIF المطلوبة. النتيجة المقاسة: **0 من 2** محاولتين وصلتا إلى استدلال
+النموذج؛ لذلك لا توجد درجة جودة نموذج لهاتين المحاولتين. لا يمكن قراءة قيم الأسرار
+من سجل GitHub. خطوات التصحيح وسجل النتائج في
+[`docs/INVESTIGATOR_ACCEPTANCE.md`](INVESTIGATOR_ACCEPTANCE.md).
+
+**AI Scan:** توثيق الإعداد والفوترة دُمج في PR #144، وCodeQL الافتراضي يعمل على
+المستودع. لم يتم التحقق من تفعيل خيار **AI Scan on pull requests** في إعدادات
+GitHub؛ راجع [`docs/GITHUB_AI_SCAN.md`](GITHUB_AI_SCAN.md) واضبط الميزانية قبل
+التفعيل.
 
 الاسم `sonnet-6x` alias يديره gh-aw وليس تثبيتًا لمعرّف Claude 3.5 Sonnet بعينه.
 لذلك لا تضمن التجربة تشغيل إصدار 3.5: تحقّق من النموذج الفعلي والتوافر والحصة
@@ -48,12 +56,14 @@ GitHub Actions؛ لا يمكن قراءة قيمته أو استعادتها م�
 
 ## سجل التحقق التشغيلي
 
-بعد دمج PR #137 في 16 أكتوبر 2026، نجح CI في
-[التشغيل 38830419953](https://github.com/hamedonassar95/Devobs/actions/runs/38830419953)،
-ونجح CodeQL في
-[التشغيل 38830419457](https://github.com/hamedonassar95/Devobs/actions/runs/38830419457).
-كما نجح فحص صحة النشر في
-[التشغيل 38830491437](https://github.com/hamedonassar95/Devobs/actions/runs/38830491437).
+بعد دمج PR #144، نجح CI على `main` في
+[التشغيل 38845731205](https://github.com/hamedonassar95/Devobs/actions/runs/38845731205)،
+ونجح CodeQL الافتراضي في
+[التشغيل 38845731092](https://github.com/hamedonassar95/Devobs/actions/runs/38845731092).
+كما نجح نشر Pages في
+[التشغيل 38845755954](https://github.com/hamedonassar95/Devobs/actions/runs/38845755954)
+وفحص صحة النشر في
+[التشغيل 38845791974](https://github.com/hamedonassar95/Devobs/actions/runs/38845791974).
 هذه النتائج تتحقق من المستودع والنشر، لكنها لا تختبر جودة إجابات النماذج ولا
 تثبت أن مسارات Vertex أو Claude متاحة أو مهيأة.
 
