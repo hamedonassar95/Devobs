@@ -184,3 +184,27 @@ causal relevance, and exact evidence) with no unsupported root-cause claim.
    or evidence collection before treating it as accepted.
 5. Record unavailable logs as unknown evidence; do not infer the root cause from
    the report itself.
+
+### Latest live evaluation attempt — 16 October 2026
+
+- Incident Response run
+  [38842489529](https://github.com/hamedonassar95/Devobs/actions/runs/38842489529)
+  completed the controlled `Deployment Health Check` failure simulation. It
+  created issue [#140](https://github.com/hamedonassar95/Devobs/issues/140) and
+  uploaded evidence artifact `incident-simulation-38842489529-1`. The record was
+  classified `info` / `controlled-drill` / `MANUAL_REVIEW`; no deployment or
+  rollback was performed.
+- Investigator run
+  [38842504241](https://github.com/hamedonassar95/Devobs/actions/runs/38842504241)
+  passed the trust gate but stopped at `Validate COPILOT_GITHUB_TOKEN secret`.
+  The log reports an unrecognized token format and requires a fine-grained PAT
+  beginning with `github_pat_`. The agent and safe-output jobs were skipped; no
+  model inference or investigation comment occurred.
+- **Measured outcome:** end-to-end deterministic triage passed; AI inference
+  availability failed at credential preflight; AI quality score is not
+  applicable for this run. Keep the historical report score at `0/5`; do not
+  count this no-inference attempt as either a model pass or failure.
+- **Next prerequisite:** replace the repository Actions secret
+  `COPILOT_GITHUB_TOKEN` with an eligible fine-grained GitHub PAT through the
+  repository Settings UI. Never put the token in an issue, source file, or log.
+  Rerun the controlled evaluation only after the secret is updated.
