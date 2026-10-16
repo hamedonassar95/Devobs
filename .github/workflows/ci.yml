@@ -36,35 +36,15 @@ concurrency:
 
 jobs:
   python-tests:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ inputs.source_ref || github.sha }}
-          persist-credentials: false
-      - name: Verify Python version and compile sources
-        run: |
-          python3 - <<'PY'
-          import sys
-          if sys.version_info < (3, 10):
-              raise SystemExit("CI requires Python 3.10 or newer.")
-          print(f"Using Python {sys.version.split()[0]}")
-          PY
-          python3 -m compileall -q scripts tests
-      - name: Require unittest discovery to find tests
-        run: |
-          python3 - <<'PY'
-          import unittest
-          suite = unittest.defaultTestLoader.discover("tests")
-          count = suite.countTestCases()
-          if count == 0:
-              raise SystemExit("Unittest discovery found no tests.")
-          print(f"Discovered {count} unittest cases.")
-          PY
-      - name: Run Python test suite once
-        run: python3 -m unittest discover -s tests -v
+    permissions:
+      contents: read
+    uses: ./.github/workflows/reusable-python-ci.yml
+    with:
+      python_version: "3.12"
+      compile_paths_json: '["scripts", "tests"]'
+      test_runner: unittest
+      test_path: tests
+      source_ref: ${{ inputs.source_ref || github.sha }}
 
   node-tests:
     if: inputs.validation_profile != 'rollback'
