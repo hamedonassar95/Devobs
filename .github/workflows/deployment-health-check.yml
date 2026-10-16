@@ -1,59 +1,33 @@
 name: Deployment Health Check
 
 on:
+  workflow_call:
+    inputs:
+      expected_sha:
+        description: Exact source commit expected in the live Pages manifest
+        required: true
+        type: string
   workflow_dispatch:
-  workflow_run:
-    workflows: ["Deploy Pages"]
-    branches: [main]
-    types:
-      - completed
+    inputs:
+      expected_sha:
+        description: Optional full commit SHA to verify against the live deployment
+        required: false
+        type: string
+        default: ""
 
 permissions:
-  actions: read
   contents: read
 
 jobs:
   verify-production:
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 5
 
     steps:
-      - name: Confirm the Pages workflow published an artifact
-        id: pages-deploy
-        if: github.event_name == 'workflow_run'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
-        run: |
-          set -euo pipefail
-
-          conclusions="$(gh api "repos/$GH_REPO/actions/runs/$RUN_ID/jobs?per_page=100" \
-            --jq '[.jobs[]? | select(.name == "Publish production site" or .name == "deploy") | .conclusion]')"
-          if [[ "$(jq 'length' <<< "$conclusions")" != "1" ]]; then
-            echo "::error::Could not identify exactly one production deployment job."
-            exit 1
-          fi
-
-          conclusion="$(jq -r '.[0]' <<< "$conclusions")"
-          if [[ "$conclusion" == "success" ]]; then
-            echo "should_verify=true" >> "$GITHUB_OUTPUT"
-          elif [[ "$conclusion" == "skipped" ]]; then
-            echo "should_verify=false" >> "$GITHUB_OUTPUT"
-            echo "No production artifact was published because the tested CI run was stale. Source SHA comparison is skipped." >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "::error::Unexpected production deployment job conclusion: $conclusion"
-            exit 1
-          fi
-
       - name: Verify deployed site
         id: verify
-        if: ${{ github.event_name == 'workflow_dispatch' || steps.pages-deploy.outputs.should_verify == 'true' }}
         env:
-          EXPECTED_SHA: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || '' }}
+          EXPECTED_SHA: ${{ inputs.expected_sha || '' }}
         run: |
           set -euo pipefail
 

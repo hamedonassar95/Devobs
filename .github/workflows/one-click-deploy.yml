@@ -102,9 +102,19 @@ jobs:
             echo "- Automatic rollback release: \`$ROLLBACK_RELEASE_TAG\` (\`$rollback_sha\`)"
           } >> "$GITHUB_STEP_SUMMARY"
 
-  deploy:
+  quality:
     needs: validate
-    if: ${{ needs.validate.result == 'success' }}
+    if: needs.validate.result == 'success'
+    permissions:
+      contents: read
+      pull-requests: read
+    uses: ./.github/workflows/ci.yml
+    with:
+      source_ref: ${{ needs.validate.outputs.candidate_sha }}
+
+  deploy:
+    needs: [validate, quality]
+    if: ${{ needs.validate.result == 'success' && needs.quality.result == 'success' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     environment:
@@ -132,28 +142,6 @@ jobs:
           ref: ${{ github.workflow_sha }}
           path: .trusted-tools
           persist-credentials: false
-
-      - name: Compile Python sources
-        run: python3 -m compileall -q scripts tests
-
-      - name: Run Python test suite
-        run: python3 -m unittest discover -s tests -v
-
-      - name: Run Node guard tests
-        run: node --test tests/incident_guard.test.cjs
-
-      - name: Check the page contract and local HTTP response
-        run: python3 scripts/check_site.py
-
-      - name: Install pinned Bandit version
-        run: python3 -m pip install --disable-pip-version-check bandit==1.9.4
-
-      - name: Scan Python scripts with Bandit
-        run: python3 -m bandit -r scripts -x scripts/check_site.py
-
-      - name: Mark validation complete
-        id: validation-complete
-        run: echo "passed=true" >> "$GITHUB_OUTPUT"
 
       - name: Stage candidate site
         id: stage-candidate
@@ -226,7 +214,7 @@ jobs:
         id: report
         if: ${{ always() }}
         env:
-          VALIDATION_RESULT: ${{ steps.validation-complete.outputs.passed == 'true' && 'passed' || 'failed' }}
+          VALIDATION_RESULT: ${{ needs.quality.result == 'success' && 'passed' || 'failed' }}
           CANDIDATE_HEALTH: ${{ steps.candidate-health.outcome }}
           CANDIDATE_DEPLOY: ${{ steps.candidate-deploy.outcome }}
           ROLLBACK_STATUS: ${{ steps.rollback-dispatch.outputs.status }}
@@ -265,7 +253,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   report:
-    needs: [validate, deploy]
+    needs: [validate, quality, deploy]
     if: ${{ always() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 3
@@ -282,7 +270,7 @@ jobs:
         continue-on-error: true
         env:
           DEPLOYMENT_STATUS: ${{ needs.deploy.outputs.status }}
-          VALIDATION_RESULT: ${{ needs.validate.result }}
+          VALIDATION_RESULT: ${{ needs.validate.result == 'success' && needs.quality.result == 'success' && 'passed' || 'failed' }}
           DEPLOYMENT_RESULT: ${{ needs.deploy.result }}
           DEPLOYMENT_REPOSITORY: ${{ github.repository }}
           DEPLOYMENT_COMMIT: ${{ needs.validate.outputs.candidate_sha || inputs.candidate_ref }}

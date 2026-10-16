@@ -24,18 +24,22 @@
 
 ## المسار الأساسي للنشر والاستجابة
 
+المسار المعتاد يعمل ضمن **تشغيل CI واحد**. فحوص Python وNode والأمان وعقد الموقع تبدأ بالتوازي على `ubuntu-24.04`، ثم يجمعها فحص `validate` المطلوب من قواعد حماية `main`. اختير التوازي لتقليل زمن الانتظار، وأزيلت إعادة تشغيل الاختبارات نفسها عدة مرات داخل CI. النشر اليدوي والتراجع يعيدان استخدام وحدة CI نفسها على الـSHA المختار؛ يستخدم التراجع ملف توافق يشغّل فحوص Python والموقع المتوفرة في الإصدارات القديمة.
+
+بعد نجاحها على دفعة إلى `main`، يستدعي CI مسار `Deploy Pages` القابل لإعادة الاستخدام، ثم فحص `Deployment Health Check` ضمن التشغيل نفسه. النشر يرفض SHA قديمًا إذا تقدّم `main` أثناء الفحوص، ويفحص الصحة أن النسخة الحية تطابق SHA الذي جرى التحقق منه. طلبات الدمج تفحص التغيير وتنتج معاينة قابلة للتنزيل، ولا تنشر إلى الإنتاج. التشغيلات تستخدم runner مستضافًا قياسيًا (`ubuntu-24.04`)؛ لا يوجد runner مخصص معرف في ملفات Actions، لذا يأتي تقليل زمن التنفيذ من تشغيل الفحوص المستقلة بالتوازي بدل افتراض مواصفات مدفوعة غير مفعلة.
+
 | الغرض | المسار المعتمد | متى يُستخدم |
 | --- | --- | --- |
-| التحقق من تغيير Devobs | [CI](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml) | تلقائيًا مع الدفع إلى `main` وطلبات الدمج. هذا هو فحص الشيفرة الأساسي. |
-| النشر المعتاد لـPages | [Deploy Pages](https://github.com/hamedonassar95/Devobs/actions/workflows/deploy-pages.yml) | تلقائيًا بعد نجاح CI لآخر تغيير على `main`. لا تطلق نشرًا ثانيًا يدويًا لنفس التغيير. |
-| التحقق من الموقع المنشور | [Deployment Health Check](https://github.com/hamedonassar95/Devobs/actions/workflows/deployment-health-check.yml) | يبدأ بعد النشر تلقائيًا؛ شغّله يدويًا فقط لفحص مطلوب أو تحقيق عطل. |
-| فرز فشل CI أو النشر | [Incident Response](https://github.com/hamedonassar95/Devobs/actions/workflows/incident-response.yml) | يتابع فشل المسارات المحددة ويجمع الأدلة؛ لا يغيّر الشيفرة ولا ينشرها. |
+| فحص التغيير والنشر والتحقق | [CI](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml) | المسار التلقائي الأساسي؛ تشغيل واحد من الفحوص إلى التحقق بعد النشر. |
+| وحدة النشر القابلة لإعادة الاستخدام | [Deploy Pages](https://github.com/hamedonassar95/Devobs/actions/workflows/deploy-pages.yml) | يستدعيها CI بعد نجاح جميع الفحوص؛ لا تشغلها منفردة. |
+| وحدة فحص الموقع | [Deployment Health Check](https://github.com/hamedonassar95/Devobs/actions/workflows/deployment-health-check.yml) | يستدعيها النشر تلقائيًا، وتبقى متاحة أيضًا للفحص اليدوي. |
+| فرز فشل CI أو فحص يدوي | [Incident Response](https://github.com/hamedonassar95/Devobs/actions/workflows/incident-response.yml) | يتابع فشل CI وفحص الصحة اليدوي ويجمع الأدلة؛ لا يغيّر الشيفرة ولا ينشرها. |
 | تحقيق AI في حادثة | [Incident Investigator — Copilot](https://github.com/hamedonassar95/Devobs/actions/workflows/incident-investigator.lock.yml) | المسار الأساسي للتحقيق. استخدم [Claude](https://github.com/hamedonassar95/Devobs/actions/workflows/incident-investigator-claude.lock.yml) أو [Vertex](https://github.com/hamedonassar95/Devobs/actions/workflows/incident-investigator-vertex.lock.yml) يدويًا فقط بعد فشل المسار الأساسي والتأكد من عدم وجود تقرير للحادثة. |
 | فحص بيانات مزوّدي AI | [AI Provider Preflight](https://github.com/hamedonassar95/Devobs/actions/workflows/ai-provider-preflight.yml) | تشغيل يدوي للتحقق من الإعداد والمصادقة؛ لا يرسل طلبًا إلى نموذج AI. |
 | نشر نسخة محددة | [One-click deploy](https://github.com/hamedonassar95/Devobs/actions/workflows/one-click-deploy.yml) | حالة استثنائية تتطلب اختيار النسخة وتأكيدًا صريحًا؛ ليس بديلًا للنشر التلقائي المعتاد. |
 | استعادة إصدار Pages | [Rollback Pages](https://github.com/hamedonassar95/Devobs/actions/workflows/rollback-pages.yml) | استعادة يدوية عند الحاجة، وفق [دليل التراجع](RELEASE_ROLLBACK.md). |
 
-كل من `Deploy Pages` و`One-click deploy` و`Rollback Pages` يستخدم مجموعة التزامن `github-pages`، لذلك لا تعمل عمليات النشر والتراجع بالتوازي. اترك العملية الحالية تنتهي قبل طلب عملية أخرى.
+تستخدم وحدات النشر المعتاد و`One-click deploy` و`Rollback Pages` مجموعة التزامن `github-pages`، لذلك لا تعمل عمليات النشر والتراجع بالتوازي.
 
 ## عمليات يدوية منفصلة
 
@@ -49,7 +53,7 @@
 
 ## قواعد منع تكرار العمل
 
-1. **تغيير عادي:** افتح PR؛ يتولى CI الفحص، وبعد الدمج إلى `main` يتولى Deploy Pages النشر ثم فحص الصحة. لا تعِد تشغيل الخطوات يدويًا إذا نجحت.
+1. **تغيير عادي:** افتح PR؛ يتولى CI الفحوص المتوازية. بعد الدمج إلى `main` يتولى تشغيل CI نفسه النشر ثم فحص الصحة. لا تعِد تشغيل الخطوات يدويًا إذا نجحت.
 2. **حادثة واحدة:** استخدم محققًا واحدًا لكل رقم حادثة. لا تشغّل Copilot وClaude وVertex معًا؛ البدائل مخصصة عند تعطل المسار الأساسي فقط.
 3. **إعداد AI:** شغّل Preflight أولًا. نجاحه يثبت المصادقة والإعداد فقط، ولا يثبت جودة نتيجة النموذج أو توفر الحصة.
 4. **مشروع آخر:** التغيير والنشر والاختبارات تخص مستودع ذلك المشروع. لا تجعل CI في Devobs يعيد بناء تطبيق الهاتف. قبل تطوير موقع الخدمات، حدّد مستودعًا واحدًا كمصدر حقيقة؛ حاليًا صفحة Pages التجريبية موجودة في الملف `index.html` في جذر `Devobs`، بينما `al-dala-mobile` لا يحتوي إلا على README في المستوى الرئيسي.

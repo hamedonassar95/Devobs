@@ -2,7 +2,7 @@ name: Incident Response
 
 on:
   workflow_run:
-    workflows: ["CI", "Deploy Pages", "Deployment Health Check"]
+    workflows: ["CI", "Deployment Health Check"]
     branches: [main]
     types:
       - completed
