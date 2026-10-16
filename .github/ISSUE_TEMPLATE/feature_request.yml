@@ -1,0 +1,37 @@
+name: اقتراح تحسين
+description: اقترح تحسينًا محددًا للموقع أو للأتمتة.
+title: "[اقتراح]: "
+body:
+  - type: markdown
+    attributes:
+      value: "لا تضع كلمات مرور أو رموز وصول أو أسرارًا. استخدم رابط البلاغ الخاص في صفحة Security بالمستودع للإبلاغ عن ثغرة أمنية."
+  - type: textarea
+    id: need
+    attributes:
+      label: ما الحاجة التي يعالجها الاقتراح؟
+      description: اشرح المشكلة التي تواجه المستخدم أو مسؤول المستودع.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: التغيير المقترح
+      description: صف السلوك أو النتيجة التي تريدها.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: البدائل التي فكرت فيها
+      description: اذكر أي طرق أخرى فكرت فيها، إن وجدت.
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: قبل الإرسال
+      options:
+        - label: بحثت في المشكلات الموجودة عن اقتراح مشابه.
+          required: true
+        - label: لا يتضمن الاقتراح معلومات خاصة أو بيانات اعتماد.
+          required: true

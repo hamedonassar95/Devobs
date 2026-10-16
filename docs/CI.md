@@ -45,6 +45,14 @@ python3 scripts/check_site.py
 
 لا يلزم أي Secret أو خدمة مدفوعة أو حزمة Python خارجية. يلزم السماح بـ GitHub Actions وGitHub-hosted runners وactions/checkout؛ كانت هذه المتطلبات متاحة في آخر تشغيل ناجح تمت مراجعته. لا يحتاج إعداد حماية الفرع الحالي إلى تعديل. هذا التغيير لا يضيف نشرًا آليًا.
 
+## اعتماد GitHub في workflows المولدة
+
+تُولّد ملفات `efficiency-improver.lock.yml` و`phase8b-ai-patch-generator.lock.yml` من ملفات Markdown المقابلة عبر `gh aw compile`؛ عدّل المصدر ثم أعد التوليد، ولا تعدّل ملف lock يدويًا. خطوة `Checkout repository` المضافة تلقائيًا في مسار المخرجات الآمنة تحفظ اعتماد GitHub عمدًا لأن إنشاء فرع وطلب سحب مسودة يحتاج إلى دفع commit. الخطوة مشروطة بنوع مخرج `create_pull_request`، والمخرجات محدودة بطلب واحد ومسارات ملفات مسموح بها في المصدر. عند تغيير هذا التصميم، أعد النظر في الاعتماد المحفوظ، واستخدم أقل صلاحيات ممكنة للرمز المخصص.
+
+أما checkout في `aws.yml` فيستخدم مصادقة AWS عبر OIDC بعد النسخ ولا يحتاج اعتماد GitHub محفوظًا؛ لذلك يعطل `persist-credentials`.
+
+ملف `CODEOWNERS` يوجّه التغييرات إلى المالك للمراجعة. لجعل هذه المراجعة شرطًا قبل الدمج، فعّل **Require review from Code Owners** في قواعد حماية الفرع `main`.
+
 ## نقطة البداية التي تم التحقق منها
 
 في 5 أكتوبر 2026 كان CI موجودًا أصلًا في `.github/workflows/ci.yml`، وآخر تشغيل على main عند commit `6b340e24faa8a498c96244deebb5002e77159ee4` ناجح:
