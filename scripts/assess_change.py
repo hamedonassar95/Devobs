@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import json
 import os
-import subprocess
+import subprocess  # nosec B404 - Git is invoked with a fixed executable and no shell.
 from collections import Counter
 from pathlib import Path, PurePosixPath
 
@@ -15,7 +15,7 @@ ROOT = Path(os.environ.get("GITHUB_WORKSPACE", ".")).resolve()
 
 def git(*args: str, check: bool = True) -> subprocess.CompletedProcess[bytes]:
     return subprocess.run(
-        ["git", *args],
+        ["/usr/bin/git", *args],  # nosec B603 - arguments are separate argv entries; shell execution is disabled.
         cwd=ROOT,
         check=check,
         capture_output=True,
@@ -186,7 +186,8 @@ def main() -> None:
     if full_scan:
         paths = tracked_paths()
 
-    assert paths is not None
+    if paths is None:
+        raise RuntimeError("Could not determine changed paths for CI analysis.")
     paths = sorted(set(paths))
     lines = changed_line_count(base)
     history = recent_touch_counts()
