@@ -156,11 +156,9 @@ jobs:
     if: needs.validate.result == 'success'
     permissions:
       contents: read
-      pull-requests: read
-    uses: ./.github/workflows/ci.yml
+    uses: ./.github/workflows/rollback-quality-check.yml
     with:
       source_ref: ${{ needs.validate.outputs.commit_sha }}
-      validation_profile: rollback
 
   deploy:
     needs: [validate, quality]

@@ -24,9 +24,9 @@
 
 ## المسار الأساسي للنشر والاستجابة
 
-المسار المعتاد يعمل ضمن **تشغيل CI واحد**. فحوص Python وNode والأمان وعقد الموقع تبدأ بالتوازي على `ubuntu-24.04`، ثم يجمعها فحص `validate` المطلوب من قواعد حماية `main`. اختير التوازي لتقليل زمن الانتظار، وأزيلت إعادة تشغيل الاختبارات نفسها عدة مرات داخل CI. النشر اليدوي والتراجع يعيدان استخدام وحدة CI نفسها على الـSHA المختار؛ يستخدم التراجع ملف توافق يشغّل فحوص Python والموقع المتوفرة في الإصدارات القديمة.
+المسار المعتاد يعمل ضمن **تشغيل CI واحد**. يحلل `change-analysis` الملفات المتغيرة وحجم الفرق وتكرار تغييرات الملفات خلال آخر 90 يومًا، ثم يختار فحوص Python وNode المناسبة ويعرض تقدير مخاطر قابلًا للتفسير. يبقى فحص الأمان وعقد الموقع مطلوبين دائمًا. التقدير حتمي واستشاري، ولا يتصل بنموذج AI خارجي أو يمنع النشر بمفرده. يقلل هذا العمل المكرر وزمن الاختبارات غير المرتبطة؛ ولا يغيّر حجم الـrunner المستضاف.
 
-بعد نجاحها على دفعة إلى `main`، يستدعي CI مسار `Deploy Pages` القابل لإعادة الاستخدام، ثم فحص `Deployment Health Check` ضمن التشغيل نفسه. النشر يرفض SHA قديمًا إذا تقدّم `main` أثناء الفحوص، ويفحص الصحة أن النسخة الحية تطابق SHA الذي جرى التحقق منه. طلبات الدمج تفحص التغيير وتنتج معاينة قابلة للتنزيل، ولا تنشر إلى الإنتاج. التشغيلات تستخدم runner مستضافًا قياسيًا (`ubuntu-24.04`)؛ لا يوجد runner مخصص معرف في ملفات Actions، لذا يأتي تقليل زمن التنفيذ من تشغيل الفحوص المستقلة بالتوازي بدل افتراض مواصفات مدفوعة غير مفعلة.
+بعد نجاح الفحوص على دفعة إلى `main`، يستدعي CI مسار `Deploy Pages` القابل لإعادة الاستخدام، ثم فحص `Deployment Health Check` ضمن التشغيل نفسه. النشر يرفض SHA قديمًا إذا تقدّم `main` أثناء الفحوص، ويفحص الصحة أن النسخة الحية تطابق SHA الذي جرى التحقق منه. عند فشل فحص الإصدار الجديد، يحاول المسار استعادة SHA المنشور السابق بعد التأكد أنه سلف للـ`main` الحالي واجتيازه فحوص الاستعادة؛ يتوقف إذا تعذّر إثبات ذلك. طلبات الدمج تنتج معاينة قابلة للتنزيل ولا تنشر إلى الإنتاج. التشغيلات تستخدم runner مستضافًا قياسيًا (`ubuntu-24.04`)؛ لا يوجد runner مخصص معرف في ملفات Actions.
 
 | الغرض | المسار المعتمد | متى يُستخدم |
 | --- | --- | --- |
@@ -35,6 +35,7 @@
 | CI مشترك لمشاريع Python | [Reusable Python CI](https://github.com/hamedonassar95/Devobs/blob/main/.github/workflows/reusable-python-ci.yml) | يجهز إصدار Python، يدعم تخزين pip المؤقت عند تحديد ملف المتطلبات، ثم يترجم المسارات ويشغّل `unittest` أو `pytest` حسب إعداد المشروع. |
 | CI مشترك لسكربتات Bash | [Reusable Bash CI](https://github.com/hamedonassar95/Devobs/blob/main/.github/workflows/reusable-bash-ci.yml) | يشغّل ShellCheck بوضع Bash لفحص الصياغة والأنماط بمستوى `warning` افتراضيًا. يفحص كل ملفات `.sh` المتتبعة افتراضيًا، ويقبل فحص الملفات المتغيرة في PR/push لتسريع CI أو قائمة صريحة؛ ولا ينفذ السكربتات أو يحتاج أسرارًا. |
 | وحدة النشر القابلة لإعادة الاستخدام | [Deploy Pages](https://github.com/hamedonassar95/Devobs/actions/workflows/deploy-pages.yml) | يستدعيها CI بعد نجاح جميع الفحوص؛ لا تشغلها منفردة. |
+| فحوص استعادة Pages | [Rollback target quality check](https://github.com/hamedonassar95/Devobs/blob/main/.github/workflows/rollback-quality-check.yml) | يفحص Python وعقد الموقع على SHA السابق قبل أن يسمح مسار النشر باستعادته. |
 | وحدة فحص الموقع | [Deployment Health Check](https://github.com/hamedonassar95/Devobs/actions/workflows/deployment-health-check.yml) | يستدعيها النشر تلقائيًا، وتبقى متاحة أيضًا للفحص اليدوي. |
 | فرز فشل CI أو فحص يدوي | [Incident Response](https://github.com/hamedonassar95/Devobs/actions/workflows/incident-response.yml) | يتابع فشل CI وفحص الصحة اليدوي ويجمع الأدلة؛ لا يغيّر الشيفرة ولا ينشرها. |
 | تحقيق AI في حادثة | [Incident Investigator — Copilot](https://github.com/hamedonassar95/Devobs/actions/workflows/incident-investigator.lock.yml) | المسار الأساسي للتحقيق. استخدم [Claude](https://github.com/hamedonassar95/Devobs/actions/workflows/incident-investigator-claude.lock.yml) أو [Vertex](https://github.com/hamedonassar95/Devobs/actions/workflows/incident-investigator-vertex.lock.yml) يدويًا فقط بعد فشل المسار الأساسي والتأكد من عدم وجود تقرير للحادثة. |
@@ -42,7 +43,7 @@
 | نشر نسخة محددة | [One-click deploy](https://github.com/hamedonassar95/Devobs/actions/workflows/one-click-deploy.yml) | حالة استثنائية تتطلب اختيار النسخة وتأكيدًا صريحًا؛ ليس بديلًا للنشر التلقائي المعتاد. |
 | استعادة إصدار Pages | [Rollback Pages](https://github.com/hamedonassar95/Devobs/actions/workflows/rollback-pages.yml) | استعادة يدوية عند الحاجة، وفق [دليل التراجع](RELEASE_ROLLBACK.md). |
 
-تستخدم وحدات النشر المعتاد و`One-click deploy` و`Rollback Pages` مجموعة التزامن `github-pages`، لذلك لا تعمل عمليات النشر والتراجع بالتوازي.
+تستخدم وحدات النشر المعتاد و`One-click deploy` و`Rollback Pages` مجموعة التزامن `github-pages`، لذلك لا تعمل عمليات النشر والتراجع بالتوازي. الاستعادة التلقائية تخص ملف Pages الثابت فقط؛ لا تعكس تغييرات قاعدة بيانات أو خدمات خارجية.
 
 ## عمليات يدوية منفصلة
 

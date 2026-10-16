@@ -1,0 +1,54 @@
+name: Rollback target quality check
+
+on:
+  workflow_call:
+    inputs:
+      source_ref:
+        description: Exact source commit to validate before restoring it
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  python-tests:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/reusable-python-ci.yml
+    with:
+      python_version: "3.12"
+      compile_paths_json: '["scripts", "tests"]'
+      test_runner: unittest
+      test_path: tests
+      source_ref: ${{ inputs.source_ref }}
+
+  site-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out exact rollback target
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.source_ref }}
+          persist-credentials: false
+      - name: Check page contract
+        run: python3 scripts/check_site.py
+
+  validate:
+    if: always()
+    needs: [python-tests, site-contract]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Require rollback checks to pass
+        env:
+          PYTHON_RESULT: ${{ needs.python-tests.result }}
+          SITE_RESULT: ${{ needs.site-contract.result }}
+        run: |
+          set -euo pipefail
+          if [[ "$PYTHON_RESULT" != "success" || "$SITE_RESULT" != "success" ]]; then
+            echo "::error::Rollback target checks failed: python=$PYTHON_RESULT site=$SITE_RESULT"
+            exit 1
+          fi
+          echo "Python tests and the site contract passed for the exact rollback target." >> "$GITHUB_STEP_SUMMARY"
