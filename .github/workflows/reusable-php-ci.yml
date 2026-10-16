@@ -1,0 +1,310 @@
+name: Reusable PHP CI
+
+on:
+  workflow_call:
+    inputs:
+      php_version:
+        description: PHP version used by the caller
+        required: false
+        type: string
+        default: "8.3"
+      working_directory:
+        description: Directory containing composer.json, relative to the caller repository root
+        required: false
+        type: string
+        default: "."
+      extensions:
+        description: Optional comma-separated PHP extensions required by the project
+        required: false
+        type: string
+        default: ""
+      composer_test_script:
+        description: Composer script to run for tests; set to an empty string to skip
+        required: false
+        type: string
+        default: test
+      composer_lint_script:
+        description: Optional Composer script to run for linting
+        required: false
+        type: string
+        default: ""
+      composer_audit:
+        description: Check installed dependencies for known advisories
+        required: false
+        type: boolean
+        default: true
+      scan_mode:
+        description: Run on every event or skip PHP work for docs-only pull requests
+        required: false
+        type: string
+        default: changed
+      source_ref:
+        description: Optional commit or ref to validate instead of the triggering commit
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    name: Select PHP validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      php_required: ${{ steps.decision.outputs.php_required }}
+    steps:
+      - name: Detect PHP-related pull request changes
+        id: filter
+        if: ${{ inputs.scan_mode == 'changed' && github.event_name == 'pull_request' }}
+        continue-on-error: true
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        with:
+          filters: |
+            php:
+              - '.github/workflows/**'
+              - 'composer.json'
+              - 'composer.lock'
+              - '**/composer.json'
+              - '**/composer.lock'
+              - '*.php'
+              - '**/*.php'
+              - 'phpunit*.xml*'
+              - '**/phpunit*.xml*'
+              - 'psalm*.xml'
+              - '**/psalm*.xml'
+              - 'phpstan*.neon*'
+              - '**/phpstan*.neon*'
+              - '.php-cs-fixer*'
+              - '**/.php-cs-fixer*'
+
+      - name: Choose a conservative validation scope
+        id: decision
+        if: always()
+        env:
+          SCAN_MODE: ${{ inputs.scan_mode }}
+          EVENT_NAME: ${{ github.event_name }}
+          FILTER_OUTCOME: ${{ steps.filter.outcome || 'skipped' }}
+          PHP_CHANGED: ${{ steps.filter.outputs.php || 'false' }}
+        run: |
+          python3 - <<'PY'
+          import os
+
+          mode = os.environ["SCAN_MODE"]
+          event = os.environ["EVENT_NAME"]
+          filter_outcome = os.environ["FILTER_OUTCOME"]
+          php_changed = os.environ["PHP_CHANGED"].lower() == "true"
+
+          if mode not in {"all", "changed"}:
+              raise SystemExit("scan_mode must be 'all' or 'changed'.")
+
+          if mode == "all":
+              required, reason = True, "scan_mode is all"
+          elif event != "pull_request":
+              required, reason = True, "non-PR events run the full PHP validation"
+          elif filter_outcome != "success":
+              required, reason = True, "change detection was unavailable; falling back to full validation"
+          else:
+              required = php_changed
+              reason = "PHP-related files changed" if required else "no PHP-related files changed"
+
+          print(f"PHP validation required: {str(required).lower()} ({reason}).")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"php_required={str(required).lower()}\n")
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write(f"PHP validation: **{'required' if required else 'skipped'}** — {reason}.\n")
+          PY
+
+  validate:
+    name: PHP and Composer validation
+    needs: changes
+    if: ${{ needs.changes.outputs.php_required == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the caller repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.source_ref || github.sha }}
+          persist-credentials: false
+
+      - name: Validate project path and Composer scripts
+        id: inputs
+        env:
+          WORKING_DIRECTORY: ${{ inputs.working_directory }}
+          PHP_VERSION: ${{ inputs.php_version }}
+          PHP_EXTENSIONS: ${{ inputs.extensions }}
+          COMPOSER_TEST_SCRIPT: ${{ inputs.composer_test_script }}
+          COMPOSER_LINT_SCRIPT: ${{ inputs.composer_lint_script }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          workspace = Path(os.environ["GITHUB_WORKSPACE"]).resolve()
+          requested = Path(os.environ["WORKING_DIRECTORY"])
+          if requested.is_absolute() or ".." in requested.parts:
+              raise SystemExit("working_directory must stay inside the caller repository.")
+
+          try:
+              project = (workspace / requested).resolve(strict=True)
+          except FileNotFoundError as error:
+              raise SystemExit(f"working_directory does not exist: {requested}") from error
+          if not project.is_dir() or (project != workspace and workspace not in project.parents):
+              raise SystemExit("working_directory must resolve to a directory inside the caller repository.")
+
+          php_version = os.environ["PHP_VERSION"]
+          if not re.fullmatch(r"\d+\.\d+(?:\.\d+)?", php_version):
+              raise SystemExit("php_version must be a numeric PHP version such as '8.3'.")
+
+          extensions = os.environ["PHP_EXTENSIONS"]
+          if extensions and not re.fullmatch(r"[A-Za-z0-9_+-]+(?:\s*,\s*[A-Za-z0-9_+-]+)*", extensions):
+              raise SystemExit("extensions must be a comma-separated list of PHP extension names.")
+
+          manifest_path = project / "composer.json"
+          if manifest_path.is_symlink() or not manifest_path.is_file():
+              raise SystemExit("working_directory must contain a regular composer.json file.")
+          try:
+              manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          except (OSError, json.JSONDecodeError) as error:
+              raise SystemExit(f"Could not read composer.json: {error}") from error
+          scripts = manifest.get("scripts", {})
+          if not isinstance(scripts, dict):
+              raise SystemExit("composer.json 'scripts' must be an object.")
+
+          script_pattern = re.compile(r"[A-Za-z0-9_.:-]+")
+          for label in ("COMPOSER_TEST_SCRIPT", "COMPOSER_LINT_SCRIPT"):
+              name = os.environ[label].strip()
+              if not name:
+                  continue
+              if not script_pattern.fullmatch(name):
+                  raise SystemExit(f"{label.lower()} must be a Composer script name, not a shell command.")
+              if name not in scripts:
+                  raise SystemExit(f"Composer script '{name}' is not defined in {manifest_path}.")
+
+          lock_path = project / "composer.lock"
+          if lock_path.is_symlink():
+              raise SystemExit("composer.lock must not be a symbolic link.")
+          has_lock = lock_path.is_file()
+          if lock_path.exists() and not has_lock:
+              raise SystemExit("composer.lock must be a regular file.")
+          if not has_lock:
+              print("::notice::No composer.lock found; Composer will resolve dependencies from composer.json.")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"project_directory={project}\n")
+              output.write(f"has_lock={str(has_lock).lower()}\n")
+          PY
+
+      - name: Cache Composer downloads
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/composer-cache
+          key: composer-${{ runner.os }}-php-${{ inputs.php_version }}-${{ hashFiles(format('{0}/composer.*', inputs.working_directory)) }}
+          restore-keys: |
+            composer-${{ runner.os }}-php-${{ inputs.php_version }}-
+
+      - name: Set up PHP and Composer
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: ${{ inputs.php_version }}
+          extensions: ${{ inputs.extensions }}
+          coverage: none
+          tools: composer:v2
+
+      - name: Validate Composer metadata
+        env:
+          PROJECT_DIRECTORY: ${{ steps.inputs.outputs.project_directory }}
+          HAS_LOCK: ${{ steps.inputs.outputs.has_lock }}
+        run: |
+          set -euo pipefail
+          cd -- "$PROJECT_DIRECTORY"
+          if [[ "$HAS_LOCK" == "true" ]]; then
+            composer validate --no-check-publish --strict
+          else
+            composer validate --no-check-publish
+          fi
+
+      - name: Install locked dependencies
+        env:
+          PROJECT_DIRECTORY: ${{ steps.inputs.outputs.project_directory }}
+          COMPOSER_CACHE_DIR: ${{ runner.temp }}/composer-cache
+        run: |
+          set -euo pipefail
+          cd -- "$PROJECT_DIRECTORY"
+          composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Audit Composer dependencies
+        if: ${{ inputs.composer_audit == true }}
+        env:
+          PROJECT_DIRECTORY: ${{ steps.inputs.outputs.project_directory }}
+        run: |
+          set -euo pipefail
+          cd -- "$PROJECT_DIRECTORY"
+          composer audit --no-interaction
+
+      - name: Run configured Composer checks
+        env:
+          PROJECT_DIRECTORY: ${{ steps.inputs.outputs.project_directory }}
+          COMPOSER_TEST_SCRIPT: ${{ inputs.composer_test_script }}
+          COMPOSER_LINT_SCRIPT: ${{ inputs.composer_lint_script }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import subprocess
+          from pathlib import Path
+
+          project = Path(os.environ["PROJECT_DIRECTORY"])
+          for label, description in (
+              ("COMPOSER_TEST_SCRIPT", "tests"),
+              ("COMPOSER_LINT_SCRIPT", "lint"),
+          ):
+              script = os.environ[label].strip()
+              if not script:
+                  print(f"No Composer {description} script configured; skipping it.")
+                  continue
+              print(f"Running Composer {description} script: {script}")
+              subprocess.run(
+                  ["composer", "run-script", "--no-interaction", script],
+                  cwd=project,
+                  check=True,
+              )
+          PY
+
+  summary:
+    name: PHP CI summary
+    if: always()
+    needs: [changes, validate]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    permissions:
+      contents: none
+    steps:
+      - name: Require the selected validation result
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          PHP_REQUIRED: ${{ needs.changes.outputs.php_required }}
+          VALIDATION_RESULT: ${{ needs.validate.result }}
+        run: |
+          set -euo pipefail
+          if [[ "$CHANGES_RESULT" != "success" ]]; then
+            echo "::error::PHP change selection did not complete successfully."
+            exit 1
+          fi
+          if [[ "$PHP_REQUIRED" == "true" && "$VALIDATION_RESULT" != "success" ]]; then
+            echo "::error::PHP validation was required but ended with: $VALIDATION_RESULT"
+            exit 1
+          fi
+          if [[ "$PHP_REQUIRED" == "false" && "$VALIDATION_RESULT" != "skipped" ]]; then
+            echo "::error::PHP validation ran unexpectedly: $VALIDATION_RESULT"
+            exit 1
+          fi
+          echo "PHP CI completed with validation result: $VALIDATION_RESULT." >> "$GITHUB_STEP_SUMMARY"
