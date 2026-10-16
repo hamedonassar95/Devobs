@@ -13,14 +13,14 @@
 
 | المجال | المستودع | الاستخدام وحدود المسؤولية |
 | --- | --- | --- |
-| مركز الأتمتة ووحدات CI المشتركة | [Devobs](https://github.com/hamedonassar95/Devobs) | فهرس وحدات CI المشتركة لـNode.js وPython وBash، بالإضافة إلى CI وفحص النشر والاستجابة للحوادث الخاصة بـDevobs. Pages ينشر `index.html` من جذر المستودع فقط؛ لا ينشر `devobs/index.html`. |
+| مركز الأتمتة ووحدات CI المشتركة | [Devobs](https://github.com/hamedonassar95/Devobs) | فهرس وحدات CI المشتركة لـBash وNode.js وPython وPHP/Composer، بالإضافة إلى CI وفحص النشر والاستجابة للحوادث الخاصة بـDevobs. Pages ينشر `index.html` من جذر المستودع فقط؛ لا ينشر `devobs/index.html`. |
 | مكتبة سكربتات مرجعية | [DevOps-Bash-tools](https://github.com/hamedonassar95/DevOps-Bash-tools) | نسخة Fork عامة لمكتبة سكربتات تستهلك وحدة Bash CI من Devobs عبر SHA ثابت؛ تفحص ملفات `.sh` المتغيرة في PR/push وتتيح فحص المكتبة كاملة يدويًا. تُراجع السكربتات المطلوبة قبل استخدامها؛ لا تُنسخ المكتبة كاملة إلى Devobs. |
 | بوابة وكلاء الذكاء الاصطناعي | [unity-gateway](https://github.com/hamedonassar95/unity-gateway) | مشروع Fork منفصل للتجربة والتقييم؛ ليس جزءًا من نشر Devobs الحالي. |
 | تطبيق صيانة الهواتف | [phone-repair-assistant-v2](https://github.com/hamedonassar95/phone-repair-assistant-v2) | تطبيق مستقل وخاص. تبقى بيانات العملاء وأسراره وإصداراته في مستودعه. |
 | موقع الخدمات | [al-dala-mobile](https://github.com/hamedonassar95/al-dala-mobile) | مستودع مستقل بوصف موقع الخدمات. جرد الملفات الحالي أظهر `README.md` فقط؛ لا يوجد نشر مستقل مثبت. صفحة Pages التجريبية الحالية تُبنى من الملف `index.html` في جذر مستودع `Devobs`، لذلك لا يوجد حتى الآن مسار نشر مستقل مثبت لهذا الموقع. |
 | أمثلة وتعلّم | [skills-introduction-to-github](https://github.com/hamedonassar95/skills-introduction-to-github)، [Spoon-Knife](https://github.com/hamedonassar95/Spoon-Knife)، [Next.js](https://github.com/hamedonassar95/Next.js) | أمثلة أو قوالب تعليمية؛ لا تُعامل كأنها أتمتة إنتاجية متصلة. |
 
-مشاريع Fork الأخرى، مثل `browser-compat-data` و`edwards25519` و`opensource.guide` و`pyperformance` و`remix-project` و`sentry-docs` و`server`، تبقى منفصلة عن مسارات التشغيل الخاصة بـDevobs.
+مشاريع Fork الأخرى، مثل `browser-compat-data` و`edwards25519` و`opensource.guide` و`pyperformance` و`remix-project` و`sentry-docs` و`server`، تبقى منفصلة عن مسارات التشغيل الخاصة بـDevobs. `server` هو fork لتطبيق Nextcloud Server؛ استفدنا من أفكار تنظيم فحوص PHP فيه، بينما تبقى شيفرة الخادم نفسها خارج Devobs.
 
 ## المسار الأساسي للنشر والاستجابة
 
@@ -33,6 +33,7 @@
 | فحص التغيير والنشر والتحقق | [CI](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml) | المسار التلقائي الأساسي؛ تشغيل واحد من الفحوص إلى التحقق بعد النشر. |
 | CI مشترك لمشاريع Node.js/npm | [Reusable Node.js CI](https://github.com/hamedonassar95/Devobs/blob/main/.github/workflows/reusable-node-ci.yml) | يستعيد ذاكرة npm، يثبت `package-lock.json` بواسطة `npm ci`، ثم يشغّل `test` و`lint` و`typecheck` و`build` إذا كانت معرفة في `package.json`. |
 | CI مشترك لمشاريع Python | [Reusable Python CI](https://github.com/hamedonassar95/Devobs/blob/main/.github/workflows/reusable-python-ci.yml) | يجهز إصدار Python، يدعم تخزين pip المؤقت عند تحديد ملف المتطلبات، ثم يترجم المسارات ويشغّل `unittest` أو `pytest` حسب إعداد المشروع. |
+| CI مشترك لمشاريع PHP/Composer | [Reusable PHP CI](https://github.com/hamedonassar95/Devobs/blob/main/.github/workflows/reusable-php-ci.yml) | يجهز PHP وComposer، يخزن تنزيلات Composer مؤقتًا، يتحقق من `composer.json` و`composer.lock`، ويفحص ثغرات الاعتماديات. يشغّل سكربتات الاختبار وlint التي يحددها المشروع؛ وفي PR يتجاوز التشغيل المكلف للتغييرات الوثائقية فقط، مع الرجوع للفحص الكامل عند تعذر كشف التغيير. |
 | CI مشترك لسكربتات Bash | [Reusable Bash CI](https://github.com/hamedonassar95/Devobs/blob/main/.github/workflows/reusable-bash-ci.yml) | يشغّل ShellCheck بوضع Bash لفحص الصياغة والأنماط بمستوى `warning` افتراضيًا. يفحص كل ملفات `.sh` المتتبعة افتراضيًا، ويقبل فحص الملفات المتغيرة في PR/push لتسريع CI أو قائمة صريحة؛ ولا ينفذ السكربتات أو يحتاج أسرارًا. |
 | وحدة النشر القابلة لإعادة الاستخدام | [Deploy Pages](https://github.com/hamedonassar95/Devobs/actions/workflows/deploy-pages.yml) | يستدعيها CI بعد نجاح جميع الفحوص؛ لا تشغلها منفردة. |
 | فحص صفحة استعادة Pages | [Rollback target quality check](https://github.com/hamedonassar95/Devobs/blob/main/.github/workflows/rollback-quality-check.yml) | يفحص HTML من SHA السابق كبيانات باستخدام validator موثوق قبل أن يسمح مسار النشر باستعادته. |
@@ -94,6 +95,23 @@ jobs:
       test_runner: pytest
       test_path: tests
 ```
+
+مثال PHP/Composer:
+
+```yaml
+jobs:
+  validate:
+    permissions:
+      contents: read
+    uses: hamedonassar95/Devobs/.github/workflows/reusable-php-ci.yml@<DEVOBS_SHA>
+    with:
+      php_version: "8.3"
+      working_directory: backend
+      composer_test_script: test
+      composer_lint_script: lint
+```
+
+تعمل مراجعة Composer audit افتراضيًا. غيّر أسماء سكربتات Composer لتطابق `composer.json` في مشروعك، أو مرّر قيمة فارغة لتعطيل سكربت اختياري. عند PR لا تُشغّل فحوص PHP إذا تغيّرت الوثائق وحدها؛ أما push والتشغيل اليدوي وأي فشل في تحديد الملفات فيؤدي إلى فحص كامل حفاظًا على التغطية.
 
 مثال Bash (يفحص ملفات `.sh` المتغيرة في PR/push؛ استخدم `all` للفحص الكامل):
 
