@@ -4,7 +4,7 @@
 
 ## القرار التنظيمي
 
-- يبقى `Devobs` المستودع المركزي لفهرسة عمليات DevOps الخاصة به، والتحقق من شيفرته، ونشر موقع GitHub Pages التابع له.
+- `Devobs` هو مركز فهرسة وأتمتة: يوفر وحدات CI قابلة لإعادة الاستخدام لمستودعات متعددة، ويدير فحوصه ونشر موقعه الخاص.
 - يبقى كل تطبيق أو مكتبة في مستودع مستقل، مع مصدر حقيقة وسجل تغييرات وسير عمل يخصه.
 - لكل عملية مسار تلقائي أساسي واحد. استخدم التشغيل اليدوي عند الحاجة الموثقة فقط، ولا تعِد تشغيل المسار نفسه لمجرد أن خطوة لاحقة ما زالت تعمل.
 - لا يعني ظهور مشروع في هذا الفهرس أنه متصل آليًا أو جاهز للإنتاج؛ حالة الاتصال تُثبت بنتيجة فحص فعلية.
@@ -13,7 +13,7 @@
 
 | المجال | المستودع | الاستخدام وحدود المسؤولية |
 | --- | --- | --- |
-| مركز الأتمتة | [Devobs](https://github.com/hamedonassar95/Devobs) | CI، فحص النشر، والاستجابة للحوادث. Pages ينشر حاليًا `index.html` من جذر المستودع فقط؛ لا ينشر `devobs/index.html`. |
+| مركز الأتمتة ووحدات CI المشتركة | [Devobs](https://github.com/hamedonassar95/Devobs) | فهرس الوحدات المشتركة لـNode.js وPython، بالإضافة إلى CI وفحص النشر والاستجابة للحوادث الخاصة بـDevobs. Pages ينشر `index.html` من جذر المستودع فقط؛ لا ينشر `devobs/index.html`. |
 | مكتبة سكربتات مرجعية | [DevOps-Bash-tools](https://github.com/hamedonassar95/DevOps-Bash-tools) | نسخة Fork عامة لمكتبة سكربتات. تُراجع السكربتات المطلوبة قبل استخدامها؛ لا تُنسخ المكتبة كاملة إلى Devobs. |
 | بوابة وكلاء الذكاء الاصطناعي | [unity-gateway](https://github.com/hamedonassar95/unity-gateway) | مشروع Fork منفصل للتجربة والتقييم؛ ليس جزءًا من نشر Devobs الحالي. |
 | تطبيق صيانة الهواتف | [phone-repair-assistant-v2](https://github.com/hamedonassar95/phone-repair-assistant-v2) | تطبيق مستقل وخاص. تبقى بيانات العملاء وأسراره وإصداراته في مستودعه. |
@@ -31,6 +31,8 @@
 | الغرض | المسار المعتمد | متى يُستخدم |
 | --- | --- | --- |
 | فحص التغيير والنشر والتحقق | [CI](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml) | المسار التلقائي الأساسي؛ تشغيل واحد من الفحوص إلى التحقق بعد النشر. |
+| CI مشترك لمشاريع Node.js/npm | [Reusable Node.js CI](https://github.com/hamedonassar95/Devobs/blob/main/.github/workflows/reusable-node-ci.yml) | يستعيد ذاكرة npm، يثبت `package-lock.json` بواسطة `npm ci`، ثم يشغّل `test` و`lint` و`typecheck` و`build` إذا كانت معرفة في `package.json`. |
+| CI مشترك لمشاريع Python | [Reusable Python CI](https://github.com/hamedonassar95/Devobs/blob/main/.github/workflows/reusable-python-ci.yml) | يجهز إصدار Python، يدعم تخزين pip المؤقت عند تحديد ملف المتطلبات، ثم يترجم المسارات ويشغّل `unittest` أو `pytest` حسب إعداد المشروع. |
 | وحدة النشر القابلة لإعادة الاستخدام | [Deploy Pages](https://github.com/hamedonassar95/Devobs/actions/workflows/deploy-pages.yml) | يستدعيها CI بعد نجاح جميع الفحوص؛ لا تشغلها منفردة. |
 | وحدة فحص الموقع | [Deployment Health Check](https://github.com/hamedonassar95/Devobs/actions/workflows/deployment-health-check.yml) | يستدعيها النشر تلقائيًا، وتبقى متاحة أيضًا للفحص اليدوي. |
 | فرز فشل CI أو فحص يدوي | [Incident Response](https://github.com/hamedonassar95/Devobs/actions/workflows/incident-response.yml) | يتابع فشل CI وفحص الصحة اليدوي ويجمع الأدلة؛ لا يغيّر الشيفرة ولا ينشرها. |
@@ -56,8 +58,44 @@
 1. **تغيير عادي:** افتح PR؛ يتولى CI الفحوص المتوازية. بعد الدمج إلى `main` يتولى تشغيل CI نفسه النشر ثم فحص الصحة. لا تعِد تشغيل الخطوات يدويًا إذا نجحت.
 2. **حادثة واحدة:** استخدم محققًا واحدًا لكل رقم حادثة. لا تشغّل Copilot وClaude وVertex معًا؛ البدائل مخصصة عند تعطل المسار الأساسي فقط.
 3. **إعداد AI:** شغّل Preflight أولًا. نجاحه يثبت المصادقة والإعداد فقط، ولا يثبت جودة نتيجة النموذج أو توفر الحصة.
-4. **مشروع آخر:** التغيير والنشر والاختبارات تخص مستودع ذلك المشروع. لا تجعل CI في Devobs يعيد بناء تطبيق الهاتف. قبل تطوير موقع الخدمات، حدّد مستودعًا واحدًا كمصدر حقيقة؛ حاليًا صفحة Pages التجريبية موجودة في الملف `index.html` في جذر `Devobs`، بينما `al-dala-mobile` لا يحتوي إلا على README في المستوى الرئيسي.
+4. **مشروع آخر:** تبقى شيفرة المشروع ونشره في مستودعه، ويمكنه استدعاء وحدة CI المناسبة من Devobs عبر `workflow_call`. يحدد المستودع المستهلك إعداداته واختباراته، ويثبت استدعاءه على commit SHA كامل. لا تمرر الأسرار إلى وحدات CI هذه؛ وحدات Node وPython الحالية لا تحتاجها. قبل تطوير موقع الخدمات، حدّد مستودعًا واحدًا كمصدر حقيقة؛ حاليًا صفحة Pages التجريبية موجودة في الملف `index.html` في جذر `Devobs`، بينما `al-dala-mobile` لا يحتوي إلا على README في المستوى الرئيسي.
 5. **السكربتات الخارجية:** ارجع إلى النسخة الأصلية عند الحاجة؛ لا تنشئ نسخًا متفرقة منها داخل أكثر من مستودع.
+
+## اعتماد الوحدات في مشروع آخر
+
+في مستودع المستهلك، أنشئ workflow صغيرًا يستدعي الوحدة المطلوبة بمسار `uses` كامل مثبت على SHA من مستودع Devobs، ثم مرر الإعدادات عبر `with`. لا تستخدم `secrets: inherit`. تنفذ الوحدة checkout لمستودع المستهلك، وتملك صلاحية `contents: read` فقط. للمشروع الجديد، اختر وحدة حسب بيئته؛ لا تستدعِ CI الخاص بـDevobs لأنه يشغّل فحوص الموقع والنشر والحوادث الخاصة بهذا المستودع.
+
+مثال Node.js (استبدل `<DEVOBS_SHA>` بمعرّف commit كامل):
+
+```yaml
+jobs:
+  validate:
+    permissions:
+      contents: read
+    uses: hamedonassar95/Devobs/.github/workflows/reusable-node-ci.yml@<DEVOBS_SHA>
+    with:
+      node_version: "22"
+      working_directory: .
+```
+
+مثال Python:
+
+```yaml
+jobs:
+  validate:
+    permissions:
+      contents: read
+    uses: hamedonassar95/Devobs/.github/workflows/reusable-python-ci.yml@<DEVOBS_SHA>
+    with:
+      python_version: "3.12"
+      requirements_file: requirements.txt
+      test_runner: pytest
+      test_path: tests
+```
+
+كل مشروع يحدد ملف الاعتمادات ومشغّل الاختبارات المناسبين. لا تفترض الوحدة وجود مفاتيح Supabase أو اعتماد سحابي. يحتفظ المستودع المستهلك بأسراره وإعدادات النشر الخاصة به؛ أضف وحدة جديدة إلى Devobs عند وجود نمط متكرر ومراجَع عبر أكثر من مشروع.
+
+إذا كان فرع محمي يتطلب اسم فحص قديمًا مثل `validate`، اجعل استدعاء الوحدة في job منفصل، ثم أبقِ job تجميعيًا بالاسم المطلوب ينتظر نجاحها. لا تعتمد على اسم الفحص الداخلي للوحدة لتلبية قواعد فرع لم تُراجع.
 
 ## صفحات التشغيل
 

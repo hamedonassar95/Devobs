@@ -1,0 +1,84 @@
+name: Reusable Node.js CI
+
+on:
+  workflow_call:
+    inputs:
+      node_version:
+        description: Node.js major or exact version used by the caller
+        required: false
+        type: string
+        default: "22"
+      working_directory:
+        description: Directory containing package.json and package-lock.json
+        required: false
+        type: string
+        default: "."
+      build_env_file:
+        description: Optional non-secret env example relative to working_directory, copied to .env.local before build
+        required: false
+        type: string
+        default: ""
+      source_ref:
+        description: Optional commit or ref to validate instead of the triggering commit
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: npm validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.working_directory }}
+    steps:
+      - name: Check out the caller repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.source_ref || github.sha }}
+          persist-credentials: false
+
+      - name: Set up Node.js and restore npm cache
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ inputs.node_version }}
+          cache: npm
+          cache-dependency-path: ${{ inputs.working_directory }}/package-lock.json
+
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Run tests when defined
+        run: npm run test --if-present
+
+      - name: Run lint when defined
+        run: npm run lint --if-present
+
+      - name: Run type checks when defined
+        run: npm run typecheck --if-present
+
+      - name: Prepare non-secret build environment
+        if: ${{ inputs.build_env_file != '' }}
+        env:
+          BUILD_ENV_FILE: ${{ inputs.build_env_file }}
+        run: |
+          set -euo pipefail
+          if [[ "$BUILD_ENV_FILE" == /* || "/$BUILD_ENV_FILE/" == *"/../"* ]]; then
+            echo "::error::build_env_file must stay inside the caller repository."
+            exit 1
+          fi
+          if [[ ! -f "$BUILD_ENV_FILE" || -L "$BUILD_ENV_FILE" ]]; then
+            echo "::error::build_env_file must name a regular file in the caller repository."
+            exit 1
+          fi
+          install -m 600 -- "$BUILD_ENV_FILE" .env.local
+
+      - name: Build when defined
+        run: npm run build --if-present

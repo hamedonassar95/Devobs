@@ -1,0 +1,165 @@
+name: Reusable Python CI
+
+on:
+  workflow_call:
+    inputs:
+      python_version:
+        description: Python version used by the caller
+        required: false
+        type: string
+        default: "3.12"
+      working_directory:
+        description: Project directory relative to the repository root
+        required: false
+        type: string
+        default: "."
+      requirements_file:
+        description: Optional dependency lock or requirements file relative to working_directory
+        required: false
+        type: string
+        default: ""
+      compile_paths_json:
+        description: JSON array of Python source paths to compile
+        required: false
+        type: string
+        default: "[]"
+      test_runner:
+        description: unittest, pytest, or none
+        required: false
+        type: string
+        default: unittest
+      test_path:
+        description: Test directory relative to working_directory
+        required: false
+        type: string
+        default: tests
+      source_ref:
+        description: Optional commit or ref to validate instead of the triggering commit
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Python validation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ inputs.working_directory }}
+    steps:
+      - name: Check out the caller repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.source_ref || github.sha }}
+          persist-credentials: false
+
+      - name: Validate workflow inputs
+        env:
+          TEST_RUNNER: ${{ inputs.test_runner }}
+          REQUIREMENTS_FILE: ${{ inputs.requirements_file }}
+          COMPILE_PATHS_JSON: ${{ inputs.compile_paths_json }}
+          TEST_PATH: ${{ inputs.test_path }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          if os.environ["TEST_RUNNER"] not in {"unittest", "pytest", "none"}:
+              raise SystemExit("test_runner must be unittest, pytest, or none.")
+
+          compile_paths = json.loads(os.environ["COMPILE_PATHS_JSON"])
+          if not isinstance(compile_paths, list) or not all(
+              isinstance(path, str) and path for path in compile_paths
+          ):
+              raise SystemExit("compile_paths_json must be a JSON array of non-empty paths.")
+
+          root = Path.cwd().resolve()
+          for item in [os.environ["REQUIREMENTS_FILE"], os.environ["TEST_PATH"], *compile_paths]:
+              if not item:
+                  continue
+              path = Path(item)
+              if path.is_absolute() or ".." in path.parts:
+                  raise SystemExit("Workflow paths must stay inside working_directory.")
+              resolved = (root / path).resolve()
+              if resolved != root and root not in resolved.parents:
+                  raise SystemExit("Workflow paths must stay inside working_directory.")
+          PY
+
+      - name: Set up Python with dependency cache
+        if: ${{ inputs.requirements_file != '' }}
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ inputs.python_version }}
+          cache: pip
+          cache-dependency-path: ${{ inputs.working_directory }}/${{ inputs.requirements_file }}
+
+      - name: Set up Python without dependency cache
+        if: ${{ inputs.requirements_file == '' }}
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ inputs.python_version }}
+
+      - name: Install caller dependencies
+        if: ${{ inputs.requirements_file != '' }}
+        env:
+          REQUIREMENTS_FILE: ${{ inputs.requirements_file }}
+        run: python -m pip install --disable-pip-version-check -r "$REQUIREMENTS_FILE"
+
+      - name: Compile configured source paths
+        env:
+          COMPILE_PATHS_JSON: ${{ inputs.compile_paths_json }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+          import sys
+
+          paths = json.loads(os.environ["COMPILE_PATHS_JSON"])
+          for path in paths:
+              subprocess.run(
+                  [sys.executable, "-m", "compileall", "-q", path],
+                  check=True,
+              )
+          PY
+
+      - name: Run configured tests
+        if: ${{ inputs.test_runner != 'none' }}
+        env:
+          TEST_RUNNER: ${{ inputs.test_runner }}
+          TEST_PATH: ${{ inputs.test_path }}
+        run: |
+          python - <<'PY'
+          import os
+          import subprocess
+          import sys
+          import unittest
+          from pathlib import Path
+
+          runner = os.environ["TEST_RUNNER"]
+          path = Path(os.environ["TEST_PATH"]).resolve()
+          if not path.exists():
+              raise SystemExit(f"Configured test path does not exist: {path}")
+
+          if runner == "unittest":
+              suite = unittest.defaultTestLoader.discover(str(path))
+              count = suite.countTestCases()
+              if count == 0:
+                  raise SystemExit("Unittest discovery found no tests.")
+              print(f"Discovered {count} unittest cases.")
+              command = [sys.executable, "-m", "unittest", "discover", "-s", str(path), "-v"]
+          elif runner == "pytest":
+              command = [sys.executable, "-m", "pytest", "-q", str(path)]
+          else:
+              raise SystemExit(f"Unsupported test runner: {runner}")
+
+          subprocess.run(command, check=True)
+          PY
