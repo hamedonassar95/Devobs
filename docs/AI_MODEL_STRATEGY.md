@@ -45,11 +45,24 @@
 البشرية. لا يملك صلاحيات Actions أو Pages أو OIDC. التفاصيل في
 [`docs/CLAUDE_CODE_ASSISTANT.md`](CLAUDE_CODE_ASSISTANT.md).
 
-**حالة التشغيل الحالية (17 أكتوبر 2026):** CI وCodeQL نجحا على آخر نسخة من
-`main`، لكن مزودي الذكاء الاصطناعي لم يجتازوا فحص الإعداد. فحص Copilot
-[39029628419](https://github.com/hamedonassar95/Devobs/actions/runs/39029628419)
-وجد أن سر `COPILOT_GITHUB_TOKEN` موجود، لكن تنسيقه لا يبدأ بـ `github_pat_`؛
-لذلك لم يبدأ التحقيق ولم يُستدعَ نموذج. فحص Vertex
+**حالة التشغيل الحالية (17 أكتوبر 2026):** دُمج تحديث إرشادات فحص Copilot في
+[PR #173](https://github.com/hamedonassar95/Devobs/pull/173) إلى `main` عند
+commit `e8a2f93`. نجح CI وسير العمل على `main` بعد الدمج، واجتاز PR فحوص
+Gitleaks وCodeQL، واكتملت مراجعة GitHub Codex بلا نتائج.
+
+آخر فحص فعلي لمزوّد Copilot هو
+[39054264605](https://github.com/hamedonassar95/Devobs/actions/runs/39054264605)
+على `main` قبل هذا الدمج. رفض تنسيق `COPILOT_GITHUB_TOKEN` لأنه لا يبدأ بـ
+`github_pat_`؛ لذلك لم يبدأ التحقيق ولم يُستدعَ نموذج. لم يُعَد تشغيل الفحص
+اليدوي بعد الدمج. يتطلب المحقق رمز Fine-grained PAT منفصلاً بصلاحية الحساب
+`Copilot Requests: Read` محفوظاً باسم `COPILOT_GITHUB_TOKEN`. أما
+`POLICY_AUDIT_TOKEN` فهو لقراءة إعدادات حوكمة المستودع (`Administration: Read`)
+ولا يحقق متطلب Copilot. إرشادات الفحص الجديدة لا تتحقق إلا من وجود الرمز
+وتنسيقه، ولا تثبت الصلاحية أو الحصة أو إتاحة النموذج.
+
+مراجعة الكود المخصصة عبر OpenAI في
+[تشغيل PR #173](https://github.com/hamedonassar95/Devobs/actions/runs/39055176728)
+تخطّت طلب النموذج لأن `OPENAI_API_KEY` غير مضبوط. فحص Vertex
 [38988701058](https://github.com/hamedonassar95/Devobs/actions/runs/38988701058)
 رفض قيمة `GCP_WORKLOAD_IDENTITY_PROVIDER` قبل مصادقة Google. يجب ضبطها على اسم
 مورد WIF الكامل، كما يجب تقييد موفر Google بمستودع Devobs وفرع `main` قبل
