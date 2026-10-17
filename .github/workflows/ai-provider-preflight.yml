@@ -24,21 +24,14 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Validate Copilot token format
+      - name: Check out preflight validator
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Validate Copilot credential setup
         env:
           COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [[ -z "$COPILOT_GITHUB_TOKEN" ]]; then
-            echo "::error::Add the COPILOT_GITHUB_TOKEN repository secret before running this check."
-            exit 1
-          fi
-          if [[ "$COPILOT_GITHUB_TOKEN" != github_pat_* ]]; then
-            echo "::error::COPILOT_GITHUB_TOKEN must be a fine-grained PAT beginning with github_pat_."
-            exit 1
-          fi
-          echo "Token format accepted. This check does not verify Copilot Requests permission or call a model."
+        run: python3 scripts/check_copilot_preflight.py
 
   vertex:
     if: github.ref == 'refs/heads/main' && (inputs.provider == 'vertex' || inputs.provider == 'both')

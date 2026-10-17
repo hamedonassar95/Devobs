@@ -295,6 +295,24 @@ preflight for the chosen provider passes.
   failed the provider-resource format check. Google authentication and model
   inference were skipped.
 
+### Copilot preflight follow-up — 17 October 2026
+
+- Copilot-only preflight
+  [39054264605](https://github.com/hamedonassar95/Devobs/actions/runs/39054264605)
+  ran on `main` at `c485ab091829e0e6eab78e1b6e9ac806d9bba21e` and again rejected
+  the configured `COPILOT_GITHUB_TOKEN` because its format does not begin with
+  `github_pat_`. No Copilot model request was made.
+- This result is independent from the passing read-only repository policy audit
+  [39053647920](https://github.com/hamedonassar95/Devobs/actions/runs/39053647920):
+  `POLICY_AUDIT_TOKEN` grants `Administration: Read` for repository governance,
+  while the investigator requires a separate fine-grained personal token with
+  account permission `Copilot Requests: Read` stored as `COPILOT_GITHUB_TOKEN`.
+- The preflight now writes these exact setup steps and the distinction between
+  the two secrets to the Actions job summary. It still checks only token format;
+  a passing run does not prove Copilot access or model availability. No model
+  request is made by this workflow. The new tests verify missing, malformed,
+  and accepted-prefix outcomes without revealing a fixture token.
+
 For this personal repository, create a fine-grained PAT under the owner's user
 account, set **Account permissions → Copilot Requests → Read**, and save it as
 `COPILOT_GITHUB_TOKEN` in [repository Actions secrets](https://github.com/hamedonassar95/Devobs/settings/secrets/actions).
