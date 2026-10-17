@@ -1,0 +1,95 @@
+name: Capacity recommendation
+description: Calculate a bounded horizontal-scaling recommendation from recent CPU and memory metrics.
+inputs:
+  metrics_file:
+    description: Repository-relative JSON file containing the metrics contract documented in docs/RESOURCE_OPTIMIZATION.md.
+    required: true
+  min_replicas:
+    description: Lowest replica count permitted by the workload policy.
+    required: false
+    default: "1"
+  max_replicas:
+    description: Highest replica count permitted by the workload policy.
+    required: true
+  target_cpu_percent:
+    description: Desired p95 CPU utilization percentage.
+    required: false
+    default: "65"
+  target_memory_percent:
+    description: Desired p95 memory utilization percentage.
+    required: false
+    default: "75"
+  downscale_fraction:
+    description: Scale down only when both p95 metrics are at or below this fraction of their targets.
+    required: false
+    default: "0.5"
+  scale_up_threshold:
+    description: Scale up only when the highest target ratio exceeds this value.
+    required: false
+    default: "1.05"
+  max_scale_up_percent:
+    description: Maximum percentage increase in replicas for one recommendation.
+    required: false
+    default: "50"
+  minimum_samples:
+    description: Minimum number of CPU and memory observations required for a decision.
+    required: false
+    default: "6"
+  minimum_downscale_window_minutes:
+    description: Minimum observation window required before a scale-down recommendation.
+    required: false
+    default: "30"
+  cooldown_minutes:
+    description: Minimum time since the last scaling action before recommending a scale down.
+    required: false
+    default: "30"
+  maximum_age_minutes:
+    description: Maximum age allowed for the latest metrics observation.
+    required: false
+    default: "20"
+outputs:
+  decision:
+    description: One of scale_up, scale_down, or hold.
+    value: ${{ steps.recommend.outputs.decision }}
+  recommended_replicas:
+    description: Recommended bounded replica count. This action does not apply it.
+    value: ${{ steps.recommend.outputs.recommended_replicas }}
+  reason:
+    description: Short explanation for the recommendation.
+    value: ${{ steps.recommend.outputs.reason }}
+runs:
+  using: composite
+  steps:
+    - name: Calculate recommendation
+      id: recommend
+      shell: bash
+      env:
+        METRICS_FILE: ${{ inputs.metrics_file }}
+        MIN_REPLICAS: ${{ inputs.min_replicas }}
+        MAX_REPLICAS: ${{ inputs.max_replicas }}
+        TARGET_CPU_PERCENT: ${{ inputs.target_cpu_percent }}
+        TARGET_MEMORY_PERCENT: ${{ inputs.target_memory_percent }}
+        DOWNSCALE_FRACTION: ${{ inputs.downscale_fraction }}
+        SCALE_UP_THRESHOLD: ${{ inputs.scale_up_threshold }}
+        MAX_SCALE_UP_PERCENT: ${{ inputs.max_scale_up_percent }}
+        MINIMUM_SAMPLES: ${{ inputs.minimum_samples }}
+        MINIMUM_DOWNSCALE_WINDOW_MINUTES: ${{ inputs.minimum_downscale_window_minutes }}
+        COOLDOWN_MINUTES: ${{ inputs.cooldown_minutes }}
+        MAXIMUM_AGE_MINUTES: ${{ inputs.maximum_age_minutes }}
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        set -euo pipefail
+        python3 "$ACTION_PATH/../../../scripts/recommend_capacity.py" \
+          --metrics-file "$METRICS_FILE" \
+          --repository-root "$GITHUB_WORKSPACE" \
+          --min-replicas "$MIN_REPLICAS" \
+          --max-replicas "$MAX_REPLICAS" \
+          --target-cpu-percent "$TARGET_CPU_PERCENT" \
+          --target-memory-percent "$TARGET_MEMORY_PERCENT" \
+          --downscale-fraction "$DOWNSCALE_FRACTION" \
+          --scale-up-threshold "$SCALE_UP_THRESHOLD" \
+          --max-scale-up-percent "$MAX_SCALE_UP_PERCENT" \
+          --minimum-samples "$MINIMUM_SAMPLES" \
+          --minimum-downscale-window-minutes "$MINIMUM_DOWNSCALE_WINDOW_MINUTES" \
+          --cooldown-minutes "$COOLDOWN_MINUTES" \
+          --maximum-age-minutes "$MAXIMUM_AGE_MINUTES"
