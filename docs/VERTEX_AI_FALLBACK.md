@@ -28,6 +28,8 @@ POOL_ID="devobs-github"
 PROVIDER_ID="devobs-main"
 SERVICE_ACCOUNT_ID="devobs-vertex-investigator"
 SERVICE_ACCOUNT="${SERVICE_ACCOUNT_ID}@${PROJECT_ID}.iam.gserviceaccount.com"
+GITHUB_REPOSITORY="OWNER/REPOSITORY"
+GITHUB_REPOSITORY_ID="$(curl -fsSL "https://api.github.com/repos/${GITHUB_REPOSITORY}" | python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])')"
 
 # Enable the APIs used for Vertex AI and OIDC service-account impersonation.
 gcloud services enable aiplatform.googleapis.com iamcredentials.googleapis.com sts.googleapis.com \
@@ -48,15 +50,56 @@ gcloud iam workload-identity-pools providers create-oidc "$PROVIDER_ID" \
   --workload-identity-pool="$POOL_ID" \
   --project="$PROJECT_ID" \
   --issuer-uri="https://token.actions.githubusercontent.com" \
-  --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.ref=assertion.ref" \
-  --attribute-condition="assertion.repository == 'hamedonassar95/Devobs' && assertion.ref == 'refs/heads/main'"
+  --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.repository_id=assertion.repository_id,attribute.ref=assertion.ref" \
+  --attribute-condition="assertion.repository_id == '${GITHUB_REPOSITORY_ID}' && assertion.ref == 'refs/heads/main'"
 
 # Permit only this repository identity to impersonate the service account.
 gcloud iam service-accounts add-iam-policy-binding "$SERVICE_ACCOUNT" \
   --project="$PROJECT_ID" \
   --role="roles/iam.workloadIdentityUser" \
-  --member="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL_ID}/attribute.repository/hamedonassar95/Devobs"
+  --member="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${POOL_ID}/attribute.repository_id/${GITHUB_REPOSITORY_ID}"
 ```
+
+Google recommends mapping `google.subject` from `assertion.sub`, and warns that
+GitHub issuer URLs are shared across repositories. The repository ID mapping and
+condition above restrict this provider to one repository and the `main` branch;
+the numeric ID cannot be claimed by another repository if the name is later
+reused. See Google's [GitHub Actions WIF guidance](https://docs.cloud.google.com/iam/docs/workload-identity-federation-with-deployment-pipelines)
+and [provider update reference](https://docs.cloud.google.com/sdk/gcloud/reference/iam/workload-identity-pools/providers/update-oidc).
+
+### Secure the provider already created in Google Cloud Console
+
+The screenshots shared for the current setup show project ID
+`tensile-verve-352716`, project number `198763193327`, pool `github`, and provider
+`devobs-github-actions`. They also appear to show `google.subject` mapped from
+`assertion.ref` and no attribute condition. Before using this provider, update
+its mapping and restriction in Cloud Shell:
+
+```bash
+gcloud iam workload-identity-pools providers update-oidc devobs-github-actions \
+  --project=tensile-verve-352716 \
+  --location=global \
+  --workload-identity-pool=github \
+  --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.repository_id=assertion.repository_id,attribute.ref=assertion.ref" \
+  --attribute-condition="assertion.repository_id == '1404102641' && assertion.ref == 'refs/heads/main'"
+
+# Replace this with the service-account email stored as GCP_VERTEX_SERVICE_ACCOUNT.
+SERVICE_ACCOUNT="SERVICE_ACCOUNT_EMAIL"
+gcloud iam service-accounts add-iam-policy-binding "$SERVICE_ACCOUNT" \
+  --project=tensile-verve-352716 \
+  --role="roles/iam.workloadIdentityUser" \
+  --member="principalSet://iam.googleapis.com/projects/198763193327/locations/global/workloadIdentityPools/github/attribute.repository_id/1404102641"
+```
+
+`1404102641` is the GitHub repository ID for `hamedonassar95/Devobs`. The
+condition rejects tokens from other repositories and branches. If service
+account access was granted using a `principal://.../subject/...` binding, review
+that binding after changing `google.subject`; prefer a `principalSet` binding
+for `attribute.repository_id/1404102641`. The setup command above shows that
+binding format. Updating the GitHub setting through the connected integration
+also failed with HTTP 403: it lacks repository **Secrets: write** and **Variables:
+write** permissions. See GitHub's [secret API permissions](https://docs.github.com/en/rest/actions/secrets)
+and [variable API permissions](https://docs.github.com/en/rest/actions/variables).
 
 In **Devobs → Settings → Secrets and variables → Actions**, add these values
 as repository variables or repository secrets, using the exact names below.
@@ -81,6 +124,10 @@ Other URL hosts and malformed resource names are rejected. The preflight checks
 the value without printing it. If Google still reports an invalid audience,
 check the provider's allowed audiences; the Google auth action requests its
 default audience, `https://iam.googleapis.com/<provider-resource>`.
+For the provider shown in the screenshots, set the value to
+`projects/198763193327/locations/global/workloadIdentityPools/github/providers/devobs-github-actions`.
+Do not use the issuer URL `https://token.actions.githubusercontent.com` in this
+setting; that URL belongs in the Google provider's **Issuer URL** field.
 
 Before launching Gemini, the workflow now checks that all three values are
 nonempty, preferring repository variables and falling back to repository secrets.
@@ -183,9 +230,15 @@ WIF and Vertex model inference did not run, and the workflow posted no report.
 Preflight run
 [38987158382](https://github.com/hamedonassar95/Devobs/actions/runs/38987158382)
 found that the three Vertex settings were present, but the provider value was not
-in the bare resource-name form. It stopped before Google authentication or model
-inference. The workflow now accepts the Google Cloud Console URL and normalizes
-it before both the authentication check and the Gemini fallback. Re-run the
-preflight after this change is merged; a successful format check alone does not
-prove that the WIF trust policy, service-account binding, Vertex API, quota, or
-model access is correct.
+in the bare resource-name form. After the workflow was updated to normalize the
+Google IAM URL from the provider's default-audience field, run
+[38987980947](https://github.com/hamedonassar95/Devobs/actions/runs/38987980947)
+still failed provider-format validation, so the configured value is not the full
+provider resource or an accepted IAM URL. Both runs stopped before Google
+authentication and model inference. The latest preflight error now distinguishes
+the provider resource from GitHub's issuer URL without printing the configured
+value. Updating the GitHub setting via API was denied with HTTP 403 because the
+connected integration does not have repository Secrets: write permission. Set
+the value in the repository's Actions settings, then rerun the preflight. A
+successful format check alone does not prove the WIF trust policy,
+service-account binding, Vertex API, quota, or model access is correct.
