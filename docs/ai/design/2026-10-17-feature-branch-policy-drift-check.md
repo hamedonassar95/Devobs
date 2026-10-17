@@ -25,7 +25,7 @@ description: Architecture and API contract for a read-only repository governance
                     v
            Actions run log
 
-The workflow checks out the repository with the existing SHA-pinned checkout action. The Python standard library performs HTTPS GET requests to public GitHub endpoints; no third-party package, token, secret, external AI provider, or write endpoint is used.
+The workflow checks out the repository with the existing SHA-pinned checkout action. The Python standard library performs HTTPS GET requests to GitHub endpoints. It uses the dedicated `POLICY_AUDIT_TOKEN` Actions secret when configured and otherwise falls back to the workflow's read-only `GITHUB_TOKEN`. GitHub may omit protected ruleset details from the default token response, so the dedicated token needs only fine-grained `Administration: read` access to this repository. No external AI provider or write endpoint is used.
 
 ## Data and API contract
 
@@ -36,7 +36,7 @@ The script reads:
 3. GET /repos/{owner}/{repo}/rulesets?includes_parents=true to locate the named ruleset.
 4. GET /repos/{owner}/{repo}/rulesets/{ruleset_id} for enforcement, ref conditions, bypass actors, and rule parameters.
 
-Only the repository/default-branch scope, pass status, or a list of missing/weakened controls is emitted. Raw API payloads and response headers are never printed.
+Only the repository/default-branch scope, pass status, or a list of missing/weakened controls is emitted. Raw API payloads, response headers, and token values are never printed.
 
 ## Policy baseline
 
@@ -49,7 +49,7 @@ Only the repository/default-branch scope, pass status, or a list of missing/weak
 
 ## Failure behavior and security
 
-The audit is fail-visible: drift exits 1; a malformed response, unavailable API, or unusable input exits 2. An empty `bypass_actors` value is valid when represented as `null` or `[]`; a missing or wrongly typed value remains an error. It does not retry indefinitely or mutate settings. API access is bounded by a 15-second timeout per request. Only fixed API paths are constructed from URL-encoded repository/branch values. The scheduled workflow is informational and independent of PR validation and deployment.
+The audit is fail-visible: drift exits 1; a malformed response, unavailable API, or unusable input exits 2. An empty `bypass_actors` value is valid when represented as `null` or `[]`; a missing or wrongly typed value remains an error with setup guidance for `POLICY_AUDIT_TOKEN`. It does not retry indefinitely or mutate settings. API access is bounded by a 15-second timeout per request. Only fixed API paths are constructed from URL-encoded repository/branch values. The scheduled workflow is informational and independent of PR validation and deployment.
 
 ## Design decision
 

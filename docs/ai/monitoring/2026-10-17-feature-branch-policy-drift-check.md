@@ -17,9 +17,10 @@ GitHub Actions run history is the audit record. The workflow does not send exter
 ## Response steps
 
 1. Open the failed Repository policy audit run and read the named finding.
-2. For API/network failure, rerun once after checking GitHub API status and rate limit; do not interpret the failed run as evidence that policy is intact.
-3. For a real drift, compare Protect main in repository Settings with the reviewed baseline in docs/ai/design/2026-10-17-feature-branch-policy-drift-check.md.
-4. Restore the setting manually through GitHub Settings under normal repository administration, then run the audit again.
-5. If the desired baseline intentionally changes, update the design, script, and tests together through a reviewed PR.
+2. For exit 2 with a missing `bypass_actors` field, configure or check the `POLICY_AUDIT_TOKEN` secret and its `Administration: read` repository permission using [the setup guide](../../REPOSITORY_POLICY_AUDIT.md). Do not interpret the inconclusive run as evidence that policy is intact.
+3. For API/network failure, rerun once after checking GitHub API status and rate limit; do not interpret the failed run as evidence that policy is intact.
+4. For a real drift, compare Protect main in repository Settings with the reviewed baseline in docs/ai/design/2026-10-17-feature-branch-policy-drift-check.md.
+5. Restore the setting manually through GitHub Settings under normal repository administration, then run the audit again.
+6. If the desired baseline intentionally changes, update the design, script, and tests together through a reviewed PR.
 
 The audit is deterministic policy automation, not AIOps: it does not predict incidents, call an LLM, or autonomously repair GitHub settings.
