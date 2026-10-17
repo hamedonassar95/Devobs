@@ -253,7 +253,7 @@ check confirms WIF and service-account authentication but does not verify Vertex
 model access, quota, or billing. Run the controlled AI evaluation only after the
 relevant preflight passes.
 
-### Latest credential preflight — 16 October 2026, 04:11 UTC
+### Previous credential preflight — 16 October 2026, 04:11 UTC
 
 Preflight run
 [38849359527](https://github.com/hamedonassar95/Devobs/actions/runs/38849359527)
@@ -269,3 +269,47 @@ ran both checks on `main` and confirmed neither provider is ready:
 Update these values in **Settings → Secrets and variables → Actions**, then rerun
 the corresponding preflight. Do not rerun the incident investigator until the
 preflight for the chosen provider passes.
+
+### Latest follow-up — 17 October 2026
+
+- The latest main-branch CI run
+  [38988686712](https://github.com/hamedonassar95/Devobs/actions/runs/38988686712)
+  and CodeQL run
+  [38988685964](https://github.com/hamedonassar95/Devobs/actions/runs/38988685964)
+  both passed on `7933e22036ae5190373390be8ac161802045c428`.
+- A new Copilot-only preflight,
+  [39029628419](https://github.com/hamedonassar95/Devobs/actions/runs/39029628419),
+  reached the token-format check and failed because the configured secret does
+  not begin with `github_pat_`. The secret value is never printed. No Copilot
+  model request was made.
+- The investigator retry
+  [38987051600](https://github.com/hamedonassar95/Devobs/actions/runs/38987051600)
+  for controlled-drill issue [#140](https://github.com/hamedonassar95/Devobs/issues/140)
+  failed at the same credential validation step. The agent and safe-output jobs
+  were skipped; the issue has no investigation comment. The original
+  [Incident Response run 38842489529](https://github.com/hamedonassar95/Devobs/actions/runs/38842489529)
+  completed its synthetic `controlled-drill` triage successfully. It did not
+  deploy or roll back production.
+- Vertex preflight
+  [38988701058](https://github.com/hamedonassar95/Devobs/actions/runs/38988701058)
+  failed the provider-resource format check. Google authentication and model
+  inference were skipped.
+
+For this personal repository, create a fine-grained PAT under the owner's user
+account, set **Account permissions → Copilot Requests → Read**, and save it as
+`COPILOT_GITHUB_TOKEN` in [repository Actions secrets](https://github.com/hamedonassar95/Devobs/settings/secrets/actions).
+GitHub's [Agentic Workflows authentication guide](https://github.github.com/gh-aw/reference/auth/)
+documents this requirement. Do not send the PAT in chat or paste it into a file.
+The connected GitHub integration cannot write repository secrets or variables,
+so this account setting must be updated in GitHub Settings.
+
+For Vertex, set the repository variable
+`GCP_WORKLOAD_IDENTITY_PROVIDER` to
+`projects/198763193327/locations/global/workloadIdentityPools/github/providers/devobs-github-actions`.
+The Google provider must map `google.subject=assertion.sub` and restrict
+`assertion.repository_id == '1404102641' && assertion.ref == 'refs/heads/main'`;
+the update command and service-account binding are recorded in
+[`docs/VERTEX_AI_FALLBACK.md`](VERTEX_AI_FALLBACK.md). After correcting the
+settings, rerun the Copilot and Vertex preflights. Both checks stop before model
+inference; run the controlled AI evaluation only after the chosen provider's
+preflight passes.
