@@ -48,6 +48,20 @@ GitHub Code Quality منتج مدفوع من GitHub Team وGitHub Enterprise Clo
 
 فوترة Vertex AI في Google Cloud منفصلة عن أرصدة GitHub AI. راجعها في مشروع Google Cloud نفسه.
 
+## حدود وكلاء Agentic Workflows
+
+تحدد workflows الخاصة بتحقيق الحوادث حدًا لكل تشغيل عبر المتغير
+`GH_AW_DEFAULT_MAX_AI_CREDITS` (افتراضيًا 1000)، وحدًا يوميًا عبر
+`GH_AW_DEFAULT_MAX_DAILY_AI_CREDITS` (افتراضيًا 5000). يمكن ضبطهما في
+**Settings → Secrets and variables → Actions → Variables**. هذه حدود لاستهلاك
+Agentic Workflows وتساعد على إيقاف التشغيل عند تجاوزها؛ لا تعرض فاتورة بالدولار،
+ولا تضع ميزانية Google Cloud أو توقف فوترة Vertex AI. راجع حد الاستخدام وفاتورة
+كل مزوّد في حسابه، وضع ميزانية منفصلة لمشروع Google Cloud قبل تفعيل Vertex.
+
+لا يرسل **AI Provider Preflight** طلبًا إلى النموذج: يتحقق من صيغة اعتماد Copilot
+أو من إعداد WIF في Google فقط. شغّل فحص الاعتماد أولًا، ولا تبدأ تقييمًا حيًا
+يستهلك النموذج حتى ينجح الفحص وتكون ميزانية المزوّد محددة.
+
 ## المصادر الرسمية
 
 - [عرض تكاليف GitHub Code Quality وإدارتها](https://docs.github.com/en/enterprise-cloud@latest/code-security/how-tos/maintain-quality-code/view-and-manage-cost)

@@ -17,6 +17,7 @@
 - Optional local coding-agent tool review: [docs/FREE_CLAUDE_CODE_EVALUATION.md](docs/FREE_CLAUDE_CODE_EVALUATION.md)
 - AI investigation acceptance and measured results: [docs/INVESTIGATOR_ACCEPTANCE.md](docs/INVESTIGATOR_ACCEPTANCE.md)
 - GitHub AI Scan setup and billing: [docs/GITHUB_AI_SCAN.md](docs/GITHUB_AI_SCAN.md)
+- AI and Agentic Workflow cost controls: [docs/GITHUB_CODE_QUALITY_COSTS.md](docs/GITHUB_CODE_QUALITY_COSTS.md)
 - Provider credential preflight: [docs/INVESTIGATOR_ACCEPTANCE.md#credential-preflight](docs/INVESTIGATOR_ACCEPTANCE.md#credential-preflight)
 - iOS exploit claim triage: [docs/IOS_EXPLOIT_CLAIM_TRIAGE.md](docs/IOS_EXPLOIT_CLAIM_TRIAGE.md)
 - Release & rollback runbook: [docs/RELEASE_ROLLBACK.md](docs/RELEASE_ROLLBACK.md)
