@@ -70,13 +70,17 @@ GitHub Environment: this workflow does not bind to an environment.
 | `GCP_VERTEX_SERVICE_ACCOUNT` | `devobs-vertex-investigator@PROJECT_ID.iam.gserviceaccount.com` |
 | `GCP_VERTEX_PROJECT_ID` | Google Cloud project ID |
 
-Set `GCP_WORKLOAD_IDENTITY_PROVIDER` to the provider resource name in exactly
-this form: `projects/<PROJECT_NUMBER>/locations/global/workloadIdentityPools/<POOL_ID>/providers/<PROVIDER_ID>`.
-Use the numeric project number and do not add an `https://` or
-`//iam.googleapis.com/` prefix. The preflight checks this shape without printing
-the configured value. If Google still reports an invalid audience when the
-shape is correct, check the provider's allowed audiences; the Google auth action
-requests its default audience, `https://iam.googleapis.com/<provider-resource>`.
+The preferred `GCP_WORKLOAD_IDENTITY_PROVIDER` value is the provider resource
+name in this form:
+`projects/<PROJECT_NUMBER>/locations/global/workloadIdentityPools/<POOL_ID>/providers/<PROVIDER_ID>`.
+Use the numeric project number. The preflight and Vertex fallback also accept
+the full `https://iam.googleapis.com/<provider-resource>` URL copied from Google
+Cloud, or the `//iam.googleapis.com/<provider-resource>` form, and normalize it
+to the resource name before authentication. One trailing slash is ignored.
+Other URL hosts and malformed resource names are rejected. The preflight checks
+the value without printing it. If Google still reports an invalid audience,
+check the provider's allowed audiences; the Google auth action requests its
+default audience, `https://iam.googleapis.com/<provider-resource>`.
 
 Before launching Gemini, the workflow now checks that all three values are
 nonempty, preferring repository variables and falling back to repository secrets.
@@ -171,8 +175,17 @@ passed the trust gate for controlled-drill issue
 projects/<PROJECT_NUMBER>/locations/global/workloadIdentityPools/<POOL_ID>/providers/<PROVIDER_ID>
 ```
 
-The value must use the numeric project number and omit both `https://` and the
-`//iam.googleapis.com/` prefix. Since this check failed, Google WIF and Vertex
-model inference did not run, and the workflow posted no report. Replace the
-repository variable or secret with the exact provider resource name from Google
-Cloud before retrying; do not paste the configured value into an issue or log.
+The value must use the numeric project number. Since this check failed, Google
+WIF and Vertex model inference did not run, and the workflow posted no report.
+
+## Provider URL normalization — 17 October 2026
+
+Preflight run
+[38987158382](https://github.com/hamedonassar95/Devobs/actions/runs/38987158382)
+found that the three Vertex settings were present, but the provider value was not
+in the bare resource-name form. It stopped before Google authentication or model
+inference. The workflow now accepts the Google Cloud Console URL and normalizes
+it before both the authentication check and the Gemini fallback. Re-run the
+preflight after this change is merged; a successful format check alone does not
+prove that the WIF trust policy, service-account binding, Vertex API, quota, or
+model access is correct.

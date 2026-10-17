@@ -57,6 +57,7 @@ on:
           }
           await incidentGuard({ github, context, core }, false);
     - name: Validate Vertex AI configuration
+      id: vertex_config
       if: steps.incident_gate.outputs.eligible == 'true'
       env:
         GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
@@ -75,10 +76,17 @@ on:
         if (( ${#missing[@]} > 0 )); then
           exit 1
         fi
-        if [[ ! "$GCP_WORKLOAD_IDENTITY_PROVIDER" =~ ^projects/[0-9]+/locations/global/workloadIdentityPools/[^/[:space:]]+/providers/[^/[:space:]]+$ ]]; then
-          echo "::error::GCP_WORKLOAD_IDENTITY_PROVIDER must be projects/<PROJECT_NUMBER>/locations/global/workloadIdentityPools/<POOL_ID>/providers/<PROVIDER_ID>, without an https:// or //iam.googleapis.com/ prefix."
+        provider_resource="$GCP_WORKLOAD_IDENTITY_PROVIDER"
+        case "$provider_resource" in
+          https://iam.googleapis.com/*) provider_resource="${provider_resource#https://iam.googleapis.com/}" ;;
+          //iam.googleapis.com/*) provider_resource="${provider_resource#//iam.googleapis.com/}" ;;
+        esac
+        provider_resource="${provider_resource%/}"
+        if [[ ! "$provider_resource" =~ ^projects/[0-9]+/locations/global/workloadIdentityPools/[^/[:space:]]+/providers/[^/[:space:]]+$ ]]; then
+          echo "::error::GCP_WORKLOAD_IDENTITY_PROVIDER must be a provider resource name or its https://iam.googleapis.com URL."
           exit 1
         fi
+        echo "provider_resource=$provider_resource" >> "$GITHUB_OUTPUT"
         echo "Vertex AI configuration is present."
     - name: Verify Google Cloud Workload Identity Federation
       id: gcp_auth
@@ -86,7 +94,7 @@ on:
       uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
       with:
         project_id: ${{ vars.GCP_VERTEX_PROJECT_ID || secrets.GCP_VERTEX_PROJECT_ID }}
-        workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+        workload_identity_provider: ${{ steps.vertex_config.outputs.provider_resource }}
         service_account: ${{ vars.GCP_VERTEX_SERVICE_ACCOUNT || secrets.GCP_VERTEX_SERVICE_ACCOUNT }}
         token_format: access_token
         create_credentials_file: false
@@ -150,6 +158,24 @@ jobs:
               return true;
             }
             await incidentGuard({ github, context, core }, true);
+      - name: Normalize Vertex provider resource for the agent
+        id: vertex_provider
+        env:
+          GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          provider_resource="$GCP_WORKLOAD_IDENTITY_PROVIDER"
+          case "$provider_resource" in
+            https://iam.googleapis.com/*) provider_resource="${provider_resource#https://iam.googleapis.com/}" ;;
+            //iam.googleapis.com/*) provider_resource="${provider_resource#//iam.googleapis.com/}" ;;
+          esac
+          provider_resource="${provider_resource%/}"
+          if [[ ! "$provider_resource" =~ ^projects/[0-9]+/locations/global/workloadIdentityPools/[^/[:space:]]+/providers/[^/[:space:]]+$ ]]; then
+            echo "::error::GCP_WORKLOAD_IDENTITY_PROVIDER must be a provider resource name or its https://iam.googleapis.com URL."
+            exit 1
+          fi
+          echo "provider_resource=$provider_resource" >> "$GITHUB_OUTPUT"
 
 permissions:
   actions: read
@@ -174,7 +200,7 @@ engine:
   auth:
     type: github-oidc
     provider: gcp
-    workload-identity-provider: "${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}"
+    workload-identity-provider: "${{ steps.vertex_provider.outputs.provider_resource }}"
     service-account: "${{ vars.GCP_VERTEX_SERVICE_ACCOUNT || secrets.GCP_VERTEX_SERVICE_ACCOUNT }}"
     project: "${{ vars.GCP_VERTEX_PROJECT_ID || secrets.GCP_VERTEX_PROJECT_ID }}"
     location: us-central1
