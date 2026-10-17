@@ -31,7 +31,7 @@ npx --yes ai-devkit@0.70.1 lint --feature ai-devkit-setup
 
 ## اعتماد سير العمل في مستودع آخر
 
-انسخ [`templates/ai-devkit.json`](../templates/ai-devkit.json) إلى جذر المستودع الجديد، ثم شغّل الأمر التالي من داخله. سينشئ الإعداد والوثائق والمهارات المحلية للبيئتين المحددتين في القالب:
+انسخ [`templates/ai-devkit.json`](../templates/ai-devkit.json) إلى جذر المستودع الجديد، ثم شغّل الأمر التالي من داخله. يستخدم قالب `init --template` الحقل `skill` لعناصر المهارات وفق [مرجع القالب الرسمي](https://ai-devkit.com/docs/9-agent-setup/#template-field-reference)؛ بعد التهيئة يحفظ CLI الاسم في `.ai-devkit.json` بالحقل `name`. سينشئ الإعداد والوثائق والمهارات المحلية للبيئتين المحددتين في القالب:
 
 ```bash
 npx --yes ai-devkit@0.70.1 init --template ./ai-devkit.json

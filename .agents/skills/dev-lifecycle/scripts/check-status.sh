@@ -21,9 +21,17 @@ if (!fs.existsSync(file)) {
 } else {
   try {
     const config = JSON.parse(fs.readFileSync(file, "utf8"));
-    const docs = config.paths && config.paths.docs;
-    if (typeof docs !== "string" || !docs.trim()) throw new Error("paths.docs must be a non-empty string");
-    process.stdout.write(docs.trim());
+    if (!Object.prototype.hasOwnProperty.call(config, "paths")) {
+      process.stdout.write("docs/ai");
+    } else if (!config.paths || typeof config.paths !== "object" || Array.isArray(config.paths)) {
+      throw new Error("paths must be an object");
+    } else if (!Object.prototype.hasOwnProperty.call(config.paths, "docs")) {
+      process.stdout.write("docs/ai");
+    } else if (typeof config.paths.docs !== "string" || !config.paths.docs.trim()) {
+      throw new Error("paths.docs must be a non-empty string when provided");
+    } else {
+      process.stdout.write(config.paths.docs.trim());
+    }
   } catch (error) {
     console.error(`Error: cannot read paths.docs from ${file}: ${error.message}`);
     process.exit(1);
@@ -85,8 +93,8 @@ done
 
 # Count planning tasks if planning doc exists
 if exists "$PLN"; then
-  TOTAL=$(grep -Ec '^[[:space:]]*- \[' "$PLN" 2>/dev/null || true)
-  DONE=$(grep -Ec '^[[:space:]]*- \[[xX]\]' "$PLN" 2>/dev/null || true)
+  TOTAL=$(grep -Ec '^[[:space:]]*- \[[ xX]\][[:space:]]+' "$PLN" 2>/dev/null || true)
+  DONE=$(grep -Ec '^[[:space:]]*- \[[xX]\][[:space:]]+' "$PLN" 2>/dev/null || true)
   TOTAL=${TOTAL:-0}
   DONE=${DONE:-0}
   TODO=$((TOTAL - DONE))

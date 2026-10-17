@@ -11,12 +11,15 @@ description: Define testing approach, test cases, and quality assurance
 - `npx --yes ai-devkit@0.70.1 skill list`: التأكد من ظهور المهارات المحلية.
 - `npx --yes ai-devkit@0.70.1 lint`: فحص بنية إعداد AI DevKit ووثائقه.
 - `npx --yes ai-devkit@0.70.1 lint --feature ai-devkit-setup`: فحص وثائق المراحل السبع للميزة.
-- تحليل JSON للقالب والتأكد من توافق أسماء المهارات مع مفتاح `name`.
+- تحليل JSON للتحقق من أن قالب `init --template` يستخدم `skill` وأن `.ai-devkit.json` يستخدم `name` وفق [مرجع AI DevKit](https://ai-devkit.com/docs/9-agent-setup/#template-field-reference).
 - `bash -n .agents/skills/dev-lifecycle/scripts/check-status.sh .claude/skills/dev-lifecycle/scripts/check-status.sh`: التحقق من صياغة سكربتات الاستئناف.
-- شُغّل كاشف الحالة للميزة `ai-devkit-setup`: أعاد مسارات الوثائق، وأظهر أن المهام `8/8` مكتملة، واقترح المرحلة 7 بعد إعادة فتح مرحلتي التحقق 7 و8 لهذه التعديلات.
+- شُغّل كاشف الحالة للميزة `ai-devkit-setup`: أعاد مسارات الوثائق من جذر المستودع عند استدعائه من `docs/`، وأظهر `9/9` مهام مكتملة، واقترح المرحلة 7 بعد إعادة فتح مرحلتي التحقق 7 و8 لهذه التعديلات.
 - يعتمد كاشف الحالة جذر المستودع لحل المستندات عند تشغيله من مجلد فرعي.
 - إرشادات التهيئة تحفظ ملاحظات التنفيذ الموجودة وتدرج قائمة المراحل فقط إذا كانت غائبة.
 - تعيد مراجعة المتطلبات فتح التصميم والمراحل التابعة عند اعتماد تغييرات تؤثر في أدلتها.
+- يقرأ قالب التهيئة المهارات من `skill`، بينما يستخدم ملف `.ai-devkit.json` الناتج `name`.
+- لا تحتسب روابط Markdown كمهام تخطيط غير مكتملة، وتستخدم غياب `paths.docs` المسار الافتراضي `docs/ai`.
+- يعيد إصلاح كود الإنتاج الذي يكتشفه Phase 8 فتح Phase 7 إذا تغيرت أدلة مطابقة التنفيذ للتصميم.
 - `git diff --check`: فحص المسافات وأخطاء التنسيق في فرق Git.
 - قورنت نسخة `licenses/AI-DevKit-Apache-2.0.txt` بملف LICENSE من الالتزام المثبت؛ تطابقت البصمة، وأظهرت بيانات حزمة CLI ترخيص `Apache-2.0`.
 - تحقق أمر تتبع المهام الاختياري `npx --yes ai-devkit@0.70.1 task list --name ai-devkit-setup --json` وأعاد `unknown command 'task'`؛ لذلك لا يُعتمد على تسجيل المهام الدائم.
