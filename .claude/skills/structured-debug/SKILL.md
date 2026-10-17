@@ -1,6 +1,7 @@
 ---
 name: structured-debug
 description: AI DevKit · Guide structured debugging before code changes by clarifying expected behavior, reproducing issues, identifying likely root causes, and agreeing on a fix plan with validation steps. Use when users ask to debug bugs, investigate regressions, triage incidents, diagnose failing behavior, handle failing tests, analyze production incidents, investigate error spikes, or run root cause analysis (RCA).
+disable-model-invocation: true
 ---
 
 # Local Debugging Assistant
@@ -36,7 +37,7 @@ For each hypothesis, include:
 - Confirm a pre-fix failing signal exists.
 - Confirm post-fix success using the `verify` skill — including regression verification for bug fixes.
 - Summarize remaining risks and follow-ups.
-- Store root cause and fix for future sessions: `npx ai-devkit@latest memory store --title "<root cause>" --content "<diagnosis and fix>" --tags "debug,root-cause"`
+- Store a reusable root cause and fix only after the quality gate in the `memory` skill passes. Resolve the repository owner/name from its verified Git remote and scope the write with `--scope "repo:<owner>/<repo>"`; never omit `--scope` or use `global` for project-specific debugging knowledge.
 
 ## Task Tracing
 

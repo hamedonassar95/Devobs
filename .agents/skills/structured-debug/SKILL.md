@@ -36,7 +36,7 @@ For each hypothesis, include:
 - Confirm a pre-fix failing signal exists.
 - Confirm post-fix success using the `verify` skill — including regression verification for bug fixes.
 - Summarize remaining risks and follow-ups.
-- Store root cause and fix for future sessions: `npx ai-devkit@latest memory store --title "<root cause>" --content "<diagnosis and fix>" --tags "debug,root-cause"`
+- Store a reusable root cause and fix only after the quality gate in the `memory` skill passes. Resolve the repository owner/name from its verified Git remote and scope the write with `--scope "repo:<owner>/<repo>"`; never omit `--scope` or use `global` for project-specific debugging knowledge.
 
 ## Task Tracing
 

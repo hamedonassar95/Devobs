@@ -37,5 +37,6 @@ Use for Phase 9. Take a holistic review stance: findings first, ordered by sever
 15. Summarize blocking issues, important follow-ups, and nice-to-haves. Per finding include file, issue, impact severity, and recommendation.
 16. If task tracing is available, add blockers and set `blocked` for blocking findings; if review passes with final evidence, close the task per `task`.
 17. Complete final checklist: design match, no logic gaps, security addressed, integration points verified, tests cover changes, docs updated.
+18. Mark `Phase 9: final code review complete` in the feature's implementation document only when the review passes and all blocking findings are resolved. If findings require implementation or test changes, leave Phase 9 unchecked and reset it after those changes.
 
 Done: if the checklist passes, the feature is ready to push and create a PR. If blocking issues remain, return to `dev-implementation` or `dev-testing`.

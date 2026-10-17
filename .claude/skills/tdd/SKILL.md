@@ -63,4 +63,4 @@ Then pick the next behavior and repeat.
 
 ## Memory Integration
 
-After completing a TDD session, store reusable test patterns (setup, assertions, fixtures): `npx ai-devkit@latest memory store --title "<pattern>" --content "<details>" --tags "tdd,testing"`
+After completing a TDD session, store reusable test patterns only after the quality gate in the `memory` skill passes. Resolve the repository owner/name from its verified Git remote and scope the write with `--scope "repo:<owner>/<repo>"`; never omit `--scope` or use `global` for project-specific patterns.

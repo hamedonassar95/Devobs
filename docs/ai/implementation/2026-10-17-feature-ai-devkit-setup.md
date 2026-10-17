@@ -6,6 +6,12 @@ description: Technical implementation notes, patterns, and code guidelines
 
 # التنفيذ
 
+## Lifecycle progress
+
+- [x] Phase 7: implementation checked against design
+- [x] Phase 8: tests completed or documented as not applicable
+- [ ] Phase 9: final code review complete
+
 ## الملفات
 
 - `.ai-devkit.json`: البيئات، المراحل، ومجموعة المهارات المختارة؛ وضع النسخ مفعّل لكل مهارة.

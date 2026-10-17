@@ -18,7 +18,6 @@ if [[ ! "$FEATURE" =~ ^[a-zA-Z0-9_-]+$ ]]; then
 fi
 
 exists() { [[ -f "$1" ]]; }
-nonempty() { [[ -f "$1" ]] && [[ -s "$1" ]]; }
 
 LINT_OUTPUT="$($AI_DEVKIT_BIN lint --feature "$FEATURE" 2>/dev/null || true)"
 
@@ -69,19 +68,37 @@ if exists "$PLN"; then
   echo "Planning: $DONE/$TOTAL tasks done, $TODO remaining"
 fi
 
-# Infer phase
+# Infer phase. Required documents gate forward progress; phase completion after
+# implementation is persisted in the implementation document so resumes do not
+# keep returning to Phase 7.
 echo ""
 echo "--- Suggested phase ---"
 if ! exists "$REQ"; then
   echo "Phase 1 (New Requirement) — no requirements doc yet"
 elif ! exists "$DES"; then
   echo "Phase 1 (New Requirement) — requirements exist but no design doc"
+elif ! exists "$TST"; then
+  echo "No phase suggested: required testing document is missing: $TST"
+  echo "Restore it from the configured phase template before continuing."
+  exit 1
 elif ! exists "$PLN"; then
   echo "Phase 4 (Create Initial Plan) — design exists but no planning doc"
-elif exists "$PLN" && [[ ${TODO:-0} -gt 0 ]]; then
+elif ! exists "$IMP"; then
+  echo "No phase suggested: required implementation document is missing: $IMP"
+  echo "Restore it from the configured phase template before continuing."
+  exit 1
+elif [[ ${TOTAL:-0} -eq 0 ]]; then
+  echo "Phase 4 (Create Initial Plan) — no planning tasks recorded"
+elif [[ ${TODO:-0} -gt 0 ]]; then
   echo "Phase 5 (Execute Plan) — $TODO tasks remaining"
-elif exists "$PLN" && [[ ${TODO:-0} -eq 0 ]] && [[ ${TOTAL:-0} -gt 0 ]]; then
+elif ! grep -Fq '## Lifecycle progress' "$IMP"; then
+  echo "Phase 7 (Check Implementation) — all tasks done; initialize the lifecycle progress checklist in $IMP"
+elif ! grep -Eiq '^[[:space:]]*-[[:space:]]+\[[xX]\][[:space:]]+Phase[[:space:]]+7([[:space:]:.-]|$)' "$IMP"; then
   echo "Phase 7 (Check Implementation) — all tasks done, verify against design"
+elif ! grep -Eiq '^[[:space:]]*-[[:space:]]+\[[xX]\][[:space:]]+Phase[[:space:]]+8([[:space:]:.-]|$)' "$IMP"; then
+  echo "Phase 8 (Write Tests) — implementation check is complete"
+elif ! grep -Eiq '^[[:space:]]*-[[:space:]]+\[[xX]\][[:space:]]+Phase[[:space:]]+9([[:space:]:.-]|$)' "$IMP"; then
+  echo "Phase 9 (Code Review) — testing is complete"
 else
-  echo "Phase 2 (Review Requirements) — docs exist, review for completeness"
+  echo "Lifecycle complete — phases 7, 8, and 9 are recorded as complete"
 fi

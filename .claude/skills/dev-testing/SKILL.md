@@ -27,5 +27,6 @@ Use for Phase 8.
 6. Run coverage tooling, identify gaps, and suggest additional tests if below the target.
 7. If task tracing is available, record evidence for each fresh test/coverage command per `task`.
 8. Update the selected testing doc with test file links and results.
+9. After Phase 8 passes verification, mark `Phase 8: tests completed or documented as not applicable` complete in the feature's implementation document. If any test fails or new changes invalidate the implementation check, leave Phase 8 unchecked and reset Phase 9.
 
 Next: `dev-review`. If tests reveal design flaws, return to `dev-design`.

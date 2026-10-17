@@ -49,5 +49,6 @@ Use for Phase 7.
 5. Treat repeated implementation friction as a redesign signal, not another patch, and return to design when the model no longer fits.
 6. Finalize the implementation doc. Verify it captures what shipped, fill gaps, and record follow-ups.
 7. Summarize alignment status, deviations with severity, missing pieces, concerns, and next steps.
+8. After Phase 7 passes verification, mark `Phase 7: implementation checked against design` complete in the feature's implementation document. If it is blocked or finds changes that invalidate testing or review, leave Phase 7 unchecked and reset later phase checkboxes.
 
 Next: `dev-testing`, then `dev-review`. If major deviations exist, return to `dev-design` if design is wrong or Execute Plan if implementation is wrong.

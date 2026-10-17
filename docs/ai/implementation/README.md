@@ -6,6 +6,16 @@ description: Technical implementation notes, patterns, and code guidelines
 
 # Implementation Guide
 
+## Lifecycle progress
+
+The `dev-lifecycle` phase detector reads this checklist when resuming work.
+Mark a phase complete only after its verification succeeds. Reset that phase
+and every later phase to unchecked if new changes invalidate the evidence.
+
+- [ ] Phase 7: implementation checked against design
+- [ ] Phase 8: tests completed or documented as not applicable
+- [ ] Phase 9: final code review complete
+
 ## Development Setup
 
 **How do we get started?**

@@ -81,6 +81,8 @@ If the user wants to continue work on an existing feature:
    - Resolve `<skill-dir>` as the directory containing this `SKILL.md`.
    - Run `<skill-dir>/scripts/check-status.sh <feature-name>`.
    - Use the suggested phase when proposing the execution plan.
+   - If the detector reports a required testing or implementation document is missing, restore that document from the configured phase template before continuing; do not advance past the missing prerequisite.
+   - After Phase 7, 8, or 9 passes verification, record its checkbox in the feature's implementation document. Reset that phase and later phases to unchecked when new changes invalidate their evidence. If the lifecycle checklist is absent, add it from `docs/ai/implementation/README.md` with all three phases unchecked.
 
 ## Backward Transitions
 
