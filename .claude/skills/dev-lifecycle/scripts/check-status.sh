@@ -10,37 +10,14 @@ if [[ $# -lt 1 ]]; then
 fi
 
 FEATURE="$1"
-AI_DEVKIT_BIN="${AI_DEVKIT_BIN:-npx ai-devkit@latest}"
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 cd "$REPO_ROOT"
-DOCS_ROOT="$(node -e '
-const fs = require("node:fs");
-const file = process.argv[1];
-if (!fs.existsSync(file)) {
-  process.stdout.write("docs/ai");
-} else {
-  try {
-    const config = JSON.parse(fs.readFileSync(file, "utf8"));
-    if (!Object.prototype.hasOwnProperty.call(config, "paths")) {
-      process.stdout.write("docs/ai");
-    } else if (!config.paths || typeof config.paths !== "object" || Array.isArray(config.paths)) {
-      throw new Error("paths must be an object");
-    } else if (!Object.prototype.hasOwnProperty.call(config.paths, "docs")) {
-      process.stdout.write("docs/ai");
-    } else if (typeof config.paths.docs !== "string" || !config.paths.docs.trim()) {
-      throw new Error("paths.docs must be a non-empty string when provided");
-    } else {
-      process.stdout.write(config.paths.docs.trim());
-    }
-  } catch (error) {
-    console.error(`Error: cannot read paths.docs from ${file}: ${error.message}`);
-    process.exit(1);
-  }
-}
-' "$REPO_ROOT/.ai-devkit.json")"
-DOCS_ROOT="${DOCS_ROOT#./}"
-DOCS_ROOT="${DOCS_ROOT%/}"
-[[ "$DOCS_ROOT" == "." ]] && DOCS_ROOT=""
+AI_DEVKIT_BIN="$(printenv AI_DEVKIT_BIN 2>/dev/null || true)"
+AI_DEVKIT_PREFIX_ARGS=()
+if [[ -z "$AI_DEVKIT_BIN" ]]; then
+  AI_DEVKIT_BIN="npx"
+  AI_DEVKIT_PREFIX_ARGS=(--yes ai-devkit@0.70.1)
+fi
 
 if [[ ! "$FEATURE" =~ ^[a-zA-Z0-9_-]+$ ]]; then
   echo "Error: feature name must contain only letters, digits, hyphens, and underscores"
@@ -49,41 +26,98 @@ fi
 
 exists() { [[ -f "$1" ]]; }
 
-LINT_OUTPUT="$($AI_DEVKIT_BIN lint --feature "$FEATURE" 2>/dev/null || true)"
+LINT_TMP_DIR="$(printenv TMPDIR 2>/dev/null || true)"
+if [[ -z "$LINT_TMP_DIR" ]]; then
+  LINT_TMP_DIR="/tmp"
+fi
+LINT_STDERR_FILE="$(mktemp "$LINT_TMP_DIR/ai-devkit-status.XXXXXX")"
+trap 'rm -f "$LINT_STDERR_FILE"' EXIT
 
-lint_doc() {
-  local phase="$1"
-  awk -v phase="$phase" -v feature="$FEATURE" -v root="$DOCS_ROOT" '
-    /^Feature: / { in_feature = ($0 == "Feature: " feature); next }
-    /^Git:/ { in_feature = 0 }
-    in_feature {
-      path = $0
-      sub(/^[[:space:]]*[^[:space:]]+[[:space:]]+/, "", path)
-      prefix = (root == "" ? "" : root "/") phase "/"
-      if (index(path, prefix) == 1 && path ~ /\.md$/) {
-        print path
-        exit
+LINT_STATUS=0
+if LINT_OUTPUT="$("$AI_DEVKIT_BIN" "${AI_DEVKIT_PREFIX_ARGS[@]}" lint --json --feature "$FEATURE" 2>"$LINT_STDERR_FILE")"; then
+  :
+else
+  LINT_STATUS=$?
+fi
+
+if DOC_PATHS="$(
+  LINT_JSON="$LINT_OUTPUT" LINT_STATUS="$LINT_STATUS" FEATURE="$FEATURE" \
+    node -e '
+      const fs = require("node:fs");
+      const path = require("node:path");
+      const data = JSON.parse(process.env.LINT_JSON);
+      const phases = ["requirements", "design", "planning", "implementation", "testing", "deployment", "monitoring"];
+      const docCheckIds = new Set(phases.map((phase) => "feature-doc-" + phase));
+      const checks = data.checks;
+      const status = Number(process.env.LINT_STATUS);
+      if (!Array.isArray(checks) || data.feature?.raw !== process.env.FEATURE ||
+          typeof data.feature?.normalizedName !== "string" || !data.feature.normalizedName) {
+        throw new Error("AI DevKit JSON does not describe the requested feature");
       }
-    }
-  ' <<< "$LINT_OUTPUT"
-}
 
-REQ="$(lint_doc requirements)"
-DES="$(lint_doc design)"
-PLN="$(lint_doc planning)"
-IMP="$(lint_doc implementation)"
-TST="$(lint_doc testing)"
+      const expectedMiss = (check) =>
+        check.category === "feature-docs" &&
+        docCheckIds.has(check.id) &&
+        check.level === "miss" && check.required === true;
+      const expectedMisses = checks.filter(expectedMiss);
+      const unexpectedMisses = checks.filter((check) => check.level === "miss" && !expectedMiss(check));
+      const validLevels = checks.every((check) => ["ok", "miss", "warn"].includes(check.level));
+      const expectedSuccess = status === 0 && data.pass === true && data.exitCode === 0 &&
+        data.summary?.requiredFailures === 0 &&
+        expectedMisses.length === 0 && unexpectedMisses.length === 0 && validLevels;
+      const expectedMissingDocs = status !== 0 && data.pass === false && data.exitCode === status &&
+        expectedMisses.length > 0 && data.summary?.requiredFailures === expectedMisses.length &&
+        unexpectedMisses.length === 0 && validLevels;
+      if (!expectedSuccess && !expectedMissingDocs) {
+        throw new Error("AI DevKit lint failed for an unexpected reason");
+      }
 
-if [[ -z "$REQ" || -z "$DES" || -z "$PLN" || -z "$IMP" || -z "$TST" ]]; then
-  echo "Error: could not resolve feature docs from 'ai-devkit lint --feature $FEATURE'"
-  echo "Run: $AI_DEVKIT_BIN lint --feature $FEATURE"
-  exit 1
+      const paths = phases.map((phase) => {
+        const matchingChecks = checks.filter((item) => item.id === "feature-doc-" + phase);
+        if (matchingChecks.length !== 1) {
+          throw new Error("AI DevKit did not return exactly one " + phase + " document check");
+        }
+        const check = matchingChecks[0];
+        if (check.category !== "feature-docs" || !["ok", "miss"].includes(check.level) ||
+            typeof check.required !== "boolean" || (check.level === "miss" && !expectedMiss(check)) ||
+            typeof check.message !== "string" || !check.message.trim() || /[\t\r\n]/.test(check.message)) {
+          throw new Error("AI DevKit did not return a usable " + phase + " document path");
+        }
+        const pathSegments = check.message.split(/[\\/]/);
+        const pathFromRoot = path.relative(process.cwd(), path.resolve(check.message));
+        if (pathSegments.includes("..") || path.isAbsolute(check.message) || pathFromRoot === ".." ||
+            pathFromRoot.startsWith(".." + path.sep) || path.basename(path.dirname(check.message)) !== phase ||
+            path.extname(check.message) !== ".md") {
+          throw new Error("AI DevKit returned a path outside the " + phase + " document directory");
+        }
+        if (check.level === "miss" && fs.existsSync(check.message)) {
+          throw new Error("AI DevKit reports an existing " + phase + " document as missing");
+        }
+        if (check.level === "ok" && !fs.existsSync(check.message)) {
+          throw new Error("AI DevKit reports a missing " + phase + " document as present");
+        }
+        return check.message;
+      });
+      process.stdout.write(paths.join("\t"));
+    ' 2>/dev/null
+)"; then
+  IFS=$'\t' read -r REQ DES PLN IMP TST DEP MON <<< "$DOC_PATHS"
+else
+  echo "Error: AI DevKit lint failed or returned invalid JSON (exit code $LINT_STATUS)."
+  printf '%s\n' "$LINT_OUTPUT"
+  if [[ -s "$LINT_STDERR_FILE" ]]; then
+    cat "$LINT_STDERR_FILE"
+  fi
+  if [[ "$LINT_STATUS" -eq 0 ]]; then
+    exit 1
+  fi
+  exit "$LINT_STATUS"
 fi
 
 echo "=== Status: $FEATURE ==="
 
 # Check which docs exist
-for doc in "$REQ" "$DES" "$PLN" "$IMP" "$TST"; do
+for doc in "$REQ" "$DES" "$PLN" "$IMP" "$TST" "$DEP" "$MON"; do
   if exists "$doc"; then
     echo "[EXISTS] $doc"
   else
@@ -91,12 +125,14 @@ for doc in "$REQ" "$DES" "$PLN" "$IMP" "$TST"; do
   fi
 done
 
-# Count planning tasks if planning doc exists
+TOTAL=0
+DONE=0
+TODO=0
 if exists "$PLN"; then
-  TOTAL=$(grep -Ec '^[[:space:]]*- \[[ xX]\][[:space:]]+' "$PLN" 2>/dev/null || true)
-  DONE=$(grep -Ec '^[[:space:]]*- \[[xX]\][[:space:]]+' "$PLN" 2>/dev/null || true)
-  TOTAL=${TOTAL:-0}
-  DONE=${DONE:-0}
+  TOTAL="$(grep -Ec '^[[:space:]]*- \[[ xX]\][[:space:]]+' "$PLN" 2>/dev/null || true)"
+  DONE="$(grep -Ec '^[[:space:]]*- \[[xX]\][[:space:]]+' "$PLN" 2>/dev/null || true)"
+  if [[ -z "$TOTAL" ]]; then TOTAL=0; fi
+  if [[ -z "$DONE" ]]; then DONE=0; fi
   TODO=$((TOTAL - DONE))
   echo ""
   echo "Planning: $DONE/$TOTAL tasks done, $TODO remaining"
@@ -134,9 +170,9 @@ elif ! phase_complete 4; then
   echo "Phase 4 (Create Initial Plan) — create the plan after requirements and design reviews"
 elif ! exists "$PLN"; then
   echo "Phase 4 (Create Initial Plan) — design exists but no planning doc"
-elif [[ ${TOTAL:-0} -eq 0 ]]; then
+elif [[ $TOTAL -eq 0 ]]; then
   echo "Phase 4 (Create Initial Plan) — no planning tasks recorded"
-elif [[ ${TODO:-0} -gt 0 ]]; then
+elif [[ $TODO -gt 0 ]]; then
   echo "Phase 5 (Execute Plan) — $TODO tasks remaining"
 elif ! phase_complete 7; then
   echo "Phase 7 (Check Implementation) — all tasks done, verify against design"
@@ -144,6 +180,12 @@ elif ! phase_complete 8; then
   echo "Phase 8 (Write Tests) — implementation check is complete"
 elif ! phase_complete 9; then
   echo "Phase 9 (Code Review) — testing is complete"
+elif ! exists "$DEP"; then
+  echo "No phase suggested: required deployment document is missing: $DEP"
+  exit 1
+elif ! exists "$MON"; then
+  echo "No phase suggested: required monitoring document is missing: $MON"
+  exit 1
 else
   echo "Lifecycle complete — phases 7, 8, and 9 are recorded as complete"
 fi

@@ -17,10 +17,12 @@ description: Technical implementation notes, patterns, and code guidelines
 
 ## الملفات
 
-- `.ai-devkit.json`: البيئات، المراحل، ومجموعة المهارات المختارة؛ وضع النسخ مفعّل لكل مهارة.
+- `.ai-devkit.json`: البيئات، المراحل، مصدر سجل المهارات، ومجموعة المهارات المختارة؛ وضع النسخ مفعّل لكل مهارة.
 - `.agents/skills/`: نسخ المهارات التي يقرأها Codex.
 - `.claude/skills/`: نسخ المهارات التي يقرأها Claude Code.
-- `.agents/skills/dev-lifecycle/scripts/check-status.sh` و`.claude/skills/dev-lifecycle/scripts/check-status.sh`: يقرآن مخرجات AI DevKit لتحديد مستندات الميزة، ويتحققان من علامات اكتمال المراحل 2–4 و7–9 في مستند التنفيذ.
+- `.agents/skills/dev-lifecycle/scripts/check-status.sh` و`.claude/skills/dev-lifecycle/scripts/check-status.sh`: يقرآن JSON من AI DevKit لتحديد الوثائق السبع، ويرفضان النتائج التي لا تطابق وجود الملفات أو التي تخرج عن مجلد المرحلة داخل المستودع، ويتوقفان عند أخطاء lint غير المتوقعة أو وثائق النشر والمراقبة الغائبة، ويتحققان من علامات المراحل 2–4 و7–9.
+- `.github/workflows/shellcheck.yml`: يشغّل فحص Bash القابل لإعادة الاستخدام على السكربتات المتتبعة عند تغييرها أو تغيير إعدادات الفحص.
+- `tests/test_ai_devkit_status.py`: اختبارات تراجع لمسارات CLI والوثائق المخصصة وبوابات المراحل وتطابق نسختي Codex وClaude.
 - `licenses/AI-DevKit-Apache-2.0.txt`: نص الرخصة للمهارات المنسوخة والقوالب المولّدة من CLI.
 - `THIRD_PARTY_NOTICES.md`: مصدر المهارات وإشعار نسبتها.
 - `docs/ai/<phase>/`: توثيق الميزة لكل مرحلة من دورة الحياة.

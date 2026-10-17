@@ -1,0 +1,33 @@
+name: ShellCheck
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "**/*.sh"
+      - .github/workflows/reusable-bash-ci.yml
+      - .github/workflows/shellcheck.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "**/*.sh"
+      - .github/workflows/reusable-bash-ci.yml
+      - .github/workflows/shellcheck.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: shellcheck-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shellcheck:
+    name: Bash scripts
+    uses: ./.github/workflows/reusable-bash-ci.yml
+    with:
+      scan_mode: all
+      shellcheck_severity: warning

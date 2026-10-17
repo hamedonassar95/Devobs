@@ -15,6 +15,9 @@
   "paths": {
     "docs": "docs/ai"
   },
+  "registries": {
+    "codeaholicguy/ai-devkit": "https://github.com/codeaholicguy/ai-devkit.git"
+  },
   "skills": [
     { "registry": "codeaholicguy/ai-devkit", "skill": "ai-devkit-setup", "mode": "copy" },
     { "registry": "codeaholicguy/ai-devkit", "skill": "dev-commit", "mode": "copy" },
