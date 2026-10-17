@@ -35,6 +35,7 @@ def get_json(path: str) -> Any:
     token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
     headers = {
         "Accept": "application/vnd.github+json",
+        "Cache-Control": "no-cache",
         "User-Agent": "devobs-repository-policy-audit",
         "X-GitHub-Api-Version": API_VERSION,
     }
@@ -45,7 +46,7 @@ def get_json(path: str) -> Any:
         headers=headers,
     )
     try:
-        with urllib.request.urlopen(  # nosec B310 - fixed HTTPS GitHub API host; no credentials are sent.
+        with urllib.request.urlopen(  # nosec B310 - fixed HTTPS GitHub API host; GET-only with optional read-only token.
             request, timeout=TIMEOUT_SECONDS
         ) as response:
             return json.loads(response.read())

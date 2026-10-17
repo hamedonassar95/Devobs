@@ -161,6 +161,7 @@ class RepositoryPolicyAuditTests(unittest.TestCase):
         request = urlopen.call_args.args[0]
         self.assertIsInstance(request, urllib.request.Request)
         self.assertTrue(request.full_url.startswith("https://api.github.com/"))
+        self.assertEqual(request.get_header("Cache-control"), "no-cache")
         self.assertFalse(request.has_header("Authorization"))
 
     def test_api_client_uses_supplied_github_token_for_read_requests(self) -> None:
