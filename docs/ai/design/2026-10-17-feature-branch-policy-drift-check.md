@@ -42,13 +42,14 @@ Only the repository/default-branch scope, pass status, or a list of missing/weak
 
 - Ruleset name Protect main, target branch, enforcement active, scoped to a pattern that includes the default branch and has no matching exclusion (including ~DEFAULT_BRANCH and refs/heads globs).
 - No bypass actors.
+- GitHub may represent an empty `bypass_actors` field as either `null` or an empty list. Treat both as no configured actors; treat a missing field or a value of another type as an inconclusive API response rather than policy drift.
 - deletion, non_fast_forward, and pull_request rules are present.
 - required_status_checks includes validate and requires the branch to be up to date.
 - CodeQL blocks high_or_higher security alerts and errors alert threshold.
 
 ## Failure behavior and security
 
-The audit is fail-visible: drift exits 1; a malformed response, unavailable API, or unusable input exits 2. It does not retry indefinitely or mutate settings. API access is bounded by a 15-second timeout per request. Only fixed API paths are constructed from URL-encoded repository/branch values. The scheduled workflow is informational and independent of PR validation and deployment.
+The audit is fail-visible: drift exits 1; a malformed response, unavailable API, or unusable input exits 2. An empty `bypass_actors` value is valid when represented as `null` or `[]`; a missing or wrongly typed value remains an error. It does not retry indefinitely or mutate settings. API access is bounded by a 15-second timeout per request. Only fixed API paths are constructed from URL-encoded repository/branch values. The scheduled workflow is informational and independent of PR validation and deployment.
 
 ## Design decision
 

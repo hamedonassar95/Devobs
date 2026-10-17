@@ -93,6 +93,34 @@ class RepositoryPolicyAuditTests(unittest.TestCase):
         self.assertTrue(any("is not active" in finding for finding in findings))
         self.assertTrue(any("bypass actors" in finding for finding in findings))
 
+    def test_accepts_null_bypass_actors_as_no_configured_bypass(self) -> None:
+        fixtures = api_fixtures()
+        ruleset = fixtures["repos/hamedonassar95/Devobs/rulesets/24507159"]
+        assert isinstance(ruleset, dict)
+        ruleset["bypass_actors"] = None
+
+        _, findings = audit_repository("hamedonassar95/Devobs", api_get=fixtures.__getitem__)
+
+        self.assertEqual(findings, [])
+
+    def test_rejects_missing_bypass_actors_field(self) -> None:
+        fixtures = api_fixtures()
+        ruleset = fixtures["repos/hamedonassar95/Devobs/rulesets/24507159"]
+        assert isinstance(ruleset, dict)
+        del ruleset["bypass_actors"]
+
+        with self.assertRaisesRegex(PolicyCheckError, "did not include bypass actors"):
+            audit_repository("hamedonassar95/Devobs", api_get=fixtures.__getitem__)
+
+    def test_rejects_malformed_bypass_actors_field(self) -> None:
+        fixtures = api_fixtures()
+        ruleset = fixtures["repos/hamedonassar95/Devobs/rulesets/24507159"]
+        assert isinstance(ruleset, dict)
+        ruleset["bypass_actors"] = "none"
+
+        with self.assertRaisesRegex(PolicyCheckError, "invalid bypass-actor list"):
+            audit_repository("hamedonassar95/Devobs", api_get=fixtures.__getitem__)
+
     def test_reports_wrong_default_branch_scope_and_weakened_codeql_threshold(self) -> None:
         fixtures = api_fixtures()
         ruleset = fixtures["repos/hamedonassar95/Devobs/rulesets/24507159"]

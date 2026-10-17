@@ -19,6 +19,6 @@ The audit runs on the GitHub-hosted ubuntu-24.04 runner. It does not deploy the 
 
 ## Release and rollback
 
-Review the implementation PR and its validate result before merging. After merge, run the workflow manually once and inspect the result. If the workflow itself is faulty, revert the workflow/script in a reviewed PR; no repository setting has been modified by the audit. If a drift finding is valid, restore the expected rules in GitHub Settings and rerun the audit.
+Review the implementation PR and its validate result before merging. The first post-merge hosted run exposed an empty-list API representation that is fixed in the follow-up. After that fix merges, run the workflow manually once and inspect the result. If the workflow itself is faulty, revert the workflow/script in a reviewed PR; no repository setting has been modified by the audit. If a drift finding is valid, restore the expected rules in GitHub Settings and rerun the audit.
 
 No database migration, environment-specific secret, cloud billing setup, or production deployment step applies.

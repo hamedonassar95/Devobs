@@ -34,6 +34,7 @@ GitHub repository settings can change outside the code review history. Devobs al
 
 - The check reads repository metadata, the default branch, the named ruleset, and its details from the GitHub API.
 - It verifies active branch scope, default-branch inclusion, no bypass actors, deletion and force-push blocks, the strict validate required check, a pull-request rule, and CodeQL thresholds.
+- It interprets a null or empty `bypass_actors` value as no configured bypass actors; a missing field or any other non-list value is an inconclusive API response and exits 2.
 - It exits 0 when the baseline is intact, 1 when policy drift is found, and 2 when the audit cannot complete.
 - Unit tests cover a passing policy and representative missing, weakened, and invalid-input cases.
 - A weekly schedule and manual dispatch run the audit with read-only permissions; the regular CI/deployment path is not changed.
