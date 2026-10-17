@@ -31,6 +31,7 @@ def diff_paths(base: str) -> list[str]:
         "diff",
         "--name-only",
         "-z",
+        "--no-renames",
         "--diff-filter=ACMRTD",
         base,
         "HEAD",
@@ -61,15 +62,10 @@ def event_changed_paths() -> tuple[list[str] | None, str | None]:
             return None, None
         if has_commit(before):
             return diff_paths(before), before
-
-        commits = event.get("commits")
-        if isinstance(commits, list) and commits:
-            changed = set()
-            for commit in commits:
-                changed.update(commit.get("added", []))
-                changed.update(commit.get("modified", []))
-                changed.update(commit.get("removed", []))
-            return sorted(changed), None
+        # GitHub Actions event payloads omit changed-path arrays for each
+        # commit. If the before-SHA is unavailable (for example after a force
+        # push), do not infer an empty or partial diff from the event payload.
+        return None, None
 
     return None, None
 
@@ -124,6 +120,14 @@ def is_python_dependency(path: PurePosixPath) -> bool:
         "requirements.txt",
         "requirements-dev.txt",
     }
+
+
+def changes_workflow_contract(paths: list[str]) -> bool:
+    return any(
+        PurePosixPath(path).parts[:2]
+        in {(".github", "workflows"), (".github", "actions")}
+        for path in paths
+    )
 
 
 def risk_signals(paths: list[str], lines: int, history: Counter[str], full_scan: bool) -> tuple[int, list[str]]:
@@ -193,10 +197,16 @@ def main() -> None:
     history = recent_touch_counts()
     score, signals = risk_signals(paths, lines, history, full_scan)
     level = "high" if score >= 60 else "medium" if score >= 25 else "low"
+    workflow_contract_changed = changes_workflow_contract(paths)
 
-    python_required = full_scan or level == "high" or any(
-        is_python(PurePosixPath(path)) or is_python_dependency(PurePosixPath(path))
-        for path in paths
+    python_required = (
+        full_scan
+        or level == "high"
+        or workflow_contract_changed
+        or any(
+            is_python(PurePosixPath(path)) or is_python_dependency(PurePosixPath(path))
+            for path in paths
+        )
     )
     node_required = full_scan or level == "high" or any(
         is_node(PurePosixPath(path)) for path in paths
@@ -212,12 +222,15 @@ def main() -> None:
         for name, value in outputs.items():
             output_file.write(f"{name}={value}\n")
 
+    python_selection = "selected" if python_required else "skipped (unrelated changes)"
+    if workflow_contract_changed and not full_scan:
+        python_selection += " (workflow/action contract coverage)"
     summary = [
         "## Change impact and deployment risk",
         "",
         f"- Risk estimate: **{level}** ({score}/100)",
         f"- Changed files considered: {len(paths)}",
-        f"- Python test suite: {'selected' if python_required else 'skipped (unrelated changes)'}",
+        f"- Python test suite: {python_selection}",
         f"- Node guard tests: {'selected' if node_required else 'skipped (unrelated changes)'}",
         "- Security scan and published-site contract checks remain required.",
         "- This is an explainable, local heuristic based on file class, change size, and 90-day file churn; it is advisory and does not call an external AI service or block deployment.",
