@@ -31,5 +31,6 @@ Use the existing mocked `urllib.request.urlopen` boundary and deterministic rule
 - Focused command: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_check_repo_policy.py' -v`.
 - Full command: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -q`.
 - The new production change is one request header; the regression assertion covers its observable contract.
-- Fresh local result: focused policy audit tests passed after rebasing; refresh full-suite count after final edits.
+- Fresh local result after rebasing: 14 focused policy-audit tests and all 162 Python tests passed.
+- Bandit reported no findings; the 31-file action-pin check, site contract/HTTP smoke checks, and 16 AI DevKit feature-lint checks passed.
 - Hosted audit run [39051828800](https://github.com/hamedonassar95/Devobs/actions/runs/39051828800) passed on `main` after configuring the existing read-only token. Hosted confirmation of this cache-revalidation change remains pending.

@@ -31,10 +31,12 @@ The new request-header assertion failed before the production change (`None != '
 
 ## Local Verification
 
-- Focused tests: 10 passed.
-- Full Python suite: refresh after rebasing onto current `main`.
-- Bandit: exit 0, no findings (existing parser warnings only).
-- Action pin check: 30 workflow/template files passed.
+- Focused policy-audit tests: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_check_repo_policy.py' -q` — 14 passed.
+- Full Python suite: `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -q` — 162 passed.
+- Bandit: `python3 -m bandit -r scripts -x scripts/check_site.py` — exit 0, no findings.
+- Action pin check: `python3 scripts/check_action_pins.py` — 31 workflow/template files passed.
+- Site contract and HTTP smoke checks: `python3 scripts/check_site.py` — passed.
+- AI DevKit feature lint: 16 checks passed.
 - Live read-only policy audit on `main`: run [39051828800](https://github.com/hamedonassar95/Devobs/actions/runs/39051828800) passed after token setup; hosted verification of this follow-up remains pending.
 
 ## Security and Scope
