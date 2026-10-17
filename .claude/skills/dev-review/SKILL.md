@@ -11,7 +11,7 @@ Run final pre-push review for configured AI docs features. Before changing docs 
 
 1. Run `npx ai-devkit@latest lint` before phase work.
 2. If working on a named feature, run `npx ai-devkit@latest lint --feature <name>`.
-3. Check `git status -sb` and `git diff --stat`.
+3. Check `git status -sb`. Find the pull request's base branch when available; otherwise use the repository's remote default branch. Review the committed branch delta with `git diff --stat <base>...HEAD` and `git diff <base>...HEAD`. Also inspect staged and unstaged changes with `git diff --cached` and `git diff`, and inspect every untracked file listed by `git ls-files --others --exclude-standard`.
 4. Read feature docs and relevant changed files before findings.
 5. Apply the `verify` skill before claiming readiness.
 6. If parent `dev-lifecycle` established usable task tracing, emit review phase, progress, blocker/finding, next-step, and final evidence/readiness events per `task`.

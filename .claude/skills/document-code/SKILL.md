@@ -35,12 +35,13 @@ Build structured understanding of code entry points with an analysis-first workf
 
 5. Create Documentation
 - Normalize name to kebab-case (`calculateTotalPrice` → `calculate-total-price`).
-- Create `docs/ai/implementation/knowledge-{name}.md` using the Output Template — this is the source of truth.
+- Resolve the docs root from `.ai-devkit.json` `paths.docs`; use `docs/ai` only when the property is absent.
+- Create `<docs-dir>/implementation/knowledge-{name}.md` using the Output Template — this is the source of truth.
 - Include mermaid diagrams when they clarify flows or relationships.
 
 6. Offer HTML Artifact
 - After the markdown is written, ask the user once: "Also generate an HTML artifact for easier scanning? (y/N)".
-- If yes, generate sibling `docs/ai/implementation/knowledge-{name}.html` per the HTML Artifact spec. Regenerate from the markdown on subsequent runs; never hand-edit.
+- If yes, generate sibling `<docs-dir>/implementation/knowledge-{name}.html` per the HTML Artifact spec. Regenerate from the markdown on subsequent runs; never hand-edit.
 - If no or no response, stop here — markdown alone is a complete result.
 
 ## HTML Artifact

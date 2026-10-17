@@ -65,13 +65,18 @@ done
 # Count planning tasks if planning doc exists
 if exists "$PLN"; then
   TOTAL=$(grep -Ec '^[[:space:]]*- \[' "$PLN" 2>/dev/null || true)
-  DONE=$(grep -Ec '^[[:space:]]*- \[x\]' "$PLN" 2>/dev/null || true)
+  DONE=$(grep -Ec '^[[:space:]]*- \[[xX]\]' "$PLN" 2>/dev/null || true)
   TOTAL=${TOTAL:-0}
   DONE=${DONE:-0}
   TODO=$((TOTAL - DONE))
   echo ""
   echo "Planning: $DONE/$TOTAL tasks done, $TODO remaining"
 fi
+
+phase_complete() {
+  local phase="$1"
+  grep -Eiq "^[[:space:]]*-[[:space:]]+\\[[xX]\\][[:space:]]+Phase[[:space:]]+$phase([[:space:]:.-]|$)" "$IMP"
+}
 
 # Infer phase. Required documents gate forward progress; phase completion after
 # implementation is persisted in the implementation document so resumes do not
@@ -80,29 +85,33 @@ echo ""
 echo "--- Suggested phase ---"
 if ! exists "$REQ"; then
   echo "Phase 1 (New Requirement) — no requirements doc yet"
+elif ! exists "$IMP"; then
+  echo "No phase suggested: required implementation document is missing: $IMP"
+  echo "Restore it from the configured phase template before continuing."
+  exit 1
+elif ! grep -Fq '## Lifecycle progress' "$IMP"; then
+  echo "Phase 2 (Review Requirements) — initialize the lifecycle progress checklist in $IMP"
+elif ! phase_complete 2; then
+  echo "Phase 2 (Review Requirements) — requirements review is not recorded as complete"
 elif ! exists "$DES"; then
-  echo "Phase 1 (New Requirement) — requirements exist but no design doc"
+  echo "Phase 3 (Review Design) — no design document yet"
+elif ! phase_complete 3; then
+  echo "Phase 3 (Review Design) — design review is not recorded as complete"
 elif ! exists "$TST"; then
   echo "No phase suggested: required testing document is missing: $TST"
   echo "Restore it from the configured phase template before continuing."
   exit 1
 elif ! exists "$PLN"; then
   echo "Phase 4 (Create Initial Plan) — design exists but no planning doc"
-elif ! exists "$IMP"; then
-  echo "No phase suggested: required implementation document is missing: $IMP"
-  echo "Restore it from the configured phase template before continuing."
-  exit 1
 elif [[ ${TOTAL:-0} -eq 0 ]]; then
   echo "Phase 4 (Create Initial Plan) — no planning tasks recorded"
 elif [[ ${TODO:-0} -gt 0 ]]; then
   echo "Phase 5 (Execute Plan) — $TODO tasks remaining"
-elif ! grep -Fq '## Lifecycle progress' "$IMP"; then
-  echo "Phase 7 (Check Implementation) — all tasks done; initialize the lifecycle progress checklist in $IMP"
-elif ! grep -Eiq '^[[:space:]]*-[[:space:]]+\[[xX]\][[:space:]]+Phase[[:space:]]+7([[:space:]:.-]|$)' "$IMP"; then
+elif ! phase_complete 7; then
   echo "Phase 7 (Check Implementation) — all tasks done, verify against design"
-elif ! grep -Eiq '^[[:space:]]*-[[:space:]]+\[[xX]\][[:space:]]+Phase[[:space:]]+8([[:space:]:.-]|$)' "$IMP"; then
+elif ! phase_complete 8; then
   echo "Phase 8 (Write Tests) — implementation check is complete"
-elif ! grep -Eiq '^[[:space:]]*-[[:space:]]+\[[xX]\][[:space:]]+Phase[[:space:]]+9([[:space:]:.-]|$)' "$IMP"; then
+elif ! phase_complete 9; then
   echo "Phase 9 (Code Review) — testing is complete"
 else
   echo "Lifecycle complete — phases 7, 8, and 9 are recorded as complete"

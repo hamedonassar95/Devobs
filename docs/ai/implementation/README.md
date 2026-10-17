@@ -9,9 +9,11 @@ description: Technical implementation notes, patterns, and code guidelines
 ## Lifecycle progress
 
 The `dev-lifecycle` phase detector reads this checklist when resuming work.
-Mark a phase complete only after its verification succeeds. Reset that phase
+Mark a review phase complete only after its review passes. Reset that phase
 and every later phase to unchecked if new changes invalidate the evidence.
 
+- [ ] Phase 2: requirements review complete
+- [ ] Phase 3: design review complete
 - [ ] Phase 7: implementation checked against design
 - [ ] Phase 8: tests completed or documented as not applicable
 - [ ] Phase 9: final code review complete

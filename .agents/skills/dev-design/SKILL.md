@@ -35,5 +35,6 @@ Use for Phase 3.
 11. Store reusable architecture decisions in memory.
 12. If task tracing is available, record design coverage progress, next step, or blockers per `task`.
 13. Summarize requirements coverage, completeness assessment, updates made, and remaining gaps.
+14. Only after the design review passes, mark `Phase 3: design review complete` in the feature's implementation document. If the requirements review or design changes invalidate later evidence, reset Phase 3 and all later review markers.
 
 Next: `dev-implementation`. If requirements gaps are found, return to `dev-requirements`. If design is fundamentally wrong, revise design and re-review.

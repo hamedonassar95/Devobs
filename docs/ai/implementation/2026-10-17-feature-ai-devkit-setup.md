@@ -8,6 +8,8 @@ description: Technical implementation notes, patterns, and code guidelines
 
 ## Lifecycle progress
 
+- [x] Phase 2: requirements review complete
+- [x] Phase 3: design review complete
 - [x] Phase 7: implementation checked against design
 - [x] Phase 8: tests completed or documented as not applicable
 - [ ] Phase 9: final code review complete

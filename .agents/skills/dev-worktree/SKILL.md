@@ -27,7 +27,16 @@ Use for a new feature start.
    - Call out that branch/workspace isolation is reduced.
    - Skip to dependency bootstrap.
 4. Otherwise use branch/worktree name `feature-<name>`.
-5. Ensure `.worktrees` is listed in the project `.gitignore`; if not, add it.
+5. Ignore `.worktrees/` locally without dirtying the current checkout:
+   - Resolve the local exclude file with `git rev-parse --git-path info/exclude`.
+   - Add `.worktrees/` to that file once if it is not already present:
+     ```bash
+     EXCLUDE_FILE="$(git rev-parse --git-path info/exclude)"
+     if ! grep -Fxq '.worktrees/' "$EXCLUDE_FILE"; then
+       printf '\n.worktrees/\n' >> "$EXCLUDE_FILE"
+     fi
+     ```
+   - Do not create or edit the project's `.gitignore` as an implicit setup step. If the team needs a committed ignore rule, make it a separate planned project change after the feature branch exists.
 6. If branch does not exist, run `git worktree add -b feature-<name> .worktrees/feature-<name>`.
 7. If branch exists and the target worktree does not, run `git worktree add .worktrees/feature-<name> feature-<name>`.
 8. If the target worktree already exists, reuse it after verifying it is clean enough for the requested work.

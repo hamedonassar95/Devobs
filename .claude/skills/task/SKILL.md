@@ -94,8 +94,9 @@ npx ai-devkit@latest task status <task-name> active --agent <agent-name> --agent
 # Validation evidence - record after a fresh verify/tdd/test run
 npx ai-devkit@latest task evidence <task-name> --passed --command "npm test" --exit-code 0 --summary "tests passed" --agent <agent-name> --agent-type <agent-type> --pid <pid> --session <sessionId> --json
 
-# Reference an artifact (never copies the file)
-npx ai-devkit@latest task artifact <task-name> docs/ai/testing/foo.md --kind test-report --description "Testing notes" --agent <agent-name> --agent-type <agent-type> --pid <pid> --session <sessionId> --json
+# Reference an artifact (never copies the file); resolve <docs-dir> from
+# .ai-devkit.json paths.docs, falling back to docs/ai only when it is absent.
+npx ai-devkit@latest task artifact <task-name> <docs-dir>/testing/foo.md --kind test-report --description "Testing notes" --agent <agent-name> --agent-type <agent-type> --pid <pid> --session <sessionId> --json
 
 # Read current status / list
 npx ai-devkit@latest task show <task-name> --json
