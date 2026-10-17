@@ -34,16 +34,19 @@ class ClaudeCodeAssistantWorkflowTests(unittest.TestCase):
             workflow,
         )
 
-    def test_permissions_are_limited_to_code_and_discussion_writes(self):
+    def test_permissions_and_agent_tools_are_read_only_for_code(self):
         workflow = (ROOT / ".github/workflows/claude-code-assistant.yml").read_text(
             encoding="utf-8"
         )
 
-        self.assertIn("contents: write", workflow)
-        self.assertIn("pull-requests: write", workflow)
+        self.assertIn("contents: read", workflow)
+        self.assertIn("pull-requests: read", workflow)
         self.assertIn("issues: write", workflow)
+        self.assertNotIn("contents: write", workflow)
+        self.assertNotIn("pull-requests: write", workflow)
         self.assertNotIn("id-token: write", workflow)
         self.assertNotIn("actions: read", workflow)
+        self.assertIn("--allowedTools Read,Grep,Glob", workflow)
         self.assertIn("cancel-in-progress: false", workflow)
 
 

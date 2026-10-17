@@ -15,14 +15,15 @@ turns per request; configure spending limits in Anthropic as well.
 
 ## Permissions and review
 
-The job grants `contents: write`, `pull-requests: write`, and `issues: write` so
-Claude can propose code changes and reply in GitHub. It does not grant Actions,
-Pages, administration, or OIDC permissions. The action is pinned to the
-`v1.0.0` commit. It does not run on fork pull requests. Keep `main` protected
-with required CI and human review; treat Claude changes as proposals that must
-pass the same checks and review as other changes.
+The job grants `contents: read`, `pull-requests: read`, and `issues: write` so
+Claude can inspect code and reply in GitHub. Claude's allowed tools are limited
+to reading and searching; it cannot write code, push commits, or merge pull
+requests. The job does not grant Actions, Pages, administration, or OIDC
+permissions. The action is pinned to the `v1.0.0` commit. It does not run on
+fork pull requests. Review suggested changes manually and run the normal CI
+checks before applying them.
 
 The system prompt asks Claude to treat repository and discussion content as
-untrusted, avoid secrets and security-setting changes, and never merge or
-deploy. These instructions are guidance; GitHub permissions and branch rules
-are the enforcement controls.
+untrusted and never disclose secrets. Tool restrictions and GitHub permissions
+keep this workflow read-only for code; the only granted write permission is
+needed for its response comments.
