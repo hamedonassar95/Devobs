@@ -31,17 +31,19 @@
   عربية للمراجعة. هذا المسار لا يستدعي نموذجًا ولا يرسل بيانات تلقائيًا؛
   ينسخ المراجع التعليمات يدويًا إلى أداة ذكاء اصطناعي معتمدة.
 
-**حالة التشغيل الحالية (17 أكتوبر 2026):** فشل فحص Copilot السابق لأن
-`COPILOT_GITHUB_TOKEN` لم يقبل تنسيق fine-grained PAT الذي يبدأ بـ `github_pat_`.
-كما أوقف فحص Vertex تشغيل
-[38987158382](https://github.com/hamedonassar95/Devobs/actions/runs/38987158382)
-لأن قيمة `GCP_WORKLOAD_IDENTITY_PROVIDER` لم تطابق صيغة مورد WIF. دمج PR #158
-أضاف تطبيع رابط IAM الكامل، لكن الفحص التالي
-[38987980947](https://github.com/hamedonassar95/Devobs/actions/runs/38987980947)
-ما زال يفشل فحص الصيغة، لذا يحتاج إعداد المستودع إلى اسم المورد الكامل. لم تصل
-أي محاولة إلى مصادقة Google أو استدعاء النموذج، ولم يثبت نجاح Gemini بعد.
-لا توجد حاليًا نتيجة جودة نموذج لهذين التقييمين. لا يمكن قراءة قيم الأسرار من
-سجل GitHub. خطوات التصحيح وسجل النتائج في
+**حالة التشغيل الحالية (17 أكتوبر 2026):** CI وCodeQL نجحا على آخر نسخة من
+`main`، لكن مزودي الذكاء الاصطناعي لم يجتازوا فحص الإعداد. فحص Copilot
+[39029628419](https://github.com/hamedonassar95/Devobs/actions/runs/39029628419)
+وجد أن سر `COPILOT_GITHUB_TOKEN` موجود، لكن تنسيقه لا يبدأ بـ `github_pat_`؛
+لذلك لم يبدأ التحقيق ولم يُستدعَ نموذج. فحص Vertex
+[38988701058](https://github.com/hamedonassar95/Devobs/actions/runs/38988701058)
+رفض قيمة `GCP_WORKLOAD_IDENTITY_PROVIDER` قبل مصادقة Google. يجب ضبطها على اسم
+مورد WIF الكامل، كما يجب تقييد موفر Google بمستودع Devobs وفرع `main` قبل
+المصادقة. تشغيل المحقق
+[38987051600](https://github.com/hamedonassar95/Devobs/actions/runs/38987051600)
+توقف بدوره عند فحص رمز Copilot؛ لم يحدث استدلال أو تعليق تحقيق. لم تُطبع قيم
+الأسرار في السجلات، ولم يثبت نجاح أي من مساري Copilot أو Gemini بعد. خطوات
+التصحيح وسجل النتائج في
 [`docs/INVESTIGATOR_ACCEPTANCE.md`](INVESTIGATOR_ACCEPTANCE.md).
 
 **AI Scan:** توثيق الإعداد والفوترة دُمج في PR #144، وCodeQL الافتراضي يعمل على
