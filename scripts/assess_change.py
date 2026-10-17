@@ -31,6 +31,7 @@ def diff_paths(base: str) -> list[str]:
         "diff",
         "--name-only",
         "-z",
+        "--no-renames",
         "--diff-filter=ACMRTD",
         base,
         "HEAD",
