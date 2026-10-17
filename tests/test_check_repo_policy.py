@@ -109,7 +109,9 @@ class RepositoryPolicyAuditTests(unittest.TestCase):
         assert isinstance(ruleset, dict)
         del ruleset["bypass_actors"]
 
-        with self.assertRaisesRegex(PolicyCheckError, "did not include bypass actors"):
+        with self.assertRaisesRegex(
+            PolicyCheckError, "POLICY_AUDIT_TOKEN.*Administration: read"
+        ):
             audit_repository("hamedonassar95/Devobs", api_get=fixtures.__getitem__)
 
     def test_rejects_malformed_bypass_actors_field(self) -> None:
@@ -144,10 +146,15 @@ class RepositoryPolicyAuditTests(unittest.TestCase):
 
         self.assertTrue(any("does not include the default branch" in finding for finding in findings))
 
-    def test_api_client_uses_public_api_without_authorization_header(self) -> None:
+    def test_api_client_can_use_public_api_without_authorization_header(self) -> None:
         response = mock.MagicMock()
         response.__enter__.return_value.read.return_value = b'{"default_branch":"main"}'
-        with mock.patch("scripts.check_repo_policy.urllib.request.urlopen", return_value=response) as urlopen:
+        with (
+            mock.patch.dict(os.environ, {"GH_TOKEN": "", "GITHUB_TOKEN": ""}),
+            mock.patch(
+                "scripts.check_repo_policy.urllib.request.urlopen", return_value=response
+            ) as urlopen,
+        ):
             payload = get_json("repos/hamedonassar95/Devobs")
 
         self.assertEqual(payload, {"default_branch": "main"})
@@ -155,6 +162,22 @@ class RepositoryPolicyAuditTests(unittest.TestCase):
         self.assertIsInstance(request, urllib.request.Request)
         self.assertTrue(request.full_url.startswith("https://api.github.com/"))
         self.assertFalse(request.has_header("Authorization"))
+
+    def test_api_client_uses_supplied_github_token_for_read_requests(self) -> None:
+        response = mock.MagicMock()
+        response.__enter__.return_value.read.return_value = b'{"default_branch":"main"}'
+        with (
+            mock.patch.dict(os.environ, {"GH_TOKEN": "test-read-token", "GITHUB_TOKEN": ""}),
+            mock.patch(
+                "scripts.check_repo_policy.urllib.request.urlopen", return_value=response
+            ) as urlopen,
+        ):
+            payload = get_json("repos/hamedonassar95/Devobs")
+
+        self.assertEqual(payload, {"default_branch": "main"})
+        request = urlopen.call_args.args[0]
+        self.assertIsInstance(request, urllib.request.Request)
+        self.assertEqual(request.get_header("Authorization"), "Bearer test-read-token")
 
     def test_api_http_errors_are_reported_as_inconclusive(self) -> None:
         error = urllib.error.HTTPError(
