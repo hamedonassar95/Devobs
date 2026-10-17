@@ -13,6 +13,7 @@
 - CI documentation: [docs/CI.md](docs/CI.md)
 - GitHub Pages DevOps roadmap: [docs/GITHUB_PAGES_DEVOPS_ROADMAP.md](docs/GITHUB_PAGES_DEVOPS_ROADMAP.md)
 - AI model strategy: [docs/AI_MODEL_STRATEGY.md](docs/AI_MODEL_STRATEGY.md)
+- AI code review setup and limits: [docs/AI_CODE_REVIEW.md](docs/AI_CODE_REVIEW.md)
 - Optional local coding-agent tool review: [docs/FREE_CLAUDE_CODE_EVALUATION.md](docs/FREE_CLAUDE_CODE_EVALUATION.md)
 - AI investigation acceptance and measured results: [docs/INVESTIGATOR_ACCEPTANCE.md](docs/INVESTIGATOR_ACCEPTANCE.md)
 - GitHub AI Scan setup and billing: [docs/GITHUB_AI_SCAN.md](docs/GITHUB_AI_SCAN.md)
