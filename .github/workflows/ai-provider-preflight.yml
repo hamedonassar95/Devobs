@@ -68,13 +68,15 @@ jobs:
             exit 1
           fi
           provider_resource="$GCP_WORKLOAD_IDENTITY_PROVIDER"
+          provider_resource="${provider_resource#"${provider_resource%%[![:space:]]*}"}"
+          provider_resource="${provider_resource%"${provider_resource##*[![:space:]]}"}"
           case "$provider_resource" in
             https://iam.googleapis.com/*) provider_resource="${provider_resource#https://iam.googleapis.com/}" ;;
             //iam.googleapis.com/*) provider_resource="${provider_resource#//iam.googleapis.com/}" ;;
           esac
           provider_resource="${provider_resource%/}"
           if [[ ! "$provider_resource" =~ ^projects/[0-9]+/locations/global/workloadIdentityPools/[^/[:space:]]+/providers/[^/[:space:]]+$ ]]; then
-            echo "::error::GCP_WORKLOAD_IDENTITY_PROVIDER must be a provider resource name or its https://iam.googleapis.com URL."
+            echo "::error::Set GCP_WORKLOAD_IDENTITY_PROVIDER to the full Google provider resource projects/<numeric-project-number>/locations/global/workloadIdentityPools/<pool-id>/providers/<provider-id>. This is not GitHub's issuer URL https://token.actions.githubusercontent.com. The configured value was not printed."
             exit 1
           fi
           echo "provider_resource=$provider_resource" >> "$GITHUB_OUTPUT"

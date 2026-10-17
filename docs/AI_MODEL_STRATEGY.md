@@ -35,9 +35,11 @@
 `COPILOT_GITHUB_TOKEN` لم يقبل تنسيق fine-grained PAT الذي يبدأ بـ `github_pat_`.
 كما أوقف فحص Vertex تشغيل
 [38987158382](https://github.com/hamedonassar95/Devobs/actions/runs/38987158382)
-لأن قيمة `GCP_WORKLOAD_IDENTITY_PROVIDER` لم تطابق صيغة مورد WIF، قبل الاتصال
-بـGoogle أو استدعاء النموذج. يقبل التحديث الحالي رابط Google Cloud Console ويحوّله
-إلى صيغة المورد قبل المصادقة؛ لم يثبت هذا التحديث بعد نجاح المصادقة أو جودة Gemini.
+لأن قيمة `GCP_WORKLOAD_IDENTITY_PROVIDER` لم تطابق صيغة مورد WIF. دمج PR #158
+أضاف تطبيع رابط IAM الكامل، لكن الفحص التالي
+[38987980947](https://github.com/hamedonassar95/Devobs/actions/runs/38987980947)
+ما زال يفشل فحص الصيغة، لذا يحتاج إعداد المستودع إلى اسم المورد الكامل. لم تصل
+أي محاولة إلى مصادقة Google أو استدعاء النموذج، ولم يثبت نجاح Gemini بعد.
 لا توجد حاليًا نتيجة جودة نموذج لهذين التقييمين. لا يمكن قراءة قيم الأسرار من
 سجل GitHub. خطوات التصحيح وسجل النتائج في
 [`docs/INVESTIGATOR_ACCEPTANCE.md`](INVESTIGATOR_ACCEPTANCE.md).
