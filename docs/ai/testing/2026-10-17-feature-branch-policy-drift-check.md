@@ -23,9 +23,16 @@ Coverage includes:
 
 The API client uses an injected fixture in unit tests, so tests are deterministic and make no network calls. The project CI also compiles Python sources, runs the unittest suite, checks action SHA pins, and runs Bandit.
 
+## Follow-up verification — 17 October 2026
+
+- `PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v` — 162 tests passed.
+- `python3 scripts/check_action_pins.py` — passed for 31 workflow and template files.
+- `npx --yes ai-devkit@latest lint --feature branch-policy-drift-check` — all 16 checks passed.
+- `git diff --check` and the local Markdown-link check passed.
+
 ## Live verification
 
-The first hosted run (run [39041619309](https://github.com/hamedonassar95/Devobs/actions/runs/39041619309)) exposed that the runner received `bypass_actors: null` for an empty list. The follow-up run on current `main` ([39043609586](https://github.com/hamedonassar95/Devobs/actions/runs/39043609586)) reproduced it. The local public API returned `[]` during diagnosis, so the test now covers both valid empty representations and invalid/missing data. After this fix merges, use Actions → Repository policy audit → Run workflow and confirm a passing hosted run. Subsequent runs are scheduled weekly. Local fixture tests and a local API check do not replace the post-merge hosted check.
+The hosted runs [39041619309](https://github.com/hamedonassar95/Devobs/actions/runs/39041619309) and [39043609586](https://github.com/hamedonassar95/Devobs/actions/runs/39043609586) exposed the valid `bypass_actors: null` representation; PR #167 added regression coverage and support for both `null` and `[]`. After PR #169 added optional `POLICY_AUDIT_TOKEN` authentication, manual run [39048544142](https://github.com/hamedonassar95/Devobs/actions/runs/39048544142) still failed inconclusively because the response omitted `bypass_actors`. Set the repository secret to a fine-grained token with `Administration: read`, then run **Actions → Repository policy audit → Run workflow** on `main`. The first passing hosted run remains outstanding; local fixture tests do not replace it.
 
 ## Failure-mode review
 

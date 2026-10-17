@@ -28,23 +28,24 @@ GitHub repository settings can change outside the code review history. Devobs al
 
 - As the repository maintainer, I want a weekly check of the required default-branch rules so that accidental policy drift is visible.
 - As a maintainer investigating a failed audit, I want the exact missing or weakened rule named so that I can repair it in GitHub Settings.
-- As a contributor, I want the check to use no secrets and perform no writes so that it cannot expose credentials or silently alter repository policy.
+- As a contributor, I want the check to use only a dedicated read-only credential when GitHub hides protected ruleset fields, and never write repository settings or print credentials.
 
 ## Acceptance criteria
 
 - The check reads repository metadata, the default branch, the named ruleset, and its details from the GitHub API.
 - It verifies active branch scope, default-branch inclusion, no bypass actors, deletion and force-push blocks, the strict validate required check, a pull-request rule, and CodeQL thresholds.
 - It interprets a null or empty `bypass_actors` value as no configured bypass actors; a missing field or any other non-list value is an inconclusive API response and exits 2.
+- If GitHub omits `bypass_actors` for the workflow's default token, the audit reports an inconclusive result and directs the maintainer to configure `POLICY_AUDIT_TOKEN` with fine-grained `Administration: read` access for this repository.
 - It exits 0 when the baseline is intact, 1 when policy drift is found, and 2 when the audit cannot complete.
 - Unit tests cover a passing policy and representative missing, weakened, and invalid-input cases.
 - A weekly schedule and manual dispatch run the audit with read-only permissions; the regular CI/deployment path is not changed.
 
 ## Constraints and assumptions
 
-- The target repository is public, so the audit intentionally sends no GitHub token. The workflow only needs contents: read for checkout.
+- The target repository is public, but GitHub may omit protected ruleset fields from the default `GITHUB_TOKEN` response. The workflow uses the optional `POLICY_AUDIT_TOKEN` secret for the audit when configured and otherwise falls back to `GITHUB_TOKEN`; the dedicated token is limited to `Administration: read` for this repository.
 - The policy baseline is the current Protect main ruleset on the default branch; changing the expected baseline should be reviewed as a code change.
 - GitHub API, repository visibility, or rate-limit errors must fail visibly rather than being reported as a successful audit.
 
 ## Open items
 
-- On the first scheduled/manual run after merge, confirm the hosted Actions run passes. If it fails because GitHub changes public ruleset API access, do not broaden permissions automatically; first verify whether a narrowly scoped read permission is required.
+- Configure or verify `POLICY_AUDIT_TOKEN` using [the repository audit setup guide](../../REPOSITORY_POLICY_AUDIT.md), then run the workflow manually and confirm it passes. If the API still omits `bypass_actors`, inspect token scope and repository access; do not broaden permissions beyond `Administration: read`.
