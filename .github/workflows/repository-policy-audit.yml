@@ -1,0 +1,28 @@
+name: Repository policy audit
+
+on:
+  schedule:
+    - cron: "17 8 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repository-policy-audit
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: Check default-branch governance
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Audit repository rules
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python3 scripts/check_repo_policy.py
