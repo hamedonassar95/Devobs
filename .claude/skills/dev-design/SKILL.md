@@ -11,7 +11,7 @@ Run the design review phase for configured AI docs features. Before changing doc
 
 1. Run `npx ai-devkit@latest lint` before phase work.
 2. If working on a named feature, run `npx ai-devkit@latest lint --feature <name>`.
-3. Read existing requirements and design docs before changes.
+3. Read existing requirements, design, and testing docs before changes.
 4. Ask until every material architecture, scope, validation, rollout, contradiction, trade-off, or open question is answered, explicitly deferred, or accepted as a named assumption.
 5. Ask one decision at a time, with why it matters, 2-3 viable options when useful, and a recommended answer.
 6. Do not approve or transition past design while material open questions remain.
@@ -22,7 +22,7 @@ Run the design review phase for configured AI docs features. Before changing doc
 
 Use for Phase 3.
 
-1. Run `npx ai-devkit@latest lint --feature <name>` and review the design doc path it validates. If manual path resolution is unavoidable, first resolve `.ai-devkit.json` `paths.docs`, falling back to `docs/ai`.
+1. Run `npx ai-devkit@latest lint --feature <name>` and review the design and testing doc paths it validates. If manual path resolution is unavoidable, first resolve `.ai-devkit.json` `paths.docs`, falling back to `docs/ai`.
 2. Search memory for relevant architecture patterns or past decisions.
 3. Cross-check against the latest matching requirements doc. Verify every goal, user story, and constraint has corresponding design coverage. Flag uncovered requirements.
 4. Review completeness: architecture, components, technology choices, data models, API contracts, design trade-offs, and non-functional requirements.
@@ -32,9 +32,10 @@ Use for Phase 3.
 8. Brainstorm alternatives for key architecture decisions and trade-offs before accepting the first approach.
 9. Prefer subtract-before-add sequencing: delete obsolete paths, consolidate redundant concepts, and narrow scope before adding new structure.
 10. Update the design doc with clarified decisions and chosen options.
-11. Store reusable architecture decisions in memory.
-12. If task tracing is available, record design coverage progress, next step, or blockers per `task`.
-13. Summarize requirements coverage, completeness assessment, updates made, and remaining gaps.
-14. Only after the design review passes, mark `Phase 3: design review complete` in the feature's implementation document. If the requirements review or design changes invalidate later evidence, reset Phase 3 and all later review markers.
+11. Update the testing doc with draft scenarios, test data, and coverage intent derived from the accepted requirements and design. Do not run tests in this phase.
+12. Store reusable architecture decisions in memory.
+13. If task tracing is available, record design coverage progress, next step, or blockers per `task`.
+14. Summarize requirements coverage, design completeness, testing scenarios drafted, updates made, and remaining gaps.
+15. Only after the design review passes, mark `Phase 3: design review complete` in the feature's implementation document. If the requirements review or design changes invalidate later evidence, reset Phase 3 and all later review markers.
 
-Next: `dev-implementation`. If requirements gaps are found, return to `dev-requirements`. If design is fundamentally wrong, revise design and re-review.
+Next: `dev-planning`. If requirements gaps are found, return to `dev-requirements`. If design is fundamentally wrong, revise design and re-review.

@@ -49,10 +49,19 @@ Use when continuing an existing feature.
 
 1. Check current branch with `git branch --show-current`.
 2. Check available worktrees with `git worktree list`.
-3. Prefer `<project-root>/.worktrees/feature-<name>` when it exists.
-4. Otherwise use branch `feature-<name>` in the current repository.
-5. Include the selected target in the plan and wait for approval before switching.
-6. After approval, run future phase commands in the selected context.
+3. Resolve the worktree registered to branch `feature-<name>` from `git worktree list --porcelain`; use that exact path even when it is outside `<project-root>/.worktrees/feature-<name>`. For example:
+   ```bash
+   FEATURE_NAME="your-feature-name"
+   TARGET_BRANCH="feature-${FEATURE_NAME}"
+   TARGET_WORKTREE="$(git worktree list --porcelain | awk -v branch="refs/heads/$TARGET_BRANCH" '
+     /^worktree / { path = substr($0, 10) }
+     /^branch / && $2 == branch { print path; exit }
+   ')"
+   ```
+4. If the branch exists but is not checked out in any worktree, attach it at `<project-root>/.worktrees/feature-<name>`; stop if that path already exists but is not a registered worktree.
+5. If the branch does not exist, stop and use Start Feature Workspace instead of silently working in the current checkout.
+6. Include the resolved target in the plan and wait for approval before switching contexts.
+7. After approval, run future phase commands in the verified target context.
 
 ## Dependency Bootstrap
 

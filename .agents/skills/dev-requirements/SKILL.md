@@ -28,12 +28,10 @@ Use for Phase 1 or `/new-requirement`.
 3. Brainstorm alternatives to confirm this is the right thing to build. Present 2-3 approaches with one-line trade-offs and a recommendation.
 4. Store reusable answers after clarification.
 5. Use `dev-worktree` to create or resume the active feature workspace with normalized `<name>`.
-6. Initialize docs with `npx ai-devkit@latest docs init-feature <name>` from the active worktree/repository and fill the returned paths. Treat those returned paths as authoritative because `paths.docs` may customize the docs directory.
-7. Fill requirements doc: problem statement, goals/non-goals, user stories, success criteria, constraints, open questions.
-8. Fill design doc: architecture with mermaid diagram, data models, APIs, components, design decisions, security/performance.
-9. Fill testing doc: derive scenarios from requirements success criteria and design components/edge cases as `- [ ]` checkboxes, plus mocks/fixtures and coverage target.
-10. If task tracing is available, record draft progress and next review step per `task`.
-11. Use `dev-planning` to create the initial task plan from the requirements, design, and testing docs.
+6. Initialize docs with `npx ai-devkit@latest docs init-feature <name>` from the active worktree/repository. Use the returned paths when filling the requirements document because `paths.docs` may customize the docs directory.
+7. Fill only the requirements doc: problem statement, goals/non-goals, user stories, success criteria, constraints, and open questions. Leave later-phase documents at their templates until their phase runs.
+8. Do not create an implementation plan during Phase 1. Phase 4 must plan from requirements and design after both reviews pass.
+9. If task tracing is available, record draft progress and the next review step per `task`.
 
 Next: `dev-requirements` review, then `dev-design`.
 

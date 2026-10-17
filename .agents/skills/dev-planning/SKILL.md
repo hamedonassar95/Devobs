@@ -17,17 +17,19 @@ Run planning creation and reconciliation for configured AI docs features. Before
 
 ## Create Initial Plan
 
-Use for Phase 4 after requirements, design, and initial testing docs exist.
+Use for Phase 4 after requirements and design reviews have passed, and the design phase has drafted the testing scenarios.
 
 1. Run `npx ai-devkit@latest lint --feature <name>` and identify the planning doc path it validates. If `docs init-feature` just ran, use the returned planning path as authoritative.
-2. Read requirements, design, and testing docs for the feature.
-3. Convert goals, user stories, design components, API/data changes, migration needs, and testing scenarios into implementation tasks.
-4. Group tasks by milestone or logical sequence.
-5. For each task, include outcome, dependencies, validation evidence, and related testing scenarios.
-6. Verify every test-plan scenario has at least one implementation task.
-7. Add risks, blockers, sequencing notes, and likely follow-up checks.
-8. Update the planning doc with the initial ordered task list.
-9. If task tracing is available, record plan progress and next implementation step per `task`.
+2. Confirm the implementation doc records Phases 2 and 3 as complete. If either review is incomplete, return to that phase instead of planning.
+3. Read requirements, design, testing, planning, and implementation docs for the feature.
+4. Convert goals, user stories, design components, API/data changes, migration needs, and testing scenarios into implementation tasks.
+5. Group tasks by milestone or logical sequence.
+6. For each task, include outcome, dependencies, validation evidence, and related testing scenarios.
+7. Verify every test-plan scenario has at least one implementation task.
+8. Add risks, blockers, sequencing notes, and likely follow-up checks.
+9. Update the planning doc with the initial ordered task list.
+10. Only after the plan is complete, mark `Phase 4: initial plan created after reviews` in the implementation document.
+11. If task tracing is available, record plan progress and next implementation step per `task`.
 
 Next: `dev-implementation`.
 

@@ -11,6 +11,27 @@ fi
 
 FEATURE="$1"
 AI_DEVKIT_BIN="${AI_DEVKIT_BIN:-npx ai-devkit@latest}"
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+DOCS_ROOT="$(node -e '
+const fs = require("node:fs");
+const file = process.argv[1];
+if (!fs.existsSync(file)) {
+  process.stdout.write("docs/ai");
+} else {
+  try {
+    const config = JSON.parse(fs.readFileSync(file, "utf8"));
+    const docs = config.paths && config.paths.docs;
+    if (typeof docs !== "string" || !docs.trim()) throw new Error("paths.docs must be a non-empty string");
+    process.stdout.write(docs.trim());
+  } catch (error) {
+    console.error(`Error: cannot read paths.docs from ${file}: ${error.message}`);
+    process.exit(1);
+  }
+}
+' "$REPO_ROOT/.ai-devkit.json")"
+DOCS_ROOT="${DOCS_ROOT#./}"
+DOCS_ROOT="${DOCS_ROOT%/}"
+[[ "$DOCS_ROOT" == "." ]] && DOCS_ROOT=""
 
 if [[ ! "$FEATURE" =~ ^[a-zA-Z0-9_-]+$ ]]; then
   echo "Error: feature name must contain only letters, digits, hyphens, and underscores"
@@ -23,15 +44,14 @@ LINT_OUTPUT="$($AI_DEVKIT_BIN lint --feature "$FEATURE" 2>/dev/null || true)"
 
 lint_doc() {
   local phase="$1"
-  awk -v phase="$phase" -v feature="$FEATURE" '
+  awk -v phase="$phase" -v feature="$FEATURE" -v root="$DOCS_ROOT" '
     /^Feature: / { in_feature = ($0 == "Feature: " feature); next }
     /^Git:/ { in_feature = 0 }
     in_feature {
-      line = $0
-      sub(/^[[:space:]]*[^[:space:]]+[[:space:]]+/, "", line)
-      count = split(line, fields, /[[:space:]]+/)
-      path = fields[count]
-      if (path ~ ("/" phase "/") && path ~ /\.md$/) {
+      path = $0
+      sub(/^[[:space:]]*[^[:space:]]+[[:space:]]+/, "", path)
+      prefix = (root == "" ? "" : root "/") phase "/"
+      if (index(path, prefix) == 1 && path ~ /\.md$/) {
         print path
         exit
       }
@@ -78,9 +98,9 @@ phase_complete() {
   grep -Eiq "^[[:space:]]*-[[:space:]]+\\[[xX]\\][[:space:]]+Phase[[:space:]]+$phase([[:space:]:.-]|$)" "$IMP"
 }
 
-# Infer phase. Required documents gate forward progress; phase completion after
-# implementation is persisted in the implementation document so resumes do not
-# keep returning to Phase 7.
+# Infer phase. Required documents and the post-review planning gate block
+# forward progress until their completion markers are recorded. Later phase
+# completion is persisted so resumes do not repeat completed work.
 echo ""
 echo "--- Suggested phase ---"
 if ! exists "$REQ"; then
@@ -101,6 +121,8 @@ elif ! exists "$TST"; then
   echo "No phase suggested: required testing document is missing: $TST"
   echo "Restore it from the configured phase template before continuing."
   exit 1
+elif ! phase_complete 4; then
+  echo "Phase 4 (Create Initial Plan) — create the plan after requirements and design reviews"
 elif ! exists "$PLN"; then
   echo "Phase 4 (Create Initial Plan) — design exists but no planning doc"
 elif [[ ${TOTAL:-0} -eq 0 ]]; then

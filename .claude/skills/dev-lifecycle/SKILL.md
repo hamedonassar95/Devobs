@@ -62,7 +62,7 @@ Before executing any phase:
 | 1. New Requirement | `dev-requirements` | User wants to add a feature or start `/new-requirement` |
 | 2. Review Requirements | `dev-requirements` | Requirements doc needs validation |
 | 3. Review Design | `dev-design` | Design doc needs validation against requirements |
-| 4. Create Initial Plan | `dev-planning` | Requirements, design, and testing docs are ready for task breakdown |
+| 4. Create Initial Plan | `dev-planning` | Requirements and design reviews are complete, with draft testing scenarios ready |
 | 5. Execute Plan | `dev-implementation` | Ready to implement tasks from planning doc |
 | 6. Update Planning | `dev-planning` | Auto-trigger after completing any implementation task |
 | 7. Check Implementation | `dev-implementation` | Verify code matches design and docs |
@@ -82,7 +82,7 @@ If the user wants to continue work on an existing feature:
    - Run `<skill-dir>/scripts/check-status.sh <feature-name>`.
    - Use the suggested phase when proposing the execution plan.
    - If the detector reports a required testing or implementation document is missing, restore that document from the configured phase template before continuing; do not advance past the missing prerequisite.
-   - After Phase 2 or 3 review passes, record its checkbox in the feature's implementation document. Do the same for Phases 7, 8, and 9 after each phase passes verification. Reset that phase and later phases to unchecked when new changes invalidate their evidence.
+   - After Phase 2 or 3 review passes, record its checkbox in the feature's implementation document. After Phase 4 creates the initial plan, record its checkbox there too. Do the same for Phases 7, 8, and 9 after each phase passes verification. Reset that phase and later phases to unchecked when new changes invalidate their evidence.
    - If the lifecycle checklist is absent, resolve `.ai-devkit.json` `paths.docs` (falling back to `docs/ai`) and copy `<docs-dir>/implementation/README.md` with all review phases unchecked.
 
 ## Backward Transitions
