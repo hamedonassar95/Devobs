@@ -20,4 +20,8 @@
 - Release & rollback runbook: [docs/RELEASE_ROLLBACK.md](docs/RELEASE_ROLLBACK.md)
 - Stable baseline: [v1.0.0](https://github.com/hamedonassar95/Devobs/releases/tag/v1.0.0)
 
+## سير العمل بمساعدة AI
+
+إعداد AI DevKit للمساهمين ومراحل العمل موثق في [دليل AI DevKit](docs/AI_DEVKIT.md). هذا الإعداد منفصل عن تشغيل CI/CD؛ مركز وحدات الأتمتة القابلة لإعادة الاستخدام موجود في [مركز الأتمتة](docs/AUTOMATION_HUB.md).
+
 <!-- Security and CI protections verified. -->
