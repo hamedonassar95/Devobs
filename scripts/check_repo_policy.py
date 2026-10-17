@@ -160,7 +160,9 @@ def audit_repository(
         )
     if "bypass_actors" not in ruleset:
         raise PolicyCheckError(
-            f"Ruleset `{ruleset_name}` response did not include bypass actors."
+            f"Ruleset `{ruleset_name}` response did not include bypass actors. "
+            "Set the POLICY_AUDIT_TOKEN Actions secret to a fine-grained token "
+            "with Administration: read access to this repository."
         )
     bypass_actors = ruleset["bypass_actors"]
     # GitHub Actions has returned JSON null for an empty bypass list, while the

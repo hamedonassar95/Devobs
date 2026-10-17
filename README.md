@@ -11,6 +11,7 @@
 ## التشغيل والتوثيق
 
 - CI documentation: [docs/CI.md](docs/CI.md)
+- Repository policy audit setup: [docs/REPOSITORY_POLICY_AUDIT.md](docs/REPOSITORY_POLICY_AUDIT.md)
 - GitHub Pages DevOps roadmap: [docs/GITHUB_PAGES_DEVOPS_ROADMAP.md](docs/GITHUB_PAGES_DEVOPS_ROADMAP.md)
 - AI model strategy: [docs/AI_MODEL_STRATEGY.md](docs/AI_MODEL_STRATEGY.md)
 - Optional local coding-agent tool review: [docs/FREE_CLAUDE_CODE_EVALUATION.md](docs/FREE_CLAUDE_CODE_EVALUATION.md)

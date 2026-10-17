@@ -109,7 +109,9 @@ class RepositoryPolicyAuditTests(unittest.TestCase):
         assert isinstance(ruleset, dict)
         del ruleset["bypass_actors"]
 
-        with self.assertRaisesRegex(PolicyCheckError, "did not include bypass actors"):
+        with self.assertRaisesRegex(
+            PolicyCheckError, "POLICY_AUDIT_TOKEN.*Administration: read"
+        ):
             audit_repository("hamedonassar95/Devobs", api_get=fixtures.__getitem__)
 
     def test_rejects_malformed_bypass_actors_field(self) -> None:
