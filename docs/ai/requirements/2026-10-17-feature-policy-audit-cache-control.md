@@ -39,4 +39,4 @@ Non-goals: changing repository rules, adding credentials, changing ruleset seman
 
 ## Questions & Open Items
 
-No product or architecture questions remain. Hosted verification of this cache-revalidation change is required after it merges.
+No product or architecture questions remain. Hosted verification passed after merge in [run 39053647920](https://github.com/hamedonassar95/Devobs/actions/runs/39053647920).

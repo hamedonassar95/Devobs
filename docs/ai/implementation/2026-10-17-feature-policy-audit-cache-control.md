@@ -37,7 +37,7 @@ The new request-header assertion failed before the production change (`None != '
 - Action pin check: `python3 scripts/check_action_pins.py` — 31 workflow/template files passed.
 - Site contract and HTTP smoke checks: `python3 scripts/check_site.py` — passed.
 - AI DevKit feature lint: 16 checks passed.
-- Live read-only policy audit on `main`: run [39051828800](https://github.com/hamedonassar95/Devobs/actions/runs/39051828800) passed after token setup; hosted verification of this follow-up remains pending.
+- Live read-only policy audit on `main`: run [39051828800](https://github.com/hamedonassar95/Devobs/actions/runs/39051828800) passed after token setup; post-merge run [39053647920](https://github.com/hamedonassar95/Devobs/actions/runs/39053647920) passed with cache revalidation enabled.
 
 ## Security and Scope
 
