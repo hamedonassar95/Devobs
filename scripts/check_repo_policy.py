@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Report drift from the repository's required default-branch ruleset.
 
-This check is intentionally read-only and uses only the public GitHub REST API.
-It never creates, updates, or deletes repository settings.
+This check is intentionally read-only and uses the public GitHub REST API. In
+GitHub Actions it uses the workflow's least-privilege token because some
+ruleset fields are omitted from anonymous responses. It never creates, updates,
+or deletes repository settings.
 """
 
 from __future__ import annotations
@@ -29,14 +31,18 @@ class PolicyCheckError(RuntimeError):
 
 
 def get_json(path: str) -> Any:
-    """Fetch one public GitHub REST resource without sending credentials."""
+    """Fetch a GitHub REST resource, using a supplied read-only token if present."""
+    token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "devobs-repository-policy-audit",
+        "X-GitHub-Api-Version": API_VERSION,
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
     request = urllib.request.Request(
         f"{API_URL}/{path.lstrip('/')}",
-        headers={
-            "Accept": "application/vnd.github+json",
-            "User-Agent": "devobs-repository-policy-audit",
-            "X-GitHub-Api-Version": API_VERSION,
-        },
+        headers=headers,
     )
     try:
         with urllib.request.urlopen(  # nosec B310 - fixed HTTPS GitHub API host; no credentials are sent.
