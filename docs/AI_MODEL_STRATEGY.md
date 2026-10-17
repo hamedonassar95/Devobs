@@ -37,6 +37,14 @@
   عند غياب المفتاح أو فشل المراجعة. تفاصيل الصلاحيات والإعداد في
   [`docs/AI_CODE_REVIEW.md`](AI_CODE_REVIEW.md).
 
+يوجد أيضًا مساعد Claude Code عند الطلب عبر
+`.github/workflows/claude-code-assistant.yml`. يقبل طلبات `@claude` من مالك
+المستودع أو أعضائه أو المتعاونين، ويستثني fork PRs. يتطلب السر
+`ANTHROPIC_API_KEY` ويستخدم API مدفوعة بحد أقصى 8 أدوار لكل تشغيل. يستطيع
+اقتراح تغييرات ملفات والتعليق، لذلك يجب أن تمر التغييرات عبر CI والمراجعة
+البشرية. لا يملك صلاحيات Actions أو Pages أو OIDC. التفاصيل في
+[`docs/CLAUDE_CODE_ASSISTANT.md`](CLAUDE_CODE_ASSISTANT.md).
+
 **حالة التشغيل الحالية (17 أكتوبر 2026):** CI وCodeQL نجحا على آخر نسخة من
 `main`، لكن مزودي الذكاء الاصطناعي لم يجتازوا فحص الإعداد. فحص Copilot
 [39029628419](https://github.com/hamedonassar95/Devobs/actions/runs/39029628419)
