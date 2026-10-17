@@ -16,6 +16,9 @@
   "paths": {
     "docs": "docs/ai"
   },
+  "registries": {
+    "codeaholicguy/ai-devkit": "https://github.com/codeaholicguy/ai-devkit.git"
+  },
   "memory": {
     "semantic": false
   },
