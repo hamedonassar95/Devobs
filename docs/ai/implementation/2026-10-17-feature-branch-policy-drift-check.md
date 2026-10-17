@@ -38,3 +38,9 @@ The command exits 0 for an intact baseline, 1 for policy drift, and 2 when the a
 - The script contains only fixed GitHub REST paths and performs GET requests; it has no code path for repository-setting mutation.
 - The weekly/manual workflow is not a required PR check and cannot block a Pages deployment.
 - There are no new dependencies, cloud resources, LLM usage, or metered runtime services.
+
+## Hosted response follow-up — 17 October 2026
+
+The hosted audit failed on runs [39041619309](https://github.com/hamedonassar95/Devobs/actions/runs/39041619309) and [39043609586](https://github.com/hamedonassar95/Devobs/actions/runs/39043609586) because the runner received `bypass_actors: null` for the empty list. The local public API returned `[]` during the same investigation. The follow-up treats `null` and `[]` as an empty actor list, while a missing field or a value of another type raises `PolicyCheckError` and exits inconclusive (2). Configured actors still produce a drift finding (1).
+
+Regression coverage now exercises the null, missing, malformed, and nonempty cases. After this reviewed fix merges, manually rerun the hosted workflow and record its result here.

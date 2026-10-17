@@ -152,10 +152,20 @@ def audit_repository(
         findings.append(
             f"Ruleset `{ruleset_name}` does not include the default branch `{default_branch}`."
         )
-    bypass_actors = ruleset.get("bypass_actors")
+    if "bypass_actors" not in ruleset:
+        raise PolicyCheckError(
+            f"Ruleset `{ruleset_name}` response did not include bypass actors."
+        )
+    bypass_actors = ruleset["bypass_actors"]
+    # GitHub Actions has returned JSON null for an empty bypass list, while the
+    # same public endpoint returns []; both representations mean no actors.
+    if bypass_actors is None:
+        bypass_actors = []
     if not isinstance(bypass_actors, list):
-        findings.append(f"Ruleset `{ruleset_name}` has an invalid bypass-actor list.")
-    elif bypass_actors:
+        raise PolicyCheckError(
+            f"Ruleset `{ruleset_name}` response contained an invalid bypass-actor list."
+        )
+    if bypass_actors:
         findings.append(f"Ruleset `{ruleset_name}` has one or more bypass actors configured.")
 
     rules = _rule_map(ruleset)

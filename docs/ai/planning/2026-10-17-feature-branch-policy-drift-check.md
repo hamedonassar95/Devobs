@@ -12,7 +12,8 @@ description: Reviewed implementation plan for repository governance auditing
 - [x] Implement the API audit and deterministic unit tests.
 - [x] Add weekly/manual workflow triggers and least permissions.
 - [x] Document scope, recovery steps, and verification evidence.
-- [ ] Merge after human review; then inspect the first hosted audit run.
+- [x] Merge the read-only audit implementation to `main`.
+- [ ] Fix the hosted API response case where an empty bypass list is returned as `null`, then confirm a passing hosted audit.
 
 ## Task breakdown
 
@@ -29,12 +30,14 @@ description: Reviewed implementation plan for repository governance auditing
 - [x] Add a scheduled/manual workflow with contents: read, no token passed to the audit, and pinned checkout.
 - [x] Update the DevOps roadmap and automation hub.
 - [x] Run targeted tests, repository checks, and AI DevKit lifecycle lint.
-- [ ] Review the pull request and confirm the hosted scheduled/manual run after merge.
+- [x] Review and merge the initial implementation; inspect the first hosted run.
+- [ ] Treat `bypass_actors: null` as empty while failing closed for missing or malformed values; add regression tests and rerun the hosted audit.
 
 ## Dependencies and risks
 
 - GitHub Actions and public GitHub REST API must be reachable on the runner.
 - Public unauthenticated API access is rate-limited; this weekly audit performs only four GET requests.
+- The hosted run can serialize an empty `bypass_actors` field as `null`; the audit must accept that documented empty representation without accepting missing or malformed fields.
 - API shape or repository visibility changes must fail closed and be fixed through reviewed code changes.
 - This feature checks branch governance; it does not provision infrastructure or add AI model behavior.
 

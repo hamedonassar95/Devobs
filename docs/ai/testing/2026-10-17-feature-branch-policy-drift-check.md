@@ -17,6 +17,7 @@ Coverage includes:
 - Current baseline passes with no findings.
 - Unprotected default branch and absent validate status check are reported.
 - Disabled ruleset and configured bypass actor are reported.
+- A null or empty bypass-actor list passes as no configured bypass; missing and wrongly typed fields are inconclusive errors.
 - Missing ruleset is reported without trying to fetch detail.
 - Invalid owner/name input is rejected.
 
@@ -24,7 +25,7 @@ The API client uses an injected fixture in unit tests, so tests are deterministi
 
 ## Live verification
 
-The first hosted run is an operational check that the public GitHub API still exposes these ruleset endpoints to the runner. After merge, use Actions → Repository policy audit → Run workflow, then confirm a passing run. Subsequent runs are scheduled weekly. A successful local fixture test does not replace this live API check.
+The first hosted run (run [39041619309](https://github.com/hamedonassar95/Devobs/actions/runs/39041619309)) exposed that the runner received `bypass_actors: null` for an empty list. The follow-up run on current `main` ([39043609586](https://github.com/hamedonassar95/Devobs/actions/runs/39043609586)) reproduced it. The local public API returned `[]` during diagnosis, so the test now covers both valid empty representations and invalid/missing data. After this fix merges, use Actions → Repository policy audit → Run workflow and confirm a passing hosted run. Subsequent runs are scheduled weekly. Local fixture tests and a local API check do not replace the post-merge hosted check.
 
 ## Failure-mode review
 
