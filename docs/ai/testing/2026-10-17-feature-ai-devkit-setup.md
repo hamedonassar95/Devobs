@@ -11,10 +11,12 @@ description: Define testing approach, test cases, and quality assurance
 - `npx --yes ai-devkit@0.70.1 skill list`: التأكد من ظهور المهارات المحلية.
 - `npx --yes ai-devkit@0.70.1 lint`: فحص بنية إعداد AI DevKit ووثائقه.
 - `npx --yes ai-devkit@0.70.1 lint --feature ai-devkit-setup`: فحص وثائق المراحل السبع للميزة.
+- `bash -n .agents/skills/dev-lifecycle/scripts/check-status.sh .claude/skills/dev-lifecycle/scripts/check-status.sh`: التحقق من صياغة سكربتات الاستئناف.
+- شُغّل كاشف الحالة بنسختي Codex وClaude للميزة `ai-devkit-setup`: أعاد مسارات الوثائق، وأظهر أن المهام `5/5` مكتملة، واقترح المرحلة 9 للمراجعة.
 - `git diff --check`: فحص المسافات وأخطاء التنسيق في فرق Git.
 - تحقق أمر تتبع المهام الاختياري `npx --yes ai-devkit@0.70.1 task list --name ai-devkit-setup --json` وأعاد `unknown command 'task'`؛ لذلك لا يُعتمد على تسجيل المهام الدائم.
 
-هذا التغيير إعداد ووثائق فقط؛ لا يتضمن تعديل منطق التطبيق أو سير عمل النشر، لذلك لم تُشغّل اختبارات التطبيق.
+لا يتضمن التغيير منطقًا للتطبيق أو نشرًا؛ أُضيف سكربت محلي لاستئناف دورة التطوير. فحوص CI للمستودع تعمل تلقائيًا عند تحديث طلب الدمج.
 
 ## مراجعة يدوية
 

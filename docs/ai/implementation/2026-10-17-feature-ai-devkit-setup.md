@@ -17,6 +17,7 @@ description: Technical implementation notes, patterns, and code guidelines
 - `.ai-devkit.json`: البيئات، المراحل، ومجموعة المهارات المختارة؛ وضع النسخ مفعّل لكل مهارة.
 - `.agents/skills/`: نسخ المهارات التي يقرأها Codex.
 - `.claude/skills/`: نسخ المهارات التي يقرأها Claude Code.
+- `dev-lifecycle/scripts/check-status.sh`: يقرأ مخرجات AI DevKit لتحديد مستندات الميزة، ويتحقق من اكتمال متطلبات المراحل، ويحفظ تقدم المراحل 7–9 في مستند التنفيذ.
 - `licenses/AI-DevKit-Apache-2.0.txt`: نص الرخصة للمهارات المنسوخة.
 - `THIRD_PARTY_NOTICES.md`: مصدر المهارات وإشعار نسبتها.
 - `docs/ai/<phase>/`: توثيق الميزة لكل مرحلة من دورة الحياة.

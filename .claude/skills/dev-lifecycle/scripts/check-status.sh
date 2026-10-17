@@ -23,13 +23,18 @@ LINT_OUTPUT="$($AI_DEVKIT_BIN lint --feature "$FEATURE" 2>/dev/null || true)"
 
 lint_doc() {
   local phase="$1"
-  awk -v phase="$phase" '
-    /^=== Feature:/ { in_feature = 1; next }
-    /^=== Git:/ { in_feature = 0 }
-    in_feature && $0 ~ "\\]  .*/" phase "/" {
-      sub(/^[^]]*][[:space:]]+/, "", $0)
-      print
-      exit
+  awk -v phase="$phase" -v feature="$FEATURE" '
+    /^Feature: / { in_feature = ($0 == "Feature: " feature); next }
+    /^Git:/ { in_feature = 0 }
+    in_feature {
+      line = $0
+      sub(/^[[:space:]]*[^[:space:]]+[[:space:]]+/, "", line)
+      count = split(line, fields, /[[:space:]]+/)
+      path = fields[count]
+      if (path ~ ("/" phase "/") && path ~ /\.md$/) {
+        print path
+        exit
+      }
     }
   ' <<< "$LINT_OUTPUT"
 }
