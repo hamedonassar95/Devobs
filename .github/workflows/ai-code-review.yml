@@ -63,6 +63,32 @@ jobs:
             "$PR_BASE_REF" \
             "+refs/pull/$PR_NUMBER/head"
 
+      - name: Remove repository-controlled Codex instructions
+        if: steps.credential.outputs.enabled == 'true'
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os
+          import subprocess
+          from pathlib import Path
+
+          root = Path.cwd()
+          tracked = subprocess.check_output(["git", "ls-files", "-z"]).split(b"\0")
+          instruction_names = {"AGENTS.md", "AGENTS.override.md"}
+          removed = 0
+          for raw_path in tracked:
+              if not raw_path:
+                  continue
+              relative_path = Path(os.fsdecode(raw_path))
+              if relative_path.name not in instruction_names:
+                  continue
+              instruction_file = root / relative_path
+              if instruction_file.is_file() or instruction_file.is_symlink():
+                  instruction_file.unlink()
+                  removed += 1
+          print(f"Removed {removed} repository instruction file(s) from the temporary checkout.")
+          PY
+
       - name: Review the pull request with Codex
         id: codex
         if: steps.credential.outputs.enabled == 'true'
