@@ -43,6 +43,7 @@
 | وحدة النشر القابلة لإعادة الاستخدام | [Deploy Pages](https://github.com/hamedonassar95/Devobs/actions/workflows/deploy-pages.yml) | يستدعيها CI بعد نجاح جميع الفحوص؛ لا تشغلها منفردة. |
 | فحص صفحة استعادة Pages | [Rollback target quality check](https://github.com/hamedonassar95/Devobs/blob/main/.github/workflows/rollback-quality-check.yml) | يفحص HTML من SHA السابق كبيانات باستخدام validator موثوق قبل أن يسمح مسار النشر باستعادته. |
 | وحدة فحص الموقع | [Deployment Health Check](https://github.com/hamedonassar95/Devobs/actions/workflows/deployment-health-check.yml) | يستدعيها النشر تلقائيًا، وتبقى متاحة أيضًا للفحص اليدوي. |
+| تدقيق انحراف سياسة الفرع | [Repository policy audit](https://github.com/hamedonassar95/Devobs/actions/workflows/repository-policy-audit.yml) | فحص أسبوعي ويدوي للقراءة فقط يراجع حماية الفرع الافتراضي وruleset و`validate` وقواعد CodeQL؛ يرصد الانحراف ولا يغيّر إعدادات GitHub. |
 | فرز فشل CI أو فحص يدوي | [Incident Response](https://github.com/hamedonassar95/Devobs/actions/workflows/incident-response.yml) | يتابع فشل CI وفحص الصحة اليدوي ويجمع الأدلة؛ لا يغيّر الشيفرة ولا ينشرها. |
 | تحقيق AI في حادثة | [Incident Investigator — Copilot](https://github.com/hamedonassar95/Devobs/actions/workflows/incident-investigator.lock.yml) | المسار الأساسي للتحقيق. استخدم [Claude](https://github.com/hamedonassar95/Devobs/actions/workflows/incident-investigator-claude.lock.yml) أو [Vertex](https://github.com/hamedonassar95/Devobs/actions/workflows/incident-investigator-vertex.lock.yml) يدويًا فقط بعد فشل المسار الأساسي والتأكد من عدم وجود تقرير للحادثة. |
 | فحص بيانات مزوّدي AI | [AI Provider Preflight](https://github.com/hamedonassar95/Devobs/actions/workflows/ai-provider-preflight.yml) | تشغيل يدوي للتحقق من الإعداد والمصادقة؛ لا يرسل طلبًا إلى نموذج AI. |
@@ -68,6 +69,7 @@
 3. **إعداد AI:** شغّل Preflight أولًا. نجاحه يثبت المصادقة والإعداد فقط، ولا يثبت جودة نتيجة النموذج أو توفر الحصة.
 4. **مشروع آخر:** تبقى شيفرة المشروع ونشره في مستودعه، ويمكنه استدعاء وحدة CI المناسبة من Devobs عبر `workflow_call`. يحدد المستودع المستهلك إعداداته واختباراته، ويثبت استدعاءه على commit SHA كامل. لا تمرر الأسرار إلى وحدات CI المشتركة؛ هذه الوحدات لا تحتاجها. قبل تطوير موقع الخدمات، حدّد مستودعًا واحدًا كمصدر حقيقة؛ حاليًا صفحة Pages التجريبية موجودة في الملف `index.html` في جذر `Devobs`، بينما `al-dala-mobile` لا يحتوي إلا على README في المستوى الرئيسي.
 5. **السكربتات الخارجية:** ارجع إلى النسخة الأصلية عند الحاجة؛ لا تنشئ نسخًا متفرقة منها داخل أكثر من مستودع.
+6. **سياسة المستودع:** راجع نتيجة Repository policy audit الأسبوعية؛ أصلح أي انحراف يدويًا في GitHub Settings بعد المراجعة، ولا تحوّل هذا الفحص إلى كاتب آلي للإعدادات.
 
 ## اعتماد الوحدات في مشروع آخر
 
