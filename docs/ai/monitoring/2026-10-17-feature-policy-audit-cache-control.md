@@ -8,7 +8,7 @@ description: Evidence and operational monitoring for the hosted policy-audit reg
 
 ## Observed Failure
 
-The first hosted run after PR #164, run [39041619309](https://github.com/hamedonassar95/Devobs/actions/runs/39041619309), failed twice because the ruleset response did not contain a usable `bypass_actors` list. The API advertised a 60-second cache lifetime, and the ruleset detail also requires read-only authentication. A later hosted run [39051828800](https://github.com/hamedonassar95/Devobs/actions/runs/39051828800) passed after `POLICY_AUDIT_TOKEN` was configured. This follow-up adds `Cache-Control: no-cache`; re-run the hosted audit after merge to verify the combined setup.
+The first hosted run after PR #164, run [39041619309](https://github.com/hamedonassar95/Devobs/actions/runs/39041619309), failed twice because the ruleset response did not contain a usable `bypass_actors` list. The API advertised a 60-second cache lifetime, and the ruleset detail also requires read-only authentication. Hosted run [39051828800](https://github.com/hamedonassar95/Devobs/actions/runs/39051828800) passed after `POLICY_AUDIT_TOKEN` was configured. After PR #165 merged cache revalidation, [run 39053647920](https://github.com/hamedonassar95/Devobs/actions/runs/39053647920) passed on `main`.
 
 ## Operational Check
 

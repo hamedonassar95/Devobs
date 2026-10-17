@@ -10,7 +10,7 @@ description: Implementation tasks for the stale ruleset response correction
 
 - [x] Reproduce and specify the missing cache revalidation behavior.
 - [x] Apply the request-level cache directive and verify it locally.
-- [ ] Review and update PR #165 with the latest `main` authentication setup; verify a hosted run after merge.
+- [x] Review and update PR #165 with the latest `main` authentication setup; verify the hosted audit after merge.
 
 ## Task Breakdown
 
@@ -22,8 +22,8 @@ description: Implementation tasks for the stale ruleset response correction
 ### Phase 2: Verification and release
 
 - [x] Run focused and full Python tests, the security scan, workflow pin check, and AI DevKit lint.
-- [ ] Review the exact rebased PR #165 diff and report the CI result.
-- [ ] After merge, run the hosted audit and record its result.
+- [x] Review the exact rebased PR #165 diff and confirm all required checks pass.
+- [x] After merge, run the hosted audit and record the passing result [39053647920](https://github.com/hamedonassar95/Devobs/actions/runs/39053647920).
 
 ## Dependencies
 

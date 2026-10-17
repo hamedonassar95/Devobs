@@ -20,7 +20,7 @@ Cover the request boundary and preserve the existing policy-audit behavior. No e
 
 ## Integration Tests
 
-- [ ] Run the manual `Repository policy audit` workflow on `main` after this fix merges; confirm it reports a pass against the live ruleset.
+- [x] Run the manual `Repository policy audit` workflow on `main` after this fix merges; [run 39053647920](https://github.com/hamedonassar95/Devobs/actions/runs/39053647920) passed against the live ruleset.
 
 ## Test Data
 
@@ -33,4 +33,4 @@ Use the existing mocked `urllib.request.urlopen` boundary and deterministic rule
 - The new production change is one request header; the regression assertion covers its observable contract.
 - Fresh local result after rebasing: 14 focused policy-audit tests and all 162 Python tests passed.
 - Bandit reported no findings; the 31-file action-pin check, site contract/HTTP smoke checks, and 16 AI DevKit feature-lint checks passed.
-- Hosted audit run [39051828800](https://github.com/hamedonassar95/Devobs/actions/runs/39051828800) passed on `main` after configuring the existing read-only token. Hosted confirmation of this cache-revalidation change remains pending.
+- Hosted audit run [39051828800](https://github.com/hamedonassar95/Devobs/actions/runs/39051828800) passed after configuring the existing read-only token; post-merge run [39053647920](https://github.com/hamedonassar95/Devobs/actions/runs/39053647920) passed with this cache-revalidation change.
