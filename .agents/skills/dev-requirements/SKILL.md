@@ -50,5 +50,6 @@ Use for Phase 2.
 9. If task tracing is available, record validation progress, next step, or blockers per `task`.
 10. Summarize what was validated, what was updated, and remaining open items.
 11. Only after the review passes, mark `Phase 2: requirements review complete` in the feature's implementation document. If fundamental gaps remain, leave it unchecked and reset Phase 3 and later review markers.
+12. If accepted requirement changes materially alter scope, success criteria, constraints, or behavior, reset Phase 3 and every later marker even when the review closed all gaps. Keep downstream markers only when their existing evidence still covers the accepted requirements.
 
 Next: `dev-design`. If fundamental gaps remain unresolvable, return to New Requirement.

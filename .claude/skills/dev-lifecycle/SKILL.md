@@ -83,7 +83,8 @@ If the user wants to continue work on an existing feature:
    - Use the suggested phase when proposing the execution plan.
    - If the detector reports a required testing or implementation document is missing, restore that document from the configured phase template before continuing; do not advance past the missing prerequisite.
    - After Phase 2 or 3 review passes, record its checkbox in the feature's implementation document. After Phase 4 creates the initial plan, record its checkbox there too. Do the same for Phases 7, 8, and 9 after each phase passes verification. Reset that phase and later phases to unchecked when new changes invalidate their evidence.
-   - If the lifecycle checklist is absent, resolve `.ai-devkit.json` `paths.docs` (falling back to `docs/ai`) and copy `<docs-dir>/implementation/README.md` with all review phases unchecked.
+   - If the implementation document is missing, create it from `<docs-dir>/implementation/README.md` with every lifecycle phase unchecked.
+   - If the implementation document exists but lacks `## Lifecycle progress`, preserve its existing notes and insert only the unchecked lifecycle checklist from that template immediately after YAML front matter, or at the top when there is no front matter. Never replace an existing implementation document with the generic template.
 
 ## Backward Transitions
 

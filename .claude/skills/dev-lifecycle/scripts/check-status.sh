@@ -12,6 +12,7 @@ fi
 FEATURE="$1"
 AI_DEVKIT_BIN="${AI_DEVKIT_BIN:-npx ai-devkit@latest}"
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$REPO_ROOT"
 DOCS_ROOT="$(node -e '
 const fs = require("node:fs");
 const file = process.argv[1];
