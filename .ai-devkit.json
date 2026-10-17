@@ -1,0 +1,44 @@
+{
+  "version": "0.70.1",
+  "environments": [
+    "codex",
+    "claude"
+  ],
+  "phases": [
+    "requirements",
+    "design",
+    "planning",
+    "implementation",
+    "testing",
+    "deployment",
+    "monitoring"
+  ],
+  "paths": {
+    "docs": "docs/ai"
+  },
+  "memory": {
+    "semantic": false
+  },
+  "createdAt": "2026-10-17T12:19:39.510Z",
+  "skills": [
+    { "registry": "codeaholicguy/ai-devkit", "name": "ai-devkit-setup", "mode": "copy" },
+    { "registry": "codeaholicguy/ai-devkit", "name": "dev-commit", "mode": "copy" },
+    { "registry": "codeaholicguy/ai-devkit", "name": "dev-design", "mode": "copy" },
+    { "registry": "codeaholicguy/ai-devkit", "name": "dev-implementation", "mode": "copy" },
+    { "registry": "codeaholicguy/ai-devkit", "name": "dev-lifecycle", "mode": "copy" },
+    { "registry": "codeaholicguy/ai-devkit", "name": "dev-planning", "mode": "copy" },
+    { "registry": "codeaholicguy/ai-devkit", "name": "dev-pr", "mode": "copy" },
+    { "registry": "codeaholicguy/ai-devkit", "name": "dev-requirements", "mode": "copy" },
+    { "registry": "codeaholicguy/ai-devkit", "name": "dev-review", "mode": "copy" },
+    { "registry": "codeaholicguy/ai-devkit", "name": "dev-testing", "mode": "copy" },
+    { "registry": "codeaholicguy/ai-devkit", "name": "dev-worktree", "mode": "copy" },
+    { "registry": "codeaholicguy/ai-devkit", "name": "document-code", "mode": "copy" },
+    { "registry": "codeaholicguy/ai-devkit", "name": "memory", "mode": "copy" },
+    { "registry": "codeaholicguy/ai-devkit", "name": "simplify-implementation", "mode": "copy" },
+    { "registry": "codeaholicguy/ai-devkit", "name": "structured-debug", "mode": "copy" },
+    { "registry": "codeaholicguy/ai-devkit", "name": "task", "mode": "copy" },
+    { "registry": "codeaholicguy/ai-devkit", "name": "verify", "mode": "copy" },
+    { "registry": "codeaholicguy/ai-devkit", "name": "tdd", "mode": "copy" },
+    { "registry": "codeaholicguy/ai-devkit", "name": "brainstorm", "mode": "copy" }
+  ]
+}
