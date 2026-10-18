@@ -1,0 +1,8 @@
+# Project-scoped Codex configuration for Devobs.
+# This repository does not currently require shared MCP servers or feature flags.
+# Add a setting only when the project has a concrete need and its official schema is verified.
+# Keep credentials and personal settings out of this file.
+# Named profiles are user-local; see AGENTS.md for `codex -p ci`.
+# Official references:
+# https://developers.openai.com/codex/config-reference/
+# https://developers.openai.com/codex/config-sample/

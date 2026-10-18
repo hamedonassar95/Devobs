@@ -1,0 +1,11 @@
+# Devobs
+- Python-first project; shell scripts in scripts/
+- Run tests before finishing: python -m pytest -q
+- CI is in .github/workflows; never weaken permissions
+- Deploys go to GitHub Pages and Vercel; do not change deploy targets
+- Never commit secrets or API keys
+- Keep changes small; one concern per PR
+- For code reviews, follow the checklist in `code_review.md`.
+- If Codex repeats the same error twice, pause for a brief retrospective and add only a reusable prevention rule here.
+- Keep repository Codex settings in `.codex/config.toml`; do not put credentials or personal settings there.
+- Named profiles are user-local. For example, `codex -p ci` reads `$CODEX_HOME/ci.config.toml`; profiles do not belong in project config.
