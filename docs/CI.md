@@ -49,7 +49,24 @@ python3 scripts/check_site.py
 
 ## اعتماد GitHub في workflows المولدة
 
-تُولّد ملفات `efficiency-improver.lock.yml` و`phase8b-ai-patch-generator.lock.yml` من ملفات Markdown المقابلة عبر `gh aw compile`؛ عدّل المصدر ثم أعد التوليد، ولا تعدّل ملف lock يدويًا. خطوة `Checkout repository` المضافة تلقائيًا في مسار المخرجات الآمنة تحفظ اعتماد GitHub عمدًا لأن إنشاء فرع وطلب سحب مسودة يحتاج إلى دفع commit. الخطوة مشروطة بنوع مخرج `create_pull_request`، والمخرجات محدودة بطلب واحد ومسارات ملفات مسموح بها في المصدر. عند تغيير هذا التصميم، أعد النظر في الاعتماد المحفوظ، واستخدم أقل صلاحيات ممكنة للرمز المخصص.
+تُولّد ملفات `*.lock.yml` التالية من ملفات Markdown المقابلة عبر GitHub Agentic Workflows؛ عدّل المصدر ثم أعد التوليد، ولا تعدّل ملف lock يدويًا:
+
+- `efficiency-improver.md`
+- `incident-investigator.md`
+- `incident-investigator-claude.md`
+- `incident-investigator-vertex.md`
+- `phase8b-ai-patch-generator.md`
+
+تعتمد إجراءات GitHub التي يضيفها المترجم على إصدار `gh-aw` المثبت. لتحديثها، ثبّت إصداراً محدداً من الامتداد الرسمي ثم أعد توليد المصادر الخمسة:
+
+```sh
+gh extension install github/gh-aw --force --pin v0.92.0
+gh aw compile --no-check-update --force-refresh-action-pins --validate \
+  efficiency-improver incident-investigator incident-investigator-claude \
+  incident-investigator-vertex phase8b-ai-patch-generator
+```
+
+تغييرات Dependabot على ملفات lock وحدها لا تعني أن المصدر المولد تغير؛ إعادة التوليد بإصدار مترجم أقدم قد تعيد الإصدارات القديمة. راجع إصدار المترجم وكل SHA في الناتج قبل الدمج. خطوة `Checkout repository` المضافة تلقائيًا في مسار المخرجات الآمنة تحفظ اعتماد GitHub عمدًا لأن إنشاء فرع وطلب سحب مسودة يحتاج إلى دفع commit. الخطوة مشروطة بنوع مخرج `create_pull_request`، والمخرجات محدودة بطلب واحد ومسارات ملفات مسموح بها في المصدر. عند تغيير هذا التصميم، أعد النظر في الاعتماد المحفوظ، واستخدم أقل صلاحيات ممكنة للرمز المخصص.
 
 أما checkout في `aws.yml` فيستخدم مصادقة AWS عبر OIDC بعد النسخ ولا يحتاج اعتماد GitHub محفوظًا؛ لذلك يعطل `persist-credentials`.
 

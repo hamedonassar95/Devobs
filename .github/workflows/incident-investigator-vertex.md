@@ -118,6 +118,28 @@ jobs:
   pre-activation:
     outputs:
       eligible: ${{ steps.incident_gate.outputs.eligible }}
+  agent:
+    pre-steps:
+      - name: Normalize Vertex provider resource for the agent
+        id: vertex_provider
+        env:
+          GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          provider_resource="$GCP_WORKLOAD_IDENTITY_PROVIDER"
+          provider_resource="${provider_resource#"${provider_resource%%[![:space:]]*}"}"
+          provider_resource="${provider_resource%"${provider_resource##*[![:space:]]}"}"
+          case "$provider_resource" in
+            https://iam.googleapis.com/*) provider_resource="${provider_resource#https://iam.googleapis.com/}" ;;
+            //iam.googleapis.com/*) provider_resource="${provider_resource#//iam.googleapis.com/}" ;;
+          esac
+          provider_resource="${provider_resource%/}"
+          if [[ ! "$provider_resource" =~ ^projects/[0-9]+/locations/global/workloadIdentityPools/[^/[:space:]]+/providers/[^/[:space:]]+$ ]]; then
+            echo "::error::Set GCP_WORKLOAD_IDENTITY_PROVIDER to the full Google provider resource projects/<numeric-project-number>/locations/global/workloadIdentityPools/<pool-id>/providers/<provider-id>. This is not GitHub's issuer URL https://token.actions.githubusercontent.com. The configured value was not printed."
+            exit 1
+          fi
+          echo "provider_resource=$provider_resource" >> "$GITHUB_OUTPUT"
   safe_outputs:
     pre-steps:
       - name: Recheck trusted incident before writing
@@ -160,27 +182,6 @@ jobs:
               return true;
             }
             await incidentGuard({ github, context, core }, true);
-      - name: Normalize Vertex provider resource for the agent
-        id: vertex_provider
-        env:
-          GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER || secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          provider_resource="$GCP_WORKLOAD_IDENTITY_PROVIDER"
-          provider_resource="${provider_resource#"${provider_resource%%[![:space:]]*}"}"
-          provider_resource="${provider_resource%"${provider_resource##*[![:space:]]}"}"
-          case "$provider_resource" in
-            https://iam.googleapis.com/*) provider_resource="${provider_resource#https://iam.googleapis.com/}" ;;
-            //iam.googleapis.com/*) provider_resource="${provider_resource#//iam.googleapis.com/}" ;;
-          esac
-          provider_resource="${provider_resource%/}"
-          if [[ ! "$provider_resource" =~ ^projects/[0-9]+/locations/global/workloadIdentityPools/[^/[:space:]]+/providers/[^/[:space:]]+$ ]]; then
-            echo "::error::Set GCP_WORKLOAD_IDENTITY_PROVIDER to the full Google provider resource projects/<numeric-project-number>/locations/global/workloadIdentityPools/<pool-id>/providers/<provider-id>. This is not GitHub's issuer URL https://token.actions.githubusercontent.com. The configured value was not printed."
-            exit 1
-          fi
-          echo "provider_resource=$provider_resource" >> "$GITHUB_OUTPUT"
-
 permissions:
   actions: read
   contents: read
