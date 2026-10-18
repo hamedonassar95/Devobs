@@ -88,6 +88,32 @@ jobs:
           python3 scripts/stage_site.py --source-dir candidate --output-dir _site --source-sha "$SOURCE_SHA"
           SITE_ROOT=_site python3 scripts/check_site.py
 
+      - name: Confirm Vercel API access to the configured project
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          project_json="$(npx --yes vercel@64.5.0 api "/v9/projects/${VERCEL_PROJECT_ID}?teamId=${VERCEL_ORG_ID}")"
+          python3 -c '
+          import json, os, sys
+          try:
+              project = json.loads(sys.stdin.read())
+          except Exception:
+              print("::error::Vercel API returned an invalid project response.")
+              raise SystemExit(1)
+          expected_id = os.environ["VERCEL_PROJECT_ID"]
+          expected_team = os.environ["VERCEL_ORG_ID"]
+          if project.get("id") != expected_id:
+              print("::error::Vercel API returned a different project ID than configured.")
+              raise SystemExit(1)
+          if project.get("accountId") != expected_team:
+              print("::error::Vercel API project belongs to a different account/team than configured.")
+              raise SystemExit(1)
+          print("Vercel API access and project/account IDs verified.")
+          ' <<< "$project_json"
+
       - name: Pull preview settings for the disposable project
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
