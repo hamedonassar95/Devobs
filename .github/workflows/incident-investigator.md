@@ -115,172 +115,6 @@ jobs:
             }
             await incidentGuard({ github, context, core }, true);
 
-post-steps:
-  - name: Verify required incident report output
-    env:
-      GH_AW_SAFE_OUTPUTS: ${{ runner.temp }}/gh-aw/safeoutputs/outputs.jsonl
-      GH_AW_SAFE_OUTPUTS_COPY: /tmp/gh-aw/safeoutputs.jsonl
-      GH_AW_AGENT_OUTPUT: /tmp/gh-aw/agent_output.json
-    run: |
-      python3 - <<'PY'
-      import json
-      import os
-      import stat
-      import sys
-      import tempfile
-      from pathlib import Path
-
-      output_path = Path(os.environ["GH_AW_SAFE_OUTPUTS"])
-      staged_path = Path(os.environ["GH_AW_SAFE_OUTPUTS_COPY"])
-      agent_output_path = Path(os.environ["GH_AW_AGENT_OUTPUT"])
-      try:
-          output_metadata = output_path.lstat()
-          staged_metadata = staged_path.lstat()
-          agent_output_metadata = agent_output_path.lstat()
-          if not all(stat.S_ISREG(metadata.st_mode) for metadata in (
-              output_metadata, staged_metadata, agent_output_metadata
-          )):
-              raise OSError("safe-output paths must be regular files")
-          source_text = output_path.read_text(encoding="utf-8")
-          lines = source_text.splitlines()
-          staged_text = staged_path.read_text(encoding="utf-8")
-          agent_output_text = agent_output_path.read_text(encoding="utf-8")
-      except OSError as error:
-          print(f"::error::Incident report output is unavailable: {error}")
-          sys.exit(1)
-
-      if staged_text != source_text:
-          print("::error::Staged safe-output copy does not match its source.")
-          sys.exit(1)
-
-      try:
-          agent_output = json.loads(agent_output_text)
-      except json.JSONDecodeError as error:
-          print(f"::error::Validated agent output is invalid JSON: {error}")
-          sys.exit(1)
-      if not isinstance(agent_output, dict) or not isinstance(agent_output.get("items"), list):
-          print("::error::Validated agent output must contain an items array.")
-          sys.exit(1)
-
-      items = []
-      try:
-          items = [json.loads(line) for line in lines if line.strip()]
-      except json.JSONDecodeError as error:
-          print(f"::error::Incident report output is invalid JSONL: {error}")
-          sys.exit(1)
-
-      if any(not isinstance(item, dict) for item in items):
-          print("::error::Incident report output contains a non-object item.")
-          sys.exit(1)
-
-      comments = [item for item in items if item.get("type") == "add_comment"]
-      if len(comments) != 1:
-          print("::error::The investigation did not emit exactly one safe incident report comment.")
-          sys.exit(1)
-
-      agent_items = agent_output["items"]
-      if any(not isinstance(item, dict) for item in agent_items):
-          print("::error::Validated agent output contains a non-object item.")
-          sys.exit(1)
-      agent_comments = [item for item in agent_items if item.get("type") == "add_comment"]
-      if len(agent_comments) != 1:
-          print("::error::Validated agent output must contain exactly one incident report comment.")
-          sys.exit(1)
-
-      marker = "<!-- devobs-investigation:v1 -->"
-      heading = "## AI Incident Investigation"
-
-      def normalize_report_comment(comment, label):
-          body = comment.get("body", "")
-          if not isinstance(body, str) or heading not in body:
-              print(f"::error::{label} does not contain the incident investigation heading.")
-              sys.exit(1)
-          original_body = body
-          if marker not in body:
-              body = f"{marker}\n\n{body}"
-          elif body.count(marker) != 1 or not body.lstrip().startswith(marker):
-              print(f"::error::{label} contains a misplaced or repeated report marker.")
-              sys.exit(1)
-          comment["body"] = body
-          return body, body != original_body
-
-      body, source_changed = normalize_report_comment(comments[0], "Safe-output comment")
-      _, agent_changed = normalize_report_comment(agent_comments[0], "Validated agent comment")
-      if source_changed or agent_changed:
-          # Persist the normalized source and the canonical item used by the publisher.
-          normalized = "\n".join(json.dumps(item, ensure_ascii=False) for item in items) + "\n"
-          normalized_agent_output = json.dumps(agent_output, ensure_ascii=False) + "\n"
-          for target, metadata in (
-              (staged_path, staged_metadata),
-              (output_path, output_metadata),
-              (agent_output_path, agent_output_metadata),
-          ):
-              try:
-                  descriptor, temporary_name = tempfile.mkstemp(
-                      prefix=f".{target.name}.", dir=target.parent
-                  )
-                  try:
-                      with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as temporary:
-                          temporary.write(
-                              normalized_agent_output
-                              if target == agent_output_path
-                              else normalized
-                          )
-                          temporary.flush()
-                          os.fsync(temporary.fileno())
-                      # Replacing a read-only file in the same directory is atomic; preserve its mode.
-                      os.chmod(temporary_name, stat.S_IMODE(metadata.st_mode))
-                      os.replace(temporary_name, target)
-                  finally:
-                      if os.path.exists(temporary_name):
-                          os.unlink(temporary_name)
-              except OSError as error:
-                  print(f"::error::Could not safely normalize {target.name}: {error}")
-                  sys.exit(1)
-          body = comments[0]["body"]
-
-      try:
-          published = [json.loads(line) for line in staged_path.read_text(encoding="utf-8").splitlines() if line.strip()]
-          published_agent_output = json.loads(agent_output_path.read_text(encoding="utf-8"))
-      except (OSError, json.JSONDecodeError) as error:
-          print(f"::error::Published incident report output is invalid: {error}")
-          sys.exit(1)
-      published_comments = [item for item in published if isinstance(item, dict) and item.get("type") == "add_comment"]
-      if len(published_comments) != 1:
-          print("::error::Staged output must contain exactly one safe incident report comment.")
-          sys.exit(1)
-      staged_body = published_comments[0].get("body", "")
-      published_agent_items = (
-          published_agent_output.get("items")
-          if isinstance(published_agent_output, dict)
-          else None
-      )
-      published_agent_comments = (
-          [item for item in published_agent_items if isinstance(item, dict) and item.get("type") == "add_comment"]
-          if isinstance(published_agent_items, list)
-          else []
-      )
-      if len(published_agent_comments) != 1:
-          print("::error::Published agent output must contain exactly one safe incident report comment.")
-          sys.exit(1)
-      published_agent_body = published_agent_comments[0].get("body", "")
-
-      if (
-          not isinstance(body, str)
-          or "<!-- devobs-investigation:v1 -->" not in body
-          or "## AI Incident Investigation" not in body
-          or not isinstance(staged_body, str)
-          or "<!-- devobs-investigation:v1 -->" not in staged_body
-          or "## AI Incident Investigation" not in staged_body
-          or not isinstance(published_agent_body, str)
-          or "<!-- devobs-investigation:v1 -->" not in published_agent_body
-          or "## AI Incident Investigation" not in published_agent_body
-          or body != staged_body
-      ):
-          print("::error::Source, staged and published comments must contain the required report markers.")
-          sys.exit(1)
-      PY
-
 permissions:
   actions: read
   contents: read
@@ -288,6 +122,15 @@ permissions:
   pull-requests: read
 
 safe-outputs:
+  steps:
+    - name: Checkout trusted report validator
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+    - name: Verify required incident report output
+      env:
+        GH_AW_AGENT_OUTPUT: /tmp/gh-aw/agent_output.json
+      run: node scripts/validate_incident_report.cjs "$GH_AW_AGENT_OUTPUT"
   report-failure-as-issue: false
   add-comment:
     target: "${{ github.event.issue.number || inputs.issue_number }}"

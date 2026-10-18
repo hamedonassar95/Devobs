@@ -168,3 +168,7 @@ The dispatch path preserves the original Phase 6 controls:
 - the investigator may emit one safe comment only;
 - recovery remains behind human approval;
 - a pre-dispatch comment check prevents duplicate AI investigation comments.
+
+### Safe-output validation update — 18 October 2026
+
+The `gh-aw` v0.92.0 compiler rejects investigator `post-steps` that directly read or rewrite safe-output files. The Copilot and Claude sources now validate the downloaded agent artifact in the safe-output job immediately before publication. If validation fails, the posting step is skipped. The validator rejects missing, malformed, duplicated, or non-report output; it does not rewrite the artifact. Its checkout disables persisted Git credentials. The Vertex workflow also normalizes the provider resource in the agent job where the Gemini step reads it. No model was invoked for these changes. Hosted CI and a later cost-authorized incident drill remain the integration evidence.
