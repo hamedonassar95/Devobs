@@ -15,7 +15,7 @@ description: Implementation and verification record for actionable credential se
 - [x] Phase 6: planning updated to record implementation and local verification.
 - [x] Phase 7: implementation checked against the design; only token presence/prefix is inspected.
 - [x] Phase 8: focused and full tests plus security and workflow checks passed.
-- [ ] Phase 9: final branch review and hosted PR checks pending.
+- [x] Phase 9: final diff review completed; GitHub Codex review found no issues; PR #173 and hosted checks completed.
 
 ## Code changes
 
@@ -39,4 +39,11 @@ No network or AI API request is made. No secret value is printed, persisted, or 
 - AI DevKit base lint: 7 checks passed; feature lint: 16 checks passed.
 - `git diff --check` — passed.
 
-Hosted validation must confirm the workflow contract. The actual Copilot preflight is expected to remain blocked until the repository owner replaces `COPILOT_GITHUB_TOKEN` with an eligible token.
+## Hosted evidence
+
+- PR #173: https://github.com/hamedonassar95/Devobs/pull/173 — merged at `e8a2f93`.
+- PR CI run [39055176742](https://github.com/hamedonassar95/Devobs/actions/runs/39055176742), CodeQL run [117461686279](https://github.com/hamedonassar95/Devobs/actions/runs/117461686279), and Gitleaks all passed.
+- GitHub Codex review completed with no findings. The separate OpenAI-backed AI Code Review workflow skipped its model request because `OPENAI_API_KEY` is not configured.
+- Post-merge CI run [39055525802](https://github.com/hamedonassar95/Devobs/actions/runs/39055525802) and Push on main run [39055525679](https://github.com/hamedonassar95/Devobs/actions/runs/39055525679) succeeded.
+
+The current Copilot credential has not been validated after this change. The owner must configure a dedicated fine-grained PAT with account permission `Copilot Requests: Read` as `COPILOT_GITHUB_TOKEN`, then rerun **Actions → AI Provider Preflight** on `main`. The preflight only checks token presence and prefix; it makes no model request and does not prove Copilot access or quota. `POLICY_AUDIT_TOKEN` remains a separate read-only repository-policy credential.
