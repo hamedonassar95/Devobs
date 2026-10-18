@@ -92,8 +92,10 @@ class VercelStageTestWorkflowTests(unittest.TestCase):
     def test_alternate_config_defines_staging_build_and_output(self):
         config = json.loads((ROOT / "deploy" / "vercel-staging.json").read_text(encoding="utf-8"))
         self.assertEqual(config["outputDirectory"], "_site")
-        self.assertIn("SITE_SOURCE_DIR", config["buildCommand"])
-        self.assertIn("scripts/stage_site.py", config["buildCommand"])
+        self.assertEqual(
+            config["buildCommand"],
+            "python3 scripts/stage_site.py --source-dir candidate --output-dir _site",
+        )
 
     def test_root_vercel_config_is_not_required(self):
         self.assertTrue((ROOT / "deploy" / "vercel-staging.json").is_file())

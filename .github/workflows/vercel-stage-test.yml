@@ -100,7 +100,6 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          SITE_SOURCE_DIR: candidate
           SITE_SOURCE_SHA: ${{ steps.refs.outputs.source_sha }}
         run: npx --yes vercel@64.5.0 build --local-config deploy/vercel-staging.json
 
