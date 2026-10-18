@@ -1,0 +1,128 @@
+name: Vercel staging test
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Full commit SHA to validate and deploy to the disposable Vercel project
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vercel-staging-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  stage-test:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    environment:
+      name: vercel-staging
+    steps:
+      - name: Validate candidate SHA and resolve current main
+        id: refs
+        env:
+          SOURCE_REF: ${{ inputs.source_ref }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$SOURCE_REF" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::source_ref must be a full 40-character lowercase commit SHA."
+            exit 1
+          fi
+          current_main_sha="$(gh api "repos/$GH_REPO/git/ref/heads/main" --jq '.object.sha')"
+          if [[ ! "$current_main_sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::GitHub returned an invalid current main SHA."
+            exit 1
+          fi
+          if [[ "$SOURCE_REF" == "$current_main_sha" ]]; then
+            echo "::error::source_ref must differ from the current main SHA."
+            exit 1
+          fi
+          echo "source_sha=$SOURCE_REF" >> "$GITHUB_OUTPUT"
+          echo "trusted_main_sha=$current_main_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Check out trusted scripts and configuration from main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.refs.outputs.trusted_main_sha }}
+          persist-credentials: false
+
+      - name: Check out candidate content as data
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.refs.outputs.source_sha }}
+          path: candidate
+          persist-credentials: false
+
+      - name: Confirm disposable project credentials are configured
+        env:
+          SOURCE_SHA: ${{ steps.refs.outputs.source_sha }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          checked_out_sha="$(git -C candidate rev-parse HEAD)"
+          if [[ "$checked_out_sha" != "$SOURCE_SHA" ]]; then
+            echo "::error::Candidate checkout does not match source_ref."
+            exit 1
+          fi
+          if [[ -z "$VERCEL_TOKEN" || -z "$VERCEL_ORG_ID" || -z "$VERCEL_PROJECT_ID" ]]; then
+            echo "::error::Configure VERCEL_TOKEN, VERCEL_ORG_ID, and the disposable-project VERCEL_PROJECT_ID in the vercel-staging environment."
+            exit 1
+          fi
+
+      - name: Stage candidate data and validate with trusted scripts
+        env:
+          SOURCE_SHA: ${{ steps.refs.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          python3 scripts/stage_site.py --source-dir candidate --output-dir _site --source-sha "$SOURCE_SHA"
+          SITE_ROOT=_site python3 scripts/check_site.py
+
+      - name: Pull preview settings for the disposable project
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: npx --yes vercel@64.5.0 pull --yes --environment=preview --local-config deploy/vercel-staging.json
+
+      - name: Build preview from validated candidate data
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          SITE_SOURCE_DIR: candidate
+          SITE_SOURCE_SHA: ${{ steps.refs.outputs.source_sha }}
+        run: npx --yes vercel@64.5.0 build --local-config deploy/vercel-staging.json
+
+      - name: Deploy preview
+        id: preview
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          preview_url="$(npx --yes vercel@64.5.0 deploy --prebuilt --local-config deploy/vercel-staging.json)"
+          if [[ ! "$preview_url" =~ ^https://[A-Za-z0-9.-]+\.vercel\.app/?$ ]]; then
+            echo "::error::Could not identify the Vercel preview deployment URL."
+            exit 1
+          fi
+          echo "url=${preview_url%/}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify preview SHA, content, and private paths
+        env:
+          SITE_URL: ${{ steps.preview.outputs.url }}
+          EXPECTED_SHA: ${{ steps.refs.outputs.source_sha }}
+          CONTRACT_FILE: site-contract.json
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: bash scripts/check_vercel_site.sh

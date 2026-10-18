@@ -56,6 +56,13 @@
 لتعطيل حزم المعاينة أو إلغاء هذا التعديل، اعكس PR الذي أضافه عبر PR جديد.
 المشروع الحالي صفحة ثابتة؛ هذه استعادة ملفات التطبيق وليست استعادة بيانات أو ترحيلات قاعدة بيانات. لم تُجرَ تجربة فشل حيّة للنشر بهدف اختبار الاستعادة التلقائية؛ سيظل فشل فحص المرشح ظاهرًا في CI حتى عند نجاح استعادة النسخة السابقة.
 
+## اختبار Vercel على مشروع تجريبي
+- سير `Vercel staging test` يدوي فقط، ويُطلق من `main` مع SHA كامل لمرشح مختلف عن رأس `main`. يعامل ملفات المرشح كبيانات في مجلد `candidate`، ويستخدم أدوات التحقق الموثوقة من `main`.
+- يتحقق من محتوى `_site` ثم ينشر معاينة فقط إلى مشروع Vercel تجريبي قابل للتخلص منه، ويفحص SHA والنص المتفق عليه ومسارات الملفات الخاصة. لا ينفذ نشرًا إلى هدف الإنتاج ولا ترقية ولا ربط نطاق.
+- يقرأ `buildCommand` و`outputDirectory` من `deploy/vercel-staging.json` عبر [`--local-config`](https://vercel.com/docs/cli/global-options#local-config) لأوامر Vercel CLI؛ لا يضيف أو يغيّر `vercel.json` في جذر المستودع، لذلك لا يغيّر إعداد بناء Git Integration للمشروع الحالي. وثائق [إعداد `vercel.json`](https://vercel.com/docs/project-configuration/vercel-json) تشرح حقلي `buildCommand` و`outputDirectory`.
+- أنشئ بيئة GitHub `vercel-staging` وضع فيها `VERCEL_TOKEN` و`VERCEL_ORG_ID` و`VERCEL_PROJECT_ID` الخاص بالمشروع التجريبي فقط. استخدم رمز Vercel محدودًا إلى هذا المشروع؛ توثيق [Access Tokens](https://vercel.com/docs/accounts/access-tokens) يذكر دعم نطاق مشروع واحد واستخدام الرمز مع CLI وREST API. إذا لم يكن إنشاء رمز مشروع متاحًا لحسابك، اعزل المشروع التجريبي في فريق أو حساب منفصل.
+- `VERCEL_AUTOMATION_BYPASS_SECRET` اختياري لفحوص HTTP عند تفعيل Deployment Protection؛ عند غيابه يفشل الفحص برسالة واضحة إذا منعته الحماية. لا تنسخ بيانات اعتماد المشروع الإنتاجي إلى هذه البيئة.
+
 ## أدلة الاختبار السابق
 PR #10: https://github.com/hamedonassar95/Devobs/pull/10
 - خطأ doctype أدى إلى فشل CI ومنع الدمج.

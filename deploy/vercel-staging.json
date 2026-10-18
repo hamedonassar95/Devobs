@@ -1,0 +1,5 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "SITE_SOURCE_DIR=\"${SITE_SOURCE_DIR:-.}\" python3 scripts/stage_site.py --output-dir _site",
+  "outputDirectory": "_site"
+}
