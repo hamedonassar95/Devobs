@@ -65,11 +65,20 @@ class VercelStageTestWorkflowTests(unittest.TestCase):
             for step in steps
             if "npx --yes vercel@" in step.get("run", "")
         ]
-        self.assertGreaterEqual(len(cli_commands), 3)
-        self.assertTrue(all("--local-config deploy/vercel-staging.json" in command for command in cli_commands))
-        self.assertTrue(any("deploy --prebuilt --local-config" in command for command in cli_commands))
-        self.assertFalse(any(re.search(r"\bvercel(?:@[A-Za-z0-9._-]+)?\s+(?:promote|rollback)\b", c) for c in cli_commands))
-        self.assertFalse(any(re.search(r"\bvercel(?:@[A-Za-z0-9._-]+)?\s+deploy\b[^\n]*\s--prod(?:\s|$)", c) for c in cli_commands))
+        project_cli_commands = [command for command in cli_commands if " api " not in command]
+        self.assertGreaterEqual(len(project_cli_commands), 3)
+        self.assertTrue(all("--local-config deploy/vercel-staging.json" in command for command in project_cli_commands))
+        self.assertTrue(any("deploy --prebuilt --local-config" in command for command in project_cli_commands))
+        self.assertFalse(any(re.search(r"\bvercel(?:@[A-Za-z0-9._-]+)?\s+(?:promote|rollback)\b", c) for c in project_cli_commands))
+        self.assertFalse(any(re.search(r"\bvercel(?:@[A-Za-z0-9._-]+)?\s+deploy\b[^\n]*\s--prod(?:\s|$)", c) for c in project_cli_commands))
+
+    def test_api_preflight_matches_project_and_account_to_the_configured_ids(self):
+        steps = next(iter(self.workflow["jobs"].values()))["steps"]
+        step = next(step for step in steps if step.get("name") == "Confirm Vercel API access to the configured project")
+        command = step["run"]
+        self.assertIn('/v9/projects/${VERCEL_PROJECT_ID}?teamId=${VERCEL_ORG_ID}', command)
+        self.assertIn('project.get("id") != expected_id', command)
+        self.assertIn('project.get("accountId") != expected_team', command)
 
     def test_vercel_secrets_are_not_in_job_level_environment(self):
         job = next(iter(self.workflow["jobs"].values()))
