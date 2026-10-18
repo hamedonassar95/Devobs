@@ -76,7 +76,8 @@ class VercelStageTestWorkflowTests(unittest.TestCase):
         steps = next(iter(self.workflow["jobs"].values()))["steps"]
         step = next(step for step in steps if step.get("name") == "Confirm Vercel API access to the configured project")
         command = step["run"]
-        self.assertIn('/v9/projects/${VERCEL_PROJECT_ID}?teamId=${VERCEL_ORG_ID}', command)
+        self.assertIn('/v9/projects/${VERCEL_PROJECT_ID}', command)
+        self.assertNotIn('teamId=', command)
         self.assertIn('project.get("id") != expected_id', command)
         self.assertIn('project.get("accountId") != expected_team', command)
 
