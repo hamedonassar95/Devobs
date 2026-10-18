@@ -102,6 +102,26 @@ class VercelSiteHealthBehaviorTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("expected SHA", result.stdout + result.stderr)
 
+    def test_missing_site_url_does_not_fall_back_to_production_url(self):
+        env = os.environ.copy()
+        env.update({
+            "VERCEL_PRODUCTION_URL": f"http://127.0.0.1:{self.server.server_port}",
+            "EXPECTED_SHA": EXPECTED_SHA,
+            "CONTRACT_FILE": str(self.contract),
+            "ALLOW_INSECURE_LOCALHOST": "true",
+        })
+        env.pop("SITE_URL", None)
+        result = subprocess.run(
+            ["bash", str(ROOT / "scripts" / "check_vercel_site.sh")],
+            cwd=ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("Set SITE_URL to the preview deployment URL", result.stdout + result.stderr)
+
     def test_readme_returning_200_fails(self):
         self.server.private_statuses["/README.md"] = 200
         result = self.run_checker()

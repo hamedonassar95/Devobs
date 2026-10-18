@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SITE_URL="${SITE_URL:-${VERCEL_PRODUCTION_URL:-}}"
+SITE_URL="${SITE_URL:-}"
 EXPECTED_SHA="${EXPECTED_SHA:-}"
 CONTRACT_FILE="${CONTRACT_FILE:-site-contract.json}"
 MAX_ATTEMPTS="${MAX_ATTEMPTS:-12}"
@@ -9,7 +9,7 @@ POLL_INTERVAL_SECONDS="${POLL_INTERVAL_SECONDS:-10}"
 VERCEL_AUTOMATION_BYPASS_SECRET="${VERCEL_AUTOMATION_BYPASS_SECRET:-}"
 
 if [[ -z "$SITE_URL" ]]; then
-  echo "::error::Set SITE_URL or VERCEL_PRODUCTION_URL."
+  echo "::error::Set SITE_URL to the preview deployment URL."
   exit 2
 fi
 if [[ ! "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]; then
@@ -129,7 +129,7 @@ if [[ "$page_status" != "200" ]]; then
   exit 1
 fi
 if is_auth_or_protection_response "$WORK_DIR/site.html" "$http_effective_url"; then
-  echo "::error::Site root returned a login or Deployment Protection response. If protection is enabled, store VERCEL_AUTOMATION_BYPASS_SECRET as a GitHub Actions environment secret for vercel-production."
+  echo "::error::Site root returned a login or Deployment Protection response. If protection is enabled, store VERCEL_AUTOMATION_BYPASS_SECRET as a GitHub Actions environment secret for vercel-staging."
   exit 1
 fi
 if [[ ! -s "$WORK_DIR/site.html" || "$http_content_type" != text/html* && "$http_content_type" != application/xhtml+xml* ]]; then
