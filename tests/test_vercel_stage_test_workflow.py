@@ -45,7 +45,7 @@ class VercelStageTestWorkflowTests(unittest.TestCase):
         self.assertEqual(set(self.workflow["on"]), {"workflow_dispatch"})
         inputs = self.workflow["on"]["workflow_dispatch"]["inputs"]
         self.assertEqual(set(inputs), {"source_ref"})
-        self.assertEqual(inputs["source_ref"]["required"], "true")
+        self.assertEqual(str(inputs["source_ref"]["required"]).lower(), "true")
 
     def test_staging_job_uses_the_dedicated_environment(self):
         jobs = self.workflow["jobs"]
