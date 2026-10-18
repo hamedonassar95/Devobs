@@ -153,19 +153,11 @@ def main() -> int:
             or os.environ.get("GITHUB_SHA")
         )
     if not sha:
-        try:
-            import subprocess
-
-            sha = subprocess.run(
-                ["git", "rev-parse", "HEAD"],
-                cwd=source,
-                check=True,
-                capture_output=True,
-                text=True,
-            ).stdout.strip()
-        except (OSError, subprocess.CalledProcessError) as exc:
-            print(f"Unable to determine source SHA: {exc}", file=sys.stderr)
-            return 2
+        print(
+            "Unable to determine source SHA: pass --source-sha or set SITE_SOURCE_SHA, SOURCE_SHA, VERCEL_GIT_COMMIT_SHA, or GITHUB_SHA.",
+            file=sys.stderr,
+        )
+        return 2
 
     try:
         staged = stage_site(source, output, sha)

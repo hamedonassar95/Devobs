@@ -56,6 +56,30 @@ class StageSiteTests(unittest.TestCase):
             with self.subTest(sha=sha), self.assertRaisesRegex(ValueError, "40 hexadecimal"):
                 stage_site(self.source, self.output, sha)
 
+    def test_cli_requires_source_sha_instead_of_running_git(self):
+        env = os.environ.copy()
+        for name in ("SITE_SOURCE_SHA", "SOURCE_SHA", "VERCEL_GIT_COMMIT_SHA", "GITHUB_SHA"):
+            env.pop(name, None)
+        env["GITHUB_WORKSPACE"] = str(self.root)
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(Path(__file__).resolve().parents[1] / "scripts" / "stage_site.py"),
+                "--source-dir",
+                str(self.source),
+                "--output-dir",
+                str(self.output),
+            ],
+            cwd=self.root,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn("Unable to determine source SHA", result.stderr)
+
     def test_empty_index_fails(self):
         (self.source / "index.html").write_text("", encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "index.html must not be empty"):
