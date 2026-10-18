@@ -72,14 +72,16 @@ class VercelStageTestWorkflowTests(unittest.TestCase):
         self.assertFalse(any(re.search(r"\bvercel(?:@[A-Za-z0-9._-]+)?\s+(?:promote|rollback)\b", c) for c in project_cli_commands))
         self.assertFalse(any(re.search(r"\bvercel(?:@[A-Za-z0-9._-]+)?\s+deploy\b[^\n]*\s--prod(?:\s|$)", c) for c in project_cli_commands))
 
-    def test_api_preflight_matches_project_and_account_to_the_configured_ids(self):
+    def test_api_preflight_resolves_the_project_account_context(self):
         steps = next(iter(self.workflow["jobs"].values()))["steps"]
         step = next(step for step in steps if step.get("name") == "Confirm Vercel API access to the configured project")
         command = step["run"]
         self.assertIn('/v9/projects/${VERCEL_PROJECT_ID}', command)
         self.assertNotIn('teamId=', command)
         self.assertIn('project.get("id") != expected_id', command)
-        self.assertIn('project.get("accountId") != expected_team', command)
+        self.assertIn('account_id = project.get("accountId")', command)
+        self.assertIn('output.write(f"org_id={account_id}', command)
+        self.assertEqual(step.get("id"), "vercel_api")
 
     def test_vercel_secrets_are_not_in_job_level_environment(self):
         job = next(iter(self.workflow["jobs"].values()))
@@ -91,13 +93,16 @@ class VercelStageTestWorkflowTests(unittest.TestCase):
         job = next(iter(self.workflow["jobs"].values()))
         required = {
             "VERCEL_TOKEN": "${{ secrets.VERCEL_TOKEN }}",
-            "VERCEL_ORG_ID": "${{ secrets.VERCEL_ORG_ID }}",
             "VERCEL_PROJECT_ID": "${{ secrets.VERCEL_PROJECT_ID }}",
         }
-        cli_steps = [step for step in job["steps"] if "npx --yes vercel@" in step.get("run", "")]
+        cli_steps = [
+            step for step in job["steps"]
+            if "npx --yes vercel@" in step.get("run", "") and " api " not in step.get("run", "")
+        ]
         self.assertGreaterEqual(len(cli_steps), 3)
         for step in cli_steps:
             self.assertEqual({key: step.get("env", {}).get(key) for key in required}, required)
+            self.assertEqual(step.get("env", {}).get("VERCEL_ORG_ID"), "${{ steps.vercel_api.outputs.org_id }}")
 
     def test_alternate_config_defines_staging_build_and_output(self):
         config = json.loads((ROOT / "deploy" / "vercel-staging.json").read_text(encoding="utf-8"))
