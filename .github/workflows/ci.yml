@@ -224,7 +224,10 @@ jobs:
 
   # One parent run owns the normal CI -> publish -> production verification path.
   production-release:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.validate.result == 'success'
+    # validate intentionally succeeds when optional language checks are skipped.
+    # Use an explicit status function so GitHub's implicit success() does not
+    # skip this release after any such optional job is skipped.
+    if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.validate.result == 'success' }}
     needs: validate
     permissions:
       contents: read
