@@ -94,23 +94,13 @@ jobs:
             echo "No valid, distinct source commit was found in the current Pages manifest. Automatic restoration will be unavailable if this deployment fails its health check." >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Stage static site
+      - name: Stage and validate static site
         env:
           SOURCE_SHA: ${{ inputs.source_sha }}
         run: |
           set -euo pipefail
-
-          if [[ ! "$SOURCE_SHA" =~ ^[0-9a-fA-F]{40}$ ]]; then
-            echo "::error::The tested source SHA is invalid."
-            exit 1
-          fi
-
-          mkdir -p _site
-          cp index.html _site/index.html
-          if [ -d assets ]; then
-            cp -R assets _site/assets
-          fi
-          printf '{"schema_version":1,"source_sha":"%s"}\n' "$SOURCE_SHA" > _site/deployment.json
+          python3 scripts/stage_site.py --source-dir . --output-dir _site --source-sha "$SOURCE_SHA"
+          SITE_ROOT=_site python3 scripts/check_site.py
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
@@ -232,15 +222,13 @@ jobs:
             echo "::error::main advanced after rollback validation; refusing to overwrite the newer deployment."
             exit 1
           fi
-      - name: Stage previous site
+      - name: Stage and validate previous site
         env:
           SOURCE_SHA: ${{ needs.rollback-eligibility.outputs.target_sha }}
         run: |
           set -euo pipefail
-          mkdir -p _site
-          cp index.html _site/index.html
-          if [ -d assets ]; then cp -R assets _site/assets; fi
-          printf '{"schema_version":1,"source_sha":"%s"}\n' "$SOURCE_SHA" > _site/deployment.json
+          python3 scripts/stage_site.py --source-dir . --output-dir _site --source-sha "$SOURCE_SHA"
+          SITE_ROOT=_site python3 scripts/check_site.py
       - name: Configure GitHub Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - name: Upload previous Pages artifact
