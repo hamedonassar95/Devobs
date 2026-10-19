@@ -3,6 +3,7 @@ description: |
   One-shot Vertex AI fallback for a trusted Devobs incident after the primary
   Copilot invocation fails. It can also be dispatched manually. Produces an
   evidence-backed report for human review and never performs recovery actions.
+strict: false
 
 on:
   workflow_dispatch:
@@ -212,6 +213,11 @@ engine:
 model: gemini-2.5-pro
 
 timeout-minutes: 10
+network:
+  allowed:
+    - defaults
+    - sts.googleapis.com
+    - iamcredentials.googleapis.com
 ---
 
 # Devobs Incident Investigator — Vertex AI fallback
