@@ -55,9 +55,27 @@ on:
                comment.body?.includes('<!-- devobs-investigation:v1 -->')));
             if (existing) return stop('Investigation already exists; duplicate skipped.');
             core.setOutput('eligible', 'true');
+            core.setOutput('issue_number', String(issue_number));
             return true;
           }
           await incidentGuard({ github, context, core }, false);
+    - name: Prepare trusted provider failover context
+      if: steps.incident_gate.outputs.eligible == 'true'
+      env:
+        INCIDENT_NUMBER: ${{ steps.incident_gate.outputs.issue_number }}
+        PRIMARY_RUN_ID: ${{ github.run_id }}
+        RECEIPT_PATH: ${{ runner.temp }}/ai-provider-failover-context.json
+      run: |
+        set -euo pipefail
+        node -e 'const fs=require("node:fs"); const p=process.env.RECEIPT_PATH; const issue=process.env.INCIDENT_NUMBER; const run=process.env.PRIMARY_RUN_ID; if(!/^[1-9][0-9]*$/.test(issue)||!/^[1-9][0-9]*$/.test(run)) process.exit(1); fs.writeFileSync(p, JSON.stringify({issue_number:Number(issue),primary_run_id:Number(run)})+"\n", {mode:0o600});'
+    - name: Upload trusted provider failover context
+      if: steps.incident_gate.outputs.eligible == 'true'
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: ai-provider-failover-context-${{ github.run_attempt }}
+        path: ${{ runner.temp }}/ai-provider-failover-context.json
+        if-no-files-found: error
+        retention-days: 1
   bots:
     - github-actions[bot]
 
@@ -111,6 +129,7 @@ jobs:
                  comment.body?.includes('<!-- devobs-investigation:v1 -->')));
               if (existing) return stop('Investigation already exists; duplicate skipped.');
               core.setOutput('eligible', 'true');
+              core.setOutput('issue_number', String(issue_number));
               return true;
             }
             await incidentGuard({ github, context, core }, true);

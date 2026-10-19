@@ -1,0 +1,209 @@
+name: AI Provider Circuit Breaker
+
+on:
+  workflow_run:
+    workflows: ["Devobs Incident Investigator"]
+    branches: [main]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: none
+  issues: read
+
+concurrency:
+  group: ai-provider-breaker-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+jobs:
+  inspect_primary:
+    if: contains(fromJSON('["failure","timed_out"]'), github.event.workflow_run.conclusion)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      actions: read
+      contents: none
+      issues: read
+    outputs:
+      eligible: ${{ steps.primary.outputs.eligible }}
+    steps:
+      - name: Verify the failed Copilot invocation
+        id: primary
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            core.setOutput('eligible', 'false');
+            if (!run || !Number.isSafeInteger(run.id) || run.head_branch !== 'main' ||
+                !['failure', 'timed_out'].includes(run.conclusion) ||
+                !['issues', 'workflow_dispatch'].includes(run.event)) {
+              core.info('Not an eligible failed primary investigation run.');
+              return;
+            }
+
+            const workflow = await github.rest.actions.getWorkflow({
+              ...context.repo,
+              workflow_id: run.workflow_id,
+            });
+            if (workflow.data.path !== '.github/workflows/incident-investigator.lock.yml') {
+              core.info('The completed run is not the trusted primary investigator workflow.');
+              return;
+            }
+
+            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+              ...context.repo,
+              run_id: run.id,
+              per_page: 100,
+            });
+            const agent = jobs.find(job => job.name === 'agent');
+            const invocation = agent?.steps?.find(step => step.name === 'Execute GitHub Copilot CLI');
+            if (!['failure', 'timed_out'].includes(agent?.conclusion) ||
+                !['failure', 'timed_out'].includes(invocation?.conclusion)) {
+              core.info('The Copilot invocation step did not fail; automatic failover skipped.');
+              return;
+            }
+
+            core.setOutput('eligible', 'true');
+            core.info('The primary Copilot invocation failed; checking the trusted incident receipt.');
+
+  download_context:
+    needs: inspect_primary
+    if: needs.inspect_primary.outputs.eligible == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      actions: read
+      contents: none
+      issues: read
+    outputs:
+      issue_number: ${{ steps.receipt.outputs.issue_number }}
+      eligible: ${{ steps.receipt.outputs.eligible }}
+    steps:
+      - name: Download the primary run's failover receipt
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ai-provider-failover-context-${{ github.event.workflow_run.run_attempt }}
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          path: ${{ runner.temp }}/ai-provider-failover-context
+      - name: Validate incident receipt and failover eligibility
+        id: receipt
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          RECEIPT_PATH: ${{ runner.temp }}/ai-provider-failover-context/ai-provider-failover-context.json
+        with:
+          script: |
+            const fs = require('node:fs');
+            core.setOutput('eligible', 'false');
+            const run = context.payload.workflow_run;
+            let receipt;
+            try {
+              receipt = JSON.parse(fs.readFileSync(process.env.RECEIPT_PATH, 'utf8'));
+            } catch {
+              core.setFailed('Trusted failover receipt is missing or invalid.');
+              return;
+            }
+            if (!Number.isSafeInteger(receipt.issue_number) || receipt.issue_number < 1 ||
+                receipt.primary_run_id !== run.id) {
+              core.setFailed('Trusted failover receipt does not match the failed primary run.');
+              return;
+            }
+
+            const { data: issue } = await github.rest.issues.get({
+              ...context.repo,
+              issue_number: receipt.issue_number,
+            });
+            if (issue.pull_request || issue.state !== 'open' ||
+                issue.user?.login !== 'github-actions[bot]' ||
+                !issue.title?.startsWith('incident:') ||
+                !/<!-- incident-run-id:(?:simulation-)?[0-9]+ -->/.test(issue.body ?? '')) {
+              core.info('The receipt issue is not an open, trusted incident.');
+              return;
+            }
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              ...context.repo,
+              issue_number: receipt.issue_number,
+              per_page: 100,
+            });
+            const investigationExists = comments.some(comment =>
+              comment.user?.login === 'github-actions[bot]' &&
+              (comment.body?.includes('## AI Incident Investigation') ||
+               comment.body?.includes('<!-- devobs-investigation:v1 -->')));
+            const breakerAlreadyOpen = comments.some(comment =>
+              comment.user?.login === 'github-actions[bot]' &&
+              comment.body?.includes('<!-- devobs-provider-failover:v1 -->'));
+            if (investigationExists || breakerAlreadyOpen) {
+              core.info('An investigation or prior failover marker exists; duplicate skipped.');
+              return;
+            }
+
+            core.setOutput('issue_number', String(receipt.issue_number));
+            core.setOutput('eligible', 'true');
+
+  dispatch_vertex_fallback:
+    needs: download_context
+    if: needs.download_context.outputs.eligible == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      actions: write
+      contents: none
+      issues: write
+    steps:
+      - name: Open the incident-scoped breaker and dispatch one Vertex fallback
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          ISSUE_NUMBER: ${{ needs.download_context.outputs.issue_number }}
+          PRIMARY_RUN_ID: ${{ github.event.workflow_run.id }}
+          PRIMARY_RUN_URL: ${{ github.event.workflow_run.html_url }}
+        with:
+          script: |
+            const issueNumber = Number(process.env.ISSUE_NUMBER);
+            const primaryRunId = Number(process.env.PRIMARY_RUN_ID);
+            if (!Number.isSafeInteger(issueNumber) || issueNumber < 1 ||
+                !Number.isSafeInteger(primaryRunId) || primaryRunId < 1) {
+              core.setFailed('Validated failover identifiers are invalid.');
+              return;
+            }
+
+            const { data: issue } = await github.rest.issues.get({
+              ...context.repo,
+              issue_number: issueNumber,
+            });
+            if (issue.pull_request || issue.state !== 'open' ||
+                issue.user?.login !== 'github-actions[bot]' ||
+                !issue.title?.startsWith('incident:') ||
+                !/<!-- incident-run-id:(?:simulation-)?[0-9]+ -->/.test(issue.body ?? '')) {
+              core.info('Incident trust gate no longer passes; fallback not dispatched.');
+              return;
+            }
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              ...context.repo,
+              issue_number: issueNumber,
+              per_page: 100,
+            });
+            const marker = '<!-- devobs-provider-failover:v1 -->';
+            if (comments.some(comment => comment.user?.login === 'github-actions[bot]' &&
+                (comment.body?.includes(marker) ||
+                 comment.body?.includes('## AI Incident Investigation') ||
+                 comment.body?.includes('<!-- devobs-investigation:v1 -->')))) {
+              core.info('The incident breaker is already open or an investigation exists.');
+              return;
+            }
+
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: issueNumber,
+              body: `${marker}\nCopilot's investigator call failed in [run ${primaryRunId}](${process.env.PRIMARY_RUN_URL}). Dispatching the configured Vertex AI fallback once for this incident. The fallback remains read-only and its report still requires human review.`,
+            });
+
+            await github.rest.actions.createWorkflowDispatch({
+              ...context.repo,
+              workflow_id: 'incident-investigator-vertex.lock.yml',
+              ref: 'main',
+              inputs: { issue_number: String(issueNumber) },
+            });
+            core.info(`Dispatched one Vertex fallback for incident #${issueNumber}.`);

@@ -1,8 +1,8 @@
 ---
 description: |
-  Manually invoked Vertex AI fallback for a trusted Devobs incident when the
-  primary Copilot investigator cannot complete. Produces an evidence-backed
-  report for human review and never performs recovery actions.
+  One-shot Vertex AI fallback for a trusted Devobs incident after the primary
+  Copilot invocation fails. It can also be dispatched manually. Produces an
+  evidence-backed report for human review and never performs recovery actions.
 
 on:
   workflow_dispatch:
@@ -216,10 +216,11 @@ timeout-minutes: 10
 
 # Devobs Incident Investigator — Vertex AI fallback
 
-This workflow is a manual fallback for the primary Copilot investigator. Run it
-only after the Copilot run for this incident has failed and before another
-investigation comment has been posted. It uses Google Vertex AI through
-GitHub OIDC; it does not use a service-account JSON key.
+This workflow is automatically dispatched once when the primary Copilot CLI
+invocation fails for a trusted incident. It can also be dispatched manually.
+The automatic circuit breaker records an issue marker before dispatch so it
+does not retry automatically for that incident. The fallback uses Google
+Vertex AI through GitHub OIDC; it does not use a service-account JSON key.
 
 Investigate incident issue #${{ github.event.issue.number || inputs.issue_number }} and produce one concise,
 evidence-backed investigation for human review.

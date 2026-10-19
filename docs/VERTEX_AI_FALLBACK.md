@@ -1,18 +1,22 @@
 # Vertex AI fallback for incident investigation
 
-The normal `incident-investigator` remains on GitHub Copilot. The separate
-`incident-investigator-vertex` workflow is a manually invoked fallback for a
-trusted incident when the Copilot investigation run fails (for example, with an
-inference HTTP 429) and no investigation comment has been published.
+The normal `incident-investigator` remains on GitHub Copilot. The
+`ai-provider-circuit-breaker` workflow dispatches the separate
+`incident-investigator-vertex` fallback once when the primary Copilot CLI call
+fails for a trusted incident. The Vertex workflow remains manually dispatchable
+for operator-controlled recovery when appropriate.
 
-The fallback uses `gh-aw v0.89.21`'s supported Gemini engine with Vertex AI and
+The fallback uses `gh-aw`'s supported Gemini engine with Vertex AI and
 GitHub Actions OIDC Workload Identity Federation (WIF). It does not require a
 long-lived service-account key; the GitHub settings contain only resource
 identifiers and can be stored as repository variables or secrets. The two
 workflows use the same incident concurrency key, revalidate the issue
 immediately before writing, and skip when a prior investigation comment exists.
-This prevents simultaneous Copilot and Vertex runs from publishing duplicate
-reports.
+The breaker verifies the exact failed Copilot invocation, correlates it to the
+trusted issue using a one-day artifact, and writes a durable per-issue marker
+before dispatch. This allows at most one automatic Vertex attempt per incident.
+If Vertex settings are valid, the fallback may incur Google Cloud charges; if
+the identity preflight fails, no Vertex inference is made.
 
 ## One-time Google Cloud setup
 

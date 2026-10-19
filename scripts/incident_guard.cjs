@@ -30,6 +30,7 @@ async function incidentGuard({ github, context, core }, requireEligible = false)
      comment.body?.includes('<!-- devobs-investigation:v1 -->')));
   if (existing) return stop('Investigation already exists; duplicate skipped.');
   core.setOutput('eligible', 'true');
+  core.setOutput('issue_number', String(issue_number));
   return true;
 }
 
