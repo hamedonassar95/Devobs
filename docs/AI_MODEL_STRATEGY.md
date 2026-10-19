@@ -18,10 +18,12 @@
   .github/workflows/incident-investigator.md.
 - مولّد patch يستخدم GitHub Copilot مع النموذج gpt-4.1 في
   .github/workflows/phase8b-ai-patch-generator.md.
-- يوجد مسار احتياطي يدوي عبر Vertex AI مع Gemini 2.5 Pro في
-  .github/workflows/incident-investigator-vertex.md. يحتاج هذا المسار إعداد
-  Google Cloud Workload Identity Federation ومتغيرات المستودع الموضحة في
-  docs/VERTEX_AI_FALLBACK.md.
+- يوجد مسار احتياطي آلي لمرة واحدة عبر Vertex AI مع Gemini 2.5 Pro عند فشل
+  استدعاء Copilot الأساسي، بواسطة
+  `.github/workflows/ai-provider-circuit-breaker.yml`. يشترط إعداد Google Cloud
+  Workload Identity Federation الموضح في `docs/VERTEX_AI_FALLBACK.md`؛ إذا لم
+  ينجح فحص الاعتماد، يتوقف المسار قبل استدلال Vertex. قد يترتب على الاستدلال
+  رسوم Google Cloud.
 - توجد تجربة احتياطية يدوية عبر Claude في
   .github/workflows/incident-investigator-claude.md. تستخدم محرك Claude والاسم
   المنطقي `sonnet-6x` وتتطلب سر المستودع `ANTHROPIC_API_KEY`. لا تعمل تلقائيًا
@@ -105,6 +107,9 @@ GitHub؛ راجع [`docs/GITHUB_AI_SCAN.md`](GITHUB_AI_SCAN.md) واضبط ال�
 ملف lock وتشغيل CI والتحقق من المسار الاحتياطي.
 
 ## ضوابط الدمج
+
+سياسة قاطع الدوائر المنفذة وحدود التحويل الآلي موثقة في
+[`docs/AI_PROVIDER_RESILIENCE.md`](AI_PROVIDER_RESILIENCE.md).
 
 قبل اعتماد أي نموذج مرشح:
 
