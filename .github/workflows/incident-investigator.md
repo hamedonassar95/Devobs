@@ -72,9 +72,10 @@ on:
       if: steps.incident_gate.outputs.eligible == 'true'
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
-        name: ai-provider-failover-context-${{ github.run_attempt }}
+        name: ai-provider-failover-context
         path: ${{ runner.temp }}/ai-provider-failover-context.json
         if-no-files-found: error
+        overwrite: true
         retention-days: 1
   bots:
     - github-actions[bot]
