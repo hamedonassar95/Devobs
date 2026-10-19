@@ -7,7 +7,8 @@ description: |
 
 on:
   issues:
-    types: [opened]
+    types: [labeled]
+  roles: [admin, maintainer]
   workflow_dispatch:
     inputs:
       issue_number:
@@ -45,6 +46,15 @@ on:
                 !/<!-- incident-run-id:(?:simulation-)?[0-9]+ -->/.test(issue.body ?? '')) {
               return stop('Incident failed the trust gate; no investigation or comment permitted.');
             }
+            if (!(issue.labels ?? []).some(label => label.name === 'human-reviewed')) {
+              return stop('Incident requires the human-reviewed label before AI analysis.');
+            }
+            if (context.eventName === 'issues' &&
+                (context.payload.action !== 'labeled' ||
+                 context.payload.label?.name !== 'human-reviewed' ||
+                 context.payload.sender?.type !== 'User')) {
+              return stop('Only a human maintainer applying the human-reviewed label can start AI analysis.');
+            }
             // Paginate: an existing investigation may be beyond the first 100 comments.
             const comments = await github.paginate(github.rest.issues.listComments, {
               ...params, per_page: 100,
@@ -77,9 +87,6 @@ on:
         if-no-files-found: error
         overwrite: true
         retention-days: 1
-  bots:
-    - github-actions[bot]
-
 if: needs.pre_activation.outputs.eligible == 'true'
 
 concurrency:
@@ -119,6 +126,15 @@ jobs:
                   !issue.title?.startsWith('incident:') ||
                   !/<!-- incident-run-id:(?:simulation-)?[0-9]+ -->/.test(issue.body ?? '')) {
                 return stop('Incident failed the trust gate; no investigation or comment permitted.');
+              }
+              if (!(issue.labels ?? []).some(label => label.name === 'human-reviewed')) {
+                return stop('Incident requires the human-reviewed label before AI analysis.');
+              }
+              if (context.eventName === 'issues' &&
+                  (context.payload.action !== 'labeled' ||
+                   context.payload.label?.name !== 'human-reviewed' ||
+                   context.payload.sender?.type !== 'User')) {
+                return stop('Only a human maintainer applying the human-reviewed label can start AI analysis.');
               }
               // Paginate: an existing investigation may be beyond the first 100 comments.
               const comments = await github.paginate(github.rest.issues.listComments, {
@@ -160,6 +176,14 @@ safe-outputs:
   noop: false
   report-incomplete: false
 
+tools:
+  github:
+    allowed-repos:
+      - hamedonassar95/devobs
+    min-integrity: approved
+    approval-labels:
+      - human-reviewed
+
 engine: copilot
 model: gpt-4.1
 
@@ -173,14 +197,17 @@ evidence-backed investigation for human review.
 
 The target issue number is `${{ github.event.issue.number || inputs.issue_number }}`.
 
-Before any analysis, fetch that issue and verify all three trust conditions:
+Before any analysis, fetch that issue and verify these trust conditions:
 
 1. the author is `github-actions[bot]`;
 2. the title starts with `incident:`;
-3. the body contains an `incident-run-id:` marker.
+3. the body contains an `incident-run-id:` marker;
+4. a maintainer has applied the `human-reviewed` label after reviewing the issue.
 
 If any trust condition fails, stop without posting a comment. The deterministic gate
-rejects untrusted or already-investigated incidents before the agent starts.
+rejects untrusted, unapproved, or already-investigated incidents before the agent starts.
+The approval label permits AI analysis of the incident evidence only; it does not approve
+any recovery action.
 
 ## Safety contract
 
