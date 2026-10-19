@@ -7,7 +7,8 @@ function fixture({ input = '30', issue = {}, comments = [], failApi = false } = 
   const trusted = {
     number: 30, state: 'open', user: { login: 'github-actions[bot]' },
     title: 'incident: controlled drill',
-    body: '<!-- incident-run-id:simulation-37511616721 -->', ...issue,
+    body: '<!-- incident-run-id:simulation-37511616721 -->',
+    labels: [{ name: 'human-reviewed' }], ...issue,
   };
   const listComments = () => { throw Error('Must paginate comments'); };
   return {
