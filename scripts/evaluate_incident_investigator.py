@@ -43,7 +43,11 @@ INPUT_KEYS = {
 }
 FAILURE_KEYS = {"job", "step"}
 LATER_RUN_KEYS = {"run_id", "conclusion"}
-REFERENCE_KEYS = {"source", "max_causal_hypothesis_confidence", "historical_score"}
+REFERENCE_KEYS = {
+    "source", "annotation_status", "max_causal_hypothesis_confidence", "historical_score"
+}
+ANNOTATION_STATUSES = {"historical_record", "synthetic_unreviewed", "expert_reviewed"}
+LATER_RUN_CONCLUSIONS = {"success", "failure", "cancelled", "unknown"}
 OUTPUT_KEYS = {"case_id", "output_text"}
 
 MISSING_LOG_PHRASES = (
@@ -148,6 +152,8 @@ def _validate_case(record: Any, line_number: int) -> dict[str, Any]:
             raise ValueError(f"{prefix} input.later_run must contain run_id and conclusion")
         if any(not isinstance(later_run[key], str) or not later_run[key].strip() for key in LATER_RUN_KEYS):
             raise ValueError(f"{prefix} later_run fields must be non-empty strings")
+        if later_run["conclusion"].casefold() not in LATER_RUN_CONCLUSIONS:
+            raise ValueError(f"{prefix} input.later_run.conclusion must be success, failure, cancelled, or unknown")
 
     unrelated = inputs["unrelated_changes"]
     if not isinstance(unrelated, list) or any(not isinstance(value, str) or not value.strip() for value in unrelated):
@@ -156,9 +162,16 @@ def _validate_case(record: Any, line_number: int) -> dict[str, Any]:
     reference = record["reference"]
     if not isinstance(reference, dict) or set(reference) != REFERENCE_KEYS:
         raise ValueError(f"{prefix} reference must contain exactly: {', '.join(sorted(REFERENCE_KEYS))}")
-    if any(not isinstance(reference[key], str) or not reference[key].strip()
-           for key in ("source", "historical_score")):
-        raise ValueError(f"{prefix} reference source and historical_score must be non-empty strings")
+    if not isinstance(reference["source"], str) or not reference["source"].strip():
+        raise ValueError(f"{prefix} reference source must be a non-empty string")
+    if (
+        not isinstance(reference["annotation_status"], str)
+        or reference["annotation_status"] not in ANNOTATION_STATUSES
+    ):
+        raise ValueError(f"{prefix} reference annotation_status is not supported")
+    historical_score = reference["historical_score"]
+    if historical_score is not None and (not isinstance(historical_score, str) or not historical_score.strip()):
+        raise ValueError(f"{prefix} reference historical_score must be null or a non-empty string")
     cap = reference["max_causal_hypothesis_confidence"]
     if isinstance(cap, bool) or not isinstance(cap, (int, float)) or not math.isfinite(cap) or not 0 <= cap <= 1:
         raise ValueError(f"{prefix} reference confidence cap must be a number from 0 to 1")
@@ -259,6 +272,14 @@ def _has_positive_rerun_recommendation(section: str) -> bool:
     return False
 
 
+def _later_run_outcome_is_acknowledged(report: str, run_id: str, phrases: tuple[str, ...]) -> bool:
+    """Require the annotated run ID and its outcome in the same sentence."""
+    for sentence in re.split(r"(?<=[.!?])\s+|\n+", report.casefold()):
+        if run_id.casefold() in sentence and any(phrase in sentence for phrase in phrases):
+            return True
+    return False
+
+
 def grade_report(case: dict[str, Any], report: str) -> dict[str, dict[str, Any]]:
     """Return five deterministic rubric grades for one already-validated case."""
     case = _validate_case(case, 1)
@@ -315,21 +336,32 @@ def grade_report(case: dict[str, Any], report: str) -> dict[str, dict[str, Any]]
         chronology_ok = True
         chronology_reason = "no later equivalent run is annotated for this case"
     else:
-        later_id_present = later_run["run_id"].casefold() in normalized
-        later_success = later_run["conclusion"].casefold() == "success" and any(term in normalized for term in SUCCESS_PHRASES)
+        conclusion = later_run["conclusion"].casefold()
+        outcome_phrases = {
+            "success": SUCCESS_PHRASES,
+            "failure": ("failed", "failure", "unsuccessful"),
+            "cancelled": ("cancelled", "canceled"),
+            "unknown": ("unknown", "unavailable", "not established"),
+        }
+        later_outcome_present = _later_run_outcome_is_acknowledged(
+            report, later_run["run_id"], outcome_phrases[conclusion]
+        )
         tests_section = _section(report, TESTS_HEADING)
-        no_repeat = tests_section is not None and not _has_positive_rerun_recommendation(tests_section)
-        chronology_ok = later_id_present and later_success and no_repeat
+        no_repeat = conclusion != "success" or (
+            tests_section is not None and not _has_positive_rerun_recommendation(tests_section)
+        )
+        chronology_ok = later_outcome_present and tests_section is not None and no_repeat
         reasons = []
-        if not later_id_present:
-            reasons.append("later equivalent run ID is missing")
-        if not later_success:
-            reasons.append("later successful outcome is missing")
+        if not later_outcome_present:
+            reasons.append(f"later run ID and outcome ({conclusion}) must appear in the same sentence")
         if tests_section is None:
             reasons.append("Recommended Tests section is missing")
-        elif not no_repeat:
+        elif conclusion == "success" and not no_repeat:
             reasons.append("report recommends repeating the already-successful workflow")
-        chronology_reason = "later recovery is acknowledged without recommending a repeat" if chronology_ok else "; ".join(reasons)
+        chronology_reason = (
+            f"later {conclusion} run is acknowledged with an appropriate test section"
+            if chronology_ok else "; ".join(reasons)
+        )
     grades["timeline_and_test_choice"] = {"passed": chronology_ok, "reason": chronology_reason}
 
     relevance_ok = True
