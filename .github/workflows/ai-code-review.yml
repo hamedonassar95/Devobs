@@ -27,8 +27,26 @@ jobs:
       status: ${{ steps.result.outputs.status }}
       findings: ${{ steps.result.outputs.findings }}
     steps:
+      - name: Require explicit AI budget approval
+        id: budget
+        env:
+          AI_BUDGET_APPROVED: ${{ vars.DEVOBS_AI_BUDGET_APPROVED }}
+        shell: bash
+        run: |
+          if [[ "$AI_BUDGET_APPROVED" == "true" ]]; then
+            echo "approved=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "approved=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::AI review skipped: DEVOBS_AI_BUDGET_APPROVED is not true. This switch is an explicit cost approval, not a dollar cap."
+            {
+              echo "## AI Code Review"
+              echo "Skipped because the repository variable DEVOBS_AI_BUDGET_APPROVED is not true."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Check for the OpenAI API secret
         id: credential
+        if: steps.budget.outputs.approved == 'true'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         shell: bash
@@ -45,7 +63,7 @@ jobs:
           fi
 
       - name: Check out the pull request merge commit
-        if: steps.credential.outputs.enabled == 'true'
+        if: steps.budget.outputs.approved == 'true' && steps.credential.outputs.enabled == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: refs/pull/${{ github.event.pull_request.number }}/merge
@@ -53,7 +71,7 @@ jobs:
           persist-credentials: false
 
       - name: Fetch exact base and head refs
-        if: steps.credential.outputs.enabled == 'true'
+        if: steps.budget.outputs.approved == 'true' && steps.credential.outputs.enabled == 'true'
         env:
           PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -64,7 +82,7 @@ jobs:
             "+refs/pull/$PR_NUMBER/head"
 
       - name: Remove repository-controlled Codex instructions
-        if: steps.credential.outputs.enabled == 'true'
+        if: steps.budget.outputs.approved == 'true' && steps.credential.outputs.enabled == 'true'
         shell: bash
         run: |
           python3 - <<'PY'
@@ -91,7 +109,7 @@ jobs:
 
       - name: Review the pull request with Codex
         id: codex
-        if: steps.credential.outputs.enabled == 'true'
+        if: steps.budget.outputs.approved == 'true' && steps.credential.outputs.enabled == 'true'
         continue-on-error: true
         uses: openai/codex-action@bdf19a4a223ec2549a3e2274a0cf61556bc07675 # v1
         with:
@@ -119,6 +137,7 @@ jobs:
         id: result
         if: always()
         env:
+          BUDGET_APPROVED: ${{ steps.budget.outputs.approved }}
           CREDENTIAL_ENABLED: ${{ steps.credential.outputs.enabled }}
           CODEX_OUTCOME: ${{ steps.codex.outcome }}
           CODEX_FINDINGS: ${{ steps.codex.outputs.final-message }}
@@ -130,10 +149,14 @@ jobs:
           from pathlib import Path
 
           enabled = os.environ.get("CREDENTIAL_ENABLED", "")
+          budget_approved = os.environ.get("BUDGET_APPROVED", "")
           outcome = os.environ.get("CODEX_OUTCOME", "")
           findings = os.environ.get("CODEX_FINDINGS", "").strip()
 
-          if enabled == "false":
+          if budget_approved != "true":
+              status = "Skipped: explicit AI budget approval is absent."
+              findings = "No AI review was run. The repository variable DEVOBS_AI_BUDGET_APPROVED must be true to authorize potentially billable inference."
+          elif enabled == "false":
               status = "Skipped: OPENAI_API_KEY is not configured."
               findings = "No AI review was run for this commit. Configure the repository secret to enable it."
           elif enabled != "true":

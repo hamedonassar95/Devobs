@@ -43,6 +43,7 @@ tools:
     toolsets: [repos, issues, pull_requests]
   bash: true
   repo-memory: true
+if: vars.DEVOBS_AI_BUDGET_APPROVED == 'true'
 ---
 
 # Devobs Efficiency Improver — bounded pilot

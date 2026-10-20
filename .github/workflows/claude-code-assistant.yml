@@ -55,8 +55,23 @@ jobs:
       pull-requests: read
       issues: write
     steps:
+      - name: Require explicit AI budget approval
+        id: budget
+        env:
+          AI_BUDGET_APPROVED: ${{ vars.DEVOBS_AI_BUDGET_APPROVED }}
+        shell: bash
+        run: |
+          if [[ "$AI_BUDGET_APPROVED" == "true" ]]; then
+            echo "approved=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "approved=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Claude Code skipped: DEVOBS_AI_BUDGET_APPROVED is not true. This switch is an explicit cost approval, not a dollar cap."
+            echo "Claude Code was skipped because explicit AI budget approval is absent." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Check for the Anthropic API secret
         id: credential
+        if: steps.budget.outputs.approved == 'true'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         shell: bash
@@ -71,7 +86,7 @@ jobs:
 
       # The action prepares the event-specific checkout; do not check out PR code separately here.
       - name: Run Claude Code
-        if: steps.credential.outputs.enabled == 'true'
+        if: steps.budget.outputs.approved == 'true' && steps.credential.outputs.enabled == 'true'
         uses: anthropics/claude-code-action@f27be6b65a4652f08a2ba3cff79114829b588967 # v1.0.0
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}

@@ -87,7 +87,7 @@ on:
         if-no-files-found: error
         overwrite: true
         retention-days: 1
-if: needs.pre_activation.outputs.eligible == 'true'
+if: vars.DEVOBS_AI_BUDGET_APPROVED == 'true' && needs.pre_activation.outputs.eligible == 'true'
 
 concurrency:
   group: "incident-investigator-${{ github.repository }}-${{ github.event.issue.number || inputs.issue_number }}"
