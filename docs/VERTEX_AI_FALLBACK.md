@@ -246,3 +246,17 @@ connected integration does not have repository Secrets: write permission. Set
 the value in the repository's Actions settings, then rerun the preflight. A
 successful format check alone does not prove the WIF trust policy,
 service-account binding, Vertex API, quota, or model access is correct.
+
+## Controlled evaluation attempt — 19 October 2026
+
+Run
+[39264720035](https://github.com/hamedonassar95/Devobs/actions/runs/39264720035)
+passed WIF and service-account impersonation in the pre-activation job, then
+Gemini received `Vertex AI OIDC token (gcp) unavailable` from the API proxy and
+posted no investigation comment. The compiled firewall allowlist did not
+include `sts.googleapis.com` or `iamcredentials.googleapis.com`, which the
+proxy needs to exchange the GitHub OIDC token and impersonate the service
+account. The workflow source now allows only those two additional Google
+endpoints alongside `defaults`. This requires `strict: false` so gh-aw accepts
+explicit custom domains; see the [gh-aw network configuration guide](https://github.github.com/gh-aw/guides/network-configuration/).
+The updated workflow has not been dispatched yet.
