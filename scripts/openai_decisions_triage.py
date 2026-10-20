@@ -22,6 +22,7 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 DECISION_ENDPOINT = "https://api.openai.com/v1/decisions"
 MODEL = "gpt-6-luna"
+PROMPT_VERSION = "decisions-triage-v1"
 MAX_INPUT_BYTES = 64_000
 MAX_RESPONSE_BYTES = 256_000
 REQUEST_TIMEOUT_SECONDS = 20
@@ -298,7 +299,12 @@ def _validated_answers(response: Any) -> dict[str, Any]:
             }
     if set(normalized) != set(expected):
         raise DecisionError("Decisions API omitted one or more requested answers.")
-    return {"model": MODEL, "answers": normalized, "advisory_only": True}
+    return {
+        "model": MODEL,
+        "prompt_version": PROMPT_VERSION,
+        "answers": normalized,
+        "advisory_only": True,
+    }
 
 
 def classify_incident(text: str, api_key: str) -> dict[str, Any]:

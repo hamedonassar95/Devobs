@@ -70,19 +70,28 @@ currently documented `gpt-6-luna` model, and predicate, choice, and score
 questions. The API is in public beta. Model confidence and probabilities are
 not a substitute for a locally validated threshold; calibrate them against
 human-reviewed incident examples before using them for routing or prioritizing
-work. The existing evaluator's single historic incident example does not
-calibrate these Decisions answers. The local tests validate request and response
-contracts only; they do not measure model classification quality.
+work.
+
+An offline evaluation harness now covers 28 synthetic cases, all marked
+`synthetic_unreviewed`, across every configured category and severity level.
+It reports predicate, category, and severity metrics from saved outputs but
+does not call the API. This corpus is a development and rubric-coverage set:
+its labels have not been independently reviewed, its class mix is not
+representative, and no live Decisions outputs have been scored. See
+[`AI_EVALUATION_DATASETS.md`](AI_EVALUATION_DATASETS.md) for the output format,
+metrics, and annotation protocol. Passing the local tests or obtaining a score
+on synthetic labels does not demonstrate real-world accuracy or production
+readiness.
 
 ## OpenAI guidance applied
 
 | Guidance | Application in this repository |
 | --- | --- |
 | Use Decisions for typed predicate, choice, and ordered score outputs; keep independent questions together and include a fallback choice. | One request asks three independent questions and includes `other`; the response is checked against exact names, types, categories, and score levels. |
-| Write questions around observable criteria; use labeled examples to choose confidence thresholds. | The instructions ask for evidence-backed incident labels. There is no automatic threshold or action; human-labeled Decisions evaluation is still needed. |
+| Write questions around observable criteria; use labeled examples to choose confidence thresholds. | The instructions ask for evidence-backed incident labels. There is no automatic threshold or action; the current synthetic, unreviewed dataset cannot set a production threshold. |
 | Treat user-supplied content as untrusted and keep keys in a secure server-side environment. | The prompt tells the model not to follow instructions embedded in incident text; the tool scans common secret patterns, reads the key only from the process environment, and never prints it. |
 | Minimize retained/sent data and check account data controls. | Text-only local input, 64 KB cap, manual redaction confirmation, no storage, and an explicit warning about default abuse-monitoring retention. |
-| Build evaluations from reviewed examples and ground truth. | The offline evaluator remains separate and deterministic. Its current single case is not evidence that the Decisions classifier is accurate. |
+| Build evaluations from reviewed examples and ground truth. | The separate deterministic evaluator covers 28 synthetic examples and surfaces label status. Expert-reviewed, representative examples and saved Decisions outputs are still needed to measure classifier quality. |
 | Handle errors and rate limits deliberately. | One request, no hidden retries, sanitized failure messages, strict response validation, and a reported numeric `Retry-After` delay for HTTP 429 when supplied; any retry is manual. |
 
 These controls apply to the current local classifier and the repository's OpenAI
