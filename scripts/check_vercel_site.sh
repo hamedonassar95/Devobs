@@ -37,6 +37,10 @@ if ! jq -e '
   echo "::error::Site contract must be valid JSON with a non-empty required_text_any list of non-empty strings."
   exit 2
 fi
+if ! jq -e '.required_text_any | index("Devobs") != null' "$CONTRACT_FILE" >/dev/null 2>&1; then
+  echo "::error::Site contract must include the Devobs marker."
+  exit 2
+fi
 WORK_DIR="$(mktemp -d)"
 cleanup() {
   rm -f -- "$WORK_DIR/bypass.curlrc" "$WORK_DIR/curl.err" \

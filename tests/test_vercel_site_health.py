@@ -22,7 +22,7 @@ class HealthHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         path = self.path.split("?", 1)[0]
         if path == "/":
-            body = b"<!doctype html><html><body><h1>AL-DALA MOBILE</h1></body></html>"
+            body = self.server.page_body
             self.send_response(200)
             self.send_header("Content-Type", "text/html")
         elif path == "/deployment.json":
@@ -58,6 +58,7 @@ class VercelSiteHealthBehaviorTests(unittest.TestCase):
     def setUp(self):
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), HealthHandler)
         self.server.source_sha = EXPECTED_SHA
+        self.server.page_body = b"<!doctype html><html><body><h1>Devobs</h1></body></html>"
         self.server.private_statuses = {}
         self.server.redirect_private_to_login = False
         self.server.protection_body = False
@@ -67,7 +68,7 @@ class VercelSiteHealthBehaviorTests(unittest.TestCase):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp_dir.cleanup)
         self.contract = Path(self.temp_dir.name) / "site-contract.json"
-        self.contract.write_text(json.dumps({"required_text_any": ["AL-DALA MOBILE"]}), encoding="utf-8")
+        self.contract.write_text(json.dumps({"required_text_any": ["Devobs"]}), encoding="utf-8")
 
     def _stop_server(self):
         self.server.shutdown()
@@ -101,6 +102,26 @@ class VercelSiteHealthBehaviorTests(unittest.TestCase):
         result = self.run_checker("b" * 40)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("expected SHA", result.stdout + result.stderr)
+
+    def test_site_without_devobs_marker_fails(self):
+        self.server.page_body = b"<!doctype html><html><body><h1>Different brand</h1></body></html>"
+        result = self.run_checker()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("none of the accepted brand text", result.stdout + result.stderr)
+
+    def test_contract_without_devobs_marker_fails_closed(self):
+        self.contract.write_text(json.dumps({"required_text_any": ["AL-DALA MOBILE"]}), encoding="utf-8")
+        result = self.run_checker()
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn("Site contract must include the Devobs marker", result.stdout + result.stderr)
+
+    def test_repository_contract_requires_devobs_marker(self):
+        contract = json.loads((ROOT / "site-contract.json").read_text(encoding="utf-8"))
+        self.assertEqual(
+            contract.get("required_text_any"),
+            ["Devobs"],
+            "site-contract.json must require the Devobs brand marker only",
+        )
 
     def test_missing_site_url_does_not_fall_back_to_production_url(self):
         env = os.environ.copy()
