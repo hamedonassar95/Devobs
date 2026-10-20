@@ -137,3 +137,8 @@ GitHub؛ راجع [`docs/GITHUB_AI_SCAN.md`](GITHUB_AI_SCAN.md) واضبط ال�
 [`docs/FREE_CLAUDE_CODE_EVALUATION.md`](FREE_CLAUDE_CODE_EVALUATION.md). لم تُضف
 الأداة إلى GitHub Actions أو مسارات التحقيق؛ إعدادها المحلي لا يغيّر النماذج
 أو الأسرار أو صلاحيات المستودع.
+
+أداة فرز الحوادث الاختيارية عبر OpenAI Decisions موثقة في
+[`docs/OPENAI_DECISIONS_TRIAGE.md`](OPENAI_DECISIONS_TRIAGE.md). تتطلب موافقة
+ميزانية صريحة وتأكيدًا يدويًا لكل طلب، ولا تعمل ضمن CI أو مسار التحقيق الآلي.
+الـAPI مدفوعة؛ لا تستخدمها قبل مراجعة السعر وشروط إرسال بيانات الحوادث.

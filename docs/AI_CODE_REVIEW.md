@@ -19,6 +19,11 @@
   Dependabot. لا تستخدم `pull_request_target` لتجاوز هذه القيود.
 - لا يمكن التحقق من وجود السر أو رصيد الحساب من ملفات Git؛ يلزم التأكد من
   إعداد المستودع وحساب OpenAI قبل اعتبار المراجعة مفعّلة.
+- يتبع إعداد المفتاح إرشادات OpenAI بعدم تضمينه في الكود أو المستودع، ويُمرر
+  كـGitHub Actions Secret إلى خطوة المراجعة فقط. تظل معالجة المحتوى والاحتفاظ به
+  خاضعة لإعدادات الحساب؛ لا يدّعي هذا المستودع أن ZDR أو Modified Abuse
+  Monitoring مفعّل. راجع [أفضل ممارسات الإنتاج لدى OpenAI](https://developers.openai.com/api/docs/guides/production-best-practices)
+  و[ضوابط بيانات المنصة](https://developers.openai.com/api/docs/guides/your-data).
 
 ## حدود الصلاحيات
 
