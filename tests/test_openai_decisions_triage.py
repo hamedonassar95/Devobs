@@ -120,6 +120,7 @@ class OpenAIDecisionsTriageTests(unittest.TestCase):
         self.assertNotIn("test-key", stdout.getvalue())
         result = json.loads(stdout.getvalue())
         self.assertTrue(result["advisory_only"])
+        self.assertEqual(result["prompt_version"], decisions.PROMPT_VERSION)
         self.assertEqual(result["answers"]["incident_category"]["choice"], "ci_cd")
 
         request = send_request.call_args.args[0]
