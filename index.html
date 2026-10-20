@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="خدمات DevOps والبرمجيات بمساندة الذكاء الاصطناعي للشركات.">
-  <title>Devobs | خدمات DevOps والبرمجيات للشركات</title>
+  <meta name="description" content="خدمات DevOps والبرمجيات بمساندة الذكاء الاصطناعي للشركات حول العالم. | AI-assisted DevOps and software services for businesses worldwide.">
+  <title>Devobs | خدمات DevOps والبرمجيات للشركات | Software &amp; DevOps Services</title>
   <style>
     :root {
       color-scheme: dark;
@@ -140,9 +140,20 @@
       -webkit-background-clip: text;
     }
 
+    h1 [lang="en"] {
+      display: block;
+      margin-block-start: 12px;
+      font-size: clamp(1.2rem, 3.4vw, 1.8rem);
+      font-weight: 500;
+      letter-spacing: 0;
+      line-height: 1.5;
+      text-align: left;
+    }
+
     h2 { margin: 0 0 20px; color: var(--accent); font-size: clamp(1.35rem, 4vw, 1.65rem); }
     h3 { margin: 0; font-size: 1rem; font-weight: 600; }
-    .description { position: relative; max-width: 55ch; margin: 18px 0 0; color: var(--muted); font-size: 1.05rem; }
+    .description { position: relative; display: grid; gap: 7px; max-width: 55ch; margin: 18px 0 0; color: var(--muted); font-size: 1.05rem; }
+    .description [lang="en"] { direction: ltr; text-align: left; }
 
     .hero-motif {
       position: absolute;
@@ -189,6 +200,14 @@
       background: linear-gradient(to bottom, var(--cyan), var(--violet));
       box-shadow: 0 0 16px rgba(95, 212, 255, 0.4);
       content: "";
+    }
+
+    .english-label {
+      color: var(--cyan);
+      direction: ltr;
+      font-size: 0.78em;
+      font-weight: 500;
+      text-align: left;
     }
 
     .service-list {
@@ -242,7 +261,16 @@
       pointer-events: none;
     }
 
-    .service-list h3 { color: #eaf2ff; overflow-wrap: anywhere; }
+    .service-list h3 { display: grid; gap: 4px; color: #eaf2ff; overflow-wrap: anywhere; }
+
+    .english-copy {
+      color: #c8d7ef;
+      direction: ltr;
+      font-size: 0.9rem;
+      font-weight: 400;
+      line-height: 1.55;
+      text-align: left;
+    }
 
     #start ol {
       display: grid;
@@ -279,6 +307,8 @@
       letter-spacing: 0.06em;
     }
 
+    .step-copy { display: grid; min-width: 0; gap: 3px; }
+
     #contact {
       background:
         radial-gradient(ellipse at 90% 0%, rgba(137, 121, 255, 0.12), transparent 54%),
@@ -300,6 +330,14 @@
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 0 25px rgba(95, 212, 255, 0.07);
     }
 
+    .contact-links {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    .contact-link { justify-self: start; font-size: clamp(0.84rem, 3.6vw, 1rem); }
+
     footer {
       display: flex;
       flex-wrap: wrap;
@@ -313,6 +351,9 @@
     }
 
     footer p { margin: 0; }
+
+    .footer-copy { display: grid; gap: 2px; }
+    .footer-copy [lang="en"] { direction: ltr; text-align: left; }
 
     footer a {
       display: inline-flex;
@@ -330,6 +371,7 @@
       section { padding: 30px; }
       .service-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       #start ol { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .contact-links { grid-template-columns: repeat(2, minmax(0, max-content)); }
     }
 
     @media (min-width: 1080px) {
@@ -378,8 +420,14 @@
   <div class="page-shell">
     <header>
       <p class="brand" lang="en" dir="ltr">Devobs</p>
-      <h1>خدمات البرمجيات وDevOps للشركات</h1>
-      <p class="description">خدمات DevOps والبرمجيات بمساندة الذكاء الاصطناعي للشركات.</p>
+      <h1>
+        <span lang="ar" dir="rtl">خدمات البرمجيات وDevOps للشركات</span>
+        <span lang="en" dir="ltr">Software and DevOps services for businesses</span>
+      </h1>
+      <p class="description">
+        <span lang="ar" dir="rtl">خدمات DevOps والبرمجيات بمساندة الذكاء الاصطناعي للشركات حول العالم.</span>
+        <span lang="en" dir="ltr">AI-assisted DevOps and software services for businesses worldwide.</span>
+      </p>
       <svg class="hero-motif" viewBox="0 0 320 260" aria-hidden="true" focusable="false">
         <defs>
           <linearGradient id="neural-line" x1="0" y1="1" x2="1" y2="0">
@@ -418,34 +466,40 @@
 
     <main>
       <section id="services" aria-labelledby="services-title">
-        <h2 id="services-title">الخدمات</h2>
+        <h2 id="services-title"><span lang="ar" dir="rtl">الخدمات</span><span class="english-label" lang="en">Services</span></h2>
         <ul class="service-list">
-          <li><h3>إنشاء تطبيقات الويب والمواقع الإلكترونية</h3></li>
-          <li><h3>إنشاء تطبيقات الهواتف المحمولة</h3></li>
-          <li><h3>إصلاح المواقع والأنظمة وصيانتها</h3></li>
-          <li><h3>أتمتة DevOps باستخدام GitHub Actions وCI/CD</h3></li>
-          <li><h3>مراجعة الشيفرة وفرز الحوادث بمساندة الذكاء الاصطناعي</h3></li>
+          <li><h3><span lang="ar" dir="rtl">إنشاء تطبيقات الويب والمواقع الإلكترونية</span><span class="english-copy" lang="en">Build web applications and websites</span></h3></li>
+          <li><h3><span lang="ar" dir="rtl">إنشاء تطبيقات الهواتف المحمولة</span><span class="english-copy" lang="en">Build mobile applications</span></h3></li>
+          <li><h3><span lang="ar" dir="rtl">إصلاح المواقع والأنظمة وصيانتها</span><span class="english-copy" lang="en">Repair and maintain websites and systems</span></h3></li>
+          <li><h3><span lang="ar" dir="rtl">أتمتة DevOps باستخدام GitHub Actions وCI/CD</span><span class="english-copy" lang="en">DevOps automation with GitHub Actions and CI/CD</span></h3></li>
+          <li><h3><span lang="ar" dir="rtl">مراجعة الشيفرة وفرز الحوادث بمساندة الذكاء الاصطناعي</span><span class="english-copy" lang="en">AI-assisted code review and incident triage</span></h3></li>
         </ul>
       </section>
 
       <section id="start" aria-labelledby="start-title">
-        <h2 id="start-title">كيف نبدأ</h2>
+        <h2 id="start-title"><span lang="ar" dir="rtl">كيف نبدأ</span><span class="english-label" lang="en">Getting started</span></h2>
         <ol>
-          <li>أرسل موجز مشروعك.</li>
-          <li>نراجعه لفهم احتياجاتك.</li>
-          <li>نقترح نطاق العمل المناسب.</li>
+          <li><span class="step-copy"><span lang="ar" dir="rtl">أرسل موجز مشروعك.</span><span class="english-copy" lang="en">Send us your project brief.</span></span></li>
+          <li><span class="step-copy"><span lang="ar" dir="rtl">نراجعه لفهم احتياجاتك.</span><span class="english-copy" lang="en">We review it to understand your needs.</span></span></li>
+          <li><span class="step-copy"><span lang="ar" dir="rtl">نقترح نطاق العمل المناسب.</span><span class="english-copy" lang="en">We propose a suitable scope of work.</span></span></li>
         </ol>
       </section>
 
       <section id="contact" aria-labelledby="contact-title">
-        <h2 id="contact-title">التواصل</h2>
-        <a class="contact-link" href="mailto:mohammadnassar813@gmail.com">mohammadnassar813@gmail.com</a>
+        <h2 id="contact-title"><span lang="ar" dir="rtl">التواصل</span><span class="english-label" lang="en">Contact</span></h2>
+        <div class="contact-links">
+          <a class="contact-link" href="mailto:hamedonassar95@outlook.sa">hamedonassar95@outlook.sa</a>
+          <a class="contact-link" href="tel:+962798081818">+962 79 808 1818</a>
+        </div>
       </section>
     </main>
 
     <footer>
-      <p>Devobs — DevOps and AI-assisted services.</p>
-      <a href="https://github.com/hamedonassar95/Devobs" rel="noopener noreferrer">مستودع GitHub</a>
+      <div class="footer-copy">
+        <p lang="ar" dir="rtl">Devobs — خدمات DevOps والذكاء الاصطناعي.</p>
+        <p lang="en" dir="ltr">Devobs — DevOps and AI-assisted services.</p>
+      </div>
+      <a href="https://github.com/hamedonassar95/Devobs" rel="noopener noreferrer">مستودع GitHub / GitHub repository</a>
     </footer>
   </div>
 </body>
