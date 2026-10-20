@@ -2,32 +2,89 @@
 
 [![CI](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml)
 
-مشروع عملي لتعلّم DevOps وCI/CD باستخدام GitHub Actions وGitHub Pages.
+مشروع عملي لتعلّم DevOps وCI/CD باستخدام GitHub Actions وGitHub Pages. تتضمن المستودع أتمتة إضافية موثقة؛ الصفحة المنشورة حاليًا صفحة HTML ثابتة ولا تحتاج خادم تطبيق أو قاعدة بيانات.
 
 ## مركز الأتمتة
 
 - **ابدأ من هنا:** [مركز الأتمتة وسير التشغيل الموحد](docs/AUTOMATION_HUB.md)
 
+## التثبيت والتشغيل محليًا
+
+المتطلبات: Git، وPython 3.10 أو أحدث لفحوص الموقع والاختبارات، وNode.js لاختبار حارس الحوادث. لا توجد حزم تطبيق أو عملية build مطلوبة.
+
+```sh
+git clone https://github.com/hamedonassar95/Devobs.git
+cd Devobs
+python3 -m http.server 8000 --bind 127.0.0.1
+```
+
+افتح <http://127.0.0.1:8000> في المتصفح. لإيقاف الخادم اضغط `Ctrl+C`. على Windows استخدم `py -3 -m http.server 8000 --bind 127.0.0.1` بدلًا من `python3`.
+
+## الاختبارات والفحوص
+
+من جذر المستودع:
+
+```sh
+python3 -m compileall -q scripts tests
+python3 -m unittest discover -s tests -v
+node --test tests/incident_guard.test.cjs
+python3 scripts/check_site.py
+```
+
+يفحص CI أيضًا Bandit. لتشغيل هذا الفحص محليًا:
+
+```sh
+python3 -m pip install bandit==1.9.4
+python3 -m bandit -r scripts -x scripts/check_site.py
+```
+
+يفحص GitHub Actions الأسرار باستخدام Gitleaks. لا يحتاج تشغيل الموقع أو الاختبارات إلى مفاتيح أو حسابات خدمات خارجية.
+
+## الإعداد والأسرار
+
+المشروع لا يقرأ ملفات `.env` ولا يستخدم متغيرات بيئة محلية لتشغيل الصفحة. أُنشئ [.env.example](.env.example) كمرجع لأسماء أسرار الأتمتة الاختيارية فقط؛ لا تنسخه إلى ملف إعدادات ولا تضع فيه قيمًا حقيقية.
+
+تُضاف أسرار الأتمتة المطلوبة من **Settings → Secrets and variables → Actions → Secrets** في GitHub، لا في ملفات المستودع أو سجلات CI:
+
+- `COPILOT_GITHUB_TOKEN`: اختياري لتشغيل مسارات التحقيق المدعومة بـCopilot. راجع [إعداد محقق Copilot](docs/PHASE7_COPILOT_INVESTIGATOR.md) للصلاحيات المطلوبة.
+- `GH_AW_CI_TRIGGER_TOKEN`: اختياري إذا احتاجت أتمتة إنشاء PR إلى تشغيل CI؛ استخدم اعتمادًا محدود الصلاحيات.
+- `GH_AW_GITHUB_TOKEN` و`GH_AW_GITHUB_MCP_SERVER_TOKEN`: اختياريان لعمليات GitHub التي تتطلب صلاحيات إضافية؛ تستخدم التدفقات `GITHUB_TOKEN` المدمج كخيار احتياطي عند ملاءمته.
+- `GH_AW_DEFAULT_OTLP_HEADERS`: اختياري إذا أُعدّ إرسال بيانات الرصد إلى OTLP.
+
+يصدر GitHub Actions قيمة `GITHUB_TOKEN` تلقائيًا لكل تشغيل؛ لا تنشئها يدويًا. إعداد Vertex AI يستخدم اتحاد هوية GitHub Actions مع Google Cloud ولا يحتاج مفتاح حساب خدمة. تُحفظ معرفات مشروع Google ومزوّد الهوية وحساب الخدمة كـ **Variables** غير سرية. راجع [إعداد Vertex AI](docs/VERTEX_AI_FALLBACK.md). يمكن إضافة متغيرات إعداد gh-aw غير الحساسة من صفحة **Variables** نفسها.
+
+لا تضع اعتمادًا حقيقيًا في `.env.example` أو المستندات أو الشيفرة. إذا سبق كشف اعتماد، أبطله ودوّره قبل متابعة استخدامه.
+
+## النشر
+
+النشر الحالي إلى GitHub Pages:
+
+1. في إعدادات المستودع افتح **Settings → Pages** واختر **GitHub Actions** كمصدر للنشر.
+2. ادفع التغيير إلى فرع، وافتح Pull Request إلى `main`.
+3. انتظر نجاح فحص `validate` وراجع المعاينة القابلة للتنزيل في ملخص CI.
+4. بعد مراجعة ودمج Pull Request، ينشر سير العمل الصفحة من `main` بعد نجاح CI.
+5. راجع رابط النشر ونتيجة فحص الصحة في GitHub Actions.
+
+لا يحتاج نشر Pages الحالي إلى أسرار نشر؛ صلاحيات النشر وإثبات الهوية تُدار عبر GitHub Actions وOIDC. راجع [دليل المعاينة والنشر والرجوع](docs/DEPLOYMENT.md) و[دليل CI](docs/CI.md) للتفاصيل.
+
 ## التشغيل والتوثيق
 
-- CI documentation: [docs/CI.md](docs/CI.md)
-- Repository policy audit setup: [docs/REPOSITORY_POLICY_AUDIT.md](docs/REPOSITORY_POLICY_AUDIT.md)
-- GitHub Pages DevOps roadmap: [docs/GITHUB_PAGES_DEVOPS_ROADMAP.md](docs/GITHUB_PAGES_DEVOPS_ROADMAP.md)
-- AI model strategy: [docs/AI_MODEL_STRATEGY.md](docs/AI_MODEL_STRATEGY.md)
-- AI provider resilience design: [docs/AI_PROVIDER_RESILIENCE.md](docs/AI_PROVIDER_RESILIENCE.md)
-- AI code review setup and limits: [docs/AI_CODE_REVIEW.md](docs/AI_CODE_REVIEW.md)
-- Optional local coding-agent tool review: [docs/FREE_CLAUDE_CODE_EVALUATION.md](docs/FREE_CLAUDE_CODE_EVALUATION.md)
-- AI investigation acceptance and measured results: [docs/INVESTIGATOR_ACCEPTANCE.md](docs/INVESTIGATOR_ACCEPTANCE.md)
-- GitHub AI Scan setup and billing: [docs/GITHUB_AI_SCAN.md](docs/GITHUB_AI_SCAN.md)
-- AI and Agentic Workflow cost controls: [docs/GITHUB_CODE_QUALITY_COSTS.md](docs/GITHUB_CODE_QUALITY_COSTS.md)
-- مرجع إصدار Neovim الليلي وأصوله: [docs/NEOVIM_NIGHTLY.md](docs/NEOVIM_NIGHTLY.md)
-- Provider credential preflight: [docs/INVESTIGATOR_ACCEPTANCE.md#credential-preflight](docs/INVESTIGATOR_ACCEPTANCE.md#credential-preflight)
-- iOS exploit claim triage: [docs/IOS_EXPLOIT_CLAIM_TRIAGE.md](docs/IOS_EXPLOIT_CLAIM_TRIAGE.md)
-- Release & rollback runbook: [docs/RELEASE_ROLLBACK.md](docs/RELEASE_ROLLBACK.md)
-- Stable baseline: [v1.0.0](https://github.com/hamedonassar95/Devobs/releases/tag/v1.0.0)
-
-## سير العمل بمساعدة AI
+- [CI documentation](docs/CI.md)
+- [Repository policy audit setup](docs/REPOSITORY_POLICY_AUDIT.md)
+- [GitHub Pages DevOps roadmap](docs/GITHUB_PAGES_DEVOPS_ROADMAP.md)
+- [AI model strategy](docs/AI_MODEL_STRATEGY.md)
+- [AI provider resilience design](docs/AI_PROVIDER_RESILIENCE.md)
+- [AI code review setup and limits](docs/AI_CODE_REVIEW.md)
+- [Optional local coding-agent tool review](docs/FREE_CLAUDE_CODE_EVALUATION.md)
+- [AI investigation acceptance and measured results](docs/INVESTIGATOR_ACCEPTANCE.md)
+- [GitHub AI Scan setup and billing](docs/GITHUB_AI_SCAN.md)
+- [AI and Agentic Workflow cost controls](docs/GITHUB_CODE_QUALITY_COSTS.md)
+- [مرجع إصدار Neovim الليلي وأصوله](docs/NEOVIM_NIGHTLY.md)
+- [iOS exploit claim triage](docs/IOS_EXPLOIT_CLAIM_TRIAGE.md)
+- [Release & rollback runbook](docs/RELEASE_ROLLBACK.md)
+- [النشر والرجوع](docs/DEPLOYMENT.md)
+- [الاستجابة للحوادث](docs/INCIDENT_RESPONSE.md)
+- [الأمان والإبلاغ عن الثغرات](SECURITY.md)
+- [Stable baseline: v1.0.0](https://github.com/hamedonassar95/Devobs/releases/tag/v1.0.0)
 
 إعداد AI DevKit للمساهمين ومراحل العمل موثق في [دليل AI DevKit](docs/AI_DEVKIT.md). هذا الإعداد منفصل عن تشغيل CI/CD؛ مركز وحدات الأتمتة القابلة لإعادة الاستخدام موجود في [مركز الأتمتة](docs/AUTOMATION_HUB.md).
-
-<!-- Security and CI protections verified. -->
