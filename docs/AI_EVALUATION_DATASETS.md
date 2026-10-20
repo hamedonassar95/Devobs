@@ -53,6 +53,10 @@ Python checks; the runner makes no network requests and invokes no model. Review
 candidate reports from a cost-authorized run only; do not trigger an inference run
 just to populate this corpus.
 
+For a separate optional typed incident classifier using the Decisions API, see
+[`OPENAI_DECISIONS_TRIAGE.md`](OPENAI_DECISIONS_TRIAGE.md). It is disabled by
+default and is not part of this offline evaluator.
+
 OpenAI's current documentation says Evals becomes read-only on October 31, 2026,
 with the dashboard and API scheduled to shut down on November 30, 2026. The Evals
 guide points to asynchronous runs for larger-scale tracking, while the dataset
