@@ -144,7 +144,7 @@ jobs:
 
   dispatch_vertex_fallback:
     needs: download_context
-    if: needs.download_context.outputs.eligible == 'true'
+    if: needs.download_context.outputs.eligible == 'true' && vars.DEVOBS_AI_BUDGET_APPROVED == 'true'
     concurrency:
       group: ai-provider-breaker-incident-${{ needs.download_context.outputs.issue_number }}
       cancel-in-progress: false
