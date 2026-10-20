@@ -12,6 +12,7 @@ import argparse
 import json
 import math
 import os
+import re
 import stat
 import sys
 from pathlib import Path
@@ -32,6 +33,19 @@ SEVERITY_LEVELS = (
     ("medium", "A user-facing function is impaired, but service remains substantially available."),
     ("high", "Major service impairment, material data risk, or urgent response is needed."),
     ("critical", "Broad outage, confirmed severe compromise, or imminent major harm."),
+)
+SENSITIVE_PATTERNS = (
+    re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,})\b"),
+    re.compile(r"\bsk-(?:proj|svcacct|live)-[A-Za-z0-9_-]{20,}\b|\bsk-[A-Za-z0-9]{40,}\b"),
+    re.compile(r"\bsb_secret_[A-Za-z0-9_-]{20,}\b"),
+    re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
+    re.compile(r"\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\b"),
+    re.compile(r"(?i)\bAuthorization\s*:\s*Bearer\s+(?!<redacted>|redacted\b)\S+"),
+    re.compile(r"(?i)\b(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?)://[^/\s:@]+:[^@\s/]+@"),
+    re.compile(
+        r"(?i)\b(?:api[_-]?key|access[_-]?token|client[_-]?secret|password)\b"
+        r"[\"']?\s*[:=]\s*[\"']?(?!<redacted>\b|redacted\b)[^\s\"'`,;]{8,}"
+    ),
 )
 
 
@@ -118,6 +132,17 @@ def _read_input(path: str) -> str:
         raise DecisionError("Input must be UTF-8 text.") from error
     if not text.strip():
         raise DecisionError("Input text is empty.")
+    sensitive_lines = [
+        line_number
+        for line_number, line in enumerate(text.splitlines(), start=1)
+        if any(pattern.search(line) for pattern in SENSITIVE_PATTERNS)
+    ]
+    if sensitive_lines:
+        locations = ", ".join(str(line_number) for line_number in sensitive_lines[:10])
+        suffix = " (additional lines omitted)" if len(sensitive_lines) > 10 else ""
+        raise DecisionError(
+            f"Input contains credential-like text at line(s) {locations}{suffix}; redact it locally before sending."
+        )
     return text
 
 
@@ -144,6 +169,19 @@ def _send_request(request: Request) -> bytes:
                 raise DecisionError(f"Decisions API returned HTTP {response.status}.")
             body = response.read(MAX_RESPONSE_BYTES + 1)
     except HTTPError as error:
+        if error.code == 429:
+            retry_after = (error.headers.get("Retry-After", "") if error.headers else "") or ""
+            if retry_after.isascii() and retry_after.isdigit() and int(retry_after) <= 86_400:
+                raise DecisionError(
+                    f"Decisions API rate limit (HTTP 429); wait at least {retry_after} seconds before a manual retry."
+                ) from error
+            raise DecisionError(
+                "Decisions API returned HTTP 429; check account billing, quota, and rate limits before a manual retry."
+            ) from error
+        if error.code == 503:
+            raise DecisionError(
+                "Decisions API is temporarily unavailable (HTTP 503); no automatic retry was attempted."
+            ) from error
         raise DecisionError(f"Decisions API returned HTTP {error.code}; response details were suppressed.") from error
     except DecisionError:
         raise

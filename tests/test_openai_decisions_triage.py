@@ -16,6 +16,17 @@ class _LocalDecisionsHandler(BaseHTTPRequestHandler):
         content_length = int(self.headers["Content-Length"])
         self.server.request_body = json.loads(self.rfile.read(content_length))
         self.server.authorization = self.headers.get("Authorization")
+        if self.path == "/redirect":
+            host, port = self.server.server_address
+            self.send_response(307)
+            self.send_header("Location", f"http://{host}:{port}/redirect-target")
+            self.end_headers()
+            return
+        if self.path == "/rate-limit":
+            self.send_response(429)
+            self.send_header("Retry-After", "17")
+            self.end_headers()
+            return
         response = json.dumps(response_body()).encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
@@ -148,6 +159,57 @@ class OpenAIDecisionsTriageTests(unittest.TestCase):
             server.server_close()
             thread.join(timeout=2)
 
+    def test_redirect_is_rejected_without_forwarding_authentication(self):
+        server = ThreadingHTTPServer(("127.0.0.1", 0), _LocalDecisionsHandler)
+        server.request_count = 0
+        server.request_body = None
+        server.authorization = None
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        endpoint = f"http://127.0.0.1:{server.server_port}/redirect"
+        environment = {"DEVOBS_AI_BUDGET_APPROVED": "true", "OPENAI_API_KEY": "test-key"}
+        try:
+            with patch.dict(os.environ, environment), patch.object(decisions, "DECISION_ENDPOINT", endpoint):
+                from contextlib import redirect_stderr
+                from io import StringIO
+
+                stderr = StringIO()
+                with redirect_stderr(stderr):
+                    exit_code = self.run_cli("--confirm-billable", "--confirm-data-redacted")
+            self.assertEqual(exit_code, 2)
+            self.assertEqual(server.request_count, 1)
+            self.assertNotIn("test-key", stderr.getvalue())
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+
+    def test_rate_limit_is_reported_without_retry_and_honors_retry_after(self):
+        server = ThreadingHTTPServer(("127.0.0.1", 0), _LocalDecisionsHandler)
+        server.request_count = 0
+        server.request_body = None
+        server.authorization = None
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        endpoint = f"http://127.0.0.1:{server.server_port}/rate-limit"
+        environment = {"DEVOBS_AI_BUDGET_APPROVED": "true", "OPENAI_API_KEY": "test-key"}
+        try:
+            with patch.dict(os.environ, environment), patch.object(decisions, "DECISION_ENDPOINT", endpoint):
+                from contextlib import redirect_stderr
+                from io import StringIO
+
+                stderr = StringIO()
+                with redirect_stderr(stderr):
+                    exit_code = self.run_cli("--confirm-billable", "--confirm-data-redacted")
+            self.assertEqual(exit_code, 2)
+            self.assertEqual(server.request_count, 1)
+            self.assertIn("wait at least 17 seconds", stderr.getvalue())
+            self.assertNotIn("test-key", stderr.getvalue())
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+
     def test_refusal_and_invalid_typed_answer_fail_closed(self):
         environment = {"DEVOBS_AI_BUDGET_APPROVED": "true", "OPENAI_API_KEY": "test-key"}
         refusal = {"answers": [{"type": "refusal", "name": "confirmed_security_impact"}]}
@@ -168,6 +230,26 @@ class OpenAIDecisionsTriageTests(unittest.TestCase):
         symlink.symlink_to(self.input_path)
         with self.assertRaisesRegex(decisions.DecisionError, "symlink"):
             decisions._read_input(str(symlink))
+
+    def test_credential_like_input_is_blocked_without_echo_or_request(self):
+        marker = "Authorization: Bearer test-placeholder-for-local-unit-tests"
+        self.input_path.write_text(f"Failed request\n{marker}\n", encoding="utf-8")
+        environment = {"DEVOBS_AI_BUDGET_APPROVED": "true", "OPENAI_API_KEY": "test-key"}
+        from contextlib import redirect_stderr
+        from io import StringIO
+
+        stderr = StringIO()
+        with patch.dict(os.environ, environment), patch.object(decisions, "_send_request") as send_request:
+            with redirect_stderr(stderr):
+                exit_code = self.run_cli("--confirm-billable", "--confirm-data-redacted")
+        self.assertEqual(exit_code, 2)
+        self.assertIn("line(s) 2", stderr.getvalue())
+        self.assertNotIn(marker, stderr.getvalue())
+        send_request.assert_not_called()
+
+    def test_explicit_redaction_marker_is_not_treated_as_a_secret(self):
+        self.input_path.write_text("Authorization: Bearer <REDACTED>", encoding="utf-8")
+        self.assertEqual(decisions._read_input(str(self.input_path)), "Authorization: Bearer <REDACTED>")
 
 
 if __name__ == "__main__":
