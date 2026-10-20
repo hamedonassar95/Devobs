@@ -11,3 +11,10 @@
 - When blocked (permissions, missing tools, no network), say exactly what is blocked and propose the next step. Do not work around it.
 - Final report format: summary, `git diff --stat`, exact test commands with the final output lines, checks that could not run, open assumptions.
 - If the same mistake happens twice, propose an update to this file.
+
+## Google Cloud (owner's machine only)
+- Project ID: tensile-verve-352716
+- You run in a cloud sandbox with no access to my gcloud or Google Cloud account. Do not run gcloud or try to deploy.
+- When a task needs cloud commands, finish the code changes, then give me the exact commands to run in Google Cloud Shell with --project tensile-verve-352716. For each command, add one line on what it does and how to undo it.
+- Warn me before any command that costs money or deletes resources.
+- Never put credentials or keys in any file.

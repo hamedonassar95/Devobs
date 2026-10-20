@@ -27,7 +27,7 @@ on:
         script: |
           const { evaluateLiveIncident } = require("./scripts/phase8b_live_gate.cjs");
           await evaluateLiveIncident({ github, context, core });
-if: github.ref == 'refs/heads/main' && needs.pre_activation.outputs.eligible == 'true'
+if: vars.DEVOBS_AI_BUDGET_APPROVED == 'true' && github.ref == 'refs/heads/main' && needs.pre_activation.outputs.eligible == 'true'
 concurrency:
   group: phase8b-patch-${{ github.repository }}-${{ inputs.incident_number }}
   cancel-in-progress: false

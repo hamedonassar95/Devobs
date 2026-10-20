@@ -20,6 +20,15 @@ async function incidentGuard({ github, context, core }, requireEligible = false)
       !/<!-- incident-run-id:(?:simulation-)?[0-9]+ -->/.test(issue.body ?? '')) {
     return stop('Incident failed the trust gate; no investigation or comment permitted.');
   }
+  if (!(issue.labels ?? []).some(label => label.name === 'human-reviewed')) {
+    return stop('Incident requires the human-reviewed label before AI analysis.');
+  }
+  if (context.eventName === 'issues' &&
+      (context.payload.action !== 'labeled' ||
+       context.payload.label?.name !== 'human-reviewed' ||
+       context.payload.sender?.type !== 'User')) {
+    return stop('Only a human maintainer applying the human-reviewed label can start AI analysis.');
+  }
   // Paginate: an existing investigation may be beyond the first 100 comments.
   const comments = await github.paginate(github.rest.issues.listComments, {
     ...params, per_page: 100,

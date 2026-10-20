@@ -45,7 +45,7 @@ jobs:
             "$SITE_URL" \
             --output site.html
 
-          grep -q "AL-DALA MOBILE" site.html
+          grep -q "Devobs" site.html
 
           manifest_url="$SITE_ROOT/deployment.json?run_id=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           if ! manifest_status="$(curl \
