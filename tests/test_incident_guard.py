@@ -24,7 +24,10 @@ class IncidentGuardTests(unittest.TestCase):
         normalized = '\n'.join(line.lstrip() for line in workflow.splitlines())
         code = '\n'.join(line.lstrip() for line in source.splitlines())
         self.assertEqual(normalized.count(code), 2)
-        self.assertIn("if: needs.pre_activation.outputs.eligible == 'true'", workflow)
+        self.assertIn(
+            "if: vars.DEVOBS_AI_BUDGET_APPROVED == 'true' && needs.pre_activation.outputs.eligible == 'true'",
+            workflow,
+        )
         self.assertIn('cancel-in-progress: false', workflow)
         self.assertIn('target: "${{ github.event.issue.number || inputs.issue_number }}"', workflow)
         self.assertNotIn('github.run_id', workflow.split('concurrency:', 1)[1].split('jobs:', 1)[0])
@@ -35,6 +38,7 @@ class IncidentGuardTests(unittest.TestCase):
         self.assertTrue(refs)
         self.assertTrue(all(re.search(r'@[0-9a-f]{40}$', ref) for ref in refs))
         self.assertIn("needs.pre_activation.outputs.eligible == 'true'", lock)
+        self.assertIn("vars.DEVOBS_AI_BUDGET_APPROVED == 'true'", lock)
         self.assertIn('await incidentGuard({ github, context, core }, true);', lock)
         self.assertIn('cancel-in-progress: false', lock)
 

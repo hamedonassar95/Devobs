@@ -58,7 +58,7 @@ on:
   bots:
     - github-actions[bot]
 
-if: needs.pre_activation.outputs.eligible == 'true'
+if: vars.DEVOBS_AI_BUDGET_APPROVED == 'true' && needs.pre_activation.outputs.eligible == 'true'
 
 concurrency:
   group: "incident-investigator-${{ github.repository }}-${{ github.event.issue.number || inputs.issue_number }}"
