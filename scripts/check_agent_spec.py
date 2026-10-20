@@ -27,6 +27,13 @@ REQUIRED_FIELDS = {
     "human_review",
     "production_write",
 }
+GH_AW_WORKFLOWS = {
+    ".github/workflows/efficiency-improver",
+    ".github/workflows/incident-investigator",
+    ".github/workflows/incident-investigator-claude",
+    ".github/workflows/incident-investigator-vertex",
+    ".github/workflows/phase8b-ai-patch-generator",
+}
 
 
 def fail(message: str) -> None:
@@ -91,7 +98,33 @@ def main() -> None:
     if not re.search(r"if:.*DEVOBS_AI_BUDGET_APPROVED\s*==\s*'true'", breaker):
         fail("Vertex AI failover must require explicit budget approval.")
 
-    print(f"Validated {len(agents)} agent specs, retry/production policy, direct provider gates, and Vertex failover budget gate.")
+    for workflow_id in GH_AW_WORKFLOWS:
+        source_path = ROOT / f"{workflow_id}.md"
+        lock_path = ROOT / f"{workflow_id}.lock.yml"
+        source = source_path.read_text(encoding="utf-8")
+        lock = lock_path.read_text(encoding="utf-8")
+        frontmatter = re.match(r"\A---\n(.*?)\n---\n", source, re.DOTALL)
+        if frontmatter is None or not re.search(
+            r"^if:.*vars\.DEVOBS_AI_BUDGET_APPROVED\s*==\s*'true'",
+            frontmatter.group(1),
+            re.MULTILINE,
+        ):
+            fail(f"Agentic workflow {source_path.relative_to(ROOT)} must require explicit budget approval.")
+
+        jobs = re.search(r"^jobs:\s*\n(.*)", lock, re.MULTILINE | re.DOTALL)
+        if jobs is None:
+            fail(f"Generated workflow {lock_path.relative_to(ROOT)} has no jobs section.")
+        activation = re.search(
+            r"^  activation:\s*\n(.*?)(?=^  [a-zA-Z0-9_-]+:\s*$|\Z)",
+            jobs.group(1),
+            re.MULTILINE | re.DOTALL,
+        )
+        if activation is None or not re.search(
+            r"vars\.DEVOBS_AI_BUDGET_APPROVED\s*==\s*'true'", activation.group(1)
+        ):
+            fail(f"Generated workflow {lock_path.relative_to(ROOT)} is missing its budget approval gate; recompile it with gh-aw.")
+
+    print(f"Validated {len(agents)} agent specs, retry/production policy, direct-provider gates, Vertex failover, and all {len(GH_AW_WORKFLOWS)} gh-aw source/lock budget gates.")
 
 
 if __name__ == "__main__":
