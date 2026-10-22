@@ -24,7 +24,7 @@ The published site is static HTML on GitHub Pages. It does not currently need a 
 | Platform engineering | Single repository and maintainer workflow | Not currently needed. Reassess if multiple teams need self-service environments or shared deployment templates. |
 | FinOps / GitHub Code Quality | Incident agent workflows have Agentic Workflows limits (default 1,000 AI credits per run and 5,000 per day); these are not dollar budgets. Code Quality enrollment and account budgets cannot be verified from repository files. Vertex fallback has separate Google Cloud billing. | Review Actions, GitHub AI credits, Code Quality licenses, and Vertex usage in their billing consoles. Set separate provider budgets before live AI use. Do not enable Code Quality broadly without a selected-repository pilot and a hard budget. See `docs/GITHUB_CODE_QUALITY_COSTS.md`. |
 | Prometheus, Grafana and centralized logs | No server-side workload to instrument | Not currently applicable. GitHub Actions logs and Pages health checks cover current operational needs; retain no production telemetry beyond what is useful. |
-| AIOps | AI-assisted incident investigation and guarded recovery workflows exist. iOS claim triage produces an offline rules report and a privacy-minimized manual AI handoff. | Partly present and not yet operationally accepted: provider preflight [39323105297](https://github.com/hamedonassar95/Devobs/actions/runs/39323105297) and circuit-breaker check [39322008908](https://github.com/hamedonassar95/Devobs/actions/runs/39322008908) succeeded, but these validate setup/authentication rather than live inference. The isolated Copilot inference smoke has not run. Keep `COPILOT_GITHUB_TOKEN` and `POLICY_AUDIT_TOKEN` separate; use a quota-reviewed, tool-free smoke before claiming a model response. The iOS handoff does not call a model automatically. See `docs/INVESTIGATOR_ACCEPTANCE.md`, `docs/AI_MODEL_STRATEGY.md`, and `docs/IOS_EXPLOIT_CLAIM_TRIAGE.md`. |
+| AIOps | AI-assisted incident investigation and guarded recovery workflows exist. iOS claim triage produces an offline rules report and a privacy-minimized manual AI handoff. | **VERIFIED (runtime/run metadata):** provider preflight [39323105297](https://github.com/hamedonassar95/Devobs/actions/runs/39323105297) completed a Copilot token-presence and prefix check; it did not verify account permission or inference. Circuit-breaker run [39322008908](https://github.com/hamedonassar95/Devobs/actions/runs/39322008908) verified incident eligibility and dispatched one Vertex fallback; it did not validate provider credentials. **VERIFIED (runtime/run metadata):** the resulting Vertex workflow [39322055802](https://github.com/hamedonassar95/Devobs/actions/runs/39322055802) passed its activation and Google authentication preflight, then failed at `Execute Gemini CLI`. **UNVERIFIED:** no valid model response is evidenced by these runs, and the isolated Copilot inference smoke has not run. Keep `COPILOT_GITHUB_TOKEN` and `POLICY_AUDIT_TOKEN` separate; use a quota-reviewed, tool-free smoke before claiming a model response. The iOS handoff does not call a model automatically. See `docs/INVESTIGATOR_ACCEPTANCE.md`, `docs/AI_MODEL_STRATEGY.md`, and `docs/IOS_EXPLOIT_CLAIM_TRIAGE.md`. |
 
 ## Practical completion sequence
 
@@ -58,13 +58,15 @@ completed successfully on that SHA. The security, site-contract, validation,
 Pages publication, and production health/SHA checks passed. Node and Python
 test jobs were skipped because this commit changed documentation only.
 
-The latest repository policy audit remains a blocker: run
+**VERIFIED (runtime/run metadata):** the latest repository policy audit run
 [39280011409](https://github.com/hamedonassar95/Devobs/actions/runs/39280011409)
-failed with GitHub API HTTP 401 while reading repository metadata. The audit
-must be rerun after its read-only token is corrected. The current branch
-protection and ruleset settings were not readable in this verification session;
-the 6 October settings review remains the last saved evidence. Successful
-provider preflights do not establish live AI inference.
+failed with GitHub API HTTP 401 while reading repository metadata. The previous
+successful audit, [39053647920](https://github.com/hamedonassar95/Devobs/actions/runs/39053647920),
+completed on 17 October 2026. **UNVERIFIED:** the reason GitHub rejected the
+latest request and the current branch protection/ruleset settings; correct or
+replace the read-only audit credential, then rerun the audit. The direct
+Settings review on 6 October remains the latest manual settings review.
+Provider preflights do not establish live AI inference.
 
 ## Operational evidence
 

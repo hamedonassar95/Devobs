@@ -194,6 +194,20 @@ class RepositoryPolicyAuditTests(unittest.TestCase):
             ):
                 get_json("repos/hamedonassar95/Devobs")
 
+    def test_api_429_points_to_rate_limit_response_headers(self) -> None:
+        error = urllib.error.HTTPError(
+            "https://api.github.com/repos/hamedonassar95/Devobs",
+            429,
+            "secondary rate limit",
+            {"Retry-After": "60", "X-RateLimit-Reset": "1792690000"},
+            None,
+        )
+        with mock.patch("scripts.check_repo_policy.urllib.request.urlopen", side_effect=error):
+            with self.assertRaisesRegex(
+                PolicyCheckError, "HTTP 429.*Retry-After.*X-RateLimit-Reset"
+            ):
+                get_json("repos/hamedonassar95/Devobs")
+
     def test_api_401_explains_auth_failure_without_exposing_token(self) -> None:
         error = urllib.error.HTTPError(
             "https://api.github.com/repos/hamedonassar95/Devobs",

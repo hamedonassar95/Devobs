@@ -61,6 +61,11 @@ def get_json(path: str) -> Any:
                 "GitHub denied this request. Check repository access, Administration: read "
                 "permission for ruleset details, and API rate limits."
             )
+        elif error.code == 429:
+            detail = (
+                "GitHub rate limits this request. Check the Retry-After or "
+                "X-RateLimit-Reset response header before retrying."
+            )
         elif error.code == 404:
             detail = (
                 "Check the repository name and whether the configured token can access it."
