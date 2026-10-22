@@ -22,3 +22,7 @@
 `bypass_actors` أو كانت صلاحية الرمز غير كافية، يتوقف التدقيق بنتيجة
 **inconclusive**؛ لا يفترض أن القائمة فارغة ولا يغيّر إعدادات المستودع. لا تضع
 الرمز في ملفات Git أو السجلات أو المحادثة، ودوّره أو ألغِه عند انتهاء الحاجة إليه.
+
+قد يرفض GitHub REST API بعض الطلبات بسبب حدود الاستخدام عبر HTTP 403 أو 429؛
+عند 429 افحص `Retry-After` أو `X-RateLimit-Reset` قبل إعادة المحاولة. راجع
+[دليل GitHub الرسمي لحدود REST API](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api).

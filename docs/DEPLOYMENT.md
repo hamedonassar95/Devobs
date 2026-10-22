@@ -23,6 +23,16 @@
 - نجح [Deploy Pages](https://github.com/hamedonassar95/Devobs/actions/runs/38773391874) ونشر SHA المختبر.
 - نجح [Deployment Health Check](https://github.com/hamedonassar95/Devobs/actions/runs/38773488015)، وتطابق SHA في `deployment.json` مع commit الدمج.
 
+## تحقق أحدث من main — 22 أكتوبر 2026
+
+- **VERIFIED (runtime/run metadata):** رأس `main` الذي جرى التحقق منه هو `40647754fc247195a2c523e9011ddb146201a915`.
+- **VERIFIED (runtime/run metadata):** نجح [CI رقم 39711232712](https://github.com/hamedonassar95/Devobs/actions/runs/39711232712) و[Push on main رقم 39711231865](https://github.com/hamedonassar95/Devobs/actions/runs/39711231865) على SHA نفسه.
+- **VERIFIED (runtime/run metadata):** نجح نشر GitHub Pages وفحص صحة الموقع ومقارنة SHA المنشور في CI رقم 39711232712. نجحت كذلك فحوص الأمان وعقد الموقع والتحقق.
+- **VERIFIED (runtime/run metadata):** تخطى هذا التشغيل فحوص Node وPython لأن التغيير الذي أطلقه كان توثيقيًا فقط؛ لم تُنفذ هاتان المجموعتان في هذا التشغيل.
+- **VERIFIED (runtime/run metadata):** تدقيق Repository Policy Audit الأحدث، [رقم 39280011409](https://github.com/hamedonassar95/Devobs/actions/runs/39280011409)، أخفق قبل قراءة قواعد المستودع لأن GitHub API أعاد HTTP 401.
+- **VERIFIED (runtime/run metadata):** آخر تدقيق ناجح هو [39053647920](https://github.com/hamedonassar95/Devobs/actions/runs/39053647920)، بتاريخ 17 أكتوبر 2026. آخر مراجعة مباشرة محفوظة لإعدادات GitHub كانت 6 أكتوبر.
+- **UNVERIFIED:** سبب رفض GitHub لطلب التدقيق الأحدث، وحالة حماية الفرع وRuleset الحالية؛ لا يثبت HTTP 401 وحده أي سبب محدد في إعداد الرمز. يلزم فحص بيانات الاعتماد بصلاحية القراءة وإعادة التدقيق لقياس الحالة الحالية.
+
 ## Preview
 بعد نجاح فحوص PR، ينتج CI حزمة ZIP باسم يبدأ بـ `preview-pr-`.
 افتح تشغيل CI من تبويب Checks، ثم قسم Artifacts أو رابط Download في Summary، ونزّل الحزمة وفك ضغطها وافتح `index.html`.

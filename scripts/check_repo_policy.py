@@ -51,9 +51,29 @@ def get_json(path: str) -> Any:
         ) as response:
             return json.loads(response.read())
     except urllib.error.HTTPError as error:
+        if error.code == 401:
+            detail = (
+                "GitHub rejected the authentication. Check that the configured token is valid, "
+                "unexpired, and authorized for this repository; do not print the token."
+            )
+        elif error.code == 403:
+            detail = (
+                "GitHub denied this request. Check repository access, Administration: read "
+                "permission for ruleset details, and API rate limits."
+            )
+        elif error.code == 429:
+            detail = (
+                "GitHub rate limits this request. Check the Retry-After or "
+                "X-RateLimit-Reset response header before retrying."
+            )
+        elif error.code == 404:
+            detail = (
+                "Check the repository name and whether the configured token can access it."
+            )
+        else:
+            detail = "Check GitHub API availability and repository access."
         raise PolicyCheckError(
-            f"GitHub API returned HTTP {error.code} for {path}. "
-            "Check repository visibility, API availability, and rate limits."
+            f"GitHub API returned HTTP {error.code} for {path}. {detail}"
         ) from None
     except (urllib.error.URLError, TimeoutError, OSError) as error:
         reason = getattr(error, "reason", None)
