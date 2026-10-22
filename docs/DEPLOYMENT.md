@@ -23,6 +23,15 @@
 - نجح [Deploy Pages](https://github.com/hamedonassar95/Devobs/actions/runs/38773391874) ونشر SHA المختبر.
 - نجح [Deployment Health Check](https://github.com/hamedonassar95/Devobs/actions/runs/38773488015)، وتطابق SHA في `deployment.json` مع commit الدمج.
 
+## تحقق أحدث من main — 22 أكتوبر 2026
+
+- رأس main الذي جرى التحقق منه: `40647754fc247195a2c523e9011ddb146201a915`.
+- نجح [CI رقم 39711232712](https://github.com/hamedonassar95/Devobs/actions/runs/39711232712) و[Push on main رقم 39711231865](https://github.com/hamedonassar95/Devobs/actions/runs/39711231865) على SHA نفسه.
+- نجح نشر GitHub Pages وفحص صحة الموقع ومقارنة SHA المنشور في CI رقم 39711232712. نجحت كذلك فحوص الأمان وعقد الموقع والتحقق.
+- تخطى هذا التشغيل فحوص Node وPython لأن التغيير الذي أطلقه كان توثيقيًا فقط. لا يُعد هذا التشغيل دليلًا على تنفيذها.
+- تدقيق Repository Policy Audit الأحدث، [رقم 39280011409](https://github.com/hamedonassar95/Devobs/actions/runs/39280011409)، أخفق قبل قراءة قواعد المستودع لأن GitHub API أعاد HTTP 401. يجب تصحيح رمز القراءة ثم إعادة التدقيق.
+- لم تتغير مراجعة إعدادات GitHub الحية في هذا السجل: حماية الفرع موثقة آخر مرة في 6 أكتوبر، وقراءة حديثة لإعدادات Ruleset لم تكن متاحة لهذه الجلسة.
+
 ## Preview
 بعد نجاح فحوص PR، ينتج CI حزمة ZIP باسم يبدأ بـ `preview-pr-`.
 افتح تشغيل CI من تبويب Checks، ثم قسم Artifacts أو رابط Download في Summary، ونزّل الحزمة وفك ضغطها وافتح `index.html`.

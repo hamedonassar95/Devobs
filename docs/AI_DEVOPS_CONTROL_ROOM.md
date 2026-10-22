@@ -46,9 +46,13 @@ flowchart TD
 
 لا تعرض هذه الصفحة شارات خضراء لحالة حيّة. يجب ربط أي لوحة لحظية بنتائج GitHub Actions الفعلية، مع وقت التشغيل والـSHA الذي جرى التحقق منه.
 
-## أحدث تحقق بعد الدمج
+## أحدث تحقق بعد الدمج — 22 أكتوبر 2026
 
-**VERIFIED (runtime: فحوص المستودع فقط):** دُمج PR [#206](https://github.com/hamedonassar95/Devobs/pull/206) إلى `main` عند commit `6640b4861de1d04ebdc54b1de91f5eaa4d28dfd6` في 2026-10-22. نجح [CI run 39709727211](https://github.com/hamedonassar95/Devobs/actions/runs/39709727211) و[CodeQL run 39709729057](https://github.com/hamedonassar95/Devobs/actions/runs/39709729057) على SHA الدمج. تخطّى [Incident Response run 39709822450](https://github.com/hamedonassar95/Devobs/actions/runs/39709822450) التنفيذ وفق شروطه. هذه النتائج تثبت فحوص المستودع فقط، ولا تثبت استجابة نموذج AI.
+**VERIFIED (runtime: فحوص المستودع والنشر فقط):** رأس `main` الذي جرى التحقق منه هو commit `40647754fc247195a2c523e9011ddb146201a915` بعد دمج PR [#207](https://github.com/hamedonassar95/Devobs/pull/207). نجح [CI run 39711232712](https://github.com/hamedonassar95/Devobs/actions/runs/39711232712) و[Push on main 39711231865](https://github.com/hamedonassar95/Devobs/actions/runs/39711231865) على SHA نفسه. اجتازت فحوص الأمان وعقد الموقع والتحقق ونشر Pages وفحص صحة الإنتاج ومطابقة SHA. تخطى CI فحوص Node وPython لأن التغيير كان توثيقيًا؛ لا يعني ذلك أنها نُفذت. تخطى سير Incident Response تشغيل الحادث لأن شروطه لم تتحقق.
+
+**UNVERIFIED (runtime: سياسات المستودع):** أخفق أحدث [Repository policy audit run 39280011409](https://github.com/hamedonassar95/Devobs/actions/runs/39280011409) عند GitHub API HTTP 401 قبل فحص قواعد الفرع. نجح تشغيل أقدم [39053647920](https://github.com/hamedonassar95/Devobs/actions/runs/39053647920) في 17 أكتوبر. يلزم رمز قراءة صالح لإعادة التدقيق؛ لم تُقرأ قيم الأسرار. إعداد حماية `main` وRulesets غير مؤكد حيًا في هذه المراجعة.
+
+**UNVERIFIED (runtime: استدلال AI):** فحص المزوّد [39323105297](https://github.com/hamedonassar95/Devobs/actions/runs/39323105297) وفحص قاطع الدائرة [39322008908](https://github.com/hamedonassar95/Devobs/actions/runs/39322008908) نجحا في 19 أكتوبر، لكنهما لا يثبتان وصول طلب إلى نموذج وتلقي استجابة صالحة. اكتمل تشغيل AI Code Review [39710864771](https://github.com/hamedonassar95/Devobs/actions/runs/39710864771) كـworkflow، لكن خطوة مراجعة Codex نفسها كانت متخطاة. اختبار Copilot inference smoke اليدوي لم يُشغّل.
 
 **UNVERIFIED (runtime: استدلال Copilot):** لم يظهر أي تشغيل لسير العمل اليدوي `Copilot inference smoke (manual)` عند مراجعة سجل التشغيل في 2026-10-22. لا يوجد حتى الآن إيصال تشغيل يثبت وصول طلب إلى Copilot أو اجتياز الاستجابة عقد JSON.
 
