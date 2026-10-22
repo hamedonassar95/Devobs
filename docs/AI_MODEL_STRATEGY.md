@@ -24,6 +24,12 @@
   Workload Identity Federation الموضح في `docs/VERTEX_AI_FALLBACK.md`؛ إذا لم
   ينجح فحص الاعتماد، يتوقف المسار قبل استدلال Vertex. قد يترتب على الاستدلال
   رسوم Google Cloud.
+- يوجد Workflow منفصل لفحص استدلال Copilot يدويًا فقط عبر
+  `.github/workflows/copilot-inference-smoke.yml`، ويثبت نسخة CLI `1.0.102`
+  والنموذج `gpt-5.6-luna`. يتطلب تشغيله تأكيد المالك ومراجعة الحصة والميزانية؛
+  لا يقرأ المستودع ولا يستخدم أدوات ولا ينتقل إلى Vertex. **VERIFIED (source):**
+  إعداد المسار موجود. **UNVERIFIED (runtime):** لم يُرسل أي طلب استدلال من هذا
+  التغيير.
 - توجد تجربة احتياطية يدوية عبر Claude في
   .github/workflows/incident-investigator-claude.md. تستخدم محرك Claude والاسم
   المنطقي `sonnet-6x` وتتطلب سر المستودع `ANTHROPIC_API_KEY`. لا تعمل تلقائيًا
