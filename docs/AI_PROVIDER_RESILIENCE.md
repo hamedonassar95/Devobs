@@ -8,10 +8,11 @@ latency-aware routing, and a custom provider for the Vercel AI SDK. Its
 performance and reliability statements are the author's claims; the post does
 not include reproducible benchmarks or production measurements.
 
-Devobs does not run a Next.js/Vercel AI SDK application. Its model calls run
-through GitHub Agentic Workflows, so adding the SinapsAI package would not
-intercept those calls. Devobs instead uses the workflow-level breaker below; it
-does not copy the post's in-memory implementation.
+Devobs does not run a Next.js/Vercel AI SDK application. The incident and
+repository automation calls run through GitHub Agentic Workflows; the isolated
+manual smoke check uses Copilot CLI directly. Adding the SinapsAI package would
+intercept neither route. Devobs instead uses the workflow-level breaker below
+for trusted incidents; it does not copy the post's in-memory implementation.
 
 ## Current Devobs routing
 
@@ -22,6 +23,7 @@ The repository currently has:
   dispatched once by the incident-scoped breaker after a failed Copilot call.
 - A separate manually invoked Claude investigator experiment.
 - A deterministic credential preflight that explicitly does not call a model.
+- A separate [manual Copilot inference smoke workflow](../.github/workflows/copilot-inference-smoke.yml) that tests one fixed non-production prompt without using the incident investigator or its Vertex fallback. Its runtime result remains **UNVERIFIED** until the owner explicitly dispatches it after reviewing quota.
 
 These routes are documented in [AI model strategy](AI_MODEL_STRATEGY.md),
 [`incident-investigator.md`](../.github/workflows/incident-investigator.md),

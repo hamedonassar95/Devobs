@@ -1,0 +1,141 @@
+name: Copilot inference smoke (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      owner_approved:
+        description: Confirm the repository owner approved this single inference check
+        required: true
+        type: boolean
+        default: false
+      quota_reviewed:
+        description: Confirm Copilot quota and expected usage were reviewed before this run
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: none
+
+concurrency:
+  group: copilot-inference-smoke
+  cancel-in-progress: false
+
+jobs:
+  inference-smoke:
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      github.actor == github.repository_owner &&
+      inputs.owner_approved == true &&
+      inputs.quota_reviewed == true &&
+      vars.DEVOBS_AI_BUDGET_APPROVED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: none
+    steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Install pinned GitHub Copilot CLI
+        run: npm install --global --no-audit --no-fund @github/copilot@1.0.102
+
+      - name: Run one isolated Copilot CLI prompt and validate its shape
+        id: inference
+        timeout-minutes: 5
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ secrets.COPILOT_GITHUB_TOKEN }}
+          COPILOT_HOME: ${{ runner.temp }}/copilot-smoke-${{ github.run_id }}-${{ github.run_attempt }}
+          COPILOT_SMOKE_PROMPT: >-
+            فشل فحص CI لأن ملفًا متوقعًا غير موجود؛ اقترح سببًا محتملًا واحدًا في أقل من 25 كلمة.
+            أعد JSON يحتوي المفتاحين status وdiagnosis فقط، واجعل status مساويًا ok.
+            لا تستخدم أدوات ولا تقرأ المستودع أو الحوادث أو الأسرار أو Google Cloud.
+            لا تنشئ تعليقًا أو commit أو deployment أو موارد.
+        run: |
+          set -euo pipefail
+          umask 077
+          smoke_dir="$RUNNER_TEMP/copilot-smoke-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          response_file="$smoke_dir/response.txt"
+          cleanup() {
+            rm -rf "$smoke_dir" "$COPILOT_HOME"
+          }
+          trap cleanup EXIT
+          mkdir -m 700 -p "$smoke_dir" "$COPILOT_HOME"
+
+          # Keep the session local and its CLI home disposable. First-party
+          # client telemetry is also disabled for this one invocation.
+          printf '%s\n' '{"remote":"off"}' > "$COPILOT_HOME/settings.json"
+          chmod 600 "$COPILOT_HOME/settings.json"
+          cd "$smoke_dir"
+
+          if ! timeout --signal=TERM 240s copilot \
+            -p "$COPILOT_SMOKE_PROMPT" \
+            --model gpt-5.6-luna \
+            --silent \
+            --no-ask-user \
+            --available-tools='' \
+            --disable-builtin-mcps \
+            --disable-client-telemetry \
+            > "$response_file" 2>&1; then
+            echo '::error::Copilot CLI invocation failed; output withheld.'
+            exit 1
+          fi
+
+          python3 - "$response_file" <<'PY'
+          import json
+          import re
+          import sys
+          from pathlib import Path
+
+          def reject_duplicate_keys(pairs):
+              result = {}
+              for key, value in pairs:
+                  if key in result:
+                      raise ValueError("duplicate JSON key")
+                  result[key] = value
+              return result
+
+          try:
+              response_path = Path(sys.argv[1])
+              if response_path.stat().st_size > 4096:
+                  raise ValueError("response exceeded the size limit")
+              result = json.loads(
+                  response_path.read_text(encoding="utf-8"),
+                  object_pairs_hook=reject_duplicate_keys,
+              )
+          except (OSError, UnicodeError, ValueError):
+              print("::error::Copilot output was invalid or exceeded 4 KiB; content withheld.")
+              raise SystemExit(1)
+
+          if (not isinstance(result, dict)
+                  or set(result) != {"status", "diagnosis"}
+                  or result.get("status") != "ok"
+                  or not isinstance(result.get("diagnosis"), str)
+                  or not result["diagnosis"].strip()
+                  or len(re.findall(r"\S+", result["diagnosis"].strip())) > 25):
+              print("::error::Copilot output failed the JSON contract; content withheld.")
+              raise SystemExit(1)
+
+          print("Copilot inference returned valid JSON; diagnosis withheld.")
+          PY
+
+      - name: Record minimal run receipt
+        if: always()
+        env:
+          INFERENCE_OUTCOME: ${{ steps.inference.outcome }}
+        run: |
+          set -euo pipefail
+          if [ "$INFERENCE_OUTCOME" = success ]; then
+            result='Valid JSON response; diagnosis withheld.'
+          else
+            result='UNVERIFIED: invocation failed or output did not pass validation.'
+          fi
+          {
+            printf '## Copilot inference smoke\n\n'
+            printf -- '- Result: %s\n' "$result"
+            printf -- '- SHA: %s\n' "$GITHUB_SHA"
+            printf -- '- Run: %s/%s/actions/runs/%s\n' "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID"
+            printf -- '- Recorded at: %s\n' "$(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          } >> "$GITHUB_STEP_SUMMARY"
