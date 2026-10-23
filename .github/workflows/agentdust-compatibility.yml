@@ -1,6 +1,10 @@
 name: AgentDust Compatibility Check
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - test/agentdust-actions-run
+    paths:
+      - .github/workflows/agentdust-compatibility.yml
 permissions:
   contents: read
 jobs:
@@ -17,18 +21,10 @@ jobs:
           cat /etc/os-release
           echo "Architecture:"
           uname -m
-          echo "Filesystem:"
-          findmnt -T "$HOME" -o TARGET,FSTYPE,OPTIONS
           echo "Kernel:"
           uname -r
-      - name: Check ext4 support
-        shell: bash
-        run: |
-          set -euo pipefail
-          FSTYPE=$(findmnt -n -T "$HOME" -o FSTYPE)
-          echo "Filesystem type: $FSTYPE"
-          if [ "$FSTYPE" = "ext4" ]; then
-            echo "PASS: ext4 detected"
-          else
-            echo "WARNING: ext4 requirement not verified"
-          fi
+          echo "HOME filesystem (not assumed to be the AgentDust data directory):"
+          findmnt -T "$HOME" -o TARGET,FSTYPE,OPTIONS
+          echo "Temporary filesystem (not assumed to be the AgentDust data directory):"
+          findmnt -T /tmp -o TARGET,FSTYPE,OPTIONS
+          echo "AgentDust data filesystem: UNKNOWN (actual data directory not identified)"
