@@ -25,8 +25,9 @@
   ينجح فحص الاعتماد، يتوقف المسار قبل استدلال Vertex. قد يترتب على الاستدلال
   رسوم Google Cloud.
 - يوجد Workflow منفصل لفحص استدلال Copilot يدويًا فقط عبر
-  `.github/workflows/copilot-inference-smoke.yml`، ويثبت نسخة CLI `1.0.102`
-  والنموذج `gpt-5.6-luna`. يتطلب تشغيله تأكيد المالك ومراجعة الحصة والميزانية؛
+  `.github/workflows/copilot-inference-smoke.yml`، ويثبت نسخة CLI `1.0.103`
+  والنموذج `gpt-6-luna` الموصى به اختياريًا في [مرجع النماذج المدعومة ومرجع CLI الرسمي](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference#supported-models).
+  قد يختلف توفره حسب الخطة. يتطلب تشغيله تأكيد المالك ومراجعة الحصة والميزانية؛
   لا يقرأ المستودع ولا يستخدم أدوات ولا ينتقل إلى Vertex. **VERIFIED (source):**
   إعداد المسار موجود. **UNVERIFIED (runtime):** لم يُرسل أي طلب استدلال من هذا
   التغيير.

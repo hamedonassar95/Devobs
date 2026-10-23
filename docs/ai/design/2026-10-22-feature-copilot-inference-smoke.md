@@ -24,14 +24,14 @@ flowchart TD
 
 - `.github/workflows/copilot-inference-smoke.yml`: manual trigger, owner and quota attestations, budget gate, no checkout, isolated CLI call, validator, cleanup, and minimal run receipt.
 - GitHub-hosted `ubuntu-24.04` runner: disposable execution environment. The only action is `actions/setup-node`, pinned to a full commit SHA.
-- `@github/copilot` CLI: exact package version `1.0.102`; explicit model `gpt-5.6-luna`; no autopilot or share/export option.
+- `@github/copilot` CLI: exact package version `1.0.103`; explicit model `gpt-6-luna`, currently listed as a recommended opt-in Copilot CLI model; no autopilot or share/export option. See the [official supported-model list](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference#supported-models) and [pinned npm release](https://www.npmjs.com/package/@github/copilot/v/1.0.103). Availability still depends on the account plan and quota.
 - Inline Python validator: accepts only an object with exactly two keys, status `ok`, and a non-empty diagnosis of at most 25 whitespace-delimited words.
 
 ## Data Flow and Retention
 
 - The fixed prompt is supplied through a step environment variable; it is not placed in the shell command text.
 - Copilot stdout/stderr are redirected to a mode-0600 temporary file. The validator prints only a fixed status message.
-- `COPILOT_HOME` is isolated in the runner temp area with `remote: off`; client-side telemetry is disabled for the invocation. A trap deletes both the response and CLI home on success or failure.
+- `COPILOT_HOME` is isolated in the runner temp area with `remote: off` and `remoteExport: false`; client-side telemetry is disabled for the invocation. GitHub documents these as controls for remote access/session export and client telemetry, but they do not disable server-side collection. A trap deletes both the response and CLI home on success or failure. See [CLI settings](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-config-dir-reference) and [session data](https://docs.github.com/en/copilot/concepts/security-governance-and-network-settings/session-data).
 - The workflow uploads no artifacts and writes only the status, commit SHA, run URL, and UTC timestamp to the Actions step summary.
 - **VERIFIED (documentation):** GitHub documents that CLI client telemetry controls do not disable GitHub server-side session collection. The workflow therefore prevents its own logs/artifacts from retaining the prompt or answer, but cannot promise provider-side zero retention. See the [Copilot CLI telemetry documentation](https://docs.github.com/en/copilot/how-tos/copilot-cli/set-up-copilot-cli/configure-copilot-cli).
 

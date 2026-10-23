@@ -12,7 +12,8 @@
 - يتأكد من اللغة العربية واتجاه RTL وUTF-8 وviewport المتجاوب.
 - يرفض IDs المكررة ومراجع aria-labelledby المفقودة وعلامات تعارض الدمج.
 - يفرض تثبيت الإجراءات الخارجية في GitHub Actions على commit SHA كامل، بما يشمل ملفات workflow وملفات lock وقوالب الوكلاء، عبر `scripts/check_action_pins.py`.
-- يشغّل Bandit لفحص أمان Python؛ تعريفه المثبت في `requirements-dev.txt` وتتحقق Dependabot من تحديثاته أسبوعيًا إلى جانب إجراءات GitHub.
+- يشغّل Bandit لفحص شيفرة Python، و`pip-audit` لفحص الثغرات المعروفة في الاعتماديات المباشرة والانتقالية المعلنة في `requirements-dev.txt`. يفشل الفحص عند العثور على ثغرة.
+- تتحقق Dependabot أسبوعيًا من تحديثات حزم Python وإجراءات GitHub.
 - يشغّل خادمًا محليًا مؤقتًا ويتحقق من HTTP 200 ونوع HTML وتطابق المحتوى في / و/index.html.
 - يشغّل اختبارات حواجز التحقق، وحالات الحوادث والتعافي، وعقد التحقيق والثقة.
 - يختار الاختبارات بحسب الملفات المتغيرة؛ تغييرات workflows والإجراءات المحلية تشغّل اختبارات عقود Python حتى عندما تكون درجة المخاطر متوسطة. إذا تعذّر تحديد فرق موثوق، مثل غياب commit الأساس، يشغّل الفحص الكامل بدل الاعتماد على قائمة ملفات ناقصة من حمولة الحدث.
@@ -45,7 +46,9 @@ python3 scripts/check_site.py
 4. ادمج PR التحسين بعد مراجعته؛ يعمل الفحص تلقائيًا على main. بعد الدمج يتاح Actions → CI → Run workflow.
 5. لا تغيّر اسم validate ولا تضف مرشحات paths تتخطى الفحص المطلوب.
 
-لا تحتاج اختبارات unittest إلى حزم Python خارجية. يثبت CI أداة Bandit من `requirements-dev.txt` لفحص الأمان. لا يلزم Secret أو خدمة مدفوعة؛ يلزم السماح بـ GitHub Actions وGitHub-hosted runners وactions/checkout. لا يحتاج إعداد حماية الفرع الحالي إلى تعديل.
+لا تحتاج اختبارات unittest إلى حزم Python خارجية. أدوات الفحص الأمني مثبتة بإصدارات محددة في `requirements-dev.txt`؛ يستخدم `pip-audit --requirement requirements-dev.txt` صيغة ملف المتطلبات الموثقة في [دليل pip-audit الرسمي](https://github.com/pypa/pip-audit#usage). يتطلب تدقيق الثغرات الوصول إلى مصدر بيانات الثغرات عبر الشبكة. لا يلزم Secret أو خدمة مدفوعة لهذا الفحص؛ يلزم السماح بـ GitHub Actions وGitHub-hosted runners وactions/checkout. لا يحتاج إعداد حماية الفرع الحالي إلى تعديل.
+
+للتفاصيل وحدود كل فحص أمني، راجع [دليل DevSecOps](DEVSECOPS.md).
 
 ## اعتماد GitHub في workflows المولدة
 

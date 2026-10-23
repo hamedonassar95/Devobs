@@ -119,10 +119,17 @@ jobs:
           if [[ -f requirements-dev.txt ]]; then
             python3 -m pip install --disable-pip-version-check -r requirements-dev.txt
           else
-            python3 -m pip install --disable-pip-version-check bandit==1.9.4
+            python3 -m pip install --disable-pip-version-check bandit==1.9.4 pip-audit==2.10.1
           fi
       - name: Static analysis with Bandit
         run: python3 -m bandit -r scripts -x scripts/check_site.py
+      - name: Audit Python dependencies for known vulnerabilities
+        run: |
+          if [[ -f requirements-dev.txt ]]; then
+            pip-audit --requirement requirements-dev.txt
+          else
+            echo "::notice::No Python dependency manifest exists in this revision; dependency audit skipped."
+          fi
       - name: Scan commits for leaked secrets with Gitleaks
         uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
         env:

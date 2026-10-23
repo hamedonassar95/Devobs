@@ -32,14 +32,15 @@ node --test tests/incident_guard.test.cjs
 python3 scripts/check_site.py
 ```
 
-يفحص CI أيضًا Bandit. لتشغيل هذا الفحص محليًا:
+يفحص CI شيفرة Python باستخدام Bandit، والاعتماديات باستخدام `pip-audit`. لتشغيل الفحوص محليًا:
 
 ```sh
-python3 -m pip install bandit==1.9.4
+python3 -m pip install -r requirements-dev.txt
 python3 -m bandit -r scripts -x scripts/check_site.py
+pip-audit --requirement requirements-dev.txt
 ```
 
-يفحص GitHub Actions الأسرار باستخدام Gitleaks. لا يحتاج تشغيل الموقع أو الاختبارات إلى مفاتيح أو حسابات خدمات خارجية.
+يفحص GitHub Actions الأسرار باستخدام Gitleaks، ويتحقق من تثبيت الإجراءات الخارجية على SHA كامل. راجع [نطاق وضوابط DevSecOps](docs/DEVSECOPS.md). لا يحتاج تشغيل الموقع أو الاختبارات إلى مفاتيح أو حسابات خدمات خارجية.
 
 ## الإعداد والأسرار
 
@@ -71,6 +72,7 @@ python3 -m bandit -r scripts -x scripts/check_site.py
 ## التشغيل والتوثيق
 
 - [CI documentation](docs/CI.md)
+- [DevSecOps controls and scope](docs/DEVSECOPS.md)
 - [Repository policy audit setup](docs/REPOSITORY_POLICY_AUDIT.md)
 - [GitHub Pages DevOps roadmap](docs/GITHUB_PAGES_DEVOPS_ROADMAP.md)
 - [AI model strategy](docs/AI_MODEL_STRATEGY.md)
