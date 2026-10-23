@@ -40,7 +40,7 @@ jobs:
           node-version: 24
 
       - name: Install pinned GitHub Copilot CLI
-        run: npm install --global --no-audit --no-fund @github/copilot@1.0.102
+        run: npm install --global --no-audit --no-fund @github/copilot@1.0.103
 
       - name: Run one isolated Copilot CLI prompt and validate its shape
         id: inference
@@ -66,13 +66,13 @@ jobs:
 
           # Keep the session local and its CLI home disposable. First-party
           # client telemetry is also disabled for this one invocation.
-          printf '%s\n' '{"remote":"off"}' > "$COPILOT_HOME/settings.json"
+          printf '%s\n' '{"remote":"off","remoteExport":false}' > "$COPILOT_HOME/settings.json"
           chmod 600 "$COPILOT_HOME/settings.json"
           cd "$smoke_dir"
 
           if ! timeout --signal=TERM 240s copilot \
             -p "$COPILOT_SMOKE_PROMPT" \
-            --model gpt-5.6-luna \
+            --model gpt-6-luna \
             --silent \
             --no-ask-user \
             --available-tools='' \

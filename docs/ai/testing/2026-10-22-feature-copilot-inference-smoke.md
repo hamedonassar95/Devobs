@@ -9,6 +9,7 @@ description: Static validation and separately approved runtime verification for 
 ## Acceptance Contract
 
 - The workflow can start only on `main`, by the repository owner, after both approval inputs and the repository budget variable pass.
+- The model is explicitly pinned to `gpt-6-luna`, and remote session sync/export settings are disabled.
 - The workflow does not checkout the repository, provide Copilot tools/MCPs, or dispatch Vertex.
 - The output validator accepts exactly `{ "status": "ok", "diagnosis": "..." }`, with a non-empty diagnosis of no more than 25 whitespace-delimited words.
 - Logs and the summary contain no prompt, response, diagnosis, or credential. No artifact is uploaded; temporary files are removed.
