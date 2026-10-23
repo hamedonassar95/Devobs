@@ -1,0 +1,34 @@
+name: AgentDust Compatibility Check
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compatibility:
+    name: Read-only Linux Compatibility
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Inspect environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Operating system:"
+          cat /etc/os-release
+          echo "Architecture:"
+          uname -m
+          echo "Filesystem:"
+          findmnt -T "$HOME" -o TARGET,FSTYPE,OPTIONS
+          echo "Kernel:"
+          uname -r
+      - name: Check ext4 support
+        shell: bash
+        run: |
+          set -euo pipefail
+          FSTYPE=$(findmnt -n -T "$HOME" -o FSTYPE)
+          echo "Filesystem type: $FSTYPE"
+          if [ "$FSTYPE" = "ext4" ]; then
+            echo "PASS: ext4 detected"
+          else
+            echo "WARNING: ext4 requirement not verified"
+          fi
