@@ -420,7 +420,7 @@ jobs:
             XDG_STATE_HOME="$home_dir/.local/state" \
             TMPDIR="$tmp_dir" \
             AGENTDUST_DATA_DIR="$data_dir" \
-            agentdust doctor --json >"$doctor_output" 2>"$doctor_stderr"
+            node "$package_dir/bin/agentdust.js" doctor --json >"$doctor_output" 2>"$doctor_stderr"
           doctor_status=$?
           set -e
 
