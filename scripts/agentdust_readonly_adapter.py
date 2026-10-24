@@ -341,8 +341,52 @@ def summarize_report(input_path: str | os.PathLike[str]) -> dict[str, int | str]
     return _parse_report(raw_report)
 
 
+def _write_workflow_summary(
+    doctor_exit_code: int | None,
+    summary: dict[str, int | str] | None,
+    failure_reason: str | None,
+) -> None:
+    lines = [
+        f"doctor_exit_code={doctor_exit_code if doctor_exit_code is not None else 'unavailable'}",
+        f"processes_detected={summary['processes_detected'] if summary else 'unavailable'}",
+        f"findings={summary['findings_count'] if summary else 'unavailable'}",
+        f"doctor_success={'true' if failure_reason is None else 'false'}",
+    ]
+    if failure_reason is not None:
+        lines.append(f"doctor_failure_reason={failure_reason}")
+    for line in lines:
+        sys.stdout.write(f"{line}\n")
+
+
+def _workflow_summary(argv: Sequence[str]) -> int:
+    if len(argv) != 2:
+        _write_workflow_summary(None, None, "invalid_invocation")
+        return 2
+
+    status_text = argv[1]
+    if not status_text.isascii() or not status_text.isdecimal() or len(status_text) > 3:
+        _write_workflow_summary(None, None, "invalid_doctor_exit_code")
+        return 2
+    doctor_exit_code = int(status_text)
+    if doctor_exit_code > 255:
+        _write_workflow_summary(None, None, "invalid_doctor_exit_code")
+        return 2
+
+    try:
+        summary = summarize_report(argv[0])
+    except AdapterError as error:
+        _write_workflow_summary(doctor_exit_code, None, error.code)
+        return 1
+
+    failure_reason = "doctor_nonzero" if doctor_exit_code != 0 else None
+    _write_workflow_summary(doctor_exit_code, summary, failure_reason)
+    return 1 if failure_reason is not None else 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     arguments = list(sys.argv[1:] if argv is None else argv)
+    if arguments and arguments[0] == "--workflow-summary":
+        return _workflow_summary(arguments[1:])
     if len(arguments) != 1:
         sys.stderr.write("adapter_error=usage\n")
         return 2

@@ -23,17 +23,57 @@ SENTINEL = "SYNTHETIC_PRIVATE_PROCESS_SENTINEL"
 
 
 def valid_report() -> dict[str, object]:
+    # Synthetic Linux-shaped report based on AgentDust v1.8.1's JsonView.
     return {
         "version": 1,
-        "counts": {
-            "managed": 1,
-            "owned-live": 2,
-            "owned-ended": 3,
-            "likely-owned": 4,
-            "suspect": 5,
-            "unknown": 6,
+        "owned_classes": {"available": True, "reason": None},
+        "cgroup_unit_evidence": {"available": True},
+        "sessions": {
+            "records": 3,
+            "skipped_lines": 0,
+            "active": 1,
+            "ended": 1,
+            "unknown": 0,
+            "degraded": 0,
         },
-        "findings": [{"pid": 4242, "cmdline": SENTINEL, "path": "/synthetic/private/path"}],
+        "unexplained_tags": 0,
+        "counts": {
+            "managed": 4,
+            "owned-live": 1,
+            "owned-ended": 1,
+            "likely-owned": 0,
+            "suspect": 1,
+            "unknown": 2,
+        },
+        "findings": [
+            {
+                "item_id": "p4242-1a2b",
+                "class": "owned-ended",
+                "exe_base": "node",
+                "pid": 4242,
+                "age_secs": 3600,
+                "evidence": ["owned.tag", "owned.agent_gone"],
+                "cwd_relation": "other_repo",
+            },
+            {
+                "item_id": "p4243-2b3c",
+                "class": "suspect",
+                "exe_base": "node",
+                "pid": 4243,
+                "age_secs": 3600,
+                "evidence": ["suspect.parent_init", "suspect.same_user"],
+                "cwd_relation": "other_repo",
+            },
+            {
+                "item_id": "p4244-3c4d",
+                "class": "owned-live",
+                "exe_base": "node",
+                "pid": 4244,
+                "age_secs": 120,
+                "evidence": ["owned.tag", "owned.agent_alive"],
+                "cwd_relation": "same_repo",
+            },
+        ],
     }
 
 
@@ -60,11 +100,22 @@ class AgentDustReadOnlyAdapterTests(unittest.TestCase):
             summary,
             {
                 "status_code": "REPORT_VALID",
-                "processes_detected": 21,
-                "findings_count": 1,
+                "processes_detected": 9,
+                "findings_count": 3,
             },
         )
         self.assertEqual(set(summary), {"status_code", "processes_detected", "findings_count"})
+        self.assertEqual(summary["processes_detected"], sum(valid_report()["counts"].values()))  # type: ignore[union-attr]
+
+    def test_agentdust_v1_extra_fields_are_allowed_and_not_emitted(self) -> None:
+        report = valid_report()
+        report["future_metadata"] = {"private": SENTINEL, "path": "/synthetic/private/path"}
+        summary = adapter.summarize_report(self.write_json("extended-v1.json", report))
+        output = json.dumps(summary)
+        self.assertEqual(summary["status_code"], "REPORT_VALID")
+        self.assertNotIn("future_metadata", output)
+        self.assertNotIn(SENTINEL, output)
+        self.assertNotIn("/synthetic/private/path", output)
 
     def test_nested_json_at_depth_limit_is_accepted(self) -> None:
         report = valid_report()
@@ -144,10 +195,10 @@ class AgentDustReadOnlyAdapterTests(unittest.TestCase):
 
     def test_integer_token_longer_than_limit_is_rejected(self) -> None:
         report = json.dumps(valid_report())
-        self.assertIn('"managed": 1', report)
+        self.assertIn('"managed": 4', report)
         long_integer = "9" * (adapter.MAX_JSON_INTEGER_DIGITS + 1)
         path = self.root / "long-integer.json"
-        path.write_text(report.replace('"managed": 1', f'"managed": {long_integer}', 1), encoding="utf-8")
+        path.write_text(report.replace('"managed": 4', f'"managed": {long_integer}', 1), encoding="utf-8")
         self.assert_rejected(path, "integer_too_long")
 
     def test_report_larger_than_two_mib_is_rejected(self) -> None:
@@ -192,7 +243,10 @@ class AgentDustReadOnlyAdapterTests(unittest.TestCase):
         self.assert_rejected(fifo, "not_regular_file")
 
     def test_cli_does_not_leak_findings_or_process_details(self) -> None:
-        path = self.write_json("private.json", valid_report())
+        report = valid_report()
+        report["findings"][0]["exe_base"] = SENTINEL  # type: ignore[index]
+        report["private_path"] = "/synthetic/private/path"
+        path = self.write_json("private.json", report)
         stdout = io.StringIO()
         stderr = io.StringIO()
         with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
@@ -216,6 +270,62 @@ class AgentDustReadOnlyAdapterTests(unittest.TestCase):
         self.assertEqual(stdout.getvalue(), "")
         self.assertEqual(stderr.getvalue(), "adapter_error=invalid_json\n")
         self.assertNotIn(SENTINEL, stdout.getvalue() + stderr.getvalue())
+
+    def test_workflow_summary_emits_only_safe_aggregate_fields(self) -> None:
+        path = self.write_json("workflow-summary.json", valid_report())
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            exit_code = adapter.main(["--workflow-summary", str(path), "0"])
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(
+            stdout.getvalue().splitlines(),
+            [
+                "doctor_exit_code=0",
+                "processes_detected=9",
+                "findings=3",
+                "doctor_success=true",
+            ],
+        )
+        self.assertEqual(stderr.getvalue(), "")
+
+    def test_workflow_summary_rejects_invalid_report_without_leaking_it(self) -> None:
+        path = self.root / "invalid-workflow.json"
+        path.write_text(f'{{"private":"{SENTINEL}"', encoding="utf-8")
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            exit_code = adapter.main(["--workflow-summary", str(path), "0"])
+        self.assertEqual(exit_code, 1)
+        self.assertEqual(
+            stdout.getvalue().splitlines(),
+            [
+                "doctor_exit_code=0",
+                "processes_detected=unavailable",
+                "findings=unavailable",
+                "doctor_success=false",
+                "doctor_failure_reason=invalid_json",
+            ],
+        )
+        self.assertEqual(stderr.getvalue(), "")
+        self.assertNotIn(SENTINEL, stdout.getvalue())
+
+    def test_workflow_summary_fails_closed_when_doctor_exit_is_nonzero(self) -> None:
+        path = self.write_json("nonzero-workflow.json", valid_report())
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            exit_code = adapter.main(["--workflow-summary", str(path), "7"])
+        self.assertEqual(exit_code, 1)
+        self.assertEqual(
+            stdout.getvalue().splitlines(),
+            [
+                "doctor_exit_code=7",
+                "processes_detected=9",
+                "findings=3",
+                "doctor_success=false",
+                "doctor_failure_reason=doctor_nonzero",
+            ],
+        )
 
     def test_complexity_rejection_does_not_leak_report_content(self) -> None:
         report = valid_report()

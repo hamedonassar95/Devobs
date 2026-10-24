@@ -30,13 +30,15 @@ The entire file must be no larger than 2 MiB. Duplicate object keys and non-stan
 
 For a valid input, the CLI writes one JSON object to stdout containing only `status_code`, `processes_detected` (the sum of the six counts), and `findings_count`. `status_code` is the fixed value `REPORT_VALID`. It does not include individual counts, PIDs, command lines, paths, or finding contents.
 
-For rejected input, stdout remains empty, the process exits with status 2, and stderr contains only `adapter_error=<fixed-code>`. The provided path and exception text are never printed.
+For rejected input in the regular one-path CLI mode, stdout remains empty, the process exits with status 2, and stderr contains only `adapter_error=<fixed-code>`. The provided path and exception text are never printed. Workflow-summary mode instead emits its fixed failure fields and exits nonzero.
 
 Example invocation:
 
 ```sh
 python3 scripts/agentdust_readonly_adapter.py /controlled/path/doctor.json
 ```
+
+The sandbox Workflow uses the same validator through `--workflow-summary <report-path> <doctor-exit-code>`. That mode emits only fixed CI fields (`doctor_exit_code`, aggregate counts, success, and a fixed failure code); it returns nonzero for an invalid report or nonzero Doctor exit status. Both modes call `summarize_report`, so schema and resource rules are not duplicated in the Workflow.
 
 ## Security limits
 
