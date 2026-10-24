@@ -3,7 +3,7 @@ name: AgentDust Doctor Sandbox
 on:
   push:
     branches:
-      - test/agentdust-doctor-run
+      - test/agentdust-doctor-diagnostics
     paths:
       - .github/workflows/agentdust-doctor-sandbox.yml
 
