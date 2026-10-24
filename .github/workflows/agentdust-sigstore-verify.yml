@@ -1,7 +1,11 @@
 name: AgentDust Sigstore Verification
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - test/agentdust-sigstore-run
+    paths:
+      - .github/workflows/agentdust-sigstore-verify.yml
 
 permissions:
   contents: read
