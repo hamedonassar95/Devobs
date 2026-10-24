@@ -12,10 +12,15 @@ from typing import Any, Sequence
 
 MAX_REPORT_BYTES = 2 * 1024 * 1024
 MAX_FINDINGS = 10_000
+MAX_JSON_DEPTH = 64
+MAX_JSON_NODES = 100_000
+MAX_JSON_INTEGER_DIGITS = 20
+MAX_COUNT_VALUE = 10_000_000
 STATUS_REPORT_VALID = "REPORT_VALID"
 COUNT_KEYS = frozenset(
     {"managed", "owned-live", "owned-ended", "likely-owned", "suspect", "unknown"}
 )
+MAX_TOTAL_COUNT = MAX_COUNT_VALUE * len(COUNT_KEYS)
 
 _ERROR_CODES = frozenset(
     {
@@ -30,12 +35,15 @@ _ERROR_CODES = frozenset(
         "read_failed",
         "invalid_utf8",
         "invalid_json",
+        "json_complexity_exceeded",
+        "integer_too_long",
         "duplicate_json_key",
         "report_not_object",
         "version_mismatch",
         "counts_not_object",
         "count_keys_mismatch",
         "count_values_invalid",
+        "count_value_limit_exceeded",
         "findings_not_array",
         "findings_limit_exceeded",
     }
@@ -54,6 +62,10 @@ class _DuplicateKeyError(Exception):
     pass
 
 
+class _IntegerLimitError(Exception):
+    pass
+
+
 def _object_without_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
     result: dict[str, Any] = {}
     for key, value in pairs:
@@ -65,6 +77,80 @@ def _object_without_duplicate_keys(pairs: list[tuple[str, Any]]) -> dict[str, An
 
 def _reject_nonstandard_constant(_value: str) -> None:
     raise ValueError
+
+
+def _parse_bounded_integer(token: str) -> int:
+    digits = token[1:] if token.startswith("-") else token
+    if len(digits) > MAX_JSON_INTEGER_DIGITS:
+        raise _IntegerLimitError
+    return int(token)
+
+
+def _preflight_json_limits(text: str) -> None:
+    """Bound JSON nesting and token count before json.loads allocates a tree.
+
+    A node is each object/array start, string token (including keys), or
+    primitive token. Delimiters and whitespace do not count.
+    """
+    expected_closers: list[str] = []
+    node_count = 0
+    index = 0
+    length = len(text)
+
+    def add_node() -> None:
+        nonlocal node_count
+        node_count += 1
+        if node_count > MAX_JSON_NODES:
+            raise AdapterError("json_complexity_exceeded")
+
+    while index < length:
+        character = text[index]
+        if character in " \t\r\n,:":
+            index += 1
+            continue
+
+        if character == '"':
+            add_node()
+            index += 1
+            escaped = False
+            closed = False
+            while index < length:
+                character = text[index]
+                if escaped:
+                    escaped = False
+                elif character == "\\":
+                    escaped = True
+                elif character == '"':
+                    closed = True
+                    index += 1
+                    break
+                index += 1
+            if not closed:
+                raise AdapterError("invalid_json")
+            continue
+
+        if character in "[{":
+            add_node()
+            expected_closers.append("]" if character == "[" else "}")
+            if len(expected_closers) > MAX_JSON_DEPTH:
+                raise AdapterError("json_complexity_exceeded")
+            index += 1
+            continue
+
+        if character in "]}":
+            if not expected_closers or expected_closers[-1] != character:
+                raise AdapterError("invalid_json")
+            expected_closers.pop()
+            index += 1
+            continue
+
+        # Count one primitive token, then skip to the next JSON delimiter.
+        add_node()
+        while index < length and text[index] not in ' \t\r\n,:[]{}"':
+            index += 1
+
+    if expected_closers:
+        raise AdapterError("invalid_json")
 
 
 def _quiet_close(fd: int | None) -> None:
@@ -197,13 +283,19 @@ def _parse_report(raw_report: bytes) -> dict[str, Any]:
         raise AdapterError("invalid_utf8") from None
 
     try:
+        _preflight_json_limits(text)
         report = json.loads(
             text,
             object_pairs_hook=_object_without_duplicate_keys,
             parse_constant=_reject_nonstandard_constant,
+            parse_int=_parse_bounded_integer,
         )
+    except AdapterError:
+        raise
     except _DuplicateKeyError:
         raise AdapterError("duplicate_json_key") from None
+    except _IntegerLimitError:
+        raise AdapterError("integer_too_long") from None
     except (json.JSONDecodeError, RecursionError, ValueError):
         raise AdapterError("invalid_json") from None
 
@@ -219,6 +311,8 @@ def _parse_report(raw_report: bytes) -> dict[str, Any]:
         raise AdapterError("count_keys_mismatch")
     if any(type(value) is not int or value < 0 for value in counts.values()):
         raise AdapterError("count_values_invalid")
+    if any(value > MAX_COUNT_VALUE for value in counts.values()):
+        raise AdapterError("count_value_limit_exceeded")
 
     findings = report.get("findings")
     if type(findings) is not list:
@@ -226,9 +320,13 @@ def _parse_report(raw_report: bytes) -> dict[str, Any]:
     if len(findings) > MAX_FINDINGS:
         raise AdapterError("findings_limit_exceeded")
 
+    total_count = sum(counts.values())
+    if total_count > MAX_TOTAL_COUNT:
+        raise AdapterError("count_value_limit_exceeded")
+
     return {
         "status_code": STATUS_REPORT_VALID,
-        "processes_detected": sum(counts.values()),
+        "processes_detected": total_count,
         "findings_count": len(findings),
     }
 

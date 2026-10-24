@@ -66,6 +66,37 @@ class AgentDustReadOnlyAdapterTests(unittest.TestCase):
         )
         self.assertEqual(set(summary), {"status_code", "processes_detected", "findings_count"})
 
+    def test_nested_json_at_depth_limit_is_accepted(self) -> None:
+        report = valid_report()
+        nested: object = "synthetic leaf"
+        # The report object and findings array already contribute two levels.
+        for _ in range(adapter.MAX_JSON_DEPTH - 2):
+            nested = [nested]
+        report["findings"] = [nested]
+        summary = adapter.summarize_report(self.write_json("depth-limit.json", report))
+        self.assertEqual(summary["status_code"], "REPORT_VALID")
+
+    def test_json_beyond_depth_limit_is_rejected_before_full_parse(self) -> None:
+        report = valid_report()
+        nested: object = SENTINEL
+        for _ in range(adapter.MAX_JSON_DEPTH - 1):
+            nested = [nested]
+        report["findings"] = [nested]
+        path = self.write_json("too-deep.json", report)
+        with mock.patch.object(adapter.json, "loads") as json_loads:
+            self.assert_rejected(path, "json_complexity_exceeded")
+            json_loads.assert_not_called()
+
+    def test_json_beyond_node_limit_is_rejected_before_full_parse(self) -> None:
+        report = valid_report()
+        # Each object contributes one node, ten key strings, and ten values.
+        report["findings"] = [{f"k{key_index}": key_index for key_index in range(10)} for _ in range(5_000)]
+        path = self.write_json("too-many-nodes.json", report)
+        self.assertLess(path.stat().st_size, adapter.MAX_REPORT_BYTES)
+        with mock.patch.object(adapter.json, "loads") as json_loads:
+            self.assert_rejected(path, "json_complexity_exceeded")
+            json_loads.assert_not_called()
+
     def test_invalid_json_is_rejected_without_echoing_input(self) -> None:
         path = self.root / "invalid.json"
         path.write_text(f'{{"private":"{SENTINEL}"', encoding="utf-8")
@@ -98,10 +129,39 @@ class AgentDustReadOnlyAdapterTests(unittest.TestCase):
                 report["counts"]["managed"] = value  # type: ignore[index]
                 self.assert_rejected(self.write_json(f"counts-{name}.json", report), "count_values_invalid")
 
+    def test_maximum_count_value_is_accepted_and_sum_is_bounded(self) -> None:
+        report = valid_report()
+        report["counts"] = {key: 0 for key in adapter.COUNT_KEYS}
+        report["counts"]["managed"] = adapter.MAX_COUNT_VALUE  # type: ignore[index]
+        summary = adapter.summarize_report(self.write_json("maximum-count.json", report))
+        self.assertEqual(summary["processes_detected"], adapter.MAX_COUNT_VALUE)
+        self.assertLessEqual(summary["processes_detected"], adapter.MAX_TOTAL_COUNT)
+
+    def test_count_one_above_limit_is_rejected(self) -> None:
+        report = valid_report()
+        report["counts"]["managed"] = adapter.MAX_COUNT_VALUE + 1  # type: ignore[index]
+        self.assert_rejected(self.write_json("count-over-limit.json", report), "count_value_limit_exceeded")
+
+    def test_integer_token_longer_than_limit_is_rejected(self) -> None:
+        report = json.dumps(valid_report())
+        self.assertIn('"managed": 1', report)
+        long_integer = "9" * (adapter.MAX_JSON_INTEGER_DIGITS + 1)
+        path = self.root / "long-integer.json"
+        path.write_text(report.replace('"managed": 1', f'"managed": {long_integer}', 1), encoding="utf-8")
+        self.assert_rejected(path, "integer_too_long")
+
     def test_report_larger_than_two_mib_is_rejected(self) -> None:
         path = self.root / "large.json"
         path.write_bytes(b" " * (adapter.MAX_REPORT_BYTES + 1))
         self.assert_rejected(path, "file_too_large")
+
+    def test_report_exactly_two_mib_is_accepted(self) -> None:
+        raw = json.dumps(valid_report()).encode("utf-8")
+        self.assertLessEqual(len(raw), adapter.MAX_REPORT_BYTES)
+        path = self.root / "exact-limit.json"
+        path.write_bytes(raw + b" " * (adapter.MAX_REPORT_BYTES - len(raw)))
+        self.assertEqual(path.stat().st_size, adapter.MAX_REPORT_BYTES)
+        self.assertEqual(adapter.summarize_report(path)["status_code"], "REPORT_VALID")
 
     def test_more_than_ten_thousand_findings_are_rejected(self) -> None:
         report = valid_report()
@@ -155,6 +215,22 @@ class AgentDustReadOnlyAdapterTests(unittest.TestCase):
         self.assertEqual(exit_code, 2)
         self.assertEqual(stdout.getvalue(), "")
         self.assertEqual(stderr.getvalue(), "adapter_error=invalid_json\n")
+        self.assertNotIn(SENTINEL, stdout.getvalue() + stderr.getvalue())
+
+    def test_complexity_rejection_does_not_leak_report_content(self) -> None:
+        report = valid_report()
+        nested: object = SENTINEL
+        for _ in range(adapter.MAX_JSON_DEPTH - 1):
+            nested = [nested]
+        report["findings"] = [nested]
+        path = self.write_json("private-too-deep.json", report)
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            exit_code = adapter.main([str(path)])
+        self.assertEqual(exit_code, 2)
+        self.assertEqual(stdout.getvalue(), "")
+        self.assertEqual(stderr.getvalue(), "adapter_error=json_complexity_exceeded\n")
         self.assertNotIn(SENTINEL, stdout.getvalue() + stderr.getvalue())
 
     def test_adapter_imports_no_process_or_network_modules(self) -> None:
