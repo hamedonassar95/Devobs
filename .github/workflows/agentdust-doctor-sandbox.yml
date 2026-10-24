@@ -1,7 +1,11 @@
 name: AgentDust Doctor Sandbox
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - test/agentdust-doctor-run
+    paths:
+      - .github/workflows/agentdust-doctor-sandbox.yml
 
 permissions:
   contents: read
