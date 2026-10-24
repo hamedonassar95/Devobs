@@ -32,7 +32,7 @@ These tests use synthetic data; no external APIs, model tokens or cloud budgets 
 
 ## Next implementation gates
 
-Follow [the architecture plan](plans/2026-10-25-devobs-ai-intelligence-control-plane.md) once it is merged and reviewed. Tasks 4–7 remain planned, not delivered: bounded offline AI recommendation with adversarial tests, durable/idempotent audit records, an independently authorized Draft-only proposal adapter, and tested SaaS tenant isolation. No SaaS hosting or billing until these acceptance gates pass.
+Follow [the architecture plan (Draft PR #213)](https://github.com/hamedonassar95/Devobs/pull/213) once it is merged and reviewed. Tasks 4–7 remain planned, not delivered: bounded offline AI recommendation with adversarial tests, durable/idempotent audit records, an independently authorized Draft-only proposal adapter, and tested SaaS tenant isolation. No SaaS hosting or billing until these acceptance gates pass.
 
 ## Relevant authoritative guidance (reviewed 2026-10-25)
 
