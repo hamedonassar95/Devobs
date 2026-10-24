@@ -197,6 +197,211 @@ jobs:
               reject()
           PY
 
+          report_validator="$work_dir/doctor-report-validator.py"
+          cat > "$report_validator" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          MAX_JSON_BYTES = 2 * 1024 * 1024
+          MAX_FINDINGS = 10000
+          # Failure output is restricted to fixed codes; never include report or stderr text.
+          EXPECTED_COUNT_KEYS = {
+              "managed",
+              "owned-live",
+              "owned-ended",
+              "likely-owned",
+              "suspect",
+              "unknown",
+          }
+
+
+          class ReportValidationError(Exception):
+              def __init__(self, code):
+                  self.code = code
+
+
+          def validate_report(raw_report):
+              if len(raw_report) > MAX_JSON_BYTES:
+                  raise ReportValidationError("report_too_large")
+              try:
+                  report = json.loads(raw_report)
+              except (json.JSONDecodeError, UnicodeDecodeError, RecursionError, ValueError):
+                  raise ReportValidationError("invalid_json") from None
+
+              if type(report) is not dict:
+                  raise ReportValidationError("report_not_object")
+              if type(report.get("version")) is not int or report["version"] != 1:
+                  raise ReportValidationError("version_mismatch")
+
+              counts = report.get("counts")
+              if type(counts) is not dict:
+                  raise ReportValidationError("counts_not_object")
+              if set(counts) != EXPECTED_COUNT_KEYS:
+                  raise ReportValidationError("count_keys_mismatch")
+              if any(type(value) is not int or value < 0 for value in counts.values()):
+                  raise ReportValidationError("count_values_invalid")
+
+              findings = report.get("findings")
+              if type(findings) is not list:
+                  raise ReportValidationError("findings_not_array")
+              if len(findings) > MAX_FINDINGS:
+                  raise ReportValidationError("findings_limit_exceeded")
+
+              return {
+                  "processes_detected": sum(counts.values()),
+                  "findings": len(findings),
+              }
+
+
+          def evaluate_report(raw_report, doctor_exit_code):
+              try:
+                  metrics = validate_report(raw_report)
+              except ReportValidationError as error:
+                  return None, error.code
+              if doctor_exit_code != 0:
+                  return metrics, "doctor_nonzero"
+              return metrics, None
+
+
+          def synthetic_report():
+              return {
+                  "version": 1,
+                  "counts": {
+                      "managed": 1,
+                      "owned-live": 0,
+                      "owned-ended": 0,
+                      "likely-owned": 0,
+                      "suspect": 0,
+                      "unknown": 2,
+                  },
+                  "findings": [],
+              }
+
+
+          def self_test():
+              valid = synthetic_report()
+
+              def encoded(report):
+                  return json.dumps(report, separators=(",", ":")).encode("utf-8")
+
+              def expect_case(name, raw_report, doctor_exit_code, expected_code):
+                  metrics, actual_code = evaluate_report(raw_report, doctor_exit_code)
+                  actual_code = actual_code or "PASS"
+                  if actual_code != expected_code:
+                      raise AssertionError(name)
+                  if expected_code in {"PASS", "doctor_nonzero"} and metrics != {
+                      "processes_detected": 3,
+                      "findings": 0,
+                  }:
+                      raise AssertionError(name)
+
+              expect_case("valid", encoded(valid), 0, "PASS")
+              expect_case("invalid_json_with_zero_exit", b"{", 0, "invalid_json")
+              expect_case("non_object", b"[]", 0, "report_not_object")
+
+              case = dict(valid, version=2)
+              expect_case("version", encoded(case), 0, "version_mismatch")
+              case = dict(valid, counts=None)
+              expect_case("counts_type", encoded(case), 0, "counts_not_object")
+              case = dict(valid, counts={key: value for key, value in valid["counts"].items() if key != "unknown"})
+              expect_case("count_keys", encoded(case), 0, "count_keys_mismatch")
+              bad_counts = dict(valid["counts"], managed=True)
+              expect_case("count_values", encoded(dict(valid, counts=bad_counts)), 0, "count_values_invalid")
+              negative_counts = dict(valid["counts"], managed=-1)
+              expect_case("negative_count_value", encoded(dict(valid, counts=negative_counts)), 0, "count_values_invalid")
+              expect_case("findings_type", encoded(dict(valid, findings={})), 0, "findings_not_array")
+              expect_case(
+                  "findings_limit",
+                  encoded(dict(valid, findings=[None] * (MAX_FINDINGS + 1))),
+                  0,
+                  "findings_limit_exceeded",
+              )
+              expect_case("json_size_limit", b" " * (MAX_JSON_BYTES + 1), 0, "report_too_large")
+              expect_case("doctor_exit", encoded(valid), 7, "doctor_nonzero")
+              expected_failure_output = [
+                  "doctor_exit_code=0",
+                  "processes_detected=unavailable",
+                  "findings=unavailable",
+                  "doctor_success=false",
+                  "doctor_failure_reason=invalid_json",
+              ]
+              if render(0, None, "invalid_json") != expected_failure_output:
+                  raise AssertionError("failure_output")
+
+
+          def render(status, metrics, reason):
+              lines = [
+                  f"doctor_exit_code={status}",
+                  f"processes_detected={metrics['processes_detected'] if metrics else 'unavailable'}",
+                  f"findings={metrics['findings'] if metrics else 'unavailable'}",
+                  f"doctor_success={'true' if reason is None else 'false'}",
+              ]
+              if reason is not None:
+                  lines.append(f"doctor_failure_reason={reason}")
+              return lines
+
+
+          def emit(status, metrics, reason):
+              for line in render(status, metrics, reason):
+                  print(line)
+
+
+          def main():
+              if sys.argv[1:] == ["--self-test"]:
+                  try:
+                      self_test()
+                  except Exception:
+                      print("validator_self_tests=FAIL")
+                      return 1
+                  print("validator_self_tests=PASS cases=13")
+                  return 0
+
+              if len(sys.argv) != 3:
+                  print("doctor_exit_code=unavailable")
+                  print("processes_detected=unavailable")
+                  print("findings=unavailable")
+                  print("doctor_success=false")
+                  print("doctor_failure_reason=invalid_invocation")
+                  return 1
+
+              status_text = sys.argv[2]
+              if not status_text.isascii() or not status_text.isdecimal():
+                  print("doctor_exit_code=unavailable")
+                  print("processes_detected=unavailable")
+                  print("findings=unavailable")
+                  print("doctor_success=false")
+                  print("doctor_failure_reason=invalid_doctor_exit_code")
+                  return 1
+              status = int(status_text)
+              if status > 255:
+                  print("doctor_exit_code=unavailable")
+                  print("processes_detected=unavailable")
+                  print("findings=unavailable")
+                  print("doctor_success=false")
+                  print("doctor_failure_reason=invalid_doctor_exit_code")
+                  return 1
+
+              try:
+                  with Path(sys.argv[1]).open("rb") as report_file:
+                      raw_report = report_file.read(MAX_JSON_BYTES + 1)
+              except OSError:
+                  emit(status, None, "report_unavailable")
+                  return 1
+
+              try:
+                  metrics, reason = evaluate_report(raw_report, status)
+              except Exception:
+                  emit(status, None, "validator_internal_error")
+                  return 1
+              emit(status, metrics, reason)
+              return 1 if reason is not None else 0
+
+
+          raise SystemExit(main())
+          PY
+          python3 "$report_validator" --self-test
+
           node_path="$(command -v node || true)"
           [[ -n "$node_path" ]] || fail 'Node.js is not preinstalled on this runner; no installation was attempted.'
           node_dir="$(dirname -- "$node_path")"
@@ -219,43 +424,7 @@ jobs:
           doctor_status=$?
           set -e
 
-          python3 - "$doctor_output" "$doctor_status" <<'PY'
-          import json
-          import sys
-          from pathlib import Path
-
-          MAX_JSON_BYTES = 2 * 1024 * 1024
-          MAX_FINDINGS = 10000
-          expected_count_keys = {"managed", "owned-live", "owned-ended", "likely-owned", "suspect", "unknown"}
-          try:
-              report_path = Path(sys.argv[1])
-              if report_path.stat().st_size > MAX_JSON_BYTES:
-                  raise ValueError
-              with report_path.open("rb") as report_file:
-                  raw_report = report_file.read(MAX_JSON_BYTES + 1)
-              if len(raw_report) > MAX_JSON_BYTES:
-                  raise ValueError
-              report = json.loads(raw_report)
-              status = int(sys.argv[2])
-              counts = report.get("counts") if isinstance(report, dict) else None
-              findings = report.get("findings") if isinstance(report, dict) else None
-              if report.get("version") != 1 or not isinstance(counts, dict) or set(counts) != expected_count_keys:
-                  raise ValueError
-              if any(type(value) is not int or value < 0 for value in counts.values()):
-                  raise ValueError
-              if not isinstance(findings, list) or len(findings) > MAX_FINDINGS:
-                  raise ValueError
-              print(f"processes_detected={sum(counts.values())}")
-              print(f"findings={len(findings)}")
-              print(f"doctor_success={'true' if status == 0 else 'false'}")
-              if status != 0:
-                  print(f"doctor_exit_code={status}")
-          except Exception:
-              print("processes_detected=unavailable")
-              print("findings=unavailable")
-              print("doctor_success=false")
-              raise SystemExit(1)
-          PY
+          python3 "$report_validator" "$doctor_output" "$doctor_status"
 
           if (( doctor_status != 0 )); then
             exit "$doctor_status"
