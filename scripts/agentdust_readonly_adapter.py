@@ -161,6 +161,18 @@ def _quiet_close(fd: int | None) -> None:
             pass
 
 
+def _file_state(metadata: os.stat_result) -> tuple[int, int, int, int, int, int]:
+    """Return metadata used to detect ordinary changes during a bounded read."""
+    return (
+        metadata.st_dev,
+        metadata.st_ino,
+        metadata.st_mode,
+        metadata.st_size,
+        metadata.st_mtime_ns,
+        metadata.st_ctime_ns,
+    )
+
+
 def _open_explicit_regular_file(input_path: str | os.PathLike[str]) -> int:
     try:
         path_value = os.fspath(input_path)
@@ -258,7 +270,10 @@ def _open_explicit_regular_file(input_path: str | os.PathLike[str]) -> int:
 
 def _read_bounded_report(fd: int) -> bytes:
     try:
-        if os.fstat(fd).st_size > MAX_REPORT_BYTES:
+        before_read = os.fstat(fd)
+        if not stat.S_ISREG(before_read.st_mode):
+            raise AdapterError("not_regular_file")
+        if before_read.st_size > MAX_REPORT_BYTES:
             raise AdapterError("file_too_large")
         contents = bytearray()
         while len(contents) <= MAX_REPORT_BYTES:
@@ -269,6 +284,12 @@ def _read_bounded_report(fd: int) -> bytes:
             contents.extend(chunk)
         if len(contents) > MAX_REPORT_BYTES:
             raise AdapterError("file_too_large")
+        after_read = os.fstat(fd)
+        if (
+            _file_state(before_read) != _file_state(after_read)
+            or len(contents) != before_read.st_size
+        ):
+            raise AdapterError("file_changed")
         return bytes(contents)
     except AdapterError:
         raise
@@ -377,6 +398,9 @@ def _workflow_summary(argv: Sequence[str]) -> int:
     except AdapterError as error:
         _write_workflow_summary(doctor_exit_code, None, error.code)
         return 1
+    except Exception:
+        _write_workflow_summary(doctor_exit_code, None, "validator_internal_error")
+        return 1
 
     failure_reason = "doctor_nonzero" if doctor_exit_code != 0 else None
     _write_workflow_summary(doctor_exit_code, summary, failure_reason)
@@ -395,6 +419,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     except AdapterError as error:
         sys.stderr.write(f"adapter_error={error.code}\n")
         return 2
+    except Exception:
+        sys.stderr.write("adapter_error=internal_error\n")
+        return 3
     sys.stdout.write(json.dumps(summary, sort_keys=True, separators=(",", ":")) + "\n")
     return 0
 

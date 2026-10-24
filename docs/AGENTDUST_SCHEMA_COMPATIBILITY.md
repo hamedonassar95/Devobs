@@ -57,4 +57,6 @@ The existing Workflow trigger and permission block are preserved: `push` only on
 
 ## Trust boundary and remaining limits
 
-Structural validation means only that the recognized report envelope fits Devobs' rules. It does not prove that a report came from AgentDust, that the npm package is authentic, that the report matches the current host, or that its contents authorize any action. Package provenance and source identity must be verified independently. The adapter remains read-only, performs no network access or subprocess execution, and is not an isolation boundary for its Python process.
+Structural validation means only that the recognized report envelope fits Devobs' rules. `REPORT_VALID` is not an authorization token and cannot authorize process modification or automatic cleanup. It does not prove that a report came from AgentDust, that the npm package is authentic, or that the report matches the current host. Package provenance and source identity must be verified independently. The adapter remains read-only, performs no network access or subprocess execution, and is not an isolation boundary for its Python process.
+
+The reader compares file identity, type, size, modification time, and change time before and after reading, then checks that the byte count matches the initial size. This detects ordinary concurrent writes and truncation, but is not an atomic snapshot and cannot rule out every race. Use a private directory controlled by the caller or an immutable snapshot when other writers may modify the report.

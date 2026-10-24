@@ -7,8 +7,10 @@ import contextlib
 import io
 import json
 import os
+import subprocess
 import sys
 import tempfile
+import textwrap
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -92,6 +94,96 @@ class AgentDustReadOnlyAdapterTests(unittest.TestCase):
         with self.assertRaises(adapter.AdapterError) as caught:
             adapter.summarize_report(path)
         self.assertEqual(caught.exception.code, expected_code)
+
+    def run_workflow_source_validation(
+        self,
+        *,
+        fetch_fails: bool = False,
+        fetched_sha: str = "1" * 40,
+        files_missing: bool = False,
+    ) -> subprocess.CompletedProcess[str]:
+        workflow = (ROOT / ".github/workflows/agentdust-doctor-sandbox.yml").read_text(
+            encoding="utf-8"
+        )
+        block_start = workflow.index('          source_dir="$work_dir/devobs-source"')
+        block_end = workflow.index("          node_path=", block_start)
+        validation_block = textwrap.dedent(workflow[block_start:block_end])
+
+        fake_bin = self.root / "fake-bin"
+        fake_bin.mkdir()
+        fake_git = fake_bin / "git"
+        fake_git.write_text(
+            f"#!{sys.executable}\n"
+            + textwrap.dedent(
+                """
+                import os
+                import sys
+
+                args = sys.argv[1:]
+                if args and args[0] == "init":
+                    os.makedirs(args[-1], exist_ok=True)
+                    raise SystemExit(0)
+                if len(args) >= 3 and args[0] == "-C":
+                    repo, command = args[1], args[2]
+                    if command == "remote":
+                        raise SystemExit(0)
+                    if command == "fetch":
+                        raise SystemExit(9 if os.environ.get("SIM_FETCH_FAIL") == "1" else 0)
+                    if command == "rev-parse":
+                        print(os.environ["SIM_FETCHED_SHA"])
+                        raise SystemExit(0)
+                    if command == "checkout":
+                        if os.environ.get("SIM_FILES_MISSING") != "1":
+                            for relative in (
+                                "scripts/agentdust_readonly_adapter.py",
+                                "tests/test_agentdust_readonly_adapter.py",
+                            ):
+                                path = os.path.join(repo, relative)
+                                os.makedirs(os.path.dirname(path), exist_ok=True)
+                                with open(path, "w", encoding="utf-8"):
+                                    pass
+                        raise SystemExit(0)
+                raise SystemExit(97)
+                """
+            ),
+            encoding="utf-8",
+        )
+        fake_git.chmod(0o700)
+        fake_python = fake_bin / "python3"
+        fake_python.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        fake_python.chmod(0o700)
+
+        work_dir = self.root / "workflow-work"
+        work_dir.mkdir()
+        (work_dir / "tmp").mkdir()
+        harness = textwrap.dedent(
+            """
+            set -Eeuo pipefail
+            fail() { printf '%s\\n' "$1" >&2; exit 1; }
+            work_dir="$WORK_DIR"
+            tmp_dir="$WORK_DIR/tmp"
+            """
+        )
+        env = {
+            "PATH": str(fake_bin),
+            "WORK_DIR": str(work_dir),
+            "GITHUB_REPOSITORY": "hamedonassar95/Devobs",
+            "GITHUB_SERVER_URL": "https://github.com",
+            "GITHUB_SHA": "1" * 40,
+            "GITHUB_REF": "refs/heads/test/agentdust-doctor-diagnostics",
+            "SIM_FETCH_FAIL": "1" if fetch_fails else "0",
+            "SIM_FETCHED_SHA": fetched_sha,
+            "SIM_FILES_MISSING": "1" if files_missing else "0",
+            "TMPDIR": str(self.root),
+        }
+        return subprocess.run(
+            ["/bin/bash", "-c", harness + validation_block],
+            capture_output=True,
+            check=False,
+            env=env,
+            text=True,
+            timeout=5,
+        )
 
     def test_valid_report_returns_aggregate_summary_only(self) -> None:
         path = self.write_json("valid.json", valid_report())
@@ -270,6 +362,127 @@ class AgentDustReadOnlyAdapterTests(unittest.TestCase):
         self.assertEqual(stdout.getvalue(), "")
         self.assertEqual(stderr.getvalue(), "adapter_error=invalid_json\n")
         self.assertNotIn(SENTINEL, stdout.getvalue() + stderr.getvalue())
+
+    def test_missing_file_error_is_fixed_and_does_not_leak_path(self) -> None:
+        path = self.root / "private-missing-report.json"
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            exit_code = adapter.main([str(path)])
+        self.assertEqual(exit_code, 2)
+        self.assertEqual(stdout.getvalue(), "")
+        self.assertEqual(stderr.getvalue(), "adapter_error=path_unavailable\n")
+        self.assertNotIn(str(path), stdout.getvalue() + stderr.getvalue())
+
+    def test_read_error_is_fixed_and_does_not_leak_exception_text(self) -> None:
+        path = self.write_json("read-error.json", valid_report())
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with mock.patch.object(adapter.os, "read", side_effect=OSError(SENTINEL)):
+            with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                exit_code = adapter.main([str(path)])
+        self.assertEqual(exit_code, 2)
+        self.assertEqual(stdout.getvalue(), "")
+        self.assertEqual(stderr.getvalue(), "adapter_error=read_failed\n")
+        self.assertNotIn(SENTINEL, stdout.getvalue() + stderr.getvalue())
+        self.assertNotIn(str(path), stdout.getvalue() + stderr.getvalue())
+
+    def test_file_metadata_change_during_read_is_rejected(self) -> None:
+        path = self.write_json("changing-report.json", valid_report())
+        initial_bytes = path.read_bytes()
+        changed_bytes = initial_bytes.replace(b'"managed": 4', b'"managed": 5', 1)
+        self.assertEqual(len(changed_bytes), len(initial_bytes))
+        original_read = os.read
+        changed = False
+
+        def change_file_then_read(fd: int, size: int) -> bytes:
+            nonlocal changed
+            if not changed:
+                changed = True
+                path.write_bytes(changed_bytes)
+                current = path.stat()
+                os.utime(
+                    path,
+                    ns=(current.st_atime_ns, current.st_mtime_ns + 1_000_000_000),
+                )
+            return original_read(fd, size)
+
+        with mock.patch.object(adapter.os, "read", side_effect=change_file_then_read):
+            self.assert_rejected(path, "file_changed")
+
+    def test_file_size_change_during_read_is_rejected(self) -> None:
+        path = self.write_json("growing-report.json", valid_report())
+        original_read = os.read
+        changed = False
+
+        def grow_file_then_read(fd: int, size: int) -> bytes:
+            nonlocal changed
+            if not changed:
+                changed = True
+                with path.open("ab") as report_file:
+                    report_file.write(b" ")
+            return original_read(fd, size)
+
+        with mock.patch.object(adapter.os, "read", side_effect=grow_file_then_read):
+            self.assert_rejected(path, "file_changed")
+
+    def test_unexpected_programming_error_is_fixed_and_fails_closed(self) -> None:
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        path = self.root / "internal-error-report.json"
+        with mock.patch.object(adapter, "summarize_report", side_effect=RuntimeError(SENTINEL)):
+            with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                exit_code = adapter.main([str(path)])
+        self.assertEqual(exit_code, 3)
+        self.assertEqual(stdout.getvalue(), "")
+        self.assertEqual(stderr.getvalue(), "adapter_error=internal_error\n")
+        self.assertNotIn(SENTINEL, stdout.getvalue() + stderr.getvalue())
+        self.assertNotIn(str(path), stdout.getvalue() + stderr.getvalue())
+
+    def test_workflow_summary_hides_unexpected_programming_error_and_fails_closed(self) -> None:
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        path = self.root / "workflow-internal-error.json"
+        with mock.patch.object(adapter, "summarize_report", side_effect=RuntimeError(SENTINEL)):
+            with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+                exit_code = adapter.main(["--workflow-summary", str(path), "0"])
+        self.assertEqual(exit_code, 1)
+        self.assertEqual(
+            stdout.getvalue().splitlines(),
+            [
+                "doctor_exit_code=0",
+                "processes_detected=unavailable",
+                "findings=unavailable",
+                "doctor_success=false",
+                "doctor_failure_reason=validator_internal_error",
+            ],
+        )
+        self.assertEqual(stderr.getvalue(), "")
+        self.assertNotIn(SENTINEL, stdout.getvalue())
+        self.assertNotIn(str(path), stdout.getvalue())
+
+    def test_workflow_source_fetch_failure_fails_closed(self) -> None:
+        result = self.run_workflow_source_validation(fetch_fails=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(result.stderr.strip(), "Could not fetch the event source commit.")
+        self.assertNotIn(str(self.root), result.stdout + result.stderr)
+
+    def test_workflow_source_sha_mismatch_fails_closed(self) -> None:
+        result = self.run_workflow_source_validation(fetched_sha="2" * 40)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(result.stderr.strip(), "Fetched source does not match the event commit.")
+        self.assertNotIn(str(self.root), result.stdout + result.stderr)
+
+    def test_workflow_source_missing_validator_files_fails_closed(self) -> None:
+        result = self.run_workflow_source_validation(files_missing=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(result.stderr.strip(), "Shared validator files are missing.")
+        self.assertNotIn(str(self.root), result.stdout + result.stderr)
+
+    def test_workflow_source_validation_uses_same_event_commit(self) -> None:
+        result = self.run_workflow_source_validation()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), "validator_self_tests=PASS")
 
     def test_workflow_summary_emits_only_safe_aggregate_fields(self) -> None:
         path = self.write_json("workflow-summary.json", valid_report())
