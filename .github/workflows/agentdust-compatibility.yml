@@ -1,0 +1,30 @@
+name: AgentDust Compatibility Check
+on:
+  push:
+    branches:
+      - test/agentdust-actions-run
+    paths:
+      - .github/workflows/agentdust-compatibility.yml
+permissions:
+  contents: read
+jobs:
+  compatibility:
+    name: Read-only Linux Compatibility
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Inspect environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Operating system:"
+          cat /etc/os-release
+          echo "Architecture:"
+          uname -m
+          echo "Kernel:"
+          uname -r
+          echo "HOME filesystem (not assumed to be the AgentDust data directory):"
+          findmnt -T "$HOME" -o TARGET,FSTYPE,OPTIONS
+          echo "Temporary filesystem (not assumed to be the AgentDust data directory):"
+          findmnt -T /tmp -o TARGET,FSTYPE,OPTIONS
+          echo "AgentDust data filesystem: UNKNOWN (actual data directory not identified)"
