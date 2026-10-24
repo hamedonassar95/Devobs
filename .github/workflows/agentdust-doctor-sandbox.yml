@@ -1,0 +1,258 @@
+name: AgentDust Doctor Sandbox
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  doctor-sandbox:
+    name: Read-only AgentDust doctor
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Verify pinned package and run doctor in isolation
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          umask 077
+
+          fail() {
+            echo "$1" >&2
+            exit 1
+          }
+
+          os_id="$(sed -n 's/^ID=//p' /etc/os-release | head -n 1 | tr -d '"')"
+          os_version="$(sed -n 's/^VERSION_ID=//p' /etc/os-release | head -n 1 | tr -d '"')"
+          architecture="$(uname -m)"
+          kernel="$(uname -r)"
+          printf 'os=%s %s\narchitecture=%s\nkernel=%s\n' "$os_id" "$os_version" "$architecture" "$kernel"
+
+          [[ "$os_id" == ubuntu && "$os_version" == 24.04 ]] || fail 'Unsupported operating system; expected Ubuntu 24.04.'
+          [[ "$architecture" == x86_64 ]] || fail 'Unsupported architecture; expected x86_64 for the pinned linux-x64 package.'
+          [[ -n "${RUNNER_TEMP:-}" && "$RUNNER_TEMP" == /* && -d "$RUNNER_TEMP" && ! -L "$RUNNER_TEMP" ]] || fail 'Runner temporary directory is unavailable or unsafe.'
+
+          runner_temp_real="$(realpath -e -- "$RUNNER_TEMP" 2>/dev/null)" || fail 'Could not resolve the runner temporary directory.'
+          work_dir=''
+          work_dir_real=''
+          work_dir_identity=''
+          cleanup() {
+            local status=$?
+            local expected_prefix="${runner_temp_real%/}/agentdust-doctor."
+            local current_temp_real=''
+            local current_work_dir_real=''
+            local current_work_dir_identity=''
+            trap - EXIT
+            if [[ -n "$work_dir" ]]; then
+              current_temp_real="$(realpath -e -- "$RUNNER_TEMP" 2>/dev/null || true)"
+              current_work_dir_real="$(realpath -e -- "$work_dir" 2>/dev/null || true)"
+              current_work_dir_identity="$(stat -c '%d:%i' -- "$work_dir" 2>/dev/null || true)"
+            fi
+            if [[ -n "$work_dir" && -n "$work_dir_real" && -d "$work_dir" && ! -L "$work_dir" && \
+              "$current_temp_real" == "$runner_temp_real" && "$current_work_dir_real" == "$work_dir_real" && \
+              "$current_work_dir_identity" == "$work_dir_identity" && \
+              "$work_dir_real" == "$expected_prefix"* ]]; then
+              if ! rm -rf -- "$work_dir" 2>/dev/null; then
+                echo 'WARNING: temporary workspace cleanup failed.' >&2
+                [[ "$status" -ne 0 ]] || status=1
+              fi
+            elif [[ -n "$work_dir" ]]; then
+              echo 'WARNING: temporary workspace path changed; cleanup was refused.' >&2
+              [[ "$status" -ne 0 ]] || status=1
+            fi
+            exit "$status"
+          }
+          trap cleanup EXIT
+          trap 'exit 129' HUP
+          trap 'exit 130' INT
+          trap 'exit 143' TERM
+
+          if ! work_dir="$(mktemp -d "${runner_temp_real%/}/agentdust-doctor.XXXXXX" 2>/dev/null)"; then
+            fail 'Could not create a private temporary workspace.'
+          fi
+          work_dir_real="$(realpath -e -- "$work_dir" 2>/dev/null)" || fail 'Could not verify the temporary workspace path.'
+          work_dir_identity="$(stat -c '%d:%i' -- "$work_dir" 2>/dev/null)" || fail 'Could not verify the temporary workspace identity.'
+          [[ -d "$work_dir" && ! -L "$work_dir" && "$work_dir_real" == "${runner_temp_real%/}/agentdust-doctor."* ]] || fail 'Temporary workspace was not created under the expected runner directory.'
+
+          data_dir="$work_dir/data"
+          home_dir="$work_dir/home"
+          tmp_dir="$work_dir/tmp"
+          package_dir="$work_dir/package"
+          archive="$work_dir/agentdust-1.8.1.tgz"
+          doctor_output="$work_dir/doctor.json"
+          doctor_stderr="$work_dir/doctor.stderr"
+          curl_stderr="$work_dir/curl.stderr"
+          mkdir -m 700 "$data_dir" "$home_dir" "$tmp_dir" "$package_dir" 2>/dev/null || fail 'Could not create private sandbox directories.'
+          mkdir -m 700 "$home_dir/.config" "$home_dir/.cache" "$home_dir/.local" "$home_dir/.local/share" "$home_dir/.local/state" 2>/dev/null || fail 'Could not create private home directories.'
+
+          data_filesystem="$(findmnt --noheadings --target "$data_dir" --output FSTYPE 2>/dev/null | tr -d '[:space:]')" || fail 'Could not inspect the AgentDust data directory filesystem.'
+          printf 'data_filesystem=%s\n' "$data_filesystem"
+          [[ "$data_filesystem" == ext4 ]] || fail 'The isolated AgentDust data directory is not on ext4; doctor was not run.'
+          [[ -w "$data_dir" ]] || fail 'The isolated AgentDust data directory is not writable.'
+
+          package_url='https://registry.npmjs.org/agentdust/-/agentdust-1.8.1.tgz'
+          # Without --location curl does not follow redirects; accept only HTTP 200.
+          if ! http_status="$(curl --fail --silent --show-error --max-redirs 0 --max-filesize 20971520 \
+            --connect-timeout 15 --max-time 90 --proto '=https' --tlsv1.2 \
+            --write-out '%{http_code}' --output "$archive" "$package_url" 2>"$curl_stderr")"; then
+            fail 'Could not retrieve the pinned AgentDust package archive.'
+          fi
+          [[ "$http_status" == 200 ]] || fail 'Package server returned a non-200 response; refusing redirects.'
+
+          python3 - "$archive" "$package_dir" <<'PY'
+          import base64
+          import hashlib
+          import io
+          import json
+          import os
+          import sys
+          import tarfile
+          from pathlib import Path, PurePosixPath
+
+          # Exact npm archive digest accepted by the pinned Sigstore verification workflow.
+          expected_sri = "sha512-5dKzxVjA448uWKnkcwS6z3ChqN5n6NhhU4ctv5nQtxJh10l823hB7eDyjwD7pFSxehNZ4zvsrhYpegpaTIRevQ=="
+          expected_files = {
+              "package/vendor/darwin-arm64/agentdust",
+              "package/vendor/linux-x64/agentdust",
+              "package/LICENSE",
+              "package/bin/agentdust.js",
+              "package/package.json",
+              "package/README.md",
+          }
+          launcher_name = "package/bin/agentdust.js"
+          binary_name = "package/vendor/linux-x64/agentdust"
+
+          def reject():
+              print("Pinned package validation failed.", file=sys.stderr)
+              raise SystemExit(1)
+
+          try:
+              archive_path = Path(sys.argv[1])
+              package_root = Path(sys.argv[2])
+              if archive_path.stat().st_size > 20 * 1024 * 1024:
+                  reject()
+              blob = archive_path.read_bytes()
+              actual_sri = "sha512-" + base64.b64encode(hashlib.sha512(blob).digest()).decode("ascii")
+              if actual_sri != expected_sri:
+                  reject()
+
+              with tarfile.open(fileobj=io.BytesIO(blob), mode="r:gz") as tar:
+                  members = tar.getmembers()
+                  names = [member.name for member in members]
+                  if len(names) != len(expected_files) or set(names) != expected_files:
+                      reject()
+                  if len(set(names)) != len(names):
+                      reject()
+                  total_size = 0
+                  by_name = {}
+                  for member in members:
+                      path = PurePosixPath(member.name)
+                      if path.is_absolute() or "\\" in member.name or any(part in {"", ".", ".."} for part in member.name.split("/")):
+                          reject()
+                      if member.issym() or member.islnk() or not member.isfile() or member.size < 0 or member.size > 8 * 1024 * 1024:
+                          reject()
+                      total_size += member.size
+                      if total_size > 16 * 1024 * 1024:
+                          reject()
+                      by_name[member.name] = member
+
+                  manifest_stream = tar.extractfile(by_name["package/package.json"])
+                  if manifest_stream is None:
+                      reject()
+                  manifest = json.loads(manifest_stream.read())
+                  if manifest.get("name") != "agentdust" or manifest.get("version") != "1.8.1":
+                      reject()
+                  if manifest.get("bin") != {"agentdust": "bin/agentdust.js"}:
+                      reject()
+                  if manifest.get("scripts"):
+                      reject()
+                  for field in ("dependencies", "devDependencies", "optionalDependencies", "peerDependencies"):
+                      if manifest.get(field):
+                          reject()
+
+                  for name in (launcher_name, binary_name):
+                      member = by_name[name]
+                      source = tar.extractfile(member)
+                      if source is None:
+                          reject()
+                      content = source.read(member.size + 1)
+                      if len(content) != member.size:
+                          reject()
+                      destination = package_root.joinpath(*PurePosixPath(name).parts[1:])
+                      destination.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+                      destination.write_bytes(content)
+                      os.chmod(destination, 0o700)
+
+              print("package_sha512=PASS")
+              print("package_layout=PASS")
+              print("install_scripts=ABSENT")
+          except SystemExit:
+              raise
+          except Exception:
+              reject()
+          PY
+
+          node_path="$(command -v node || true)"
+          [[ -n "$node_path" ]] || fail 'Node.js is not preinstalled on this runner; no installation was attempted.'
+          node_dir="$(dirname -- "$node_path")"
+          isolated_path="$package_dir/bin:$node_dir:/usr/local/bin:/usr/bin:/bin"
+
+          cd "$tmp_dir"
+          set +e
+          # env -i only clears inherited variables. It does not isolate processes, files, UID, or network egress.
+          # No credentials are passed, but this still runs as the ephemeral GitHub runner user.
+          env -i \
+            PATH="$isolated_path" \
+            HOME="$home_dir" \
+            XDG_CONFIG_HOME="$home_dir/.config" \
+            XDG_CACHE_HOME="$home_dir/.cache" \
+            XDG_DATA_HOME="$home_dir/.local/share" \
+            XDG_STATE_HOME="$home_dir/.local/state" \
+            TMPDIR="$tmp_dir" \
+            AGENTDUST_DATA_DIR="$data_dir" \
+            agentdust doctor --json >"$doctor_output" 2>"$doctor_stderr"
+          doctor_status=$?
+          set -e
+
+          python3 - "$doctor_output" "$doctor_status" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          MAX_JSON_BYTES = 2 * 1024 * 1024
+          MAX_FINDINGS = 10000
+          expected_count_keys = {"managed", "owned-live", "owned-ended", "likely-owned", "suspect", "unknown"}
+          try:
+              report_path = Path(sys.argv[1])
+              if report_path.stat().st_size > MAX_JSON_BYTES:
+                  raise ValueError
+              with report_path.open("rb") as report_file:
+                  raw_report = report_file.read(MAX_JSON_BYTES + 1)
+              if len(raw_report) > MAX_JSON_BYTES:
+                  raise ValueError
+              report = json.loads(raw_report)
+              status = int(sys.argv[2])
+              counts = report.get("counts") if isinstance(report, dict) else None
+              findings = report.get("findings") if isinstance(report, dict) else None
+              if report.get("version") != 1 or not isinstance(counts, dict) or set(counts) != expected_count_keys:
+                  raise ValueError
+              if any(type(value) is not int or value < 0 for value in counts.values()):
+                  raise ValueError
+              if not isinstance(findings, list) or len(findings) > MAX_FINDINGS:
+                  raise ValueError
+              print(f"processes_detected={sum(counts.values())}")
+              print(f"findings={len(findings)}")
+              print(f"doctor_success={'true' if status == 0 else 'false'}")
+              if status != 0:
+                  print(f"doctor_exit_code={status}")
+          except Exception:
+              print("processes_detected=unavailable")
+              print("findings=unavailable")
+              print("doctor_success=false")
+              raise SystemExit(1)
+          PY
+
+          if (( doctor_status != 0 )); then
+            exit "$doctor_status"
+          fi
