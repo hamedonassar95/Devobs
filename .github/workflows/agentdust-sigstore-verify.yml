@@ -1,0 +1,237 @@
+name: AgentDust Sigstore Verification
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-agentdust-provenance:
+    name: Verify agentdust@1.8.1 provenance
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Install verified Cosign v3.1.4
+        uses: sigstore/cosign-installer@ba7bc0a3fef59531c69a25acd34668d6d3fe6f22 # v4.1.0
+        with:
+          cosign-release: v3.1.4
+          use-sudo: false
+
+      - name: Verify pinned Cosign binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected_sha256='424e2c97d0b45fd7a6b608a87f090f35633f4c23ece5f092d48bba11aaf4bbfa'
+          cosign_path="$(command -v cosign)"
+          cosign_version="$(cosign version)"
+          printf '%s\n' "$cosign_version"
+          grep -Fq 'v3.1.4' <<<"$cosign_version"
+
+          actual_sha256="$(sha256sum "$cosign_path" | awk '{print $1}')"
+          if [[ "$actual_sha256" != "$expected_sha256" ]]; then
+            echo 'Cosign binary SHA-256 did not match the pinned v3.1.4 release digest.' >&2
+            exit 1
+          fi
+
+      - name: Initialize Sigstore trust from TUF
+        shell: bash
+        run: |
+          set -euo pipefail
+          unset SIGSTORE_CT_LOG_PUBLIC_KEY_FILE SIGSTORE_ROOT_FILE SIGSTORE_REKOR_PUBLIC_KEY SIGSTORE_TSA_CERTIFICATE_FILE TUF_MIRROR TUF_ROOT TUF_ROOT_JSON
+          cosign initialize --mirror https://tuf-repo-cdn.sigstore.dev
+
+      - name: Fetch pinned package and provenance without extracting it
+        shell: bash
+        run: |
+          set -euo pipefail
+          work_dir="$(mktemp -d "${RUNNER_TEMP}/agentdust-sigstore.XXXXXX")"
+          trap 'rm -rf -- "$work_dir"' EXIT
+          export AGENTDUST_VERIFY_DIR="$work_dir"
+          unset SIGSTORE_CT_LOG_PUBLIC_KEY_FILE SIGSTORE_ROOT_FILE SIGSTORE_REKOR_PUBLIC_KEY SIGSTORE_TSA_CERTIFICATE_FILE TUF_MIRROR TUF_ROOT TUF_ROOT_JSON
+
+          python3 - <<'PY'
+          import base64
+          import hashlib
+          import json
+          import os
+          import urllib.parse
+          import urllib.request
+          from pathlib import Path
+
+          VERSION = "1.8.1"
+          EXPECTED_REPOSITORY_URL = "git+https://github.com/hamzahamidi/agentdust.git"
+          EXPECTED_TARBALL_URL = "https://registry.npmjs.org/agentdust/-/agentdust-1.8.1.tgz"
+          EXPECTED_SRI = "sha512-5dKzxVjA448uWKnkcwS6z3ChqN5n6NhhU4ctv5nQtxJh10l823hB7eDyjwD7pFSxehNZ4zvsrhYpegpaTIRevQ=="
+          EXPECTED_SOURCE_COMMIT = "bab2a6b9fca0ba822ebf1bce1b6239a262eeec25"
+          PROVENANCE_TYPE = "https://slsa.dev/provenance/v1"
+          BUNDLE_MEDIA_TYPE = "application/vnd.dev.sigstore.bundle.v0.3+json"
+          DOWNLOAD_LIMIT = 20 * 1024 * 1024
+          out_dir = Path(os.environ["AGENTDUST_VERIFY_DIR"])
+
+          def fetch(url, expected_host, limit):
+              request = urllib.request.Request(
+                  url,
+                  headers={
+                      "Accept": "application/json",
+                      "User-Agent": "Devobs-AgentDust-Sigstore-Verification",
+                  },
+              )
+              with urllib.request.urlopen(request, timeout=45) as response:
+                  final = urllib.parse.urlparse(response.geturl())
+                  if final.scheme != "https" or final.hostname != expected_host:
+                      raise SystemExit(f"Unexpected HTTPS response host for {url}")
+                  body = response.read(limit + 1)
+              if len(body) > limit:
+                  raise SystemExit(f"Response exceeded the {limit}-byte safety limit: {url}")
+              return body
+
+          def fetch_json(url, host):
+              try:
+                  return json.loads(fetch(url, host, 2 * 1024 * 1024))
+              except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                  raise SystemExit(f"Invalid JSON response from {url}: {exc}") from exc
+
+          metadata = fetch_json(
+              f"https://registry.npmjs.org/agentdust/{VERSION}", "registry.npmjs.org"
+          )
+          if metadata.get("name") != "agentdust" or metadata.get("version") != VERSION:
+              raise SystemExit("npm metadata package name/version did not match the pinned target")
+          if metadata.get("repository", {}).get("url") != EXPECTED_REPOSITORY_URL:
+              raise SystemExit("npm metadata repository URL did not match the pinned source")
+          dist = metadata.get("dist", {})
+          if dist.get("tarball") != EXPECTED_TARBALL_URL:
+              raise SystemExit("npm tarball URL did not match the pinned registry URL")
+          if dist.get("integrity") != EXPECTED_SRI:
+              raise SystemExit("npm metadata SRI did not match the pinned package digest")
+
+          tarball = fetch(EXPECTED_TARBALL_URL, "registry.npmjs.org", DOWNLOAD_LIMIT)
+          actual_sri = "sha512-" + base64.b64encode(hashlib.sha512(tarball).digest()).decode("ascii")
+          if actual_sri != EXPECTED_SRI:
+              raise SystemExit("Downloaded tarball SHA-512 did not match the pinned SRI")
+          tarball_path = out_dir / "agentdust-1.8.1.tgz"
+          tarball_path.write_bytes(tarball)
+
+          attestations = fetch_json(
+              "https://registry.npmjs.org/-/npm/v1/attestations/agentdust@1.8.1",
+              "registry.npmjs.org",
+          ).get("attestations")
+          if not isinstance(attestations, list):
+              raise SystemExit("npm attestation response did not contain an attestations list")
+          matching = [item for item in attestations if item.get("predicateType") == PROVENANCE_TYPE]
+          if len(matching) != 1:
+              raise SystemExit("Expected exactly one SLSA Provenance v1 npm attestation")
+          bundle = matching[0].get("bundle")
+          if not isinstance(bundle, dict) or bundle.get("mediaType") != BUNDLE_MEDIA_TYPE:
+              raise SystemExit("SLSA provenance was not provided as the required Sigstore v0.3 bundle")
+          material = bundle.get("verificationMaterial", {})
+          entries = material.get("tlogEntries", [])
+          if not material.get("certificate", {}).get("rawBytes"):
+              raise SystemExit("Sigstore bundle did not contain its Fulcio certificate")
+          if len(entries) != 1 or not entries[0].get("inclusionProof", {}).get("checkpoint", {}).get("envelope"):
+              raise SystemExit("Sigstore bundle did not contain one Rekor inclusion proof and checkpoint")
+          if not bundle.get("dsseEnvelope", {}).get("payload"):
+              raise SystemExit("Sigstore bundle did not contain a DSSE payload")
+          (out_dir / "agentdust-provenance.bundle.json").write_text(
+              json.dumps(bundle, separators=(",", ":")), encoding="utf-8"
+          )
+
+          api_base = "https://api.github.com/repos/hamzahamidi/agentdust"
+          api_headers = {"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}
+          def github_json(url):
+              request = urllib.request.Request(url, headers=api_headers | {"User-Agent": "Devobs-AgentDust-Sigstore-Verification"})
+              with urllib.request.urlopen(request, timeout=45) as response:
+                  final = urllib.parse.urlparse(response.geturl())
+                  if final.scheme != "https" or final.hostname != "api.github.com":
+                      raise SystemExit("Unexpected GitHub API response host")
+                  body = response.read(1024 * 1024 + 1)
+              if len(body) > 1024 * 1024:
+                  raise SystemExit("GitHub API response exceeded the safety limit")
+              try:
+                  return json.loads(body)
+              except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                  raise SystemExit(f"Invalid GitHub API JSON: {exc}") from exc
+
+          ref = github_json(f"{api_base}/git/ref/tags/v{VERSION}")
+          obj = ref.get("object", {})
+          for _ in range(5):
+              if obj.get("type") == "commit":
+                  break
+              if obj.get("type") != "tag" or not obj.get("sha"):
+                  raise SystemExit("GitHub tag did not resolve to a commit or annotated tag")
+              tag_object = github_json(f"{api_base}/git/tags/{obj['sha']}")
+              obj = tag_object.get("object", {})
+          else:
+              raise SystemExit("GitHub tag nesting exceeded the safety limit")
+          if obj.get("type") != "commit" or obj.get("sha") != EXPECTED_SOURCE_COMMIT:
+              raise SystemExit("GitHub v1.8.1 tag did not resolve to the pinned source commit")
+
+          print("PASS: npm package metadata matches agentdust@1.8.1 and the pinned repository.")
+          print("PASS: tarball SHA-512 matches the pinned SRI; archive was not unpacked or executed.")
+          print("PASS: one SLSA Provenance v1 Sigstore v0.3 bundle with Fulcio and Rekor material was selected.")
+          print("PASS: GitHub v1.8.1 tag resolves to the pinned source commit.")
+          PY
+
+          cosign verify-blob-attestation \
+            --bundle "$work_dir/agentdust-provenance.bundle.json" \
+            --type slsaprovenance1 \
+            --check-claims=true \
+            --certificate-identity 'https://github.com/hamzahamidi/agentdust/.github/workflows/npm-publish.yml@refs/tags/v1.8.1' \
+            --certificate-oidc-issuer 'https://token.actions.githubusercontent.com' \
+            --certificate-github-workflow-repository 'hamzahamidi/agentdust' \
+            --certificate-github-workflow-ref 'refs/tags/v1.8.1' \
+            --certificate-github-workflow-sha 'bab2a6b9fca0ba822ebf1bce1b6239a262eeec25' \
+            --certificate-github-workflow-trigger 'release' \
+            "$work_dir/agentdust-1.8.1.tgz"
+
+          python3 - <<'PY'
+          import base64
+          import json
+          import os
+          from pathlib import Path
+
+          directory = Path(os.environ["AGENTDUST_VERIFY_DIR"])
+          bundle = json.loads((directory / "agentdust-provenance.bundle.json").read_text(encoding="utf-8"))
+          envelope = bundle["dsseEnvelope"]
+          statement = json.loads(base64.b64decode(envelope["payload"], validate=True))
+          expected_sha512 = "e5d2b3c558c0e38f2e58a9e47304bacf70a1a8de67e8d86153872dbf99d0b71261d7497cdb7841ede0f28f00fba454b17a1359e33becae16297a0a5a4c845ebd"
+          expected_build_type = "https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1"
+          expected_builder_id = "https://github.com/actions/runner/github-hosted"
+          if statement.get("_type") != "https://in-toto.io/Statement/v1":
+              raise SystemExit("Unexpected in-toto statement type")
+          if statement.get("predicateType") != "https://slsa.dev/provenance/v1":
+              raise SystemExit("Unexpected SLSA predicate type")
+          predicate = statement.get("predicate")
+          if not isinstance(predicate, dict):
+              raise SystemExit("SLSA provenance predicate was not an object")
+          build = predicate.get("buildDefinition")
+          if not isinstance(build, dict) or build.get("buildType") != expected_build_type:
+              raise SystemExit("SLSA build type did not match the pinned GitHub Actions workflow type")
+          run_details = predicate.get("runDetails")
+          builder = run_details.get("builder") if isinstance(run_details, dict) else None
+          if not isinstance(builder, dict) or builder.get("id") != expected_builder_id:
+              raise SystemExit("SLSA builder identity did not match the pinned GitHub-hosted runner")
+          subjects = statement.get("subject", [])
+          if len(subjects) != 1 or subjects[0].get("name") != "pkg:npm/agentdust@1.8.1":
+              raise SystemExit("Provenance subject did not match agentdust@1.8.1")
+          if subjects[0].get("digest", {}).get("sha512") != expected_sha512:
+              raise SystemExit("Provenance SHA-512 did not match the pinned package digest")
+
+          workflow = build.get("externalParameters", {}).get("workflow", {})
+          expected_workflow = {
+              "repository": "https://github.com/hamzahamidi/agentdust",
+              "path": ".github/workflows/npm-publish.yml",
+              "ref": "refs/tags/v1.8.1",
+          }
+          if workflow != expected_workflow:
+              raise SystemExit("SLSA workflow source claims did not match the pinned repository, path, and tag")
+          source_uri = "git+https://github.com/hamzahamidi/agentdust@refs/tags/v1.8.1"
+          dependencies = [
+              dependency
+              for dependency in build.get("resolvedDependencies", [])
+              if dependency.get("uri") == source_uri
+          ]
+          if len(dependencies) != 1 or dependencies[0].get("digest", {}).get("gitCommit") != "bab2a6b9fca0ba822ebf1bce1b6239a262eeec25":
+              raise SystemExit("SLSA provenance source commit did not match the pinned GitHub commit")
+          print("PASS: signed SLSA statement matches its pinned build type, builder, artifact digest, workflow, tag, and source commit.")
+          PY
