@@ -124,9 +124,12 @@ def audit_repository(
     *,
     ruleset_name: str = "Protect main",
     required_check: str = "validate",
+    review_mode: str = "solo",
     api_get: Callable[[str], Any] | None = None,
 ) -> tuple[str, list[str]]:
     """Return a short scope summary and all policy deviations found."""
+    if review_mode not in {"solo", "team"}:
+        raise PolicyCheckError("review_mode must be 'solo' or 'team'.")
     get = api_get or get_json
     parts = repository.split("/")
     if len(parts) != 2 or any(not part or part in {".", ".."} for part in parts):
@@ -206,8 +209,9 @@ def audit_repository(
         if rule_type not in rules:
             findings.append(f"Ruleset `{ruleset_name}` is missing the {label}.")
 
-    # A green CI check does not mean a separate person reviewed the PR.
-    # Do not silently accept zero reviewers as compliant with a human gate.
+    # GitHub PR authors cannot approve their own PRs. A solo maintainer cannot
+    # meet an independent-review requirement until a second human joins.
+    # Still fail closed for invalid GitHub API values in either mode.
     pr_rule = rules.get("pull_request")
     pr_parameters = pr_rule.get("parameters") if pr_rule else None
     approval_count = (
@@ -215,7 +219,12 @@ def audit_repository(
         if isinstance(pr_parameters, dict)
         else None
     )
-    if type(approval_count) is not int or approval_count < 1:
+    if type(approval_count) is not int or approval_count < 0:
+        findings.append(
+            f"Ruleset `{ruleset_name}` has an invalid required approving PR review "
+            "count; expected a non-negative integer."
+        )
+    elif review_mode == "team" and approval_count < 1:
         findings.append(
             f"Ruleset `{ruleset_name}` does not require at least one approving "
             "PR review. CI success alone is not an independent approval."
@@ -289,6 +298,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--ruleset-name", default="Protect main")
     parser.add_argument("--required-check", default="validate")
+    parser.add_argument(
+        "--review-mode", choices=("solo", "team"), default="solo",
+        help="solo permits zero PR approvals; team requires at least one independent approval.",
+    )
     arguments = parser.parse_args(argv)
     if not arguments.repository:
         parser.error("--repository or GITHUB_REPOSITORY is required")
@@ -298,6 +311,7 @@ def main(argv: list[str] | None = None) -> int:
             arguments.repository,
             ruleset_name=arguments.ruleset_name,
             required_check=arguments.required_check,
+            review_mode=arguments.review_mode,
         )
     except PolicyCheckError as error:
         print(f"Repository policy audit could not complete: {error}", file=sys.stderr)
@@ -311,10 +325,16 @@ def main(argv: list[str] | None = None) -> int:
         write_step_summary("drift detected", scope, findings)
         return 1
 
-    print(f"Repository policy audit passed for {scope}.")
+    print(f"Repository policy audit passed for {scope} (review mode: {arguments.review_mode}).")
+    if arguments.review_mode == "solo":
+        print(
+            "ADVISORY: Solo mode permits zero required PR approvals. "
+            "CI success cannot replace an independent human review; "
+            "protect production with a separately configured deployment approval."
+        )
     print(
         "Checked branch protection, active ruleset scope, required checks, PR, "
-        "deletion, force-push, approving-review, and CodeQL rules."
+        "deletion, force-push, review-mode policy, and CodeQL rules."
     )
     write_step_summary("passed", scope)
     return 0
