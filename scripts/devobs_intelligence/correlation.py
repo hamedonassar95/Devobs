@@ -31,7 +31,7 @@ def correlate(topology: ServiceTopology, telemetry: list[Telemetry],
     Rank is a deterministic heuristic; not a causal proof or model confidence.
     """
     if (type(topology) is not ServiceTopology or type(memory) is not IncidentMemory
-            or type(telemetry) is not list or not 1<=len(telemetry)<=50
+            or type(telemetry) is not list or not 1<=len(telemetry)<=32
             or type(now_utc) is not datetime or now_utc.tzinfo is None):
         raise ContextError("invalid_incident")
     now=now_utc.astimezone(timezone.utc)
