@@ -206,6 +206,21 @@ def audit_repository(
         if rule_type not in rules:
             findings.append(f"Ruleset `{ruleset_name}` is missing the {label}.")
 
+    # A green CI check does not mean a separate person reviewed the PR.
+    # Do not silently accept zero reviewers as compliant with a human gate.
+    pr_rule = rules.get("pull_request")
+    pr_parameters = pr_rule.get("parameters") if pr_rule else None
+    approval_count = (
+        pr_parameters.get("required_approving_review_count")
+        if isinstance(pr_parameters, dict)
+        else None
+    )
+    if type(approval_count) is not int or approval_count < 1:
+        findings.append(
+            f"Ruleset `{ruleset_name}` does not require at least one approving "
+            "PR review. CI success alone is not an independent approval."
+        )
+
     status_rule = rules.get("required_status_checks")
     status_parameters = status_rule.get("parameters") if status_rule else None
     statuses = (
@@ -299,7 +314,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Repository policy audit passed for {scope}.")
     print(
         "Checked branch protection, active ruleset scope, required checks, PR, "
-        "deletion, force-push, and CodeQL rules."
+        "deletion, force-push, approving-review, and CodeQL rules."
     )
     write_step_summary("passed", scope)
     return 0
