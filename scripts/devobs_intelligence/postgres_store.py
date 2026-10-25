@@ -45,6 +45,66 @@ class PostgresTenantStore:
             raise ValueError("invalid_database_config")
         self._dsn = dsn
 
+    @staticmethod
+    def _verify_readonly_contract(conn) -> None:
+        """Fail closed on role, table privileges, RLS and PG17 predicate drift."""
+        role = conn.execute(
+            """SELECT rolsuper, rolbypassrls,
+                      pg_has_role(current_user, 'devobs_ai_reader', 'USAGE')
+                 FROM pg_roles WHERE rolname = current_user"""
+        ).fetchone()
+        if role != (False, False, True):
+            raise StorageUnavailable("unsafe_database_role")
+        tables = conn.execute(
+            """SELECT COUNT(*),
+                      COALESCE(BOOL_AND(
+                          c.relrowsecurity AND c.relforcerowsecurity
+                          AND row_security_active(c.oid)
+                          AND c.relowner <> current_user::regrole
+                          AND has_table_privilege(current_user, c.oid, 'SELECT')
+                          AND NOT has_table_privilege(
+                              current_user, c.oid,
+                              'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')
+                      ), FALSE)
+                 FROM pg_class AS c
+                 JOIN pg_namespace AS n ON n.oid = c.relnamespace
+                WHERE n.nspname = 'devobs_ai'
+                  AND c.relname IN ('project_ci', 'memberships')
+                  AND c.relkind = 'r'"""
+        ).fetchone()
+        if tables != (2, True):
+            raise StorageUnavailable("unsafe_database_schema")
+        # PostgreSQL permissive SELECT policies are OR-combined.
+        # RLS enabled+forced is insufficient when an extra policy
+        # grants all rows. Require the reviewed policy inventory.
+        # PostgreSQL deparser output is versioned: unknown major
+        # versions must be separately reviewed instead of trusted.
+        version = conn.execute("SHOW server_version_num").fetchone()
+        if (version is None or not version[0].isdigit()
+                or not 170000 <= int(version[0]) < 180000):
+            raise StorageUnavailable("unsafe_database_schema")
+        policies = conn.execute(
+            """SELECT tablename::text, policyname::text,
+                      permissive, cmd, roles, qual, with_check
+                 FROM pg_policies
+                WHERE schemaname = 'devobs_ai'
+                  AND tablename IN ('project_ci', 'memberships')"""
+        ).fetchall()
+        # Compare full approved predicates, not just policy names:
+        # PostgreSQL OR-combines permissive policies, and ALTER
+        # POLICY may widen a predicate without changing its name.
+        observed = {
+            (table, name): (mode, cmd, tuple(roles or []), qual, check)
+            for table, name, mode, cmd, roles, qual, check in policies
+        }
+        expected = {
+            identity: ("PERMISSIVE", "SELECT",
+                       ("devobs_ai_reader",), qual, None)
+            for identity, qual in _PG17_POLICY_QUALS.items()
+        }
+        if len(policies) != len(expected) or observed != expected:
+            raise StorageUnavailable("unsafe_database_schema")
+
     def probe_readiness(self) -> bool:
         """Check a live DB connection, non-bypass reader role, and forced RLS.
 
@@ -56,62 +116,7 @@ class PostgresTenantStore:
                 with conn.transaction():
                     conn.execute("SET TRANSACTION READ ONLY")
                     conn.execute("SET LOCAL statement_timeout = '1500ms'")
-                    role = conn.execute(
-                        """SELECT rolsuper, rolbypassrls,
-                                  pg_has_role(current_user, 'devobs_ai_reader', 'USAGE')
-                             FROM pg_roles WHERE rolname = current_user"""
-                    ).fetchone()
-                    if role != (False, False, True):
-                        raise StorageUnavailable("unsafe_database_role")
-                    tables = conn.execute(
-                        """SELECT COUNT(*),
-                                  COALESCE(BOOL_AND(
-                                      c.relrowsecurity AND c.relforcerowsecurity
-                                      AND row_security_active(c.oid)
-                                      AND c.relowner <> current_user::regrole
-                                      AND has_table_privilege(current_user, c.oid, 'SELECT')
-                                      AND NOT has_table_privilege(
-                                          current_user, c.oid,
-                                          'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')
-                                  ), FALSE)
-                             FROM pg_class AS c
-                             JOIN pg_namespace AS n ON n.oid = c.relnamespace
-                            WHERE n.nspname = 'devobs_ai'
-                              AND c.relname IN ('project_ci', 'memberships')
-                              AND c.relkind = 'r'"""
-                    ).fetchone()
-                    if tables != (2, True):
-                        raise StorageUnavailable("unsafe_database_schema")
-                    # PostgreSQL permissive SELECT policies are OR-combined.
-                    # RLS enabled+forced is insufficient when an extra policy
-                    # grants all rows. Require the reviewed policy inventory.
-                    # PostgreSQL deparser output is versioned: unknown major
-                    # versions must be separately reviewed instead of trusted.
-                    version = conn.execute("SHOW server_version_num").fetchone()
-                    if (version is None or not version[0].isdigit()
-                            or not 170000 <= int(version[0]) < 180000):
-                        raise StorageUnavailable("unsafe_database_schema")
-                    policies = conn.execute(
-                        """SELECT tablename::text, policyname::text,
-                                  permissive, cmd, roles, qual, with_check
-                             FROM pg_policies
-                            WHERE schemaname = 'devobs_ai'
-                              AND tablename IN ('project_ci', 'memberships')"""
-                    ).fetchall()
-                    # Compare full approved predicates, not just policy names:
-                    # PostgreSQL OR-combines permissive policies, and ALTER
-                    # POLICY may widen a predicate without changing its name.
-                    observed = {
-                        (table, name): (mode, cmd, tuple(roles or []), qual, check)
-                        for table, name, mode, cmd, roles, qual, check in policies
-                    }
-                    expected = {
-                        identity: ("PERMISSIVE", "SELECT",
-                                   ("devobs_ai_reader",), qual, None)
-                        for identity, qual in _PG17_POLICY_QUALS.items()
-                    }
-                    if len(policies) != len(expected) or observed != expected:
-                        raise StorageUnavailable("unsafe_database_schema")
+                    self._verify_readonly_contract(conn)
             return True
         except StorageUnavailable:
             raise
@@ -128,13 +133,8 @@ class PostgresTenantStore:
             with psycopg.connect(self._dsn, autocommit=True, connect_timeout=5) as conn:
                 with conn.transaction():
                     conn.execute("SET TRANSACTION READ ONLY")
-                    role = conn.execute(
-                        """SELECT rolsuper, rolbypassrls,
-                                  pg_has_role(current_user, 'devobs_ai_reader', 'USAGE')
-                             FROM pg_roles WHERE rolname = current_user"""
-                    ).fetchone()
-                    if role is None or role[0] or role[1] or not role[2]:
-                        raise StorageUnavailable("unsafe_database_role")
+                    conn.execute("SET LOCAL statement_timeout = '1500ms'")
+                    self._verify_readonly_contract(conn)
                     conn.execute(
                         """SELECT set_config('devobs_ai.tenant_id', %s, true),
                                   set_config('devobs_ai.subject_id', %s, true)""",
