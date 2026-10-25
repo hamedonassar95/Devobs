@@ -111,6 +111,76 @@ class PostgresTenantRLSTests(unittest.TestCase):
                         f"GRANT SELECT ON devobs_ai.{table} TO devobs_ai_reader")
                 self.assertIs(self.store.probe_readiness(), True)
 
+    def test_readiness_rejects_unexpected_permissive_rls_policy(self):
+        # Database belongs exclusively to disposable GitHub CI.
+        # An extra OR-combined RLS policy can widen access without disabling RLS.
+        self.assertIs(self.store.probe_readiness(), True)
+        self.admin.execute(
+            "CREATE POLICY ci_broad_read ON devobs_ai.project_ci "
+            "FOR SELECT TO devobs_ai_reader USING (true)")
+        try:
+            # Demonstrate that the broadened policy compromises tenant isolation.
+            self.assertEqual(
+                self.store.read_status("alice", "beta", "shared")["source_sha"], "b" * 40)
+            with self.assertRaisesRegex(
+                    StorageUnavailable, "^unsafe_database_schema$"):
+                self.store.probe_readiness()
+        finally:
+            self.admin.execute("DROP POLICY ci_broad_read ON devobs_ai.project_ci")
+        self.assertIs(self.store.probe_readiness(), True)
+
+    def test_readiness_rejects_changed_policy_body(self):
+        # Same policy name, roles and kind; only its expression drifts.
+        # Run exclusively against the disposable PostgreSQL Actions service.
+        self.assertIs(self.store.probe_readiness(), True)
+        self.admin.execute(
+            "ALTER POLICY devobs_project_member_read ON devobs_ai.project_ci "
+            "USING (true)"
+        )
+        try:
+            self.assertEqual(
+                self.store.read_status("alice", "beta", "shared")["source_sha"],
+                "b" * 40,
+            )
+            with self.assertRaisesRegex(
+                    StorageUnavailable, "^unsafe_database_schema$"):
+                self.store.probe_readiness()
+        finally:
+            self.admin.execute(
+                "ALTER POLICY devobs_project_member_read ON devobs_ai.project_ci "
+                "USING (tenant_id = NULLIF(current_setting('devobs_ai.tenant_id', true), '') "
+                "AND EXISTS (SELECT 1 FROM devobs_ai.memberships AS m "
+                "WHERE m.tenant_id = project_ci.tenant_id "
+                "AND m.project_id = project_ci.project_id "
+                "AND m.subject_id = NULLIF(current_setting('devobs_ai.subject_id', true), '')))"
+            )
+        self.assertIs(self.store.probe_readiness(), True)
+
+    def test_readiness_rejects_changed_membership_policy_body(self):
+        self.assertIs(self.store.probe_readiness(), True)
+        self.admin.execute(
+            "ALTER POLICY devobs_membership_self ON devobs_ai.memberships "
+            "USING (true)"
+        )
+        try:
+            # The reader now sees rows that should be hidden when no scope
+            # is set, even though the policy inventory is unchanged.
+            with psycopg.connect(READER_DSN, autocommit=True) as conn:
+                self.assertGreater(
+                    conn.execute("SELECT count(*) FROM devobs_ai.memberships"
+                                 ).fetchone()[0], 0
+                )
+            with self.assertRaisesRegex(
+                    StorageUnavailable, "^unsafe_database_schema$"):
+                self.store.probe_readiness()
+        finally:
+            self.admin.execute(
+                "ALTER POLICY devobs_membership_self ON devobs_ai.memberships "
+                "USING (tenant_id = NULLIF(current_setting('devobs_ai.tenant_id', true), '') "
+                "AND subject_id = NULLIF(current_setting('devobs_ai.subject_id', true), ''))"
+            )
+        self.assertIs(self.store.probe_readiness(), True)
+
     def test_exact_tenant_and_subject_match(self):
         self.assertEqual(self.store.read_status("alice","alpha","shared"),
                          {"ci_state":"success","source_sha":"a"*40})

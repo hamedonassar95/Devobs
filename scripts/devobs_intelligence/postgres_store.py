@@ -11,6 +11,27 @@ import psycopg
 
 from .tenant_scope import AccessDenied
 
+# Reviewed PostgreSQL 17 policy-expression contract, captured from the clean
+# deploy/postgres/001_tenant_rls.sql on disposable PG 17.11 in CI.
+# Comparison intentionally fails closed on major-version / deparser drift.
+# Never take the expected policy body from the same live database.
+_PG17_POLICY_QUALS = {
+    ("memberships", "devobs_membership_self"): (
+        "((tenant_id = NULLIF(current_setting('devobs_ai.tenant_id'::text, true), "
+        "''::text)) AND (subject_id = NULLIF(current_setting("
+        "'devobs_ai.subject_id'::text, true), ''::text)))"
+    ),
+    ("project_ci", "devobs_project_member_read"): (
+        "((tenant_id = NULLIF(current_setting('devobs_ai.tenant_id'::text, true), "
+        "''::text)) AND (EXISTS ( SELECT 1\n"
+        "   FROM devobs_ai.memberships m\n"
+        "  WHERE ((m.tenant_id = project_ci.tenant_id) "
+        "AND (m.project_id = project_ci.project_id) "
+        "AND (m.subject_id = NULLIF(current_setting("
+        "'devobs_ai.subject_id'::text, true), ''::text))))))"
+    ),
+}
+
 _ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}\Z")
 
 
@@ -60,6 +81,36 @@ class PostgresTenantStore:
                               AND c.relkind = 'r'"""
                     ).fetchone()
                     if tables != (2, True):
+                        raise StorageUnavailable("unsafe_database_schema")
+                    # PostgreSQL permissive SELECT policies are OR-combined.
+                    # RLS enabled+forced is insufficient when an extra policy
+                    # grants all rows. Require the reviewed policy inventory.
+                    # PostgreSQL deparser output is versioned: unknown major
+                    # versions must be separately reviewed instead of trusted.
+                    version = conn.execute("SHOW server_version_num").fetchone()
+                    if (version is None or not version[0].isdigit()
+                            or not 170000 <= int(version[0]) < 180000):
+                        raise StorageUnavailable("unsafe_database_schema")
+                    policies = conn.execute(
+                        """SELECT tablename::text, policyname::text,
+                                  permissive, cmd, roles, qual, with_check
+                             FROM pg_policies
+                            WHERE schemaname = 'devobs_ai'
+                              AND tablename IN ('project_ci', 'memberships')"""
+                    ).fetchall()
+                    # Compare full approved predicates, not just policy names:
+                    # PostgreSQL OR-combines permissive policies, and ALTER
+                    # POLICY may widen a predicate without changing its name.
+                    observed = {
+                        (table, name): (mode, cmd, tuple(roles or []), qual, check)
+                        for table, name, mode, cmd, roles, qual, check in policies
+                    }
+                    expected = {
+                        identity: ("PERMISSIVE", "SELECT",
+                                   ("devobs_ai_reader",), qual, None)
+                        for identity, qual in _PG17_POLICY_QUALS.items()
+                    }
+                    if len(policies) != len(expected) or observed != expected:
                         raise StorageUnavailable("unsafe_database_schema")
             return True
         except StorageUnavailable:
