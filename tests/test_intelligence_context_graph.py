@@ -62,6 +62,15 @@ class ContextTests(unittest.TestCase):
             with self.subTest(edges=edges),self.assertRaises(ContextError):
                 ServiceTopology("alpha","platform",["api","db"],edges)
 
+    def test_untrusted_unhashable_scope_objects_fail_closed(self):
+        with self.assertRaisesRegex(ContextError,"invalid_topology"):
+            ServiceTopology("alpha","platform",[{"not":"service"}],[])
+        with self.assertRaisesRegex(ContextError,"invalid_memory"):
+            IncidentRecord("alpha","platform","api","high_error_rate",
+                           "RB-SLO-01",[], "c"*64)
+        with self.assertRaisesRegex(ContextError,"invalid_query"):
+            IncidentMemory([]).retrieve("alpha","platform","api",[])
+
     def test_memory_strict_tenant_project_and_positive_outcomes(self):
         m=IncidentMemory([memory(),memory("beta"),memory(digest="d"*64),
                           memory(digest="e"*64,outcome="false_positive")])
