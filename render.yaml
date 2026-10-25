@@ -11,7 +11,7 @@ services:
     autoDeployTrigger: off
     buildCommand: python3 -m pip install --disable-pip-version-check -r requirements-api.txt
     startCommand: gunicorn --chdir scripts --workers 2 --bind 0.0.0.0:10000 --timeout 30 devobs_intelligence.staging_app:application
-    healthCheckPath: /healthz
+    healthCheckPath: /readyz
     envVars:
       - key: DEVOBS_PG_DSN
         sync: false
