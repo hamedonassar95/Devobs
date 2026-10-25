@@ -62,7 +62,7 @@ def normalize_telemetry(data: dict) -> Telemetry:
     except ValueError:
         raise ContextError("invalid_timestamp") from None
     return Telemetry(data["tenant"],data["project"],data["service"],data["source_sha"],
-                     stamp,metric,float(value),data["evidence_digest"])
+                     stamp,metric,value if metric=="failed_checks" else float(value),data["evidence_digest"])
 
 
 class ServiceTopology:
