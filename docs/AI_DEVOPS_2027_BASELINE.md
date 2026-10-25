@@ -26,7 +26,7 @@ Every source/test row above was inspected at the single exact main SHA in the he
 
 Run `40216497498` tested main SHA `85956696df6f8722e2c8d7d1d88f7a03653c2d56`. Python validation, security scans, PostgreSQL RLS integration, `validate`, Pages publish, and deployed-site verification succeeded. Node tests were skipped. The active `Protect main` ruleset requires the `validate` status and a pull request, but its required approving-review count is zero. It configures a CodeQL alert threshold; the latest CodeQL analysis result was not independently verified.
 
-On the local candidate branch, 124 targeted AI-intelligence tests pass. A broader `test_intelligence_*.py` discovery in this sparse checkout reports three environment errors: two tests require the intentionally excluded `docs/ai/ai-bom-2027.json`, and the staging test cannot import the uninstalled `psycopg` package. Those errors are not classified as source regressions. The 11 audit-store tests, Python AST parsing for 42 source/test files, internal links, and `git diff --check` pass. The full repository suite has not been run from a complete checkout.
+On the local candidate branch, 126 targeted AI-intelligence tests pass, including the BOM inventory after the required files were added to the sparse checkout. Full `test_intelligence_*.py` discovery also ran 126 tests but could not set up the staging-app test because `psycopg` is not installed; no dependencies were installed in this disk-constrained environment. That setup error is not classified as a source regression. The 11 audit-store tests, Python AST parsing for 42 source/test files, internal links, and `git diff --check` pass. The full repository suite has not been run from a complete checkout.
 
 ## Not established
 
