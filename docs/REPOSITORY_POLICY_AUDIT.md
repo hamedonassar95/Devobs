@@ -75,12 +75,4 @@ python3 -m compileall -q scripts tests
 
 يُتوقع اجتياز الاختبارات في وضعي `solo` و`team`. الوضع الفردي يقبل العدد 0 ويعرض تحذيرًا؛ أما وضع الفريق فيرفض العدد 0. هذا لا يثبت سلامة السياسة الحية؛ يجب تشغيل التدقيق الفعلي بعد أن يؤكد المالك إمكانية تطبيق قواعد المراجعة. لا تُشغّل أعمال نشر أو استدلال مدفوع كجزء من الفحص.
 
-### مراجع رسمية للتحقق
-
-- [GitHub: Available rules for rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets)
-- [GitHub: Approving a pull request with required reviews](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/approving-a-pull-request-with-required-reviews)
-- [OWASP: AI Agent Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/AI_Agent_Security_Cheat_Sheet.html)
-- [OWASP: Top 10 for Agentic Applications 2026](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications-for-2026/)
-- [NIST: AI Risk Management Framework](https://www.nist.gov/itl/ai-risk-management-framework)
-
-**الحالة:** VERIFIED هو تصميم الفاحص وبيانات قواعد GitHub المقروءة. UNVERIFIED هو وجود مراجع مستقل، أو تنفيذ تغيير قواعد الحماية، أو اختبار استدلال AI فعلي؛ لم تُغيّر إعدادات الحساب أو الفرع `main` في هذا التحضير.
+**الحالة الحالية:** توثيق وفاحص مقترحان على فرع مستقل؛ لم تُغيَّر سياسة GitHub الحية أو بيئة النشر أو صلاحيات التطبيقات، ولم يُشغَّل نشر إنتاجي بهذا الفرع.
