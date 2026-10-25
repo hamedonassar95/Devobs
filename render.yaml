@@ -1,0 +1,27 @@
+# Proposed staging only. Importing this Blueprint may create a billable service.
+# It does not provision Supabase or automatically deploy on commits.
+previews:
+  generation: off
+services:
+  - type: web
+    name: devobs-ai-staging
+    runtime: python
+    plan: starter
+    region: frankfurt
+    autoDeployTrigger: off
+    buildCommand: python3 -m pip install --disable-pip-version-check -r requirements-api.txt
+    startCommand: gunicorn --chdir scripts --workers 2 --bind 0.0.0.0:10000 --timeout 30 devobs_intelligence.staging_app:application
+    healthCheckPath: /readyz
+    envVars:
+      - key: DEVOBS_PG_DSN
+        sync: false
+      - key: DEVOBS_OIDC_ISSUER
+        sync: false
+      - key: DEVOBS_OIDC_AUDIENCE
+        sync: false
+      - key: DEVOBS_OIDC_CLIENT_ID
+        sync: false
+      - key: DEVOBS_OIDC_METADATA_JSON
+        sync: false
+      - key: DEVOBS_OIDC_JWKS_JSON
+        sync: false

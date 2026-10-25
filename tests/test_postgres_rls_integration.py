@@ -71,6 +71,17 @@ class PostgresTenantRLSTests(unittest.TestCase):
             with self.assertRaises(psycopg.errors.InsufficientPrivilege):
                 conn.execute("UPDATE devobs_ai.project_ci SET ci_state='success'")
 
+    def test_readiness_refuses_extra_write_privileges(self):
+        self.assertIs(self.store.probe_readiness(), True)
+        # Disposable integration DB only. A leaked write grant must block readiness.
+        self.admin.execute("GRANT UPDATE ON devobs_ai.project_ci TO devobs_ci_reader")
+        try:
+            with self.assertRaisesRegex(StorageUnavailable, "^unsafe_database_schema$"):
+                self.store.probe_readiness()
+        finally:
+            self.admin.execute("REVOKE UPDATE ON devobs_ai.project_ci FROM devobs_ci_reader")
+        self.assertIs(self.store.probe_readiness(), True)
+
     def test_exact_tenant_and_subject_match(self):
         self.assertEqual(self.store.read_status("alice","alpha","shared"),
                          {"ci_state":"success","source_sha":"a"*40})
