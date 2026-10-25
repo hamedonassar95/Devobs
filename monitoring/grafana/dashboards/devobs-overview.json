@@ -1,0 +1,62 @@
+{
+  "annotations": {"list": []},
+  "editable": false,
+  "graphTooltip": 0,
+  "id": null,
+  "panels": [
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "This starter target monitors Prometheus itself. Devobs currently has no application /metrics endpoint.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "green", "value": 1}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 6, "w": 8, "x": 0, "y": 0},
+      "id": 1,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "textMode": "auto"
+      },
+      "targets": [
+        {"editorMode": "code", "expr": "up{job=\"prometheus\"}", "legendFormat": "Prometheus", "refId": "A"}
+      ],
+      "title": "Prometheus scrape target up",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "description": "Resident memory used by the Prometheus process, not the Devobs website.",
+      "fieldConfig": {"defaults": {"unit": "bytes", "decimals": 0}, "overrides": []},
+      "gridPos": {"h": 8, "w": 16, "x": 8, "y": 0},
+      "id": 2,
+      "targets": [
+        {"editorMode": "code", "expr": "process_resident_memory_bytes{job=\"prometheus\"}", "legendFormat": "Prometheus RSS", "refId": "A"}
+      ],
+      "title": "Prometheus process memory",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["devobs", "starter"],
+  "templating": {"list": []},
+  "time": {"from": "now-1h", "to": "now"},
+  "timezone": "browser",
+  "title": "Devobs monitoring starter",
+  "uid": "devobs-monitoring-starter",
+  "version": 1
+}
