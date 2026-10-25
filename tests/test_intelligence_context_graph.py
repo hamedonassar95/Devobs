@@ -26,6 +26,16 @@ class ContextTests(unittest.TestCase):
         self.assertEqual(p.source_sha,"a"*40)
         self.assertEqual(p.observed_at,"2026-10-25T00:00:00Z")
 
+    def test_failed_check_counter_remains_integer_after_normalization(self):
+        point=normalize_telemetry(sample(metric="failed_checks",value=2))
+        self.assertEqual(point.value,2)
+        self.assertIs(type(point.value),int)
+        self.assertEqual(point,normalize_telemetry({
+            "tenant":point.tenant,"project":point.project,"service":point.service,
+            "source_sha":point.source_sha,"observed_at":point.observed_at,
+            "metric":point.metric,"value":point.value,
+            "evidence_digest":point.evidence_digest}))
+
     def test_unknown_unstructured_field_rejected(self):
         with self.assertRaisesRegex(ContextError,"invalid_fields"):
             normalize_telemetry(sample(raw_payload="unstructured"))
