@@ -68,13 +68,15 @@ class RepositoryPolicyAuditTests(unittest.TestCase):
         self.assertEqual(scope, "hamedonassar95/Devobs (default branch `main`)")
         self.assertEqual(findings, [])
 
-    def test_detects_zero_required_reviews_even_when_ci_is_green(self) -> None:
+    def test_team_mode_detects_zero_required_reviews_even_when_ci_is_green(self) -> None:
         fixtures = api_fixtures()
         rules = fixtures["repos/hamedonassar95/Devobs/rulesets/24507159"]["rules"]
         pr_rule = next(rule for rule in rules if rule["type"] == "pull_request")
         pr_rule["parameters"]["required_approving_review_count"] = 0
 
-        scope, findings = audit_repository("hamedonassar95/Devobs", api_get=fixtures.__getitem__)
+        scope, findings = audit_repository(
+            "hamedonassar95/Devobs", review_mode="team", api_get=fixtures.__getitem__
+        )
         self.assertIn("main", scope)
         self.assertTrue(any("at least one approving PR review" in item for item in findings))
 
@@ -85,7 +87,7 @@ class RepositoryPolicyAuditTests(unittest.TestCase):
         pr_rule["parameters"].pop("required_approving_review_count")
 
         _, findings = audit_repository("hamedonassar95/Devobs", api_get=fixtures.__getitem__)
-        self.assertTrue(any("at least one approving PR review" in item for item in findings))
+        self.assertTrue(any("invalid required approving PR review count" in item for item in findings))
 
     def test_boolean_string_and_none_do_not_count_as_review_approval(self) -> None:
         for count in (True, False, "1", None):
@@ -95,7 +97,7 @@ class RepositoryPolicyAuditTests(unittest.TestCase):
                 pr_rule = next(rule for rule in rules if rule["type"] == "pull_request")
                 pr_rule["parameters"]["required_approving_review_count"] = count
                 _, findings = audit_repository("hamedonassar95/Devobs", api_get=fixtures.__getitem__)
-                self.assertTrue(any("at least one approving PR review" in item for item in findings))
+                self.assertTrue(any("invalid required approving PR review count" in item for item in findings))
 
     def test_negative_and_fractional_review_counts_are_rejected(self) -> None:
         for count in (-1, 0, 0.5, 1.0):
@@ -105,7 +107,23 @@ class RepositoryPolicyAuditTests(unittest.TestCase):
                 pr_rule = next(rule for rule in rules if rule["type"] == "pull_request")
                 pr_rule["parameters"]["required_approving_review_count"] = count
                 _, findings = audit_repository("hamedonassar95/Devobs", api_get=fixtures.__getitem__)
-                self.assertTrue(any("at least one approving PR review" in item for item in findings))
+                if count == 0:
+                    self.assertEqual(findings, [])  # valid for explicit solo mode
+                else:
+                    self.assertTrue(any("invalid required approving PR review count" in item for item in findings))
+
+    def test_solo_mode_allows_zero_approvals_with_existing_ci_controls(self) -> None:
+        fixtures = api_fixtures()
+        rules = fixtures["repos/hamedonassar95/Devobs/rulesets/24507159"]["rules"]
+        pr_rule = next(rule for rule in rules if rule["type"] == "pull_request")
+        pr_rule["parameters"]["required_approving_review_count"] = 0
+        scope, findings = audit_repository("hamedonassar95/Devobs", api_get=fixtures.__getitem__)
+        self.assertIn("main", scope)
+        self.assertEqual(findings, [])
+
+    def test_review_mode_must_be_explicitly_supported(self) -> None:
+        with self.assertRaisesRegex(PolicyCheckError, "review_mode"):
+            audit_repository("hamedonassar95/Devobs", review_mode="unverified")
 
     def test_positive_required_review_count_complies(self) -> None:
         for count in (1, 2):
@@ -114,7 +132,9 @@ class RepositoryPolicyAuditTests(unittest.TestCase):
                 rules = fixtures["repos/hamedonassar95/Devobs/rulesets/24507159"]["rules"]
                 pr_rule = next(rule for rule in rules if rule["type"] == "pull_request")
                 pr_rule["parameters"]["required_approving_review_count"] = count
-                _, findings = audit_repository("hamedonassar95/Devobs", api_get=fixtures.__getitem__)
+                _, findings = audit_repository(
+                    "hamedonassar95/Devobs", review_mode="team", api_get=fixtures.__getitem__
+                )
                 self.assertEqual(findings, [])
 
     def test_reports_unprotected_default_branch_and_missing_check(self) -> None:
