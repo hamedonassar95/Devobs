@@ -112,6 +112,13 @@ class StagingBootstrapTests(unittest.TestCase):
         self.assertNotIn("SECRET", str(unavailable))
         self.assertEqual(self.run_request(app, "/readyz", method="POST")[0][:3], "405")
 
+    def test_render_health_check_requires_real_readiness(self):
+        config = (Path(__file__).resolve().parents[1] / "render.yaml").read_text()
+        checks = [line.strip() for line in config.splitlines()
+                  if line.strip().startswith("healthCheckPath:")]
+        self.assertEqual(checks, ["healthCheckPath: /readyz"])
+        self.assertIn("autoDeployTrigger: off", config)
+
 
 if __name__ == "__main__":
     unittest.main()
