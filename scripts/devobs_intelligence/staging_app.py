@@ -15,7 +15,7 @@ from psycopg import Error as PsycopgError
 from psycopg.conninfo import conninfo_to_dict
 
 from .api_app import make_app
-from .oidc_metadata import trusted_oidc_verifier
+from .oidc_rotation import RotatingOIDCVerifier
 from .postgres_store import PostgresTenantStore
 
 
@@ -63,7 +63,7 @@ def build_app(settings: Mapping[str, str]) -> Callable:
         client_id = settings["DEVOBS_OIDC_CLIENT_ID"]
         metadata = _decode_document(settings, "DEVOBS_OIDC_METADATA_JSON", 16384)
         jwks = _decode_document(settings, "DEVOBS_OIDC_JWKS_JSON", 65536)
-        verifier = trusted_oidc_verifier(issuer, audience, client_id, metadata, jwks)
+        verifier = RotatingOIDCVerifier(issuer, audience, client_id, metadata, jwks)
         store = PostgresTenantStore(_database_dsn(settings))
         api = make_app(verifier, store)
     except (KeyError, ValueError, TypeError):
