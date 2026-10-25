@@ -119,9 +119,10 @@ class PostgresTenantRLSTests(unittest.TestCase):
             "CREATE POLICY ci_broad_read ON devobs_ai.project_ci "
             "FOR SELECT TO devobs_ai_reader USING (true)")
         try:
-            # Demonstrate that the broadened policy compromises tenant isolation.
-            self.assertEqual(
-                self.store.read_status("alice", "beta", "shared")["source_sha"], "b" * 40)
+            # API denies access even if database policy protection drifts.
+            with self.assertRaisesRegex(
+                    StorageUnavailable, "^unsafe_database_schema$"):
+                self.store.read_status("alice", "beta", "shared")
             with self.assertRaisesRegex(
                     StorageUnavailable, "^unsafe_database_schema$"):
                 self.store.probe_readiness()
@@ -138,10 +139,10 @@ class PostgresTenantRLSTests(unittest.TestCase):
             "USING (true)"
         )
         try:
-            self.assertEqual(
-                self.store.read_status("alice", "beta", "shared")["source_sha"],
-                "b" * 40,
-            )
+            # API denies access even if database policy protection drifts.
+            with self.assertRaisesRegex(
+                    StorageUnavailable, "^unsafe_database_schema$"):
+                self.store.read_status("alice", "beta", "shared")
             with self.assertRaisesRegex(
                     StorageUnavailable, "^unsafe_database_schema$"):
                 self.store.probe_readiness()
