@@ -116,6 +116,14 @@ class PostgresTenantStore:
                 with conn.transaction():
                     conn.execute("SET TRANSACTION READ ONLY")
                     conn.execute("SET LOCAL statement_timeout = '1500ms'")
+                    conn.execute("SET LOCAL lock_timeout = '500ms'")
+                    # Hold ACCESS SHARE until this transaction ends. ALTER
+                    # POLICY and table DDL need conflicting locks, so schema
+                    # integrity cannot drift between verification and SELECT.
+                    conn.execute(
+                        "LOCK TABLE devobs_ai.memberships, devobs_ai.project_ci "
+                        "IN ACCESS SHARE MODE"
+                    )
                     self._verify_readonly_contract(conn)
             return True
         except StorageUnavailable:
@@ -134,6 +142,14 @@ class PostgresTenantStore:
                 with conn.transaction():
                     conn.execute("SET TRANSACTION READ ONLY")
                     conn.execute("SET LOCAL statement_timeout = '1500ms'")
+                    conn.execute("SET LOCAL lock_timeout = '500ms'")
+                    # Hold ACCESS SHARE until this transaction ends. ALTER
+                    # POLICY and table DDL need conflicting locks, so schema
+                    # integrity cannot drift between verification and SELECT.
+                    conn.execute(
+                        "LOCK TABLE devobs_ai.memberships, devobs_ai.project_ci "
+                        "IN ACCESS SHARE MODE"
+                    )
                     self._verify_readonly_contract(conn)
                     conn.execute(
                         """SELECT set_config('devobs_ai.tenant_id', %s, true),
