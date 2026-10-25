@@ -23,7 +23,7 @@ class IncidentRecord:
         if (not all(_id(v) for v in (self.tenant,self.project,self.service))
                 or type(self.category) is not str or self.category not in _CATEGORIES
                 or type(self.runbook_id) is not str or _RUNBOOK.fullmatch(self.runbook_id) is None
-                or self.outcome not in {"resolved","unresolved","false_positive"}
+                or type(self.outcome) is not str or self.outcome not in {"resolved","unresolved","false_positive"}
                 or type(self.evidence_digest) is not str
                 or _DIGEST.fullmatch(self.evidence_digest) is None):
             raise ContextError("invalid_memory")
@@ -43,7 +43,7 @@ class IncidentMemory:
     def retrieve(self, tenant: str, project: str, service: str,
                  category: str, limit: int=3) -> tuple[IncidentRecord,...]:
         if (not all(_id(v) for v in (tenant,project,service))
-                or category not in _CATEGORIES
+                or type(category) is not str or category not in _CATEGORIES
                 or type(limit) is not int or not 1<=limit<=5):
             raise ContextError("invalid_query")
         rows=(r for r in self._rows if (r.tenant,r.project,r.service,r.category)==
