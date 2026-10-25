@@ -11,7 +11,7 @@ class DockerWorkflowContractTests(unittest.TestCase):
         self.assertIn("docker build --pull --tag", WORKFLOW)
         self.assertIn("docker run --detach --rm", WORKFLOW)
         self.assertIn("127.0.0.1:18080:8080", WORKFLOW)
-        self.assertIn("container-build]", WORKFLOW)
+        self.assertIn("site-contract, container-build, terraform-validate]", WORKFLOW)
         self.assertIn("CONTAINER_RESULT", WORKFLOW)
         self.assertNotIn("docker push", WORKFLOW)
 
