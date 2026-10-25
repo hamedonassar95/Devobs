@@ -70,8 +70,8 @@ class ServiceTopology:
     def __init__(self, tenant: str, project: str, services: list[str],
                  edges: list[tuple[str,str]]):
         if (not _id(tenant) or not _id(project) or type(services) is not list
-                or not 1<=len(services)<=100 or len(set(services))!=len(services)
-                or any(not _id(s) for s in services)
+                or not 1<=len(services)<=100 or any(not _id(s) for s in services)
+                or len(set(services))!=len(services)
                 or type(edges) is not list or len(edges)>500):
             raise ContextError("invalid_topology")
         existing=set()
