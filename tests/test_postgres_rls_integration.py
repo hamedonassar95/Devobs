@@ -130,12 +130,6 @@ class PostgresTenantRLSTests(unittest.TestCase):
         self.assertIs(self.store.probe_readiness(), True)
 
     def test_readiness_rejects_changed_policy_body(self):
-        # Temporary catalog trace to pin exact PG17 policy-expression contract.
-        with psycopg.connect(READER_DSN, autocommit=True) as probe_conn:
-            for t, p, q in probe_conn.execute(
-                    "SELECT tablename, policyname, qual FROM pg_policies "
-                    "WHERE schemaname='devobs_ai' ORDER BY tablename,policyname"):
-                print("DEVOBS_PG17_POLICY_CONTRACT", repr((t, p, q)), flush=True)
         # Same policy name, roles and kind; only its expression drifts.
         # Run exclusively against the disposable PostgreSQL Actions service.
         self.assertIs(self.store.probe_readiness(), True)
@@ -159,6 +153,31 @@ class PostgresTenantRLSTests(unittest.TestCase):
                 "WHERE m.tenant_id = project_ci.tenant_id "
                 "AND m.project_id = project_ci.project_id "
                 "AND m.subject_id = NULLIF(current_setting('devobs_ai.subject_id', true), '')))"
+            )
+        self.assertIs(self.store.probe_readiness(), True)
+
+    def test_readiness_rejects_changed_membership_policy_body(self):
+        self.assertIs(self.store.probe_readiness(), True)
+        self.admin.execute(
+            "ALTER POLICY devobs_membership_self ON devobs_ai.memberships "
+            "USING (true)"
+        )
+        try:
+            # The reader now sees rows that should be hidden when no scope
+            # is set, even though the policy inventory is unchanged.
+            with psycopg.connect(READER_DSN, autocommit=True) as conn:
+                self.assertGreater(
+                    conn.execute("SELECT count(*) FROM devobs_ai.memberships"
+                                 ).fetchone()[0], 0
+                )
+            with self.assertRaisesRegex(
+                    StorageUnavailable, "^unsafe_database_schema$"):
+                self.store.probe_readiness()
+        finally:
+            self.admin.execute(
+                "ALTER POLICY devobs_membership_self ON devobs_ai.memberships "
+                "USING (tenant_id = NULLIF(current_setting('devobs_ai.tenant_id', true), '') "
+                "AND subject_id = NULLIF(current_setting('devobs_ai.subject_id', true), ''))"
             )
         self.assertIs(self.store.probe_readiness(), True)
 
