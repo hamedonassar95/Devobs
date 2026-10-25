@@ -130,6 +130,12 @@ class PostgresTenantRLSTests(unittest.TestCase):
         self.assertIs(self.store.probe_readiness(), True)
 
     def test_readiness_rejects_changed_policy_body(self):
+        # Temporary catalog trace to pin exact PG17 policy-expression contract.
+        with psycopg.connect(READER_DSN, autocommit=True) as probe_conn:
+            for t, p, q in probe_conn.execute(
+                    "SELECT tablename, policyname, qual FROM pg_policies "
+                    "WHERE schemaname='devobs_ai' ORDER BY tablename,policyname"):
+                print("DEVOBS_PG17_POLICY_CONTRACT", repr((t, p, q)), flush=True)
         # Same policy name, roles and kind; only its expression drifts.
         # Run exclusively against the disposable PostgreSQL Actions service.
         self.assertIs(self.store.probe_readiness(), True)
