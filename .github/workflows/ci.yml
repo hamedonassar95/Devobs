@@ -67,6 +67,7 @@ jobs:
     uses: ./.github/workflows/reusable-python-ci.yml
     with:
       python_version: "3.12"
+      requirements_file: requirements-api.txt
       compile_paths_json: '["scripts", "tests"]'
       test_runner: unittest
       test_path: tests
@@ -127,6 +128,7 @@ jobs:
         run: |
           if [[ -f requirements-dev.txt ]]; then
             pip-audit --requirement requirements-dev.txt
+            pip-audit --requirement requirements-api.txt
           else
             echo "::notice::No Python dependency manifest exists in this revision; dependency audit skipped."
           fi
