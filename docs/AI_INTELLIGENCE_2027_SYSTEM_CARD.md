@@ -29,7 +29,7 @@ flowchart LR
 | RCA accuracy | Synthetic top-1/top-3 only, denominator surfaced | Human-labelled incidents (minimum 30 for first review; more needed by class), holdout/time-split, calibration, false-positive analysis |
 | Human control | Deterministic policy denies execution; proposal review only | Cryptographic approver identity + scope, SHA, parameters, expiration and one-time consumption; deny on ambiguity |
 | Audit | Existing SQLite hash-chained metadata; privileged actor can rewrite chain | Immutable external anchor, model/tool version, actor and approval evidence, retention proof |
-| Tenant isolation | In-memory scope and signed-token API exist; merged PR #218 adds RLS tests against an ephemeral PostgreSQL service in CI | Live hosted DB isolation, verified identity provider, and negative tenant/queue/storage tests |
+| Tenant isolation | In-memory scope and signed-token API exist; merged PR #218 (`d9adfb0`) adds RLS tests against an ephemeral PostgreSQL service in CI | Live hosted DB isolation, verified identity provider, and negative tenant/queue/storage tests |
 | Quality / billing | No measured field ROI, cost/incident or customer billing in this change | Service SLOs, cost tagging, quotas, privacy and license review |
 
 ## Graduated autonomy
