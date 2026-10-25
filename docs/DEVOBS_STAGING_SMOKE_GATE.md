@@ -7,7 +7,7 @@ This read-only smoke gate is tied to [P01 #221](https://github.com/hamedonassar9
 ## Contract
 
 The script `scripts/devobs_intelligence/staging_smoke.py` performs these
-**five HTTPS GET requests in order**, always to the same validated, pinned
+**six HTTPS GET requests in order**, always to the same validated, pinned
 `*.onrender.com` origin:
 
 1. `GET /healthz` -> HTTP **204** (process liveness).
@@ -16,7 +16,10 @@ The script `scripts/devobs_intelligence/staging_smoke.py` performs these
    HTTP **401**, exact JSON `{"error":"invalid_token"}`.
 4. Same path with a trusted, short-lived signed access token -> HTTP
    **200**, exact `ci_state` plus valid 40/64-character lowercase SHA.
-5. Same signed token with a **different** denied tenant -> HTTP **403**,
+5. Same project ID under the **other** tenant, using a **different** signed
+   token authorized for that tenant -> HTTP **200**. This proves the fixture
+   exists before checking isolation.
+6. Same other-tenant project using the original signed token -> HTTP **403**,
    exact JSON `{"error":"access_denied"}`.
 
 Responses must have `Cache-Control: no-store`, JSON where appropriate,
@@ -44,14 +47,19 @@ Supply the following **environment variables** (not sensitive):
 | `DEVOBS_STAGING_EXPECTED_HOST` | Exact verified hostname, same one as URL; prevents accidental off-target request |
 | `DEVOBS_STAGING_TENANT` | Approved synthetic tenant id for a test member |
 | `DEVOBS_STAGING_PROJECT` | Existing synthetic project in that tenant |
-| `DEVOBS_STAGING_DENIED_TENANT` | Different tenant where that member must have no membership |
+| `DEVOBS_STAGING_DENIED_TENANT` | Different synthetic tenant with an **existing project using the same project ID**; original member must not be a member |
 
-Supply only one **environment secret**:
+Supply two separate **environment secrets**:
 
 - `DEVOBS_STAGING_TOKEN`: short-lived OAuth JWT **access** token scoped
   `devobs.read`, signed for the authentic target issuer and client, with
   a maximum 15-minute lifetime. It MUST be placed by an authorized operator
-  just before manual execution; it will expire. Do not store private signing
+  just before manual execution; it will expire.
+- `DEVOBS_STAGING_DENIED_TENANT_TOKEN`: **different**, short-lived signed
+  access token for an authorized member of the other synthetic tenant and
+  its independently seeded same-ID project. The test requires a successful
+  read with this token before it accepts the original token's 403 as proof
+  of isolation. A 403 for a missing project is not sufficient. Do not store private signing
   keys, refresh tokens, long-lived production API keys or customer credentials
   in GitHub. A future **workload identity federation** flow is needed before
   recurring/automated smoke checks can be safe and reliable.
@@ -67,7 +75,7 @@ and run the workflow. GitHub Environments may hold the job pending human
 approval if a protection rule is configured. An unset/invalid URL, scope or
 token fails closed *before* any network request.
 
-**Passing result proves only the five HTTP assertions at that moment.** It
+**Passing result proves only the six HTTP assertions at that moment.** It
 does not prove credential lifecycle, multi-worker OIDC key rotation,
 PostgreSQL pool/lock performance, tenancy for arbitrary users, network
 perimeter, cloud backup restore, DDoS controls, SLO or commercial suitability.

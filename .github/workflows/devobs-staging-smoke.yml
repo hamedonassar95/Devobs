@@ -39,4 +39,7 @@ jobs:
           # human-approved operator immediately before this manual run.
           # Never print this value or put it in repository/issue comments.
           DEVOBS_STAGING_TOKEN: ${{ secrets.DEVOBS_STAGING_TOKEN }}
+          # Second short-lived token is scoped to the existing synthetic
+          # project in the denied tenant; never print or persist its value.
+          DEVOBS_STAGING_DENIED_TENANT_TOKEN: ${{ secrets.DEVOBS_STAGING_DENIED_TENANT_TOKEN }}
         run: python3 scripts/devobs_intelligence/staging_smoke.py

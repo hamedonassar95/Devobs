@@ -32,6 +32,7 @@ class SmokeSettings:
     project: str
     denied_tenant: str
     bearer_token: str
+    denied_tenant_token: str
 
     def validate(self) -> str:
         url = self.base_url
@@ -55,9 +56,11 @@ class SmokeSettings:
                 raise SmokeFailure("invalid_staging_scope")
         if self.tenant == self.denied_tenant:
             raise SmokeFailure("invalid_staging_scope")
-        token = self.bearer_token
-        if (type(token) is not str or not 40 <= len(token) <= 8192
-                or not token.isascii() or token.count(".") != 2):
+        for token in (self.bearer_token, self.denied_tenant_token):
+            if (type(token) is not str or not 40 <= len(token) <= 8192
+                    or not token.isascii() or token.count(".") != 2):
+                raise SmokeFailure("invalid_staging_credentials")
+        if self.bearer_token == self.denied_tenant_token:
             raise SmokeFailure("invalid_staging_credentials")
         return "https://" + host
 
@@ -102,7 +105,9 @@ def run_smoke(settings: SmokeSettings, fetch=fetch_https) -> None:
         status, headers, body = fetch(origin + path, bearer)
         if type(status) is not int or status != expected_status:
             raise SmokeFailure(name + "_status")
-        if "no-store" not in headers.get("cache-control", "").lower():
+        cache = headers.get("cache-control", "")
+        if (type(cache) is not str or
+                "no-store" not in {v.strip().lower() for v in cache.split(",")}):
             raise SmokeFailure(name + "_cache")
         if expected_status == 204:
             if body:
@@ -125,13 +130,23 @@ def run_smoke(settings: SmokeSettings, fetch=fetch_https) -> None:
     if missing != {"error": "invalid_token"}:
         raise SmokeFailure("anonymous_response")
     allowed = check("allowed", api, settings.bearer_token, 200)
-    if (set(allowed) != {"ci_state", "source_sha"}
-            or allowed["ci_state"] not in _STATES
-            or type(allowed["source_sha"]) is not str
-            or _SHA.fullmatch(allowed["source_sha"]) is None):
+    def valid_ci_status(value):
+        return (type(value) is dict
+                and set(value) == {"ci_state", "source_sha"}
+                and type(value["ci_state"]) is str
+                and value["ci_state"] in _STATES
+                and type(value["source_sha"]) is str
+                and _SHA.fullmatch(value["source_sha"]) is not None)
+
+    if not valid_ci_status(allowed):
         raise SmokeFailure("allowed_response")
     denied_path = ("/v1/tenants/" + settings.denied_tenant +
                    "/projects/" + settings.project + "/ci")
+    # Prove the synthetic project exists for the other tenant before checking
+    # that our original tenant identity cannot read it (avoid false 403s).
+    fixture = check("denied_fixture", denied_path, settings.denied_tenant_token, 200)
+    if not valid_ci_status(fixture):
+        raise SmokeFailure("denied_fixture_response")
     denied = check("tenant_isolation", denied_path, settings.bearer_token, 403)
     if denied != {"error": "access_denied"}:
         raise SmokeFailure("tenant_isolation_response")
@@ -145,6 +160,7 @@ def main() -> int:
         project=os.getenv("DEVOBS_STAGING_PROJECT", ""),
         denied_tenant=os.getenv("DEVOBS_STAGING_DENIED_TENANT", ""),
         bearer_token=os.getenv("DEVOBS_STAGING_TOKEN", ""),
+        denied_tenant_token=os.getenv("DEVOBS_STAGING_DENIED_TENANT_TOKEN", ""),
     )
     try:
         run_smoke(cfg)

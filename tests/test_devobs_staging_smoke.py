@@ -3,7 +3,7 @@ import sys
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-from urllib import request
+from urllib import parse, request
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from devobs_intelligence import staging_smoke as mod
@@ -18,6 +18,7 @@ class SmokeContractTests(unittest.TestCase):
             "project": "shared",
             "denied_tenant": "beta",
             "bearer_token": "ey.ey." + "a" * 55,
+            "denied_tenant_token": "ey.ey." + "b" * 55,
         }
         kwargs.update(changes)
         return mod.SmokeSettings(**kwargs)
@@ -30,7 +31,7 @@ class SmokeContractTests(unittest.TestCase):
             return 204, no_cache, b""
         if bearer is None:
             return 401, js, b'{"error":"invalid_token"}'
-        if "/tenants/beta/" in suffix:
+        if "/tenants/beta/" in suffix and bearer != self.settings().denied_tenant_token:
             return 403, js, b'{"error":"access_denied"}'
         return 200, js, ('{"ci_state":"success","source_sha":"' +
                          "a" * 40 + '"}').encode("ascii")
@@ -42,9 +43,11 @@ class SmokeContractTests(unittest.TestCase):
             return self.fake_transport(url, bearer)
         mod.run_smoke(self.settings(), fetch=fetch)
         self.assertEqual([p[1] for p in paths],
-                         [False, False, False, True, True])
-        self.assertEqual(len(paths), 5)
-        self.assertTrue(all("devobs-staging.onrender.com" in u for u, _ in paths))
+                         [False, False, False, True, True, True])
+        self.assertEqual(len(paths), 6)
+        self.assertTrue(all(parse.urlsplit(u).hostname ==
+                            "devobs-staging.onrender.com" for u, _ in paths))
+        self.assertTrue(all(parse.urlsplit(u).scheme == "https" for u, _ in paths))
 
     def test_rejects_untrusted_hosts_before_any_network_call(self):
         for url, host in [
@@ -90,14 +93,20 @@ class SmokeContractTests(unittest.TestCase):
                 mod.run_smoke(self.settings(**change),
                               fetch=lambda *x: self.fail("network"))
         for token in ("", "not_a_signed_token", "a.b.c", "a.b." + "x"*9000):
-            with self.subTest(token=token), self.assertRaisesRegex(
-                    mod.SmokeFailure, "invalid_staging_credentials"):
-                mod.run_smoke(self.settings(bearer_token=token),
-                              fetch=lambda *x: self.fail("network"))
+            for field in ("bearer_token", "denied_tenant_token"):
+                with self.subTest(field=field, token=token), self.assertRaisesRegex(
+                        mod.SmokeFailure, "invalid_staging_credentials"):
+                    mod.run_smoke(self.settings(**{field: token}),
+                                  fetch=lambda *x: self.fail("network"))
+        with self.assertRaisesRegex(mod.SmokeFailure, "invalid_staging_credentials"):
+            mod.run_smoke(self.settings(
+                denied_tenant_token=self.settings().bearer_token),
+                fetch=lambda *x: self.fail("network"))
 
     def test_denies_silent_unauthorized_tenant_access(self):
         def leak(url, token):
-            if "/tenants/beta/" in url:
+            if ("/tenants/beta/" in url and
+                    token == self.settings().bearer_token):
                 return (200, {"content-type":"application/json",
                               "cache-control":"no-store"},
                         b'{"ci_state":"success","source_sha":"' +
@@ -133,6 +142,30 @@ class SmokeContractTests(unittest.TestCase):
         with self.assertRaisesRegex(mod.SmokeFailure, "allowed_format"):
             mod.run_smoke(self.settings(), fetch=oversized)
 
+    def test_rejects_fake_no_store_substring(self):
+        def disguised(url, token):
+            status, headers, body = self.fake_transport(url, token)
+            if url.endswith("/ci") and token:
+                headers = dict(headers, **{"cache-control":
+                    "public, max-age=86400, x-no-store"})
+            return status, headers, body
+        with self.assertRaisesRegex(mod.SmokeFailure, "allowed_cache"):
+            mod.run_smoke(self.settings(), fetch=disguised)
+
+    def test_denied_tenant_must_have_verified_existing_project(self):
+        # A 403 for a missing row is NOT proof of tenant authorization.
+        def missing_other_project(url, token):
+            if "/tenants/beta/" in url:
+                return (403, {"cache-control": "no-store",
+                              "content-type": "application/json"},
+                        b'{"error":"access_denied"}')
+            return self.fake_transport(url, token)
+        with self.assertRaisesRegex(mod.SmokeFailure,
+                                    "denied_fixture_status"):
+            mod.run_smoke(self.settings(
+                denied_tenant_token="ey.ey." + "b" * 55),
+                fetch=missing_other_project)
+
     def test_no_redirect_is_ever_authorized(self):
         self.assertIsNone(mod._RejectRedirects().redirect_request(
             request.Request("https://devobs-staging.onrender.com/readyz"),
@@ -146,7 +179,9 @@ class SmokeContractTests(unittest.TestCase):
                 "DEVOBS_STAGING_TENANT": bad.tenant,
                 "DEVOBS_STAGING_PROJECT": bad.project,
                 "DEVOBS_STAGING_DENIED_TENANT": bad.denied_tenant,
-                "DEVOBS_STAGING_TOKEN": bad.bearer_token}, clear=True):
+                "DEVOBS_STAGING_TOKEN": bad.bearer_token,
+                "DEVOBS_STAGING_DENIED_TENANT_TOKEN": bad.denied_tenant_token},
+                clear=True):
             with patch.object(mod.sys, "stderr") as output:
                 self.assertEqual(mod.main(), 1)
                 txt="".join(str(c) for c in output.write.call_args_list)
