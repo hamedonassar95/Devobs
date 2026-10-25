@@ -64,7 +64,8 @@ def build_app(settings: Mapping[str, str]) -> Callable:
         metadata = _decode_document(settings, "DEVOBS_OIDC_METADATA_JSON", 16384)
         jwks = _decode_document(settings, "DEVOBS_OIDC_JWKS_JSON", 65536)
         verifier = trusted_oidc_verifier(issuer, audience, client_id, metadata, jwks)
-        api = make_app(verifier, PostgresTenantStore(_database_dsn(settings)))
+        store = PostgresTenantStore(_database_dsn(settings))
+        api = make_app(verifier, store)
     except (KeyError, ValueError, TypeError):
         raise StagingConfigurationError("invalid_staging_config") from None
 
@@ -79,6 +80,22 @@ def build_app(settings: Mapping[str, str]) -> Callable:
                 # Liveness only: not a proof of Postgres reachability/tenant safety.
                 start_response("204 No Content", [("Cache-Control", "no-store"),
                                                    ("Content-Length", "0")])
+            return [b""]
+        if path == "/readyz":
+            if environ.get("REQUEST_METHOD") != "GET":
+                start_response("405 Method Not Allowed", [("Allow", "GET"),
+                                                           ("Cache-Control", "no-store"),
+                                                           ("Content-Length", "0")])
+                return [b""]
+            try:
+                ready = store.probe_readiness() is True
+            except Exception:
+                ready = False
+            # Do not leak DB configuration, SQL errors or identity information.
+            start_response("204 No Content" if ready else "503 Service Unavailable",
+                           [("Cache-Control", "no-store"),
+                            ("X-Content-Type-Options", "nosniff"),
+                            ("Content-Length", "0")])
             return [b""]
         return api(environ, start_response)
 
