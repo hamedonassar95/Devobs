@@ -111,6 +111,24 @@ class PostgresTenantRLSTests(unittest.TestCase):
                         f"GRANT SELECT ON devobs_ai.{table} TO devobs_ai_reader")
                 self.assertIs(self.store.probe_readiness(), True)
 
+    def test_readiness_rejects_unexpected_permissive_rls_policy(self):
+        # Database belongs exclusively to disposable GitHub CI.
+        # An extra OR-combined RLS policy can widen access without disabling RLS.
+        self.assertIs(self.store.probe_readiness(), True)
+        self.admin.execute(
+            "CREATE POLICY ci_broad_read ON devobs_ai.project_ci "
+            "FOR SELECT TO devobs_ai_reader USING (true)")
+        try:
+            # Demonstrate that the broadened policy compromises tenant isolation.
+            self.assertEqual(
+                self.store.read_status("alice", "beta", "shared")["source_sha"], "b" * 40)
+            with self.assertRaisesRegex(
+                    StorageUnavailable, "^unsafe_database_schema$"):
+                self.store.probe_readiness()
+        finally:
+            self.admin.execute("DROP POLICY ci_broad_read ON devobs_ai.project_ci")
+        self.assertIs(self.store.probe_readiness(), True)
+
     def test_exact_tenant_and_subject_match(self):
         self.assertEqual(self.store.read_status("alice","alpha","shared"),
                          {"ci_state":"success","source_sha":"a"*40})
