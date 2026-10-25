@@ -65,9 +65,9 @@ def evaluate(request: dict) -> PatchDecision:
     for raw in files:
         path = _safe_path(raw)
         if path is None:
-            return PatchDecision(False, "DENY", f"unsafe path: {raw!r}")
+            return PatchDecision(False, "DENY", "unsafe file path")
         if not _allowlisted(path):
-            return PatchDecision(False, "DENY", f"path is outside the approved allowlist: {path}")
+            return PatchDecision(False, "DENY", "file path is outside the approved allowlist")
         normalized.append(path)
 
     if len(set(normalized)) != len(normalized):

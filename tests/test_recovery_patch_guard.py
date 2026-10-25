@@ -39,6 +39,16 @@ class RecoveryPatchGuardTests(unittest.TestCase):
         value["files"] = ["../SECURITY.md"]
         self.assertFalse(evaluate(value).allowed)
 
+    def test_rejection_reasons_do_not_echo_untrusted_paths(self):
+        marker = "SYNTHETIC_PRIVATE_PATH_MARKER"
+        for path in (f"/{marker}", f"src/{marker}"):
+            with self.subTest(path_kind="unsafe" if path.startswith("/") else "unallowlisted"):
+                value = request()
+                value["files"] = [path]
+                decision = evaluate(value)
+                self.assertFalse(decision.allowed)
+                self.assertNotIn(marker, decision.reason)
+
     def test_allows_nested_assets_paths(self):
         value = request()
         value["files"] = ["assets/css/site.css", "assets/images/logo.svg"]
