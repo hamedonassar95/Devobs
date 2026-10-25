@@ -23,8 +23,8 @@ _PG17_POLICY_QUALS = {
     ),
     ("project_ci", "devobs_project_member_read"): (
         "((tenant_id = NULLIF(current_setting('devobs_ai.tenant_id'::text, true), "
-        "''::text)) AND (EXISTS ( SELECT 1\\n"
-        "   FROM devobs_ai.memberships m\\n"
+        "''::text)) AND (EXISTS ( SELECT 1\n"
+        "   FROM devobs_ai.memberships m\n"
         "  WHERE ((m.tenant_id = project_ci.tenant_id) "
         "AND (m.project_id = project_ci.project_id) "
         "AND (m.subject_id = NULLIF(current_setting("
