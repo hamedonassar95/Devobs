@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from .adviser import propose
-from .context import ContextError, ServiceTopology, Telemetry
+from .context import ContextError, ServiceTopology, Telemetry, normalize_telemetry
 from .contracts import parse_event
 from .incident_memory import IncidentMemory
 
@@ -41,7 +41,16 @@ def correlate(topology: ServiceTopology, telemetry: list[Telemetry],
     per_service={}
     evidence=set()
     for point in telemetry:
-        if (type(point) is not Telemetry or
+        if type(point) is not Telemetry:
+            raise ContextError("invalid_incident_scope")
+        # Revalidate dataclass instances too: a direct constructor is NOT an
+        # authentication or schema-validation boundary.
+        point=normalize_telemetry({
+            "tenant":point.tenant,"project":point.project,"service":point.service,
+            "source_sha":point.source_sha,"observed_at":point.observed_at,
+            "metric":point.metric,"value":point.value,
+            "evidence_digest":point.evidence_digest})
+        if (
                 (point.tenant,point.project)!=(topology.tenant,topology.project)
                 or point.service not in topology.services):
             raise ContextError("invalid_incident_scope")
