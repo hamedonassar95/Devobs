@@ -4,7 +4,7 @@ import unittest
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"scripts"))
-from devobs_intelligence.context import ContextError,normalize_telemetry,ServiceTopology
+from devobs_intelligence.context import ContextError,normalize_telemetry,ServiceTopology,Telemetry
 from devobs_intelligence.incident_memory import IncidentRecord,IncidentMemory
 from devobs_intelligence.correlation import correlate
 
@@ -72,6 +72,13 @@ class IncidentCorrelationTests(unittest.TestCase):
     def test_graph_missing_service_rejected(self):
         with self.assertRaises(ContextError):
             correlate(graph(),[data("external","error_rate_pct",9,"b")],memory(),NOW)
+
+    def test_directly_forged_telemetry_cannot_bypass_contract(self):
+        forged=Telemetry("alpha","platform","db","a"*40,
+                         "2026-10-25T01:00:00Z","capacity_pct",
+                         float("nan"),"b"*64)
+        with self.assertRaisesRegex(ContextError,"invalid_value"):
+            correlate(graph(),[forged],memory(),NOW)
 
     def test_no_memorized_customer_data_is_shared(self):
         other=IncidentMemory([IncidentRecord("beta","platform","db",
