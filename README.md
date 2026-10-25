@@ -40,7 +40,7 @@ python3 -m bandit -r scripts -x scripts/check_site.py
 pip-audit --requirement requirements-dev.txt
 ```
 
-يفحص GitHub Actions الأسرار باستخدام Gitleaks، ويتحقق من تثبيت الإجراءات الخارجية على SHA كامل. راجع [نطاق وضوابط DevSecOps](docs/DEVSECOPS.md). لا يحتاج تشغيل الموقع أو الاختبارات إلى مفاتيح أو حسابات خدمات خارجية.
+يفحص GitHub Actions الأسرار باستخدام Gitleaks، ويتحقق من تثبيت الإجراءات الخارجية على SHA كامل. يفحص CI صور التطبيق محليًا بواسطة Trivy v0.76.1 ويفشل عند HIGH/CRITICAL؛ يعرض `NOT_CONFIGURED` بلا ادعاء تغطية ما دام `main` لا يحتوي Dockerfile (هدف Docker متاح حاليًا في PR #248 المتسلسل غير المدمج). التقرير JSON artifact محتفظ به سبعة أيام. راجع [نطاق وضوابط DevSecOps](docs/DEVSECOPS.md). لا يحتاج تشغيل الموقع أو الاختبارات إلى مفاتيح أو حسابات خدمات خارجية.
 
 ## الإعداد والأسرار
 
