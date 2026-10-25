@@ -24,6 +24,44 @@ class PostgresTenantStore:
             raise ValueError("invalid_database_config")
         self._dsn = dsn
 
+    def probe_readiness(self) -> bool:
+        """Check a live DB connection, non-bypass reader role, and forced RLS.
+
+        Uses only system catalogs, a short read-only transaction and no tenant
+        records. Never treat a successful TCP connection as proof of safety.
+        """
+        try:
+            with psycopg.connect(self._dsn, autocommit=True, connect_timeout=2) as conn:
+                with conn.transaction():
+                    conn.execute("SET TRANSACTION READ ONLY")
+                    conn.execute("SET LOCAL statement_timeout = '1500ms'")
+                    role = conn.execute(
+                        """SELECT rolsuper, rolbypassrls,
+                                  pg_has_role(current_user, 'devobs_ai_reader', 'USAGE')
+                             FROM pg_roles WHERE rolname = current_user"""
+                    ).fetchone()
+                    if role != (False, False, True):
+                        raise StorageUnavailable("unsafe_database_role")
+                    tables = conn.execute(
+                        """SELECT COUNT(*),
+                                  COALESCE(BOOL_AND(
+                                      c.relrowsecurity AND c.relforcerowsecurity
+                                      AND has_table_privilege(current_user, c.oid, 'SELECT')
+                                  ), FALSE)
+                             FROM pg_class AS c
+                             JOIN pg_namespace AS n ON n.oid = c.relnamespace
+                            WHERE n.nspname = 'devobs_ai'
+                              AND c.relname IN ('project_ci', 'memberships')
+                              AND c.relkind = 'r'"""
+                    ).fetchone()
+                    if tables != (2, True):
+                        raise StorageUnavailable("unsafe_database_schema")
+            return True
+        except StorageUnavailable:
+            raise
+        except (psycopg.Error, OSError, UnicodeError):
+            raise StorageUnavailable("storage_unavailable") from None
+
     def read_status(self, subject: str, tenant: str, project: str) -> dict[str, str]:
         if any(type(v) is not str or _ID.fullmatch(v) is None
                for v in (subject, tenant, project)):
