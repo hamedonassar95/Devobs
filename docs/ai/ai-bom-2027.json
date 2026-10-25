@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "scope": "DevObs offline incident-context module only",
+  "as_of": "2026-10-25",
+  "model_execution": {
+    "status": "disabled_in_this_module",
+    "provider": null,
+    "model_version": null,
+    "live_inference_verified": false
+  },
+  "datasets": [
+    {
+      "id": "synthetic_category_cases",
+      "file": "tests/fixtures/intelligence_eval_cases.json",
+      "sensitivity": "synthetic",
+      "production_ground_truth": false
+    },
+    {
+      "id": "synthetic_rank_evaluation",
+      "file": "tests/test_intelligence_root_eval.py",
+      "sensitivity": "synthetic",
+      "production_ground_truth": false
+    }
+  ],
+  "components": [
+    {
+      "purpose": "bounded telemetry",
+      "path": "scripts/devobs_intelligence/context.py"
+    },
+    {
+      "purpose": "trusted metric conversion",
+      "path": "scripts/devobs_intelligence/telemetry_adapter.py"
+    },
+    {
+      "purpose": "tenant-specific metadata retrieval",
+      "path": "scripts/devobs_intelligence/incident_memory.py"
+    },
+    {
+      "purpose": "deterministic evidence ranking",
+      "path": "scripts/devobs_intelligence/correlation.py"
+    },
+    {
+      "purpose": "offline top-1/top-3 scoring",
+      "path": "scripts/devobs_intelligence/root_eval.py"
+    }
+  ],
+  "dependency_manifests": [
+    "requirements-api.txt",
+    "requirements-dev.txt"
+  ],
+  "source_control": {
+    "repository": "hamedonassar95/Devobs",
+    "protected_main": true
+  },
+  "controls": {
+    "allow_production_execution": false,
+    "external_model_invocation": false,
+    "verified_human_approval": false,
+    "externally_anchored_audit": false,
+    "real_tenant_maturity": "unverified"
+  },
+  "limitations": [
+    "no live OTLP collector",
+    "no vector service",
+    "no production RCA ground truth",
+    "no verified cost per incident",
+    "no commercial attestation"
+  ]
+}
