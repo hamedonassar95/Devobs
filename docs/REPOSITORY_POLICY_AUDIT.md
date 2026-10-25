@@ -55,6 +55,17 @@
 - مسارات `open_draft_pr` و`write_branch` تظل **PROPOSE_ONLY** في `scripts/devobs_intelligence/policy.py`، والانتقال إلى `APPROVED` محجوب حتى يتوفر تحقق خارجي من الهوية والموافقة.
 - لا تفعّل استدلالًا مدفوعًا أو أتمتة تنفيذ ذاتي لمجرد أن الوثائق أو الاختبارات أصبحت خضراء.
 
+### الاختبار المقترح قبل الموافقة على PR
+
+شغّل من جذر المستودع على الفرع المستقل، دون توفير أي أسرار:
+
+```bash
+python3 -m unittest discover -s tests -p 'test_check_repo_policy.py' -v
+python3 -m compileall -q scripts tests
+```
+
+يُتوقع اجتياز اختبارات العقود الصناعية، بما فيها الرفض عند `required_approving_review_count=0`. هذا لا يثبت سلامة السياسة الحية؛ يجب تشغيل التدقيق الفعلي بعد أن يؤكد المالك إمكانية تطبيق قواعد المراجعة. لا تُشغّل أعمال نشر أو استدلال مدفوع كجزء من الفحص.
+
 ### مراجع رسمية للتحقق
 
 - [GitHub: Available rules for rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets)
