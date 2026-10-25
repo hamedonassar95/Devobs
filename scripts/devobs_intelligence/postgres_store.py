@@ -46,6 +46,25 @@ class PostgresTenantStore:
         self._dsn = dsn
 
     @staticmethod
+    def _lock_policy_tables(conn) -> None:
+        # Preserve a fixed fail-closed schema error when SELECT privilege has
+        # been revoked: LOCK TABLE requires table SELECT for ACCESS SHARE.
+        privileges = conn.execute(
+            """SELECT has_table_privilege(current_user,
+                       'devobs_ai.memberships', 'SELECT'),
+                      has_table_privilege(current_user,
+                       'devobs_ai.project_ci', 'SELECT')"""
+        ).fetchone()
+        if privileges != (True, True):
+            raise StorageUnavailable("unsafe_database_schema")
+        # ACCESS SHARE prevents concurrent ALTER POLICY or table DDL until
+        # this short-lived transaction finishes, without blocking SELECTs.
+        conn.execute(
+            "LOCK TABLE devobs_ai.memberships, devobs_ai.project_ci "
+            "IN ACCESS SHARE MODE"
+        )
+
+    @staticmethod
     def _verify_readonly_contract(conn) -> None:
         """Fail closed on role, table privileges, RLS and PG17 predicate drift."""
         role = conn.execute(
@@ -117,13 +136,7 @@ class PostgresTenantStore:
                     conn.execute("SET TRANSACTION READ ONLY")
                     conn.execute("SET LOCAL statement_timeout = '1500ms'")
                     conn.execute("SET LOCAL lock_timeout = '500ms'")
-                    # Hold ACCESS SHARE until this transaction ends. ALTER
-                    # POLICY and table DDL need conflicting locks, so schema
-                    # integrity cannot drift between verification and SELECT.
-                    conn.execute(
-                        "LOCK TABLE devobs_ai.memberships, devobs_ai.project_ci "
-                        "IN ACCESS SHARE MODE"
-                    )
+                    self._lock_policy_tables(conn)
                     self._verify_readonly_contract(conn)
             return True
         except StorageUnavailable:
@@ -143,13 +156,7 @@ class PostgresTenantStore:
                     conn.execute("SET TRANSACTION READ ONLY")
                     conn.execute("SET LOCAL statement_timeout = '1500ms'")
                     conn.execute("SET LOCAL lock_timeout = '500ms'")
-                    # Hold ACCESS SHARE until this transaction ends. ALTER
-                    # POLICY and table DDL need conflicting locks, so schema
-                    # integrity cannot drift between verification and SELECT.
-                    conn.execute(
-                        "LOCK TABLE devobs_ai.memberships, devobs_ai.project_ci "
-                        "IN ACCESS SHARE MODE"
-                    )
+                    self._lock_policy_tables(conn)
                     self._verify_readonly_contract(conn)
                     conn.execute(
                         """SELECT set_config('devobs_ai.tenant_id', %s, true),
