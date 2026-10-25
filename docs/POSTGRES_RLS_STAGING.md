@@ -9,11 +9,16 @@
 - Membership policies require exact server-authenticated subject and tenant; a project's CI state is visible only when membership and tenant match. Missing transaction identity gives zero rows by default.
 - `PostgresTenantStore` in `scripts/devobs_intelligence/postgres_store.py` creates a new connection, starts an explicit read-only transaction, checks the active DB role, uses parameterized `set_config(..., true)` and parameterized SELECT. The client-supplied bearer token is **never forwarded to PostgreSQL**.
 - The existing, signed access-token WSGI API can accept this adapter as its `tenant_gate` without additional permissions.
+- `oidc_metadata.py` validates already authenticated issuer metadata against a configured HTTPS issuer and same-origin JWKS URI, then constructs the existing signature-verifying access-token reader. No arbitrary remote requests, unsigned token acceptance, runtime key rotation or live provider onboarding are enabled.
 - The existing GitHub `validate` check now requires a **real PostgreSQL service-container isolation integration suite** on normal checks, not merely SQLite mocks. Rollback compatibility deliberately skips this extra gate, retaining the existing rollback test contract.
 
 ## Ephemeral test-only authentication
 
 The integration service image uses `POSTGRES_HOST_AUTH_METHOD=trust` strictly inside a disposable GitHub Actions runner with no customer data or persistent storage. This must NEVER be copied to a real deployment. Test roles are created on the disposable instance and have no production credentials. Exposing such a service publicly would be unsafe.
+
+## Independent OIDC provider readiness
+
+The issuer-metadata validator deliberately consumes **already trusted, operator-verified metadata and JWKS**; it does not fetch remote content or verify HTTPS provenance itself. In staging an authorized operator must choose the IdP, verify its official issuer and key distribution over HTTPS, define rotation/revocation behavior and test actual JWT claims before onboarding users. The extra unit tests exercise generated ephemeral RSA public keys and reject mismatched issuers/JWKS origins and unsigned tokens. Never treat arbitrary discovery documents or a language-model suggestion as a signing authority.
 
 ## Runbook: staging adoption (NOT executed here)
 
