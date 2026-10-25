@@ -119,9 +119,10 @@ class PostgresTenantRLSTests(unittest.TestCase):
             "CREATE POLICY ci_broad_read ON devobs_ai.project_ci "
             "FOR SELECT TO devobs_ai_reader USING (true)")
         try:
-            # Demonstrate that the broadened policy compromises tenant isolation.
-            self.assertEqual(
-                self.store.read_status("alice", "beta", "shared")["source_sha"], "b" * 40)
+            # API denies access even if database policy protection drifts.
+            with self.assertRaisesRegex(
+                    StorageUnavailable, "^unsafe_database_schema$"):
+                self.store.read_status("alice", "beta", "shared")
             with self.assertRaisesRegex(
                     StorageUnavailable, "^unsafe_database_schema$"):
                 self.store.probe_readiness()
@@ -138,10 +139,10 @@ class PostgresTenantRLSTests(unittest.TestCase):
             "USING (true)"
         )
         try:
-            self.assertEqual(
-                self.store.read_status("alice", "beta", "shared")["source_sha"],
-                "b" * 40,
-            )
+            # API denies access even if database policy protection drifts.
+            with self.assertRaisesRegex(
+                    StorageUnavailable, "^unsafe_database_schema$"):
+                self.store.read_status("alice", "beta", "shared")
             with self.assertRaisesRegex(
                     StorageUnavailable, "^unsafe_database_schema$"):
                 self.store.probe_readiness()
@@ -180,6 +181,41 @@ class PostgresTenantRLSTests(unittest.TestCase):
                 "AND subject_id = NULLIF(current_setting('devobs_ai.subject_id', true), ''))"
             )
         self.assertIs(self.store.probe_readiness(), True)
+
+    def test_runtime_read_denies_original_policy_body_drift(self):
+        # Read endpoint must fail closed even between Render readiness probes.
+        # Disposable PostgreSQL in CI only; test owns the migration role.
+        self.assertIs(self.store.probe_readiness(), True)
+        self.admin.execute(
+            "ALTER POLICY devobs_project_member_read ON devobs_ai.project_ci "
+            "USING (true)"
+        )
+        try:
+            with self.assertRaisesRegex(
+                    StorageUnavailable, "^unsafe_database_schema$"):
+                self.store.read_status("alice", "beta", "shared")
+        finally:
+            self.admin.execute(
+                "ALTER POLICY devobs_project_member_read ON devobs_ai.project_ci "
+                "USING (tenant_id = NULLIF(current_setting('devobs_ai.tenant_id', true), '') "
+                "AND EXISTS (SELECT 1 FROM devobs_ai.memberships AS m "
+                "WHERE m.tenant_id = project_ci.tenant_id "
+                "AND m.project_id = project_ci.project_id "
+                "AND m.subject_id = NULLIF(current_setting('devobs_ai.subject_id', true), '')))"
+            )
+        self.assertIs(self.store.probe_readiness(), True)
+
+    def test_runtime_read_denies_added_broad_policy(self):
+        self.admin.execute(
+            "CREATE POLICY ci_broad_read ON devobs_ai.project_ci "
+            "FOR SELECT TO devobs_ai_reader USING (true)"
+        )
+        try:
+            with self.assertRaisesRegex(
+                    StorageUnavailable, "^unsafe_database_schema$"):
+                self.store.read_status("alice", "beta", "shared")
+        finally:
+            self.admin.execute("DROP POLICY ci_broad_read ON devobs_ai.project_ci")
 
     def test_exact_tenant_and_subject_match(self):
         self.assertEqual(self.store.read_status("alice","alpha","shared"),
