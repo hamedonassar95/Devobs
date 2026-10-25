@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-10-25",
+  "repository": "hamedonassar95/Devobs",
+  "classification": "PUBLIC_REPOSITORY_SAFE_METADATA_ONLY",
+  "policy": {
+    "default_branch": "main",
+    "default_branch_changes_allowed": false,
+    "production_deploy_allowed": false,
+    "provider_configuration_changes_allowed": false,
+    "paid_operations_allowed": false,
+    "secret_operations_allowed": false,
+    "approval_required_for": "provider authorization changes, write operations, releases, deployments, recurring schedules, payments"
+  },
+  "services": [
+    {
+      "id": "gitbook",
+      "name": "GitBook",
+      "integration_status": "import_confirmed",
+      "runtime_verified": true,
+      "provider_writes_authorized": false,
+      "cost_authorized": false,
+      "repository_scope": "hamedonassar95/Devobs",
+      "observed_branch": "main",
+      "observed_directory": "docs/gitbook-sync-prep",
+      "verified_capability": "A GitHub-to-GitBook import succeeded; bidirectional sync is configured but write behavior was not tested.",
+      "blocker": "Git Sync points at main and the original private space was reduced to three imported pages; 10 earlier pages are preserved in a separate private backup. No further write/sync without review.",
+      "evidence": [
+        "GitBook getSpaceGitInfo, 2026-10-25 (active; import success; main)",
+        "GitBook listPages / getRevisionById, 2026-10-25 (3 current; 10 historical)"
+      ]
+    },
+    {
+      "id": "codex",
+      "name": "ChatGPT Codex Connector",
+      "integration_status": "github_app_installed",
+      "runtime_verified": false,
+      "provider_writes_authorized": false,
+      "cost_authorized": false,
+      "repository_scope": "not independently confirmed for this installed app",
+      "observed_branch": null,
+      "observed_directory": null,
+      "verified_capability": "GitHub app installation appears in owner's screenshot. Repository has a gated AI Code Review workflow and an AI DevKit; neither proves live Codex inference for this repository.",
+      "blocker": "Verify installed-app repository access and any Codex workspace/project mapping before claiming it is operational.",
+      "evidence": [
+        "GitHub Installed Apps screenshot supplied by owner, 2026-10-25",
+        "Repository .github/workflows/ai-code-review.yml and docs/AI_DEVKIT.md, 2026-10-25"
+      ]
+    },
+    {
+      "id": "aictrl",
+      "name": "aictrl.dev",
+      "integration_status": "account_connected_unlinked",
+      "runtime_verified": false,
+      "provider_writes_authorized": false,
+      "cost_authorized": false,
+      "repository_scope": "Devobs authorization not verified",
+      "observed_branch": null,
+      "observed_directory": null,
+      "verified_capability": "Personal aictrl organization exists. No published workflows; the readiness endpoint reported another repository, not Devobs.",
+      "blocker": "Authorize Devobs in aictrl and verify it appears in get_started/list_tasks before any workflow execution.",
+      "evidence": [
+        "aictrl list_organizations, list_workflows, get_started, 2026-10-25",
+        "GitHub Installed Apps screenshot supplied by owner, 2026-10-25"
+      ]
+    },
+    {
+      "id": "flyio",
+      "name": "Fly.io",
+      "integration_status": "github_app_installed",
+      "runtime_verified": false,
+      "provider_writes_authorized": false,
+      "cost_authorized": false,
+      "repository_scope": "not independently confirmed",
+      "observed_branch": null,
+      "observed_directory": null,
+      "verified_capability": "GitHub Installed Apps screenshot shows Fly.io. No Fly.io deployment or live service was verified.",
+      "blocker": "Determine whether hosting is needed, evaluate cost, scopes and deploy configuration; deployment requires separate explicit approval.",
+      "evidence": [
+        "GitHub Installed Apps screenshot supplied by owner, 2026-10-25"
+      ]
+    },
+    {
+      "id": "lovable",
+      "name": "Lovable.dev",
+      "integration_status": "account_connected_unlinked",
+      "runtime_verified": false,
+      "provider_writes_authorized": false,
+      "cost_authorized": false,
+      "repository_scope": "Devobs project/repository mapping not verified",
+      "observed_branch": null,
+      "observed_directory": null,
+      "verified_capability": "Lovable workspace accessible; one unrelated invoice project exists and no custom connectors were listed. No Devobs project was verified.",
+      "blocker": "Only set up a separate Devobs interface project after confirming need, privacy, project visibility, repository scope and cost; no project creation authorized.",
+      "evidence": [
+        "Lovable list_workspaces, list_projects and list_custom_connectors, 2026-10-25",
+        "GitHub Installed Apps screenshot supplied by owner, 2026-10-25"
+      ]
+    }
+  ]
+}
