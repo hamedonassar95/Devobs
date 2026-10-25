@@ -11,6 +11,7 @@ import os
 from collections.abc import Mapping
 from typing import Callable
 
+from psycopg import Error as PsycopgError
 from psycopg.conninfo import conninfo_to_dict
 
 from .api_app import make_app
@@ -41,7 +42,7 @@ def _database_dsn(settings: Mapping[str, str]) -> str:
         raise StagingConfigurationError("invalid_staging_config")
     try:
         cfg = conninfo_to_dict(dsn)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, PsycopgError):
         raise StagingConfigurationError("invalid_staging_config") from None
     # Supabase supports verify-full with a trusted CA file installed by operator.
     # Runtime identity must be a dedicated non-owner, never the postgres admin.
