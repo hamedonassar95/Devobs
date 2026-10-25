@@ -5,6 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 from devobs_intelligence.contracts import parse_event
 from devobs_intelligence.policy import evaluate_action
@@ -87,6 +88,27 @@ class AuditStoreTests(unittest.TestCase):
         self.store.connection.set_trace_callback(None)
         self.assertEqual(statements[0], 'BEGIN IMMEDIATE')
         self.assertEqual(statements[-1], 'COMMIT')
+
+    def test_summary_uses_one_verified_snapshot(self):
+        current=event()
+        first=self.store.append(current,evaluate_action(current,'read_evidence'),'read_evidence')
+        original_entries=self.store._entries
+        appended=False
+
+        def interleave_append():
+            nonlocal appended
+            snapshot=original_entries()
+            if not appended:
+                appended=True
+                later=event('interleaved')
+                self.store.append(later,evaluate_action(later,'read_evidence'),'read_evidence')
+            return snapshot
+
+        with patch.object(self.store,'_entries',side_effect=interleave_append):
+            summary=self.store.summary()
+        self.assertEqual(summary['record_count'],1)
+        self.assertEqual(summary['last_record_hash'],first.record_hash)
+        self.assertEqual(self.store.verify(),2)
 
     def test_concurrent_writers_preserve_one_valid_chain(self):
         writers=8

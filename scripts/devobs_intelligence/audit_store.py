@@ -64,9 +64,9 @@ class AuditStore:
             raise AuditError('storage_unavailable') from None
         return [AuditEntryV1(*row) for row in records]
 
-    def verify(self) -> int:
+    @staticmethod
+    def _verify_entries(entries: list[AuditEntryV1]) -> int:
         previous = '0' * 64
-        entries = self._entries()
         for index, entry in enumerate(entries, 1):
             item = {key: getattr(entry, key) for key in ('event_id', 'source_sha',
                         'policy_version', 'decision', 'action')}
@@ -75,6 +75,9 @@ class AuditStore:
                 raise AuditError('chain_invalid')
             previous = entry.record_hash
         return len(entries)
+
+    def verify(self) -> int:
+        return self._verify_entries(self._entries())
 
     def append(self, event: EventEnvelopeV1, evaluation: EvaluationV1,
                action: str) -> AuditEntryV1:
@@ -139,6 +142,7 @@ class AuditStore:
                 pass
 
     def summary(self) -> dict:
-        count = self.verify()
+        entries = self._entries()
+        count = self._verify_entries(entries)
         return {'schema_version':1,'record_count':count,
-                'last_record_hash':self._entries()[-1].record_hash if count else None}
+                'last_record_hash':entries[-1].record_hash if count else None}
