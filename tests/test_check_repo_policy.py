@@ -61,7 +61,7 @@ def api_fixtures() -> dict[str, object]:
 
 
 class RepositoryPolicyAuditTests(unittest.TestCase):
-    def test_accepts_current_policy_shape(self) -> None:
+    def test_accepts_hardened_policy_fixture(self) -> None:
         fixtures = api_fixtures()
         scope, findings = audit_repository("hamedonassar95/Devobs", api_get=fixtures.__getitem__)
 
@@ -89,6 +89,16 @@ class RepositoryPolicyAuditTests(unittest.TestCase):
 
     def test_boolean_string_and_none_do_not_count_as_review_approval(self) -> None:
         for count in (True, False, "1", None):
+            with self.subTest(count=count):
+                fixtures = api_fixtures()
+                rules = fixtures["repos/hamedonassar95/Devobs/rulesets/24507159"]["rules"]
+                pr_rule = next(rule for rule in rules if rule["type"] == "pull_request")
+                pr_rule["parameters"]["required_approving_review_count"] = count
+                _, findings = audit_repository("hamedonassar95/Devobs", api_get=fixtures.__getitem__)
+                self.assertTrue(any("at least one approving PR review" in item for item in findings))
+
+    def test_negative_and_fractional_review_counts_are_rejected(self) -> None:
+        for count in (-1, 0, 0.5, 1.0):
             with self.subTest(count=count):
                 fixtures = api_fixtures()
                 rules = fixtures["repos/hamedonassar95/Devobs/rulesets/24507159"]["rules"]
