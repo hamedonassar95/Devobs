@@ -90,6 +90,28 @@ class StagingBootstrapTests(unittest.TestCase):
                                             "^invalid_staging_config$"):
                     self.module.build_app(config)
 
+    def test_readiness_requires_actual_database_probe(self):
+        # Avoid real credentials: readiness checks are isolated behind the store.
+        class ProbeStore:
+            healthy = True
+            def probe_readiness(self):
+                if not self.healthy:
+                    raise RuntimeError("SECRET_database_unavailable")
+                return True
+
+        store = ProbeStore()
+        with patch.object(self.module, "PostgresTenantStore", return_value=store):
+            app = self.module.build_app(self.base)
+        healthy = self.run_request(app, "/readyz")
+        self.assertEqual(healthy[0], "204 No Content")
+        self.assertEqual(healthy[2], b"")
+        store.healthy = False
+        unavailable = self.run_request(app, "/readyz")
+        self.assertEqual(unavailable[0], "503 Service Unavailable")
+        self.assertEqual(unavailable[2], b"")
+        self.assertNotIn("SECRET", str(unavailable))
+        self.assertEqual(self.run_request(app, "/readyz", method="POST")[0][:3], "405")
+
 
 if __name__ == "__main__":
     unittest.main()
