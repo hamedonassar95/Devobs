@@ -8,6 +8,7 @@ import os
 import sys
 import time
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 from wsgiref.util import setup_testing_defaults
 
@@ -216,6 +217,35 @@ class PostgresTenantRLSTests(unittest.TestCase):
                 self.store.read_status("alice", "beta", "shared")
         finally:
             self.admin.execute("DROP POLICY ci_broad_read ON devobs_ai.project_ci")
+
+    def test_runtime_holds_access_share_locks_before_policy_check(self):
+        # A concurrent migration must not alter the protected tables after
+        # the policy check but before the tenant-scoped read. Only CI fixture.
+        original = PostgresTenantStore._verify_readonly_contract
+        blocked = []
+
+        def check_inside_active_transaction(connection):
+            for table in ("memberships", "project_ci"):
+                # Identifier is a hardcoded fixture, not user input.
+                with psycopg.connect(ADMIN_DSN, autocommit=True) as migrator:
+                    try:
+                        with migrator.transaction():
+                            migrator.execute(
+                                f"LOCK TABLE devobs_ai.{table} "
+                                "IN ACCESS EXCLUSIVE MODE NOWAIT"
+                            )
+                    except psycopg.errors.LockNotAvailable:
+                        blocked.append(table)
+            return original(connection)
+
+        with patch.object(
+                PostgresTenantStore, "_verify_readonly_contract",
+                staticmethod(check_inside_active_transaction)):
+            self.assertEqual(
+                self.store.read_status("alice", "alpha", "shared")["source_sha"],
+                "a" * 40
+            )
+        self.assertEqual(blocked, ["memberships", "project_ci"])
 
     def test_exact_tenant_and_subject_match(self):
         self.assertEqual(self.store.read_status("alice","alpha","shared"),
