@@ -73,6 +73,44 @@ jobs:
       test_path: tests
       source_ref: ${{ inputs.source_ref || github.sha }}
 
+  # Disposable PostgreSQL fixture: NO external database, GCP resource or credentials.
+  postgres-rls:
+    if: inputs.validation_profile != 'rollback'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          # CI-only ephemeral service; NEVER use trust authentication in production.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PG_TEST_ADMIN_DSN: postgresql://postgres@127.0.0.1:5432/postgres
+      PG_TEST_READER_DSN: postgresql://devobs_ci_reader@127.0.0.1:5432/postgres
+    steps:
+      - name: Check out exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.source_ref || github.sha }}
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Install pinned runtime test dependencies
+        run: python3 -m pip install --disable-pip-version-check -r requirements-api.txt
+      - name: Prove tenant row-level security on PostgreSQL
+        run: python3 -m unittest discover -s tests -p 'test_postgres_rls_integration.py' -v
+
   node-tests:
     needs: change-analysis
     if: inputs.validation_profile != 'rollback' && needs.change-analysis.outputs.node_required == 'true'
@@ -180,7 +218,7 @@ jobs:
   # Keep this ID: the Protect main ruleset requires the validate check.
   validate:
     if: always()
-    needs: [change-analysis, python-tests, node-tests, security, site-contract]
+    needs: [change-analysis, python-tests, postgres-rls, node-tests, security, site-contract]
     runs-on: ubuntu-24.04
     timeout-minutes: 2
     steps:
@@ -188,6 +226,7 @@ jobs:
         env:
           PYTHON_RESULT: ${{ needs.python-tests.result }}
           NODE_RESULT: ${{ needs.node-tests.result }}
+          POSTGRES_RESULT: ${{ needs.postgres-rls.result }}
           SECURITY_RESULT: ${{ needs.security.result }}
           SITE_RESULT: ${{ needs.site-contract.result }}
           CHANGE_ANALYSIS_RESULT: ${{ needs.change-analysis.result }}
@@ -202,7 +241,7 @@ jobs:
           fi
           if [[ "$VALIDATION_PROFILE" == "rollback" ]]; then
             required_results=("$PYTHON_RESULT" "$SITE_RESULT")
-            if [[ "$NODE_RESULT" != "skipped" || "$SECURITY_RESULT" != "skipped" ]]; then
+            if [[ "$NODE_RESULT" != "skipped" || "$SECURITY_RESULT" != "skipped" || "$POSTGRES_RESULT" != "skipped" ]]; then
               echo "::error::Rollback compatibility profile must skip only Node and security jobs."
               exit 1
             fi
@@ -223,7 +262,7 @@ jobs:
               echo "::error::Node tests ran unexpectedly for this change: $NODE_RESULT"
               exit 1
             fi
-            required_results=("$SECURITY_RESULT" "$SITE_RESULT")
+            required_results=("$SECURITY_RESULT" "$SITE_RESULT" "$POSTGRES_RESULT")
           fi
           for result in "${required_results[@]}"; do
             if [[ "$result" != "success" ]]; then
