@@ -46,7 +46,12 @@ class PostgresTenantStore:
                         """SELECT COUNT(*),
                                   COALESCE(BOOL_AND(
                                       c.relrowsecurity AND c.relforcerowsecurity
+                                      AND row_security_active(c.oid)
+                                      AND c.relowner <> current_user::regrole
                                       AND has_table_privilege(current_user, c.oid, 'SELECT')
+                                      AND NOT has_table_privilege(
+                                          current_user, c.oid,
+                                          'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')
                                   ), FALSE)
                              FROM pg_class AS c
                              JOIN pg_namespace AS n ON n.oid = c.relnamespace
