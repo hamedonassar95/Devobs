@@ -61,6 +61,28 @@ class PostgresTenantStore:
                     ).fetchone()
                     if tables != (2, True):
                         raise StorageUnavailable("unsafe_database_schema")
+                    # PostgreSQL permissive SELECT policies are OR-combined.
+                    # RLS enabled+forced is insufficient when an extra policy
+                    # grants all rows. Require the reviewed policy inventory.
+                    policies = conn.execute(
+                        """SELECT tablename::text, policyname::text,
+                                  permissive, cmd, roles
+                             FROM pg_policies
+                            WHERE schemaname = 'devobs_ai'
+                              AND tablename IN ('project_ci', 'memberships')"""
+                    ).fetchall()
+                    found = {
+                        (table, name, mode, cmd, tuple(roles or []))
+                        for table, name, mode, cmd, roles in policies
+                    }
+                    expected = {
+                        ("memberships", "devobs_membership_self", "PERMISSIVE",
+                         "SELECT", ("devobs_ai_reader",)),
+                        ("project_ci", "devobs_project_member_read", "PERMISSIVE",
+                         "SELECT", ("devobs_ai_reader",)),
+                    }
+                    if len(policies) != len(expected) or found != expected:
+                        raise StorageUnavailable("unsafe_database_schema")
             return True
         except StorageUnavailable:
             raise
