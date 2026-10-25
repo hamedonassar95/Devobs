@@ -82,6 +82,35 @@ class PostgresTenantRLSTests(unittest.TestCase):
             self.admin.execute("REVOKE UPDATE ON devobs_ai.project_ci FROM devobs_ci_reader")
         self.assertIs(self.store.probe_readiness(), True)
 
+    def test_readiness_refuses_disabled_rls_on_each_table(self):
+        # CI fixture only. Never change an external/customer database.
+        self.assertIs(self.store.probe_readiness(), True)
+        for table in ("project_ci", "memberships"):
+            with self.subTest(table=table):
+                # Table names come from fixed trusted test fixtures, not inputs.
+                self.admin.execute(f"ALTER TABLE devobs_ai.{table} DISABLE ROW LEVEL SECURITY")
+                try:
+                    with self.assertRaisesRegex(StorageUnavailable, "^unsafe_database_schema$"):
+                        self.store.probe_readiness()
+                finally:
+                    self.admin.execute(f"ALTER TABLE devobs_ai.{table} ENABLE ROW LEVEL SECURITY")
+                self.assertIs(self.store.probe_readiness(), True)
+
+    def test_readiness_refuses_missing_select_on_each_table(self):
+        # Simulates privilege drift using only the disposable PostgreSQL CI DB.
+        self.assertIs(self.store.probe_readiness(), True)
+        for table in ("project_ci", "memberships"):
+            with self.subTest(table=table):
+                self.admin.execute(
+                    f"REVOKE SELECT ON devobs_ai.{table} FROM devobs_ai_reader")
+                try:
+                    with self.assertRaisesRegex(StorageUnavailable, "^unsafe_database_schema$"):
+                        self.store.probe_readiness()
+                finally:
+                    self.admin.execute(
+                        f"GRANT SELECT ON devobs_ai.{table} TO devobs_ai_reader")
+                self.assertIs(self.store.probe_readiness(), True)
+
     def test_exact_tenant_and_subject_match(self):
         self.assertEqual(self.store.read_status("alice","alpha","shared"),
                          {"ci_state":"success","source_sha":"a"*40})
