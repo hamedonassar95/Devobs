@@ -1,0 +1,45 @@
+name: DevObs Staging Contract Smoke (manual read-only)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: devobs-staging-smoke
+  cancel-in-progress: false
+
+jobs:
+  managed-staging-smoke:
+    name: Verify managed Staging read-only contract
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    environment: devobs-staging
+    steps:
+      - name: Checkout the approved main revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up pinned Python runtime
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Run HTTPS-only Staging verification (no deploy)
+        env:
+          DEVOBS_STAGING_BASE_URL: ${{ vars.DEVOBS_STAGING_BASE_URL }}
+          DEVOBS_STAGING_EXPECTED_HOST: ${{ vars.DEVOBS_STAGING_EXPECTED_HOST }}
+          DEVOBS_STAGING_TENANT: ${{ vars.DEVOBS_STAGING_TENANT }}
+          DEVOBS_STAGING_PROJECT: ${{ vars.DEVOBS_STAGING_PROJECT }}
+          DEVOBS_STAGING_DENIED_TENANT: ${{ vars.DEVOBS_STAGING_DENIED_TENANT }}
+          # Short-lived signed access token (< 15 min), provisioned by a
+          # human-approved operator immediately before this manual run.
+          # Never print this value or put it in repository/issue comments.
+          DEVOBS_STAGING_TOKEN: ${{ secrets.DEVOBS_STAGING_TOKEN }}
+          # Second short-lived token is scoped to the existing synthetic
+          # project in the denied tenant; never print or persist its value.
+          DEVOBS_STAGING_DENIED_TENANT_TOKEN: ${{ secrets.DEVOBS_STAGING_DENIED_TENANT_TOKEN }}
+        run: python3 scripts/devobs_intelligence/staging_smoke.py
