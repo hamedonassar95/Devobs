@@ -1,0 +1,47 @@
+[
+  {
+    "case_id": "ci",
+    "signals": {
+      "failed_checks": 2,
+      "error_rate_pct": 0,
+      "capacity_pct": 10
+    },
+    "expected_category": "ci_failure"
+  },
+  {
+    "case_id": "errors",
+    "signals": {
+      "failed_checks": 0,
+      "error_rate_pct": 9,
+      "capacity_pct": 10
+    },
+    "expected_category": "high_error_rate"
+  },
+  {
+    "case_id": "capacity",
+    "signals": {
+      "failed_checks": 0,
+      "error_rate_pct": 0,
+      "capacity_pct": 95
+    },
+    "expected_category": "capacity_pressure"
+  },
+  {
+    "case_id": "abstain",
+    "signals": {
+      "failed_checks": 0,
+      "error_rate_pct": 0,
+      "capacity_pct": 10
+    },
+    "expected_category": "unknown"
+  },
+  {
+    "case_id": "conflicting",
+    "signals": {
+      "failed_checks": 1,
+      "error_rate_pct": 9,
+      "capacity_pct": 10
+    },
+    "expected_category": "high_error_rate"
+  }
+]
