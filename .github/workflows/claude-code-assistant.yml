@@ -87,7 +87,7 @@ jobs:
       # The action prepares the event-specific checkout; do not check out PR code separately here.
       - name: Run Claude Code
         if: steps.budget.outputs.approved == 'true' && steps.credential.outputs.enabled == 'true'
-        uses: anthropics/claude-code-action@f27be6b65a4652f08a2ba3cff79114829b588967 # v1.0.0
+        uses: anthropics/claude-code-action@16f9f71ab9c490faf367f94dd294897edc25be33 # v1.0.261
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           claude_args: |

@@ -12,7 +12,7 @@ class ClaudeCodeAssistantWorkflowTests(unittest.TestCase):
         )
 
         self.assertIn(
-            "anthropics/claude-code-action@f27be6b65a4652f08a2ba3cff79114829b588967 # v1.0.0",
+            "anthropics/claude-code-action@16f9f71ab9c490faf367f94dd294897edc25be33 # v1.0.261",
             workflow,
         )
         self.assertIn("secrets.ANTHROPIC_API_KEY", workflow)
