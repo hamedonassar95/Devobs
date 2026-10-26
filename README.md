@@ -59,7 +59,21 @@ pip-audit --requirement requirements-dev.txt
 
 ## المراقبة المحلية الاختيارية
 
-يتضمن المستودع إعدادًا محليًا لـPrometheus وGrafana، ويراقب صحة Prometheus نفسه فقط؛ الموقع الثابت لا يوفّر حاليًا endpoint لمقاييس التطبيق. للتشغيل وكلمة مرور محلية مؤقتة، راجع [دليل المراقبة](docs/MONITORING.md). لا يفعّل هذا الإعداد مراقبة إنتاجية أو يرفع بيانات إلى خدمة خارجية.
+يتضمن المستودع إعدادًا محليًا لـPrometheus وGrafana. حاليًا يراقب Prometheus نفسه فقط؛ الموقع الثابت لا يوفّر endpoint لمقاييس التطبيق. شغّل المكونات من جذر المستودع بكلمة مرور Grafana محلية مؤقتة:
+
+```sh
+export GRAFANA_ADMIN_PASSWORD="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+docker compose -f monitoring/compose.yml up --detach
+```
+
+افتح Prometheus على <http://127.0.0.1:9090> وGrafana على <http://127.0.0.1:3000>، ثم أوقف الحاويات ونظّف متغير كلمة المرور:
+
+```sh
+docker compose -f monitoring/compose.yml down
+unset GRAFANA_ADMIN_PASSWORD
+```
+
+تظهر قواعد التنبيه في Prometheus، لكنها لا ترسل إشعارات لعدم إعداد Alertmanager. لا يفعّل هذا الإعداد مراقبة إنتاجية أو يرسل بيانات إلى خدمة خارجية. راجع [دليل المراقبة](docs/MONITORING.md) للتفاصيل والقيود.
 
 ## النشر
 
