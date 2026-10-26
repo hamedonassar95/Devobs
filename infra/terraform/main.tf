@@ -1,6 +1,11 @@
 terraform {
   required_version = "~> 1.17.0"
 
+  backend "gcs" {
+    bucket = "replace-with-existing-terraform-state-bucket"
+    prefix = "devobs/terraform/state"
+  }
+
   required_providers {
     google = {
       source  = "hashicorp/google"
