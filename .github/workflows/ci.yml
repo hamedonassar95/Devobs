@@ -236,15 +236,28 @@ jobs:
           container_name="devobs-web-smoke-${GITHUB_RUN_ID}"
           docker run --detach --rm --name "$container_name" --publish 127.0.0.1:18080:8080 "$IMAGE_TAG"
           trap 'docker stop "$container_name" >/dev/null 2>&1 || true' EXIT
-          for attempt in $(seq 1 20); do
-            if curl --fail --silent --show-error http://127.0.0.1:18080/ | grep -qi '<!doctype html'; then
-              echo 'Container served the expected HTML page.'
-              exit 0
+          health_status=""
+          for attempt in $(seq 1 30); do
+            health_status="$(docker inspect --format '{{.State.Health.Status}}' "$container_name")"
+            if [[ "$health_status" == "healthy" ]]; then
+              break
+            fi
+            if [[ "$health_status" == "unhealthy" ]]; then
+              docker inspect --format '{{json .State.Health}}' "$container_name" >&2
+              exit 1
             fi
             sleep 1
           done
-          echo 'Container did not serve the expected HTML page.' >&2
-          exit 1
+          if [[ "$health_status" != "healthy" ]]; then
+            echo "Container health check did not pass: $health_status" >&2
+            docker inspect --format '{{json .State.Health}}' "$container_name" >&2
+            exit 1
+          fi
+          if ! curl --fail --silent --show-error http://127.0.0.1:18080/ | grep -qi '<!doctype html'; then
+            echo 'Container did not serve the expected HTML page.' >&2
+            exit 1
+          fi
+          echo 'Container is healthy and served the expected HTML page.'
 
   terraform-validate:
     if: inputs.validation_profile != 'rollback'
