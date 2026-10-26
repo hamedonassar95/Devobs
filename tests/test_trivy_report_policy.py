@@ -41,13 +41,35 @@ class TrivyReportPolicyTests(unittest.TestCase):
         return status, stdout.getvalue(), stderr.getvalue(), summary_path
 
     def test_clean_image_and_missing_or_null_vulnerability_lists_pass(self):
-        for result in ({}, {"Vulnerabilities": None}, {"Vulnerabilities": []}):
+        for result in (
+            {"Target": "alpine:fixture (alpine 3)"},
+            {"Target": "alpine:fixture (alpine 3)", "Vulnerabilities": None},
+            {"Target": "alpine:fixture (alpine 3)", "Vulnerabilities": []},
+        ):
             with self.subTest(result=result):
                 status, out, err, summary = self.invoke({"ArtifactType": "container_image", "Results": [result]})
                 self.assertEqual(status, 0)
                 self.assertEqual(err, "")
                 self.assertIn("PASS", out)
                 self.assertIn("| CRITICAL | 0 |", summary.read_text(encoding="utf-8"))
+
+    def test_targetless_or_invalid_targets_fail_with_sanitized_error(self):
+        invalid_results = (
+            {},
+            {"Target": None},
+            {"Target": ""},
+            {"Target": "   "},
+            {"Target": 42},
+            {"Target": {"value": "synthetic-untrusted-target"}},
+        )
+        for result in invalid_results:
+            with self.subTest(result=result):
+                payload = {"ArtifactType": "container_image", "Results": [result]}
+                status, out, err, _ = self.invoke(payload)
+                self.assertEqual(status, 2)
+                self.assertEqual(out, "")
+                self.assertEqual(err, "ERROR: missing, malformed, or unsupported Trivy JSON report\n")
+                self.assertNotIn("synthetic-untrusted-target", out + err)
 
     def test_medium_low_and_unknown_are_counted_without_blocking(self):
         status, out, _, summary = self.invoke(report("MEDIUM", "LOW", "UNKNOWN"))

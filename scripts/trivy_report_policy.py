@@ -33,6 +33,9 @@ def evaluate_report(report: Any) -> tuple[bool, dict[str, int]]:
     for result in results:
         if not isinstance(result, dict):
             raise InvalidReport
+        target = result.get("Target")
+        if not isinstance(target, str) or not target.strip():
+            raise InvalidReport
         vulnerabilities = result.get("Vulnerabilities")
         if vulnerabilities is None:
             continue
