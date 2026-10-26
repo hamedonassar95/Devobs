@@ -87,7 +87,7 @@ This is a timestamped P00 evidence snapshot, not a replacement roadmap or phase 
 
 **P01 remains planning only.** Before creating any staging resource, obtain separate owner authorization for provider/account, region/residency, monthly spend ceiling/quota, data classification and retention, IdP/JWKS and secret policy, restricted DB identity/FORCE RLS/live tenant-isolation proof, backup/restore and rollback. No resource, migration, provider or billing action was taken for this audit.
 
-## Post-#275 current evidence baseline — 2026-10-26 16:39 UTC
+## Post-#275 historical evidence baseline — 2026-10-26 16:39 UTC (before owner decision below)
 
 This is an immutable observation baseline, not a standing “current main” claim. Merging this document-only PR will create a newer main SHA and may trigger the existing main-only Pages release; the owner decision must therefore record a fresh SHA and required check run.
 
@@ -99,3 +99,11 @@ This is an immutable observation baseline, not a standing “current main” cla
 - **UNVERIFIED — bounded residuals:** no real partial retry has been run; concurrent full reruns may contend over the run-scoped artifact; retention is seven days; Pages/CDN transformations are unverified. No live managed staging, API/OIDC, production tenant RLS, or commercial SaaS proof is provided or required to decide this scoped P00 release-governance gate.
 
 **P00 remains ACTIVE; P01–P12 remain BLOCKED.** The blank [P00 owner decision packet](P00_OWNER_DECISION.md) requires a fresh exact-main `validate` at the actual decision SHA, explicit review-policy choice, PR #273 thread disposition and residual-risk acceptance. It does not infer a GO from #275 merge, CI, Pages publication, or Vercel status.
+
+## P00 owner decision recorded — 2026-10-26 17:58:32 UTC
+
+**VERIFIED owner decision:** [GitHub Conversation comment by `hamedonassar95`](https://github.com/hamedonassar95/Devobs/pull/277#issuecomment-6423508484) records GO with explicitly accepted bounded P00 residual risks. This is an owner phase decision, not a submitted PR review. It is based on exact main SHA [`49353c541918389082b3b3f3937d9424ddf41b38`](https://github.com/hamedonassar95/Devobs/commit/49353c541918389082b3b3f3937d9424ddf41b38) and [push run 40371068649](https://github.com/hamedonassar95/Devobs/actions/runs/40371068649), whose required `validate`, security, Trivy, RLS, site-contract, container, Terraform, Pages publish and production health jobs succeeded. Python/Node were skipped for the docs-only change. [CodeQL run 40371067323](https://github.com/hamedonassar95/Devobs/actions/runs/40371067323) also succeeded. The validated site artifact was `validated-site-main-40371068649`, linked to this SHA/run, with expiry 2026-11-02 17:42:11 UTC.
+
+The owner accepts no live partial failed-job rerun test, possible concurrent full-rerun contention, seven-day validated-artifact retention, unverified Pages/CDN transformations and Vercel byte equivalence, and the observed review policy including the conditional approval flag. Its trigger semantics remain **UNVERIFIED**. The owner chose to leave the historical [#273 P2 thread OPEN](https://github.com/hamedonassar95/Devobs/pull/273#discussion_r4379203170); its correction is in [merged #274](https://github.com/hamedonassar95/Devobs/pull/274).
+
+**P00 owner GO recorded; P01–P12 remain BLOCKED.** This does not authorize provider/resources, spend, privacy or data use, identity, database/RLS, backup/restore, paid AI, production release or deployment. P01 requires separate explicit authorization before resource creation. At this snapshot the documentation update is unmerged; if later merged, it may automatically trigger the existing main-only static Pages release, which is not authorized by the decision comment.
