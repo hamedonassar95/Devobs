@@ -1,8 +1,8 @@
 # DevObs AI Intelligence — Authenticated read-only API security gate
 
-**Scope:** Original `hamedonassar95/Devobs` only. Proposed, **not deployed**. Branch `feat/devobs-oidc-readonly-api-20261025`. No external IdP, user signup, secrets, cloud database, public API host or paid platform was configured.
+**Scope:** Original `hamedonassar95/Devobs` only. The read-only source implementation is present in `main`, but the service is **not deployed**. `feat/devobs-oidc-readonly-api-20261025` is the historical development branch name, not a deployment. No external IdP, user signup, secrets, cloud database, public API host or paid platform was configured.
 
-## Implemented in this change
+## Implemented source components (not deployed)
 
 - `scripts/devobs_intelligence/oidc_tokens.py`: validates **RFC 9068-style JWT OAuth access tokens**, not OIDC ID Tokens. Public RSA signing keys are supplied by an operator-pinned JWKS; this module never fetches arbitrary URLs, never loads private keys, and never reads a provider secret.
 - Required checks: `typ=at+jwt`, `RS256` allowlist, known `kid`, RSA signature, exact HTTPS issuer, exact single-value audience, configured client ID, `sub`, `exp`, `iat`, `jti`, explicit `devobs.read` scope and max 15-minute issued lifetime.
@@ -33,7 +33,7 @@ python3 -m unittest discover -s tests -v
 python3 -m compileall -q scripts tests
 ```
 
-Run the existing `CI` and `CodeQL` on the exact Draft PR SHA. The new dependency manifest is audited by `pip-audit --requirement requirements-api.txt` in the existing security job, without altering any production workflow. All changes must pass before review/merge.
+For further changes, run the existing `CI` and required security checks on the exact candidate SHA. The dependency manifest is audited by `pip-audit --requirement requirements-api.txt` in CI. Passing code checks do not verify a hosted API, provider configuration or production tenant isolation.
 
 ## Pending requirements before a paid product
 
