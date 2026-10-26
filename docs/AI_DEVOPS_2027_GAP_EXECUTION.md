@@ -1,9 +1,9 @@
 # DevObs AI DevOps Intelligence — 2027 target gap plan
 
-**Canonical project:** `hamedonassar95/Devobs`. **Base main:** `230712b060e2969b55be8812e00d5cf961952d6a`. **Branch:** `feat/devobs-intelligence-context-eval-2027`. No repository transfer, main mutation, production deploy, secrets, billing or autonomous remediation.
+**Canonical project:** `hamedonassar95/Devobs`. **Historical base main when authored:** `230712b060e2969b55be8812e00d5cf961952d6a`. **Historical branch:** `feat/devobs-intelligence-context-eval-2027`. As of 2026-10-25, current `main` is `85956696df6f8722e2c8d7d1d88f7a03653c2d56`. This plan did not transfer repositories, mutate `main`, deploy production, configure secrets/billing, or enable autonomous remediation.
 
 ## Evidence baseline, October 25 2026
-VERIFIED in source: `scripts/devobs_intelligence` already implements bounded GitHub/GitLab CI evidence, offline adviser, deterministic policies, local audit, tenant scope, offline evaluation, token-verified read API and SQLite demo. `docs/AI_EVALUATION_DATASETS.md` already contains separate offline incident investigator scoring datasets. `docs/AI_GOVERNANCE_2027.md` describes AI approval and cost controls. Protected main and GitHub CI/security exist. Draft PR #218 separately proposes PostgreSQL forced-RLS; **do not duplicate or merge it**.
+VERIFIED in source: `scripts/devobs_intelligence` implements bounded GitHub/GitLab CI evidence, an offline adviser, deterministic policies, local audit, tenant scope, offline evaluation, a token-verified read API contract and SQLite demo. `docs/AI_EVALUATION_DATASETS.md` contains offline incident-investigator scoring datasets. `docs/AI_GOVERNANCE_2027.md` describes AI approval and cost controls. PRs #213, #216, #218 and #219 are merged as [`b93f4de`](https://github.com/hamedonassar95/Devobs/commit/b93f4de23e9c9049a0d773a1e1148417050281b6), [`a060412`](https://github.com/hamedonassar95/Devobs/commit/a06041290ceeb43a313b6ab5a405e55340bf2e11), [`d9adfb0`](https://github.com/hamedonassar95/Devobs/commit/d9adfb06ee2ef4609e0a6910e404fb60ee24619b) and [`35108f1`](https://github.com/hamedonassar95/Devobs/commit/35108f1fd8ac64326c80ab7b75d2a38e4295cb72). PR #218's RLS integration tests use an ephemeral PostgreSQL service in CI and do **not** prove hosted database isolation or production readiness.
 
 **Gap:** no live OTLP ingestion, service dependency graph, trusted incident retrieval, topology-aware incident narratives, objectively measured top-1/top-3 RCA, durable cross-service trace export, authentic reviewer-bound approval, externally anchored audit, working SaaS or certification.
 
@@ -31,7 +31,7 @@ VERIFIED in source: `scripts/devobs_intelligence` already implements bounded Git
 1. Machine-readable AI-BOM/system card/controls evidence schema, clearly separating implemented, unverified, and future components.
 2. Governance and KPI/SLI scorecard specification with trustworthy numerators and denominator; no invented live values.
 3. Level 0 evidence-only and Level 1 proposals permitted by policy; L2+ and deploy/rollback/scale blocked until approved execution service and independent authorization.
-4. CI/security on the exact Draft PR SHA, no auto merge.
+4. CI/security on the exact candidate SHA, no auto merge.
 
 ## Deferred until independently configured and funded
 True OTel Collector/OTLP endpoints, actual production graph metadata, embeddings and vector privacy controls, remote AI model, delegated MCP tools, Slack/Teams actor verification, durable immutable cloud audit anchoring, PostgreSQL hosted tenant isolation, on-call/SLO measurement, cloud IaC application, Kubernetes, backups and restore exercises, SOC 2/ISO certifications, EU-specific legal assessments, payment provider, enterprise customer contracts.
