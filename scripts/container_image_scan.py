@@ -24,9 +24,12 @@ def evaluate(report: dict[str, Any]) -> tuple[bool, dict[str, int]]:
     for result in report["Results"]:
         if not isinstance(result, dict):
             raise ValueError("Trivy JSON report contains an invalid result")
-        if result.get("Vulnerabilities") is None:
+        vulnerabilities = result.get("Vulnerabilities")
+        if vulnerabilities is None:
             continue
-        for vuln in result["Vulnerabilities"]:
+        if not isinstance(vulnerabilities, list):
+            raise ValueError("Trivy JSON report contains an invalid vulnerability collection")
+        for vuln in vulnerabilities:
             if not isinstance(vuln, dict):
                 raise ValueError("Trivy report contains an invalid vulnerability")
             severity = vuln.get("Severity")

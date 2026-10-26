@@ -31,6 +31,16 @@ class ScanEvaluationTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             scan.evaluate({"Results": []})
 
+    def test_malformed_vulnerability_collections_fail_closed(self):
+        for vulnerabilities in ({}, "", "not-a-list"):
+            with self.subTest(vulnerabilities=vulnerabilities):
+                report = {
+                    "ArtifactType": "container_image",
+                    "Results": [{"Vulnerabilities": vulnerabilities}],
+                }
+                with self.assertRaises(ValueError):
+                    scan.evaluate(report)
+
 
 class CliTests(unittest.TestCase):
     def test_missing_image_configuration_is_not_configured(self):
