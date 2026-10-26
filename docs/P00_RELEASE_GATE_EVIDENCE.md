@@ -63,7 +63,7 @@ This is a timestamped P00 evidence snapshot, not a replacement roadmap or phase 
 - [Get branch protection REST API](https://docs.github.com/en/rest/branches/branch-protection#get-branch-protection)
 - [Workflow runs REST API](https://docs.github.com/en/rest/actions/workflow-runs)
 
-## Post-#274 current evidence refresh — 2026-10-26 15:57 UTC
+## Post-#274 historical evidence snapshot — 2026-10-26 15:57 UTC (superseded below)
 
 **VERIFIED — live GitHub snapshot:** `main` is [`6ae1864a3920ba4e29f83d623abf9741b3929d96`](https://github.com/hamedonassar95/Devobs/commit/6ae1864a3920ba4e29f83d623abf9741b3929d96), merge commit for [PR #274](https://github.com/hamedonassar95/Devobs/pull/274). PR #253 and #262 are **CLOSED, unmerged**; #259 and #270–#274, including #271 and #272, are **MERGED**. The live open-PR query returned none.
 
@@ -86,3 +86,16 @@ This is a timestamped P00 evidence snapshot, not a replacement roadmap or phase 
 5. Records the P00 phase decision in a follow-up. This evidence refresh does not sign off P00 or authorize P01.
 
 **P01 remains planning only.** Before creating any staging resource, obtain separate owner authorization for provider/account, region/residency, monthly spend ceiling/quota, data classification and retention, IdP/JWKS and secret policy, restricted DB identity/FORCE RLS/live tenant-isolation proof, backup/restore and rollback. No resource, migration, provider or billing action was taken for this audit.
+
+## Post-#275 current evidence baseline — 2026-10-26 16:39 UTC
+
+This is an immutable observation baseline, not a standing “current main” claim. Merging this document-only PR will create a newer main SHA and may trigger the existing main-only Pages release; the owner decision must therefore record a fresh SHA and required check run.
+
+**VERIFIED:** PR [#275](https://github.com/hamedonassar95/Devobs/pull/275) merged at 16:27 UTC as [`ae4edbdeb184232e62ace3308b32765f0cd8a02c`](https://github.com/hamedonassar95/Devobs/commit/ae4edbdeb184232e62ace3308b32765f0cd8a02c), the main SHA at this 16:39 snapshot. Its GitHub review API has no submitted human review. Its advisory AI workflow comment says inference was skipped due to absent explicit budget approval; a workflow conclusion is not human signoff. The main push run [40359244066](https://github.com/hamedonassar95/Devobs/actions/runs/40359244066) on the exact SHA passed [`validate`](https://github.com/hamedonassar95/Devobs/actions/runs/40359244066/job/121700155568), security, Trivy, PostgreSQL RLS, Terraform, container build and site-contract. Python and Node jobs were skipped for the docs-only change. CodeQL passed Actions, Python and JavaScript/TypeScript in [run 40359243033](https://github.com/hamedonassar95/Devobs/actions/runs/40359243033).
+
+- **VERIFIED — release/artifact:** run 40359244066's site-contract uploaded `validated-site-main-40359244066`; its normal Pages publish job downloaded and validated that same-run artifact, uploaded it to Pages, deployed it, and passed production health verification. Artifact metadata is [available for this workflow run](https://api.github.com/repos/hamedonassar95/Devobs/actions/runs/40359244066/artifacts); it records seven-day retention. This establishes the normal static Pages path for this SHA only.
+- **VERIFIED — optional provider status:** the combined status for this SHA reports Vercel success ([deployment status](https://vercel.com/hamedonassar/devobs/FebGWK9eMEDan8F1e7W3GJrNNhpW)). This is provider status only, not proof of API, SaaS, or tenant isolation. Vercel stages its candidate separately and byte equivalence is unverified.
+- **VERIFIED — PR dispositions/rules:** #253/#262 are closed unmerged; #259 and #270–#275 are merged. #273's historical [P2 retry thread](https://github.com/hamedonassar95/Devobs/pull/273#discussion_r4379203170) remains unresolved and not outdated, while the correction is present in #274. The effective rules API requires PR and strict `validate`, blocks deletion/non-fast-forward, and reports zero mandatory approving reviews and no Code Owner rule. **UNVERIFIED:** the legacy branch-protection endpoint returned 403 for this audit's API identity; external organization policy is not shown.
+- **UNVERIFIED — bounded residuals:** no real partial retry has been run; concurrent full reruns may contend over the run-scoped artifact; retention is seven days; Pages/CDN transformations are unverified. No live managed staging, API/OIDC, production tenant RLS, or commercial SaaS proof is provided or required to decide this scoped P00 release-governance gate.
+
+**P00 remains ACTIVE; P01–P12 remain BLOCKED.** The blank [P00 owner decision packet](P00_OWNER_DECISION.md) requires a fresh exact-main `validate` at the actual decision SHA, explicit review-policy choice, PR #273 thread disposition and residual-risk acceptance. It does not infer a GO from #275 merge, CI, Pages publication, or Vercel status.
