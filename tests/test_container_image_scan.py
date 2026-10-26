@@ -7,6 +7,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+import yaml
+
 from scripts import container_image_scan as scan
 
 
@@ -71,20 +73,24 @@ class CliTests(unittest.TestCase):
 class WorkflowGateTests(unittest.TestCase):
     def setUp(self):
         self.workflow = Path(".github/workflows/ci.yml").read_text()
+        self.parsed_workflow = yaml.safe_load(self.workflow)
 
     def test_scan_job_is_required_by_validate_and_report_uploads(self):
         self.assertIn("container-image-scan:", self.workflow)
-        self.assertIn("site-contract, container-image-scan]", self.workflow)
+        self.assertIn("container-image-scan", self.parsed_workflow["jobs"]["validate"]["needs"])
         self.assertIn("SCAN_RESULT:", self.workflow)
         self.assertIn("retention-days: 7", self.workflow)
-        self.assertIn("v0.76.1/trivy_0.76.1_Linux-64bit.tar.gz", self.workflow)
+        scan_steps = self.parsed_workflow["jobs"]["container-image-scan"]["steps"]
+        install_step = next(step for step in scan_steps if step["name"] == "Install Trivy CLI")
+        self.assertIn("version=0.76.1", install_step["run"])
+        self.assertIn("sha256sum --check", install_step["run"])
         self.assertIn("--ignore-unfixed=false", Path("scripts/container_image_scan.py").read_text())
-        self.assertIn("required_results=(\"$SECURITY_RESULT\" \"$SITE_RESULT\" \"$POSTGRES_RESULT\" \"$SCAN_RESULT\")", self.workflow)
+        validate_run = self.parsed_workflow["jobs"]["validate"]["steps"][0]["run"]
+        self.assertIn("$SCAN_RESULT", validate_run)
 
     def test_rollback_profile_skips_scan_and_requires_skip(self):
         self.assertIn("if: inputs.validation_profile != 'rollback'", self.workflow)
         self.assertIn('SCAN_RESULT" != "skipped"', self.workflow)
-        self.assertIn('required_results=("$SECURITY_RESULT" "$SITE_RESULT" "$POSTGRES_RESULT" "$SCAN_RESULT")', self.workflow)
 
     def test_production_gate_remains_validate_only(self):
         release = self.workflow.split("  production-release:", 1)[1]

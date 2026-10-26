@@ -4,7 +4,7 @@
 
 ## ما ينفذه CI
 
-- يعمل على Pull Requests إلى main، وبعد تحديث main، ويدعم التشغيل اليدوي.
+- يعمل على كل push إلى أي فرع، وعلى كل Pull Request، ويدعم التشغيل اليدوي والاستدعاء من workflows أخرى. لا توجد مرشحات paths تتجاوز فحص `validate`.
 - يحافظ على اسم الفحص `validate` المطلوب في قاعدة `Protect main` الحالية.
 - يتحقق من استخدام Python 3.10 أو أحدث، ويجمع ملفات `scripts/` و`tests/` لاكتشاف أخطاء الصياغة.
 - يرفض استمرار فحص unittest إذا لم يكتشف أي حالات اختبار.
@@ -18,8 +18,13 @@
 - يشغّل اختبارات حواجز التحقق، وحالات الحوادث والتعافي، وعقد التحقيق والثقة.
 - يختار الاختبارات بحسب الملفات المتغيرة؛ تغييرات workflows والإجراءات المحلية تشغّل اختبارات عقود Python حتى عندما تكون درجة المخاطر متوسطة. إذا تعذّر تحديد فرق موثوق، مثل غياب commit الأساس، يشغّل الفحص الكامل بدل الاعتماد على قائمة ملفات ناقصة من حمولة الحدث.
 - ينشئ معاينة HTML قابلة للتنزيل على Pull Requests بعد نجاح الفحوص؛ تُحتفظ بها 7 أيام ولا تنشر إلى الإنتاج.
-- يفحص وظيفة `container-image-scan` صورة التطبيق المبنية محليًا باستخدام Trivy CLI v0.76.1. يفشل عند HIGH أو CRITICAL أو أخطاء Trivy/قاعدة البيانات، ويعرض MEDIUM وLOW دون حظر. يحفظ JSON كتقرير artifact لمدة 7 أيام.
-- إذا لم يوجد `Dockerfile` في revision المفحوص، يعرض الفحص `NOT_CONFIGURED` ولا يدّعي تغطية صورة. هذا ينطبق على `main` حاليًا؛ هدف الموقع الثابت موجود في PR #248 المتسلسل فوق PR #247 ولم يُدمج بعد. بعد إضافة Dockerfile إلى `main` يبني CI الصورة ويفحص حزم نظام التشغيل واعتماديات التطبيقات التي يتعرف عليها Trivy.
+- يبني صورة اختيارية للموقع الثابت ويختبرها محليًا على loopback؛ لا يرفع الصورة إلى سجل حاويات.
+- يفحص صورة التطبيق بواسطة Trivy CLI v0.76.1 بعد التحقق من checksum الرسمي؛ يفشل عند HIGH أو CRITICAL أو أخطاء Trivy أو التقرير، ويرفع تقرير JSON لمدة سبعة أيام. إذا لم يوجد Dockerfile في النسخة المفحوصة، يسجل `NOT_CONFIGURED` دون فحص صورة غير مرتبطة.
+- ينسّق إعداد Terraform ويفحص صحته بعد تهيئة المزوّد دون backend؛ لا ينفذ `plan` أو `apply` ولا يحتاج اعتماد GCP.
+
+مرجع الأوامر: [Docker image build](https://docs.docker.com/reference/cli/docker/image/build/)، [Trivy image CLI](https://trivy.dev/latest/docs/references/configuration/cli/trivy_image/)، و[مدة الاحتفاظ بأثر GitHub Actions](https://docs.github.com/en/actions/using-workflows/storing-workflow-data-as-artifacts#configuring-a-custom-artifact-retention-period-for-an-artifact).
+
+تشغيل CI على جميع الفروع لا ينشر إلى الإنتاج: وظيفة النشر الحالية ما زالت مشروطة بدفع ناجح إلى `main` فقط. راجع [أحداث GitHub Actions الرسمية](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#push).
 
 هذه فحوص متطلبات المشروع، وليست مدقق HTML/CSS شاملًا أو اختبار عرض في متصفح أو تدقيق وصول كاملًا. اختبار HTTP يخص الخادم المحلي، ولا يثبت صحة إعدادات الاستضافة أو النشر الفعلي. عند إضافة صفحات أو JavaScript أو عملية build يجب توسيع الفحوص.
 

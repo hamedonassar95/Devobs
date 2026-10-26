@@ -40,7 +40,7 @@ python3 -m bandit -r scripts -x scripts/check_site.py
 pip-audit --requirement requirements-dev.txt
 ```
 
-يفحص GitHub Actions الأسرار باستخدام Gitleaks، ويتحقق من تثبيت الإجراءات الخارجية على SHA كامل. يفحص CI صور التطبيق محليًا بواسطة Trivy v0.76.1 ويفشل عند HIGH/CRITICAL؛ يعرض `NOT_CONFIGURED` بلا ادعاء تغطية ما دام `main` لا يحتوي Dockerfile (هدف Docker متاح حاليًا في PR #248 المتسلسل غير المدمج). التقرير JSON artifact محتفظ به سبعة أيام. راجع [نطاق وضوابط DevSecOps](docs/DEVSECOPS.md). لا يحتاج تشغيل الموقع أو الاختبارات إلى مفاتيح أو حسابات خدمات خارجية.
+يفحص GitHub Actions الأسرار باستخدام Gitleaks، ويتحقق من تثبيت الإجراءات الخارجية على SHA كامل. يبني CI صورة Docker ويفحصها بواسطة Trivy v0.76.1؛ يفشل عند HIGH أو CRITICAL أو أخطاء الفحص، ويحفظ تقرير JSON كأثر لمدة سبعة أيام. لا يدفع الصورة إلى سجل حاويات. راجع [دليل CI](docs/CI.md) و[نطاق وضوابط DevSecOps](docs/DEVSECOPS.md). لا يحتاج تشغيل الموقع أو الاختبارات إلى مفاتيح أو حسابات خدمات خارجية.
 
 ## الإعداد والأسرار
 
@@ -56,6 +56,24 @@ pip-audit --requirement requirements-dev.txt
 يصدر GitHub Actions قيمة `GITHUB_TOKEN` تلقائيًا لكل تشغيل؛ لا تنشئها يدويًا. إعداد Vertex AI يستخدم اتحاد هوية GitHub Actions مع Google Cloud ولا يحتاج مفتاح حساب خدمة. تُحفظ معرفات مشروع Google ومزوّد الهوية وحساب الخدمة كـ **Variables** غير سرية. راجع [إعداد Vertex AI](docs/VERTEX_AI_FALLBACK.md). يمكن إضافة متغيرات إعداد gh-aw غير الحساسة من صفحة **Variables** نفسها.
 
 لا تضع اعتمادًا حقيقيًا في `.env.example` أو المستندات أو الشيفرة. إذا سبق كشف اعتماد، أبطله ودوّره قبل متابعة استخدامه.
+
+## المراقبة المحلية الاختيارية
+
+يتضمن المستودع إعدادًا محليًا لـPrometheus وGrafana. حاليًا يراقب Prometheus نفسه فقط؛ الموقع الثابت لا يوفّر endpoint لمقاييس التطبيق. شغّل المكونات من جذر المستودع بكلمة مرور Grafana محلية مؤقتة:
+
+```sh
+export GRAFANA_ADMIN_PASSWORD="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+docker compose -f monitoring/compose.yml up --detach
+```
+
+افتح Prometheus على <http://127.0.0.1:9090> وGrafana على <http://127.0.0.1:3000>، ثم أوقف الحاويات ونظّف متغير كلمة المرور:
+
+```sh
+docker compose -f monitoring/compose.yml down
+unset GRAFANA_ADMIN_PASSWORD
+```
+
+تظهر قواعد التنبيه في Prometheus، لكنها لا ترسل إشعارات لعدم إعداد Alertmanager. لا يفعّل هذا الإعداد مراقبة إنتاجية أو يرسل بيانات إلى خدمة خارجية. راجع [دليل المراقبة](docs/MONITORING.md) للتفاصيل والقيود.
 
 ## النشر
 

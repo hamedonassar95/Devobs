@@ -6,7 +6,7 @@ import argparse
 import json
 import os
 import shutil
-import subprocess
+import subprocess  # nosec B404 - the scanner invokes the verified Trivy executable without a shell.
 import sys
 from pathlib import Path
 from typing import Any
@@ -46,12 +46,13 @@ def main() -> int:
     if not args.image.strip():
         print("NOT_CONFIGURED: no application image target is configured.")
         return 0
-    if shutil.which(args.trivy) is None:
+    trivy_binary = shutil.which(args.trivy)
+    if trivy_binary is None:
         print(f"ERROR: scanner executable not found: {args.trivy}", file=sys.stderr)
         return 2
-    command = [args.trivy, "image", "--scanners", "vuln", "--severity", "CRITICAL,HIGH,MEDIUM,LOW", "--format", "json", "--exit-code", "0", "--ignore-unfixed=false", "--no-progress", "--output", str(args.report), args.image]
+    command = [trivy_binary, "image", "--scanners", "vuln", "--severity", "CRITICAL,HIGH,MEDIUM,LOW", "--format", "json", "--exit-code", "0", "--ignore-unfixed=false", "--no-progress", "--output", str(args.report), args.image]
     try:
-        result = subprocess.run(command, check=False, capture_output=True, text=True)
+        result = subprocess.run(command, check=False, capture_output=True, text=True, shell=False)  # nosec B603 - argv is passed without shell parsing.
     except OSError as exc:
         print(f"ERROR: could not execute Trivy: {exc}", file=sys.stderr)
         return 2

@@ -1,6 +1,6 @@
 # DevObs Enterprise — tenant boundary and AI evaluation (offline v1)
 
-**Status:** proposed capabilities in Draft PR #216. Same original repository: `hamedonassar95/Devobs`. No repository migration, hosted service, paid provider, cloud provisioning, deployment or customer accounts.
+**Status (2026-10-25):** The offline tenant boundary and synthetic evaluation source merged in [PR #216](https://github.com/hamedonassar95/Devobs/pull/216) as [`a060412`](https://github.com/hamedonassar95/Devobs/commit/a06041290ceeb43a313b6ab5a405e55340bf2e11); PostgreSQL RLS integration tests merged in [PR #218](https://github.com/hamedonassar95/Devobs/pull/218) as [`d9adfb0`](https://github.com/hamedonassar95/Devobs/commit/d9adfb06ee2ef4609e0a6910e404fb60ee24619b). This document describes source-level and CI capabilities only. No hosted service, paid provider, cloud provisioning, deployment or customer accounts are established.
 
 ## Implemented in this phase
 

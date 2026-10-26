@@ -1,0 +1,20 @@
+groups:
+  - name: devobs-prometheus
+    rules:
+      - alert: PrometheusScrapeTargetDown
+        expr: up{job="prometheus"} == 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: Prometheus scrape target is down
+          description: Prometheus has failed to scrape its own target for more than one minute.
+
+      - alert: PrometheusScrapeTargetMissing
+        expr: absent(up{job="prometheus"})
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Prometheus scrape target is missing
+          description: No Prometheus self-scrape target has been present for more than two minutes.

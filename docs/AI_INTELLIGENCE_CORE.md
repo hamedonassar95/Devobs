@@ -1,6 +1,6 @@
 # DevObs AI Intelligence — Core v1
 
-**Status:** Offline-first implementation for review in a Draft PR. No production AI inference, deployment, tenant accounts, hosted database, GitLab synchronization or scheduled automation is enabled by these files.
+**Status (2026-10-25):** The source implementation and architecture are merged into `main` through [PR #213](https://github.com/hamedonassar95/Devobs/pull/213) (merge commit `b93f4de23e9c9049a0d773a1e1148417050281b6`). This remains an offline-first prototype: it does not establish production AI inference, a deployed API, hosted tenant accounts/database, live GitLab synchronization, or scheduled automation.
 
 ## Implemented interfaces
 
@@ -28,11 +28,11 @@ python3 -m unittest discover -s tests -p 'test_intelligence_policy.py' -v
 python3 -m compileall -q scripts tests
 ```
 
-These tests use synthetic data; no external APIs, model tokens or cloud budgets are required. For project-wide confidence, the existing CI `validate`, CodeQL, Bandit, dependency audit and secret scanning still need to complete successfully on the exact Draft PR SHA.
+These tests use synthetic data; no external APIs, model tokens or cloud budgets are required. Run CI and security checks on the exact candidate SHA before merging further changes. A passing repository run does not establish a deployed service or live model quality. The repository ruleset requires a CodeQL alert threshold, but the latest CodeQL analysis result was not independently verified in this review.
 
 ## Next implementation gates
 
-Follow [the architecture plan (Draft PR #213)](https://github.com/hamedonassar95/Devobs/pull/213) once it is merged and reviewed. Tasks 4–7 remain planned, not delivered: bounded offline AI recommendation with adversarial tests, durable/idempotent audit records, an independently authorized Draft-only proposal adapter, and tested SaaS tenant isolation. No SaaS hosting or billing until these acceptance gates pass.
+The architecture plan in [PR #213](https://github.com/hamedonassar95/Devobs/pull/213) merged as [`b93f4de`](https://github.com/hamedonassar95/Devobs/commit/b93f4de23e9c9049a0d773a1e1148417050281b6). Later source and test work merged as [PR #216 / `a060412`](https://github.com/hamedonassar95/Devobs/commit/a06041290ceeb43a313b6ab5a405e55340bf2e11), [PR #218 / `d9adfb0`](https://github.com/hamedonassar95/Devobs/commit/d9adfb06ee2ef4609e0a6910e404fb60ee24619b), and [PR #219 / `35108f1`](https://github.com/hamedonassar95/Devobs/commit/35108f1fd8ac64326c80ab7b75d2a38e4295cb72). These are source and test capabilities, not a hosted product. Remaining gates include authenticated hosted staging, live identity and database verification, durable external audit anchoring, expert-reviewed evaluations, independent action-bound approvals, and measured cost/privacy/backup controls. No SaaS hosting or billing is enabled.
 
 ## Relevant authoritative guidance (reviewed 2026-10-25)
 
