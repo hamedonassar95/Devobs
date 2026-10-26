@@ -275,14 +275,25 @@ jobs:
       - name: Require the application Dockerfile
         shell: bash
         run: |
+          set -euo pipefail
           if [[ ! -f Dockerfile ]]; then
             echo '::error::Root Dockerfile is required to scan the application image.' >&2
             exit 1
           fi
+      - name: Identify checked out source revision
+        shell: bash
+        run: |
+          set -euo pipefail
+          commit_sha="$(git rev-parse HEAD)"
+          if [[ ! "$commit_sha" =~ ^[a-f0-9]{40}$ ]]; then
+            echo '::error::Checked out revision is not a full Git SHA.' >&2
+            exit 1
+          fi
+          echo "COMMIT_SHA=$commit_sha" >> "$GITHUB_ENV"
       - name: Build image for vulnerability scanning
-        env:
-          IMAGE_TAG: devobs-web:${{ github.sha }}
-        run: docker build --pull --tag "$IMAGE_TAG" .
+        run: |
+          set -euo pipefail
+          docker build --pull --tag "devobs-web:${COMMIT_SHA}" .
       - name: Install checksum-verified Trivy 0.76.1
         shell: bash
         run: |
@@ -305,21 +316,25 @@ jobs:
           tar -xzf "$archive_path" -C "$install_dir" trivy
           sudo install -m 0755 "$install_dir/trivy" /usr/local/bin/trivy
           trivy --version | grep -Fx "Version: $version"
-      - name: Scan image and fail on high or critical vulnerabilities
+      - name: Scan image and enforce fail-closed vulnerability policy
         env:
-          IMAGE_TAG: devobs-web:${{ github.sha }}
           REPORT_PATH: ${{ runner.temp }}/trivy-image-report.json
         # Trivy image CLI options: https://trivy.dev/latest/docs/references/configuration/cli/trivy_image/
-        run: >-
-          trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed=false --exit-code 1
-          --format json --output "$REPORT_PATH" "$IMAGE_TAG"
+        run: |
+          set -euo pipefail
+          trivy image --scanners vuln --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL --ignore-unfixed=false --exit-code 0 \
+            --format json --output "$REPORT_PATH" "devobs-web:${COMMIT_SHA}"
+          python3 scripts/trivy_report_policy.py \
+            --report "$REPORT_PATH" \
+            --summary "$GITHUB_STEP_SUMMARY" \
+            --revision "$COMMIT_SHA"
       - name: Upload Trivy report
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: trivy-image-report-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/trivy-image-report.json
-          if-no-files-found: ignore
+          if-no-files-found: error
           retention-days: 7
 
   terraform-validate:
