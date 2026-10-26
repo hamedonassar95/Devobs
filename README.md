@@ -8,6 +8,7 @@
 
 - **ابدأ من هنا:** [مركز الأتمتة وسير التشغيل الموحد](docs/AUTOMATION_HUB.md)
 - [Devobs AI DevOps Control Room](docs/AI_DEVOPS_CONTROL_ROOM.md): توثيق مسارات AI وCI وحالة التحقق من المصدر مقابل التشغيل.
+- [تقرير جاهزية Devobs الحالي](docs/DEVOBS_READINESS_CURRENT.md): لقطة موثقة لحالة GitHub Pages وCI وPRs وفجوات API/Kubernetes/SaaS.
 
 ## التثبيت والتشغيل محليًا
 
