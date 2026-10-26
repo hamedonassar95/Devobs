@@ -259,6 +259,69 @@ jobs:
           fi
           echo 'Container is healthy and served the expected HTML page.'
 
+  container-image-scan:
+    name: Container image vulnerability scan
+    if: inputs.validation_profile != 'rollback'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Check out exact revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.source_ref || github.sha }}
+          persist-credentials: false
+      - name: Require the application Dockerfile
+        shell: bash
+        run: |
+          if [[ ! -f Dockerfile ]]; then
+            echo '::error::Root Dockerfile is required to scan the application image.' >&2
+            exit 1
+          fi
+      - name: Build image for vulnerability scanning
+        env:
+          IMAGE_TAG: devobs-web:${{ github.sha }}
+        run: docker build --pull --tag "$IMAGE_TAG" .
+      - name: Install checksum-verified Trivy 0.76.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          version=0.76.1
+          archive="trivy_${version}_Linux-64bit.tar.gz"
+          release_url="https://github.com/aquasecurity/trivy/releases/download/v${version}"
+          archive_path="$RUNNER_TEMP/$archive"
+          checksums_path="$RUNNER_TEMP/trivy_checksums.txt"
+          install_dir="$RUNNER_TEMP/trivy-install"
+          mkdir -p "$install_dir"
+          curl --fail --location --silent --show-error "$release_url/$archive" --output "$archive_path"
+          curl --fail --location --silent --show-error "$release_url/trivy_${version}_checksums.txt" --output "$checksums_path"
+          expected_checksum="$(awk -v filename="$archive" '$2 == filename { print $1 }' "$checksums_path")"
+          if [[ ! "$expected_checksum" =~ ^[a-f0-9]{64}$ ]]; then
+            echo 'Could not find a valid Trivy archive checksum.' >&2
+            exit 1
+          fi
+          echo "$expected_checksum  $archive_path" | sha256sum --check --status
+          tar -xzf "$archive_path" -C "$install_dir" trivy
+          sudo install -m 0755 "$install_dir/trivy" /usr/local/bin/trivy
+          trivy --version | grep -Fx "Version: $version"
+      - name: Scan image and fail on high or critical vulnerabilities
+        env:
+          IMAGE_TAG: devobs-web:${{ github.sha }}
+          REPORT_PATH: ${{ runner.temp }}/trivy-image-report.json
+        # Trivy image CLI options: https://trivy.dev/latest/docs/references/configuration/cli/trivy_image/
+        run: >-
+          trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed=false --exit-code 1
+          --format json --output "$REPORT_PATH" "$IMAGE_TAG"
+      - name: Upload Trivy report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: trivy-image-report-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/trivy-image-report.json
+          if-no-files-found: ignore
+          retention-days: 7
+
   terraform-validate:
     if: inputs.validation_profile != 'rollback'
     runs-on: ubuntu-24.04
@@ -286,7 +349,7 @@ jobs:
   # Keep this ID: the Protect main ruleset requires the validate check.
   validate:
     if: always()
-    needs: [change-analysis, python-tests, postgres-rls, node-tests, security, site-contract, container-build, terraform-validate]
+    needs: [change-analysis, python-tests, postgres-rls, node-tests, security, site-contract, container-build, container-image-scan, terraform-validate]
     runs-on: ubuntu-24.04
     timeout-minutes: 2
     steps:
@@ -298,6 +361,7 @@ jobs:
           SECURITY_RESULT: ${{ needs.security.result }}
           SITE_RESULT: ${{ needs.site-contract.result }}
           CONTAINER_RESULT: ${{ needs.container-build.result }}
+          CONTAINER_SCAN_RESULT: ${{ needs.container-image-scan.result }}
           TERRAFORM_RESULT: ${{ needs.terraform-validate.result }}
           CHANGE_ANALYSIS_RESULT: ${{ needs.change-analysis.result }}
           PYTHON_REQUIRED: ${{ needs.change-analysis.outputs.python_required }}
@@ -311,8 +375,8 @@ jobs:
           fi
           if [[ "$VALIDATION_PROFILE" == "rollback" ]]; then
             required_results=("$PYTHON_RESULT" "$SITE_RESULT")
-            if [[ "$NODE_RESULT" != "skipped" || "$SECURITY_RESULT" != "skipped" || "$POSTGRES_RESULT" != "skipped" || "$CONTAINER_RESULT" != "skipped" || "$TERRAFORM_RESULT" != "skipped" ]]; then
-              echo "::error::Rollback compatibility profile must skip Node, security, PostgreSQL, container, and Terraform jobs."
+            if [[ "$NODE_RESULT" != "skipped" || "$SECURITY_RESULT" != "skipped" || "$POSTGRES_RESULT" != "skipped" || "$CONTAINER_RESULT" != "skipped" || "$CONTAINER_SCAN_RESULT" != "skipped" || "$TERRAFORM_RESULT" != "skipped" ]]; then
+              echo "::error::Rollback compatibility profile must skip Node, security, PostgreSQL, container, image scan, and Terraform jobs."
               exit 1
             fi
           else
@@ -332,11 +396,11 @@ jobs:
               echo "::error::Node tests ran unexpectedly for this change: $NODE_RESULT"
               exit 1
             fi
-            required_results=("$SECURITY_RESULT" "$SITE_RESULT" "$POSTGRES_RESULT" "$CONTAINER_RESULT" "$TERRAFORM_RESULT")
+            required_results=("$SECURITY_RESULT" "$SITE_RESULT" "$POSTGRES_RESULT" "$CONTAINER_RESULT" "$CONTAINER_SCAN_RESULT" "$TERRAFORM_RESULT")
           fi
           for result in "${required_results[@]}"; do
             if [[ "$result" != "success" ]]; then
-              echo "::error::A required validation job did not succeed: python=$PYTHON_RESULT node=$NODE_RESULT security=$SECURITY_RESULT site=$SITE_RESULT container=$CONTAINER_RESULT terraform=$TERRAFORM_RESULT"
+              echo "::error::A required validation job did not succeed: python=$PYTHON_RESULT node=$NODE_RESULT security=$SECURITY_RESULT site=$SITE_RESULT container=$CONTAINER_RESULT image_scan=$CONTAINER_SCAN_RESULT terraform=$TERRAFORM_RESULT"
               exit 1
             fi
           done
