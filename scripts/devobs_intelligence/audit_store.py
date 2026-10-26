@@ -64,9 +64,9 @@ class AuditStore:
             raise AuditError('storage_unavailable') from None
         return [AuditEntryV1(*row) for row in records]
 
-    def verify(self) -> int:
+    @staticmethod
+    def _verify_entries(entries: list[AuditEntryV1]) -> int:
         previous = '0' * 64
-        entries = self._entries()
         for index, entry in enumerate(entries, 1):
             item = {key: getattr(entry, key) for key in ('event_id', 'source_sha',
                         'policy_version', 'decision', 'action')}
@@ -75,6 +75,9 @@ class AuditStore:
                 raise AuditError('chain_invalid')
             previous = entry.record_hash
         return len(entries)
+
+    def verify(self) -> int:
+        return self._verify_entries(self._entries())
 
     def append(self, event: EventEnvelopeV1, evaluation: EvaluationV1,
                action: str) -> AuditEntryV1:
@@ -85,33 +88,61 @@ class AuditStore:
                                'billing', 'change_permissions'}
             or evaluation.decision not in {'ALLOW_READ','PROPOSE_ONLY','DENY'}):
             raise AuditError('invalid_entry')
-        self.verify()
-        existing = [e for e in self._entries() if e.event_id == event.event_id and e.action == action]
-        if existing:
-            old = existing[0]
-            if (old.source_sha != event.source_sha or old.policy_version != evaluation.policy_version
-                or old.decision != evaluation.decision):
-                raise AuditError('duplicate_conflict')
-            return old
-        entries = self._entries()
-        previous = entries[-1].record_hash if entries else '0' * 64
-        item = {'event_id':event.event_id,'source_sha':event.source_sha,
-                'policy_version':evaluation.policy_version,'decision':evaluation.decision,
-                'action':action}
-        record_hash = _digest(previous, item)
         try:
+            # Acquire the write reservation before reading the chain. Without
+            # this, concurrent writers can hash the same tail and persist a
+            # fork that makes subsequent verification fail permanently.
+            self.connection.execute('BEGIN IMMEDIATE')
+        except sqlite3.Error:
+            raise AuditError('storage_unavailable') from None
+
+        try:
+            self.verify()
+            existing = [e for e in self._entries()
+                        if e.event_id == event.event_id and e.action == action]
+            if existing:
+                old = existing[0]
+                if (old.source_sha != event.source_sha
+                    or old.policy_version != evaluation.policy_version
+                    or old.decision != evaluation.decision):
+                    raise AuditError('duplicate_conflict')
+                self.connection.execute('COMMIT')
+                return old
+
+            entries = self._entries()
+            previous = entries[-1].record_hash if entries else '0' * 64
+            item = {'event_id':event.event_id,'source_sha':event.source_sha,
+                    'policy_version':evaluation.policy_version,'decision':evaluation.decision,
+                    'action':action}
+            record_hash = _digest(previous, item)
             self.connection.execute('INSERT INTO audit (event_id,source_sha,policy_version,'
                 'decision,action,previous_hash,record_hash) VALUES (?,?,?,?,?,?,?)',
                 (event.event_id,event.source_sha,evaluation.policy_version,evaluation.decision,
                  action,previous,record_hash))
+            self.verify()
+            result = self._entries()[-1]
+            self.connection.execute('COMMIT')
+            return result
         except sqlite3.IntegrityError:
+            self._rollback_append()
             raise AuditError('concurrent_conflict') from None
         except sqlite3.Error:
+            self._rollback_append()
             raise AuditError('storage_unavailable') from None
-        self.verify()
-        return self._entries()[-1]
+        except Exception:
+            self._rollback_append()
+            raise
+
+    def _rollback_append(self) -> None:
+        """Roll back only this append transaction, preserving fixed errors."""
+        if self.connection.in_transaction:
+            try:
+                self.connection.execute('ROLLBACK')
+            except sqlite3.Error:
+                pass
 
     def summary(self) -> dict:
-        count = self.verify()
+        entries = self._entries()
+        count = self._verify_entries(entries)
         return {'schema_version':1,'record_count':count,
-                'last_record_hash':self._entries()[-1].record_hash if count else None}
+                'last_record_hash':entries[-1].record_hash if count else None}

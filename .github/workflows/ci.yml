@@ -210,7 +210,7 @@ jobs:
             echo 'Extract the ZIP and open index.html locally. This is not a hosted preview URL.'
             echo 'The preview is retained for 7 days and has no production deployment permissions.'
           } >> "$GITHUB_STEP_SUMMARY"
-          echo "Human review completed" >> "$GITHUB_STEP_SUMMARY"
+          echo "PR preview artifact is ready for maintainer review." >> "$GITHUB_STEP_SUMMARY"
 
   container-build:
     if: inputs.validation_profile != 'rollback'
