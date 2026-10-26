@@ -1,8 +1,11 @@
 import unittest
 from pathlib import Path
 
+import yaml
+
 
 WORKFLOW = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
+VALIDATE_NEEDS = yaml.safe_load(WORKFLOW)["jobs"]["validate"]["needs"]
 
 
 class DockerWorkflowContractTests(unittest.TestCase):
@@ -11,7 +14,8 @@ class DockerWorkflowContractTests(unittest.TestCase):
         self.assertIn("docker build --pull --tag", WORKFLOW)
         self.assertIn("docker run --detach --rm", WORKFLOW)
         self.assertIn("127.0.0.1:18080:8080", WORKFLOW)
-        self.assertIn("site-contract, container-build, terraform-validate]", WORKFLOW)
+        self.assertIn("container-build", VALIDATE_NEEDS)
+        self.assertIn("container-image-scan", VALIDATE_NEEDS)
         self.assertIn("CONTAINER_RESULT", WORKFLOW)
         self.assertNotIn("docker push", WORKFLOW)
 
