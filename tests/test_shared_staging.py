@@ -20,7 +20,12 @@ class SharedStagingTests(unittest.TestCase):
         self.workspace = Path(self.temp_dir.name)
         self.source = self.workspace / "candidate"
         self.source.mkdir()
-        (self.source / "index.html").write_text("<h1>fixture</h1>", encoding="utf-8")
+        (self.source / "index.html").write_text(
+            '<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">'
+            '<meta name="viewport" content="width=device-width, initial-scale=1">'
+            "<title>Fixture</title></head><body><main><h1>fixture</h1></main></body></html>",
+            encoding="utf-8",
+        )
         assets = self.source / "assets"
         assets.mkdir()
         (assets / "site.css").write_text("body{}", encoding="utf-8")
@@ -49,6 +54,19 @@ class SharedStagingTests(unittest.TestCase):
             check=False,
         )
 
+    def run_site_check(self):
+        env = os.environ.copy()
+        env["SITE_ROOT"] = str(self.output)
+        return subprocess.run(
+            [sys.executable, str(ROOT / "scripts" / "check_site.py")],
+            cwd=self.workspace,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=15,
+        )
+
     def test_cli_stages_exact_file_list_and_source_sha(self):
         result = self.run_stage(self.source)
 
@@ -61,6 +79,9 @@ class SharedStagingTests(unittest.TestCase):
         self.assertEqual(files, {"index.html", "assets/site.css", "deployment.json"})
         manifest = json.loads((self.output / "deployment.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["source_sha"], self.source_sha)
+        check = self.run_site_check()
+        self.assertEqual(check.returncode, 0, check.stdout + check.stderr)
+        self.assertIn("Page contract and HTTP smoke checks passed.", check.stdout)
 
     def test_cli_fails_closed_for_missing_source(self):
         result = self.run_stage(self.workspace / "missing-candidate")
@@ -68,6 +89,25 @@ class SharedStagingTests(unittest.TestCase):
         self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
         self.assertIn("Site staging failed:", result.stderr)
         self.assertFalse(self.output.exists())
+
+    def test_ci_site_contract_stages_validates_and_previews_the_same_output(self):
+        workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+        job = workflow.split("  site-contract:\n", 1)[1].split("\n  container-build:", 1)[0]
+
+        self.assertEqual(job.count("git rev-parse HEAD"), 1)
+        self.assertIn("=~ ^[a-f0-9]{40}$", job)
+        self.assertIn('echo "SITE_SOURCE_SHA=$commit_sha" >> "$GITHUB_ENV"', job)
+        stage_command = (
+            'python3 scripts/stage_site.py --source-dir . --output-dir _site '
+            '--source-sha "$SITE_SOURCE_SHA"'
+        )
+        stage_at = job.index(stage_command)
+        check_at = job.index("SITE_ROOT=_site python3 scripts/check_site.py")
+        self.assertLess(job.index("git rev-parse HEAD"), stage_at)
+        self.assertLess(stage_at, check_at)
+        self.assertIn('path: _site/', job)
+        self.assertNotIn("_preview", job)
+        self.assertNotIn("cp index.html", job)
 
     def test_pages_and_rollback_use_the_shared_validated_output(self):
         workflow = (ROOT / ".github/workflows/deploy-pages.yml").read_text(encoding="utf-8")

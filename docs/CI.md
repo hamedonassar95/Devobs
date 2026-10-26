@@ -11,6 +11,7 @@
 - يفحص HTML5 doctype وعناصر html/head/body/title/main/h1، والعنوان غير الفارغ.
 - يتأكد من اللغة العربية واتجاه RTL وUTF-8 وviewport المتجاوب.
 - يرفض IDs المكررة ومراجع aria-labelledby المفقودة وعلامات تعارض الدمج.
+- يستخدم `scripts/stage_site.py` لإنشاء `_site` من النسخة التي جرى checkout لها، بعد تسجيل SHA الفعلي من `git rev-parse HEAD` والتحقق من أنه 40 خانة hex صغيرة. يشغّل `scripts/check_site.py` على `_site`، بما فيه اختبار HTTP محلي على loopback. معاينة PR ترفع نفس مجلد `_site` الذي اجتاز الفحص، بما فيه `deployment.json` والأصول المرئية، لمدة 7 أيام؛ إنها أثر قابل للتنزيل وليست نشرًا. Pages وVercel يستخدمان helper staging نفسه لكنهما ينشئان مخرجاتهما بشكل منفصل؛ هذا لا يثبت تطابق digest بايتًا ببايت أو استهلاك نشر Pages/Vercel لأثر CI نفسه. راجع [توثيق Git الرسمي لـ`git rev-parse`](https://git-scm.com/docs/git-rev-parse) و[توثيق GitHub الرسمي لرفع آثار workflow والاحتفاظ بها](https://docs.github.com/en/actions/using-workflows/storing-workflow-data-as-artifacts).
 - يفرض تثبيت الإجراءات الخارجية في GitHub Actions على commit SHA كامل، بما يشمل ملفات workflow وملفات lock وقوالب الوكلاء، عبر `scripts/check_action_pins.py`.
 - يشغّل Bandit لفحص شيفرة Python، و`pip-audit` لفحص الثغرات المعروفة في الاعتماديات المباشرة والانتقالية المعلنة في `requirements-dev.txt`. يفشل الفحص عند العثور على ثغرة.
 - تتحقق Dependabot أسبوعيًا من تحديثات حزم Python وإجراءات GitHub.

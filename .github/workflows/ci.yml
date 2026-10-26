@@ -182,21 +182,29 @@ jobs:
         with:
           ref: ${{ inputs.source_ref || github.sha }}
           persist-credentials: false
-      - name: Check page contract and HTTP response
-        run: python3 scripts/check_site.py
-      - name: Stage isolated PR preview
-        if: github.event_name == 'pull_request'
+      - name: Identify checked out source revision
+        shell: bash
         run: |
-          mkdir -p _preview
-          cp index.html _preview/index.html
-          if [ -d assets ]; then cp -R assets _preview/assets; fi
-      - name: Upload PR preview
+          set -euo pipefail
+          commit_sha="$(git rev-parse HEAD)"
+          if [[ ! "$commit_sha" =~ ^[a-f0-9]{40}$ ]]; then
+            echo '::error::Checked out revision is not a full lowercase Git SHA.' >&2
+            exit 1
+          fi
+          echo "SITE_SOURCE_SHA=$commit_sha" >> "$GITHUB_ENV"
+      - name: Stage and validate site output
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/stage_site.py --source-dir . --output-dir _site --source-sha "$SITE_SOURCE_SHA"
+          SITE_ROOT=_site python3 scripts/check_site.py
+      - name: Upload validated staged site for PR preview
         if: github.event_name == 'pull_request'
         id: preview
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: preview-pr-${{ github.event.pull_request.number }}-${{ github.run_id }}-${{ github.run_attempt }}
-          path: _preview/
+          path: _site/
           if-no-files-found: error
           retention-days: 7
       - name: Explain preview
