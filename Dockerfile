@@ -1,7 +1,7 @@
 FROM scratch AS site-content
 COPY index.html /index.html
 
-FROM nginxinc/nginx-unprivileged:1.29.3-alpine@sha256:5aea7cc516b419e3526f47dd1531be31a56a046cfe44754d94f9383e13e2ee99 AS runtime
+FROM nginxinc/nginx-unprivileged:1.31-alpine3.24@sha256:b5047b9b76845eac124358373c6852377c52e4b05834a47647e955dd91cb8f1e AS runtime
 
 COPY --from=site-content --chown=101:101 /index.html /usr/share/nginx/html/index.html
 
