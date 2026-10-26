@@ -16,7 +16,7 @@
 
 **UNVERIFIED:** no live partial-rerun reproduction was run; #274's tests simulate naming/overwrite behavior. Full reruns can race when replacing the same run-scoped artifact; the documented safe practice is not to run concurrent full reruns. Artifact retention is seven days. GitHub Pages/CDN post-upload transformations, independently staged Vercel output, managed staging, live API/RLS/IdP and SaaS readiness remain unverified.
 
-## Current P00 evidence baseline — 2026-10-26 16:39 UTC
+## P00 evidence baseline before owner decision — 2026-10-26 16:39 UTC (historical snapshot)
 
 **VERIFIED:** GitHub reports current `main` [`ae4edbdeb184232e62ace3308b32765f0cd8a02c`](https://github.com/hamedonassar95/Devobs/commit/ae4edbdeb184232e62ace3308b32765f0cd8a02c), merge commit for #275. Main push run [40359244066](https://github.com/hamedonassar95/Devobs/actions/runs/40359244066) on that exact SHA passed [`validate`](https://github.com/hamedonassar95/Devobs/actions/runs/40359244066/job/121700155568), security, Trivy, PostgreSQL RLS, Terraform, container build and site-contract. Python and Node checks were skipped for the docs-only change. CodeQL's Actions, Python and JavaScript/TypeScript jobs passed in [run 40359243033](https://github.com/hamedonassar95/Devobs/actions/runs/40359243033).
 
@@ -27,6 +27,14 @@
 **UNVERIFIED:** no live partial retry has been exercised; full concurrent reruns can contend when replacing the same run-scoped artifact. The report artifact is retained seven days. CDN transformations and Vercel byte identity are unverified. Live managed staging, API/OIDC, production PostgreSQL tenant isolation and commercial SaaS readiness are not P00 evidence and remain unverified for later phases.
 
 **P00 remains ACTIVE; P01–P12 remain BLOCKED.** The blank [P00 owner decision packet](../P00_OWNER_DECISION.md) is the next decision record. Its baseline is timestamped and immutable; at the eventual owner decision, refresh the exact main SHA and required `validate` run rather than assuming this SHA remains current. No AI or CI action signs the phase automatically.
+
+## P00 OWNER-SIGNED EXIT — 2026-10-26 17:58:32 UTC
+
+**VERIFIED owner decision:** [GitHub Conversation comment by `hamedonassar95`](https://github.com/hamedonassar95/Devobs/pull/277#issuecomment-6423508484) records **GO with explicitly accepted bounded residual risks**, based on main SHA [`49353c541918389082b3b3f3937d9424ddf41b38`](https://github.com/hamedonassar95/Devobs/commit/49353c541918389082b3b3f3937d9424ddf41b38) and exact-main [push CI run 40371068649](https://github.com/hamedonassar95/Devobs/actions/runs/40371068649). The run passed required `validate`, security, Trivy, PostgreSQL RLS, site-contract, container build, Terraform, Pages publication and production health. Python and Node were skipped for the docs-only change. [CodeQL run 40371067323](https://github.com/hamedonassar95/Devobs/actions/runs/40371067323) passed its Actions, Python and JavaScript/TypeScript analyses. This comment is the owner phase-decision reference, not a submitted GitHub code review; this addendum records it separately and does not authorize merging or deployment.
+
+**Owner-accepted bounded P00 residuals:** no live partial failed-job rerun test; possible concurrent full-rerun artifact contention; seven-day validated-site artifact retention; unverified post-upload Pages/CDN transformations and Vercel byte equivalence; and the observed review policy, including the conditional unattributed-changes approval flag. Its precise trigger semantics remain **UNVERIFIED**. The owner elected to leave the historical [#273 P2 thread OPEN](https://github.com/hamedonassar95/Devobs/pull/273#discussion_r4379203170); the correction is in [merged #274](https://github.com/hamedonassar95/Devobs/pull/274).
+
+**P00 governance exit recorded; P01–P12 remain BLOCKED.** This GO covers repository governance and release safety only. It does not authorize a provider, region/residency, resources, spend/quota, privacy/data use, IdP/JWKS, database or live RLS work, backups, paid AI, production release, or another deployment. P01 requires separate explicit authorization for provider/account, region, cost/quota, privacy/retention, IdP/JWKS, restricted database identity/RLS, and backup/restore before any resource creation.
 
 ## Goal
 
@@ -43,11 +51,11 @@ Reach a reviewed, measured, tenant-isolated and human-operated Devobs service su
 ## Global Constraints
 
 - One `feature/<short-task-name>` branch per PR-sized task; fewer than 500 changed lines per commit. Test first when behavior changes. Open Draft PRs, obtain human review/decision, and require passing `validate` on the exact head SHA before phase promotion.
-- One phase only is active. No later phase begins until the previous phase's acceptance evidence and owner signoff are recorded. Offline or read-only inspection is not gate promotion.
+- At most one phase is active. No later phase begins until the previous phase's acceptance evidence and owner signoff are recorded. Offline or read-only inspection is not gate promotion.
 - **STOP immediately** on CI failure, cross-tenant access, missing/ineffective RLS, invalid JWT/JWKS trust, exposed credentials, absent restore evidence when required, unauthorized spend, missing human owner decision, or unapproved model write/action. Keep the phase blocked; do not weaken tests or bypass controls.
 - Never read or alter secrets, GitHub Environments, deployment settings, provider configuration, billing, or cloud resources without separate explicit authorization. This plan performs no provisioning, migration, Terraform apply/destroy, deployment, merge, rule change, or inference purchase.
 - Models have no execution authority. Outputs are advisory; production changes require separate signed, scoped authorization and a human-controlled release path.
-- Owner decisions are required for each stage's cost, privacy, safety and release gate. The repository ruleset currently requires PR plus strict `validate`, but zero independent approvals and no Code Owner review. **VERIFIED:** repository rules API at snapshot; **UNVERIFIED:** external organization/enterprise policy and whether independent review is available. Do not assume another reviewer or alter rules.
+- Owner decisions are required for each stage's cost, privacy, safety and release gate. The effective rules API reports PR plus strict `validate`, baseline `required_approving_review_count: 0`, `require_code_owner_review: false`, and `require_extra_approval_for_unattributed_changes: true` on the pull-request rule. **VERIFIED:** these returned fields; **UNVERIFIED:** exact conditional trigger semantics and external organization/enterprise policy. The owner accepted the observed policy for P00 in the linked decision above; do not assume every PR requires an approver or alter rules.
 - Source references below distinguish **EXISTING** interfaces/evidence from **PROPOSED** additions. “Acceptance evidence” is a required future artifact, not a claim it exists.
 
 ## Historical evidence baseline and PR queue snapshots
@@ -64,12 +72,12 @@ Reach a reviewed, measured, tenant-isolated and human-operated Devobs service su
 
 ## Single phase ledger
 
-Only **P00** is active. P01–P12 are blocked until the previous phase's documented exit gate is met and owner signoff recorded. Status describes this plan's current evidence, not future completion.
+P00's owner GO is recorded below. No later phase is active; P01–P12 remain blocked pending separate approvals and authorization. Status describes recorded evidence, not future completion.
 
 | Phase | Status | Blocking prerequisite |
 | --- | --- | --- |
-| P00 | ACTIVE — unsigned owner decision | Owner reviews the decision packet, refreshes exact-main `validate`, decides the #273 thread and residual-risk policy, then records an explicit signed P00 GO/NO-GO |
-| P01 | BLOCKED — managed staging | P00 signed exit; owner approvals for provider, data and spend |
+| P00 | APPROVED — owner GO with accepted bounded residual risks | Decision recorded at exact main SHA `49353c541918389082b3b3f3937d9424ddf41b38`, run [40371068649](https://github.com/hamedonassar95/Devobs/actions/runs/40371068649), in [owner comment](https://github.com/hamedonassar95/Devobs/pull/277#issuecomment-6423508484) |
+| P01 | BLOCKED — managed staging | Separate explicit approval for provider/account, region/residency, costs/quota, privacy/retention, IdP/JWKS, restricted DB identity/live RLS, and backup/restore; no P01 authorization was given |
 | P02 | BLOCKED — live observability | P01 live staging and privacy approval |
 | P03 | BLOCKED — topology and incident memory | P02 accepted tenant-safe signals |
 | P04 | BLOCKED — measured evaluation | P03 provenance-bound fixtures and approved evaluation data |
@@ -86,12 +94,12 @@ Only **P00** is active. P01–P12 are blocked until the previous phase's documen
 
 ### P00: Baseline, governance, and release safety
 
-- **Entry/current next decision:** current baseline and exact-main checks are in the 16:39 refresh above. The next owner action is to complete the blank decision packet with a fresh exact-main SHA/run and explicit P00 choice; review or merge of a documentation PR alone does not sign off the phase.
+- **VERIFIED owner exit:** the owner recorded P00 GO with accepted bounded residual risks in [comment #6423508484](https://github.com/hamedonassar95/Devobs/pull/277#issuecomment-6423508484), based on exact main SHA `49353c541918389082b3b3f3937d9424ddf41b38` and [push run 40371068649](https://github.com/hamedonassar95/Devobs/actions/runs/40371068649). This is a repository governance/release-safety decision only. The documentation record is separate; its merge may trigger static Pages and is not authorized by the owner decision.
 - **Historical queue plan (2026-10-26 12:07 UTC):** record #264, then review #259, #262 and #253 separately. Preserve this as the sequence planned at that snapshot; all are now merged or closed as listed in the current refresh. It is no longer an active queue.
-- **Current dispositions and comments:** #253/#262 are closed unmerged; #259 and #270–#275 are merged. #273's P2 thread remains unresolved/not outdated despite its correction landing in #274. At the time of this baseline, the owner still needs to decide whether to leave that historical thread open or resolve it after review; no thread state is changed here.
-- **Existing/proposed:** CI, same-run Pages artifact handoff and rollback safeguards exist in source. **VERIFIED:** on main SHA `ae4edb…`, the normal release downloaded and checked the validated same-run artifact, published Pages and passed health verification. **UNVERIFIED:** live partial retry, concurrent full-rerun behavior, post-upload Pages/CDN transformations, Vercel byte identity and managed API/staging. **Proposed:** no source or infrastructure changes in this packet.
-- **Acceptance artifacts/tests:** exact-SHA current `validate`, security, Trivy, RLS, site and Terraform results; Pages publish/health evidence; PR disposition and thread decision; ruleset snapshot; explicit acceptance or mitigation of the stable artifact overwrite/concurrent-rerun risk and optional Vercel quota failure. No rerun or deployment is initiated for this checklist.
-- **Exit/go:** the repository owner must complete and sign [the P00 owner decision packet](../P00_OWNER_DECISION.md), after checking a fresh exact-main `validate` result, deciding whether the zero-independent-approval model is sufficient, and explicitly disposing the #273 thread and retry/concurrency residual. Passing CI and previous owner merges are not P00 signoff. A P00 GO does not authorize P01; provider, region, spend/quota, privacy, IdP, database-isolation and recovery approvals are separate prerequisites before resource creation.
+- **Current dispositions and comments:** #253/#262 are closed unmerged; #259 and #270–#277 are merged. The owner explicitly chose to leave #273's historical P2 thread open for later disposition; it remains unresolved/not outdated while the correction is in #274.
+- **Existing/proposed:** CI, same-run Pages artifact handoff and rollback safeguards exist in source. **VERIFIED:** on decision-time main SHA `49353c541918389082b3b3f3937d9424ddf41b38`, run 40371068649 used validated artifact `validated-site-main-40371068649`, published Pages and passed health verification. **UNVERIFIED and accepted as bounded P00 residuals:** no live partial retry test, concurrent full-rerun contention, post-upload CDN transformations and Vercel byte identity. Managed API/staging remains unverified and belongs to P01+.
+- **Acceptance artifacts/tests:** exact-main results in [run 40371068649](https://github.com/hamedonassar95/Devobs/actions/runs/40371068649), CodeQL in [run 40371067323](https://github.com/hamedonassar95/Devobs/actions/runs/40371067323), effective rules snapshot and owner decision comment. No workflow was rerun for this documentation task.
+- **Exit/go:** **VERIFIED:** P00 GO with accepted bounded residuals is recorded in [the owner decision packet](../P00_OWNER_DECISION.md) and [GitHub owner comment](https://github.com/hamedonassar95/Devobs/pull/277#issuecomment-6423508484). This does not authorize P01 or deployment; obtain separate provider, region, spend/quota, privacy, IdP, database-isolation and recovery approval before resource creation.
 - **Rollback:** preserve this timestamped record; correct it only by a later evidence addendum if source/API facts change. **UNVERIFIED:** external organization/enterprise policy and whether an independent reviewer is available.
 
 ### P01: Managed read-only staging (Render, PostgreSQL, OIDC)
@@ -181,7 +189,7 @@ Only **P00** is active. P01–P12 are blocked until the previous phase's documen
 
 ## Explicit unresolved owner decisions
 
-These block only the phase that needs them: (1) hosting/provider account, workspace, region/residency and maximum budget (P01); (2) identity provider and key lifecycle (P01); (3) data classification, permitted residency, retention and deletion (P01 onward); (4) independent reviewer availability and authority (P00/P09); (5) business/legal and payment-provider eligibility (P09/P10); (6) support/on-call owner and SLO targets (P11); (7) approved telemetry/model vendors and privacy/cost limits (P02/P06). **UNVERIFIED:** no approval or certification is implied by this plan. Do not resolve these by reading settings or creating accounts; obtain an explicit owner decision first.
+These block only the phase that needs them: (1) hosting/provider account, workspace, region/residency and maximum budget (P01); (2) identity provider and key lifecycle (P01); (3) data classification, permitted residency, retention and deletion (P01 onward); (4) independent reviewer availability and authority (P09; P00's observed review policy was explicitly accepted); (5) business/legal and payment-provider eligibility (P09/P10); (6) support/on-call owner and SLO targets (P11); (7) approved telemetry/model vendors and privacy/cost limits (P02/P06). **UNVERIFIED:** no approval or certification is implied by this plan. Do not resolve these by reading settings or creating accounts; obtain an explicit owner decision first.
 
 ## Official references
 
