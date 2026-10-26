@@ -1,11 +1,13 @@
 import unittest
 from pathlib import Path
 
-import yaml
-
-
 WORKFLOW = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
-VALIDATE_NEEDS = yaml.safe_load(WORKFLOW)["jobs"]["validate"]["needs"]
+VALIDATE_JOB = WORKFLOW.split("\n  validate:\n", 1)[1].split("\n  production-release:\n", 1)[0]
+NEEDS_LINE = next(line.strip() for line in VALIDATE_JOB.splitlines() if line.strip().startswith("needs:"))
+NEEDS_LIST = NEEDS_LINE.split(":", 1)[1].strip()
+if not (NEEDS_LIST.startswith("[") and NEEDS_LIST.endswith("]")):
+    raise AssertionError("validate.needs must be an inline YAML list")
+VALIDATE_NEEDS = {job.strip() for job in NEEDS_LIST[1:-1].split(",") if job.strip()}
 
 
 class DockerWorkflowContractTests(unittest.TestCase):
