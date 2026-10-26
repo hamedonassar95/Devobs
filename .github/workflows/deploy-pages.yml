@@ -97,7 +97,7 @@ jobs:
       - name: Download validated CI site artifact from this workflow run
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: validated-site-main-${{ github.run_id }}-${{ github.run_attempt }}
+          name: validated-site-main-${{ github.run_id }}
           path: _site
 
       - name: Validate downloaded CI artifact

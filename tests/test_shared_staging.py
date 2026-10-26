@@ -138,7 +138,7 @@ class SharedStagingTests(unittest.TestCase):
         site_job = ci.split("  site-contract:\n", 1)[1].split("\n  container-build:", 1)[0]
         deploy_job = release.split("  deploy:\n", 1)[1].split("\n  verify:", 1)[0]
 
-        artifact_name = "validated-site-main-${{ github.run_id }}-${{ github.run_attempt }}"
+        artifact_name = "validated-site-main-${{ github.run_id }}"
         self.assertIn("if: github.event_name == 'push' && github.ref == 'refs/heads/main'", site_job)
         self.assertIn(f"name: {artifact_name}", site_job)
         self.assertIn("path: _site/", site_job)
@@ -159,6 +159,61 @@ class SharedStagingTests(unittest.TestCase):
         self.assertIn("python3 scripts/stage_site.py", rollback_deploy)
         self.assertIn("SITE_ROOT=_site python3 scripts/check_site.py", normal_deploy)
         self.assertIn("SITE_ROOT=_site python3 scripts/check_site.py", rollback_deploy)
+
+    def test_main_artifact_reference_survives_partial_and_full_reruns(self):
+        staged = self.run_stage(self.source)
+        self.assertEqual(staged.returncode, 0, staged.stdout + staged.stderr)
+        ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+        pages = (ROOT / ".github/workflows/deploy-pages.yml").read_text(encoding="utf-8")
+        site_job = ci.split("  site-contract:\n", 1)[1].split("\n  container-build:", 1)[0]
+        deploy_job = pages.split("  deploy:\n", 1)[1].split("\n  verify:", 1)[0]
+        producer = site_job.split("      - name: Upload validated staged site for main Pages release\n", 1)[1].split(
+            "      - name:", 1
+        )[0]
+        consumer = deploy_job.split("      - name: Download validated CI site artifact from this workflow run\n", 1)[1].split(
+            "      - name:", 1
+        )[0]
+
+        def artifact_template(step):
+            return next(line.strip().removeprefix("name: ") for line in step.splitlines() if "name: validated-site-main-" in line)
+
+        def artifact_name(template, run_id, attempt):
+            return template.replace("${{ github.run_id }}", str(run_id)).replace(
+                "${{ github.run_attempt }}", str(attempt)
+            )
+
+        producer_template = artifact_template(producer)
+        consumer_template = artifact_template(consumer)
+        producer_attempt_1 = artifact_name(producer_template, 73142, 1)
+        consumer_attempt_2 = artifact_name(consumer_template, 73142, 2)
+        files = sorted(path.relative_to(self.output).as_posix() for path in self.output.rglob("*") if path.is_file())
+        artifacts = {producer_attempt_1: files}
+
+        # A partial rerun skips the successful producer but increments the consumer attempt.
+        self.assertEqual(producer_attempt_1, consumer_attempt_2)
+        self.assertEqual(artifacts[consumer_attempt_2], ["assets/site.css", "deployment.json", "index.html"])
+        self.assertNotEqual(consumer_attempt_2, artifact_name(consumer_template, 73143, 2))
+        with self.assertRaises(KeyError):
+            {}[consumer_attempt_2]
+
+        # A full rerun can replace the same run-scoped artifact instead of receiving a 409.
+        self.assertNotIn("github.run_attempt", producer_template)
+        self.assertNotIn("github.run_attempt", consumer_template)
+        self.assertIn("overwrite: true", producer)
+        self.assertIn("if-no-files-found: error", producer)
+        self.assertIn("retention-days: 7", producer)
+        self.assertNotIn("run-id:", consumer)
+        self.assertNotIn("github-token:", consumer)
+        full_rerun_name = artifact_name(producer_template, 73142, 2)
+        self.assertEqual(full_rerun_name, producer_attempt_1)
+
+        def upload(name, contents, overwrite):
+            if name in artifacts and not overwrite:
+                raise FileExistsError("artifact name collision (409)")
+            artifacts[name] = contents
+
+        upload(full_rerun_name, files, overwrite="overwrite: true" in producer)
+        self.assertEqual(artifacts[producer_attempt_1], files)
 
     def test_downloaded_pages_artifact_validator_accepts_exact_staged_fixture(self):
         self.create_valid_staged_artifact()
