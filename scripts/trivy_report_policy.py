@@ -14,15 +14,20 @@ from typing import Any
 SEVERITIES = ("CRITICAL", "HIGH", "MEDIUM", "LOW", "UNKNOWN")
 BLOCKING_SEVERITIES = ("CRITICAL", "HIGH")
 REVISION_PATTERN = re.compile(r"[0-9a-f]{40}\Z")
+EXPECTED_IMAGE_PATTERN = re.compile(r"devobs-web:[0-9a-f]{40}\Z")
 
 
 class InvalidReport(ValueError):
     """Raised when the Trivy JSON does not match its expected report shape."""
 
 
-def evaluate_report(report: Any) -> tuple[bool, dict[str, int]]:
-    """Validate a Trivy image report and return gate status plus severity counts."""
-    if not isinstance(report, dict) or report.get("ArtifactType") != "container_image":
+def evaluate_report(report: Any, expected_image: str) -> tuple[bool, dict[str, int]]:
+    """Validate the exact expected local image report and return severity counts."""
+    if (not isinstance(expected_image, str)
+            or not EXPECTED_IMAGE_PATTERN.fullmatch(expected_image)
+            or not isinstance(report, dict)
+            or report.get("ArtifactType") != "container_image"
+            or report.get("ArtifactName") != expected_image):
         raise InvalidReport
 
     results = report.get("Results")
@@ -88,6 +93,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--report", required=True, type=Path, help="Trivy JSON report path")
     parser.add_argument("--summary", type=Path, default=os.environ.get("GITHUB_STEP_SUMMARY"))
     parser.add_argument("--revision", required=True, help="Full checked-out 40-character Git SHA")
+    parser.add_argument(
+        "--expected-image", required=True,
+        help="Exact local image identity devobs-web:<full checked-out Git SHA>",
+    )
     args = parser.parse_args(argv)
 
     if not isinstance(args.summary, Path):
@@ -99,7 +108,7 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         report = _read_report(args.report)
-        passed, counts = evaluate_report(report)
+        passed, counts = evaluate_report(report, args.expected_image)
     except InvalidReport:
         print("ERROR: missing, malformed, or unsupported Trivy JSON report", file=sys.stderr)
         return 2
