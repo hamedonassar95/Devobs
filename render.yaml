@@ -1,16 +1,16 @@
-# Proposed staging only. Importing this Blueprint may create a billable service.
-# It does not provision Supabase or automatically deploy on commits.
+# Proposed P01 staging only. Creating this public service can start an initial build/deploy.
+# Free plan usage may still incur build/egress charges; no provider action is authorized here.
 previews:
   generation: off
 services:
   - type: web
     name: devobs-ai-staging
     runtime: python
-    plan: starter
+    plan: free
     region: frankfurt
     autoDeployTrigger: off
     buildCommand: python3 -m pip install --disable-pip-version-check -r requirements-api.txt
-    startCommand: gunicorn --chdir scripts --workers 2 --bind 0.0.0.0:10000 --timeout 30 devobs_intelligence.staging_app:application
+    startCommand: gunicorn --chdir scripts --workers 1 --bind 0.0.0.0:10000 --timeout 30 devobs_intelligence.staging_app:application
     healthCheckPath: /readyz
     envVars:
       - key: DEVOBS_PG_DSN
