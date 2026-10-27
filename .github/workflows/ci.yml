@@ -307,10 +307,11 @@ jobs:
             exit 1
           fi
           echo "COMMIT_SHA=$commit_sha" >> "$GITHUB_ENV"
+          echo "IMAGE_TAG=devobs-web:$commit_sha" >> "$GITHUB_ENV"
       - name: Build image for vulnerability scanning
         run: |
           set -euo pipefail
-          docker build --pull --tag "devobs-web:${COMMIT_SHA}" .
+          docker build --pull --tag "$IMAGE_TAG" .
       - name: Install checksum-verified Trivy 0.76.1
         shell: bash
         run: |
@@ -339,12 +340,14 @@ jobs:
         # Trivy image CLI options: https://trivy.dev/latest/docs/references/configuration/cli/trivy_image/
         run: |
           set -euo pipefail
-          trivy image --scanners vuln --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL --ignore-unfixed=false --exit-code 0 \
-            --format json --output "$REPORT_PATH" "devobs-web:${COMMIT_SHA}"
+          docker image inspect "$IMAGE_TAG" >/dev/null
+          trivy image --image-src docker --scanners vuln --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL --ignore-unfixed=false --exit-code 0 \
+            --format json --output "$REPORT_PATH" "$IMAGE_TAG"
           python3 scripts/trivy_report_policy.py \
             --report "$REPORT_PATH" \
             --summary "$GITHUB_STEP_SUMMARY" \
-            --revision "$COMMIT_SHA"
+            --revision "$COMMIT_SHA" \
+            --expected-image "$IMAGE_TAG"
       - name: Upload Trivy report
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
