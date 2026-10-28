@@ -2,6 +2,7 @@ import unittest
 from pathlib import Path
 
 WORKFLOW = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
+DOCKERFILE = Path("Dockerfile").read_text(encoding="utf-8")
 VALIDATE_JOB = WORKFLOW.split("\n  validate:\n", 1)[1].split("\n  production-release:\n", 1)[0]
 NEEDS_LINE = next(line.strip() for line in VALIDATE_JOB.splitlines() if line.strip().startswith("needs:"))
 NEEDS_LIST = NEEDS_LINE.split(":", 1)[1].strip()
@@ -11,6 +12,16 @@ VALIDATE_NEEDS = {job.strip() for job in NEEDS_LIST[1:-1].split(",") if job.stri
 
 
 class DockerWorkflowContractTests(unittest.TestCase):
+    def test_runtime_base_is_digest_pinned_and_preserves_deployment_contract(self):
+        self.assertIn(
+            "FROM nginx/nginx-unprivileged:1.31.8-alpine3.24-slim@"
+            "sha256:629d3227f39ec10201345e420e2d9d430e463a9893d374b515a8eb6541e71938 AS runtime",
+            DOCKERFILE,
+        )
+        self.assertIn("USER 101:101", DOCKERFILE)
+        self.assertIn("EXPOSE 8080", DOCKERFILE)
+        self.assertIn("HEALTHCHECK", DOCKERFILE)
+
     def test_container_is_built_smoke_tested_and_required_by_validate(self):
         self.assertIn("  container-build:\n", WORKFLOW)
         self.assertIn("docker build --pull --tag", WORKFLOW)
