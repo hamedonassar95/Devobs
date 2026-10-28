@@ -129,11 +129,14 @@ jobs:
           node --check scripts/ai_intelligence/incident_report.mjs
           node --check scripts/ai_intelligence/recommendations.mjs
           node --check scripts/ai_intelligence/recommendation_report.mjs
+          node --check scripts/ai_intelligence/trend_forecast.mjs
+          node --check scripts/ai_intelligence/trend_report.mjs
           node --check tests/ai_event_ingest.test.mjs
           node --check tests/ai_anomaly_detector.test.mjs
           node --check tests/ai_incident_analysis.test.mjs
           node --check tests/ai_recommendations.test.mjs
-          node --test tests/incident_guard.test.cjs tests/ai_event_ingest.test.mjs tests/ai_anomaly_detector.test.mjs tests/ai_incident_analysis.test.mjs tests/ai_recommendations.test.mjs
+          node --check tests/ai_trend_forecast.test.mjs
+          node --test tests/incident_guard.test.cjs tests/ai_event_ingest.test.mjs tests/ai_anomaly_detector.test.mjs tests/ai_incident_analysis.test.mjs tests/ai_recommendations.test.mjs tests/ai_trend_forecast.test.mjs
 
   security:
     if: inputs.validation_profile != 'rollback'
