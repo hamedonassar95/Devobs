@@ -1,3 +1,5 @@
+import { createRecommendationFeedbackKey } from './feedback_learning.mjs';
+
 const MAX_CLUSTERS = 250;
 const MAX_HYPOTHESES_PER_CLUSTER = 8;
 const MAX_RECOMMENDATIONS = MAX_CLUSTERS * MAX_HYPOTHESES_PER_CLUSTER;
@@ -138,6 +140,7 @@ export function recommendFromIncidentAnalysis(analysis) {
       const recommendation = {
         review_order: recommendations.length + 1,
         cluster_fingerprint: cluster.fingerprint,
+        feedback_key: createRecommendationFeedbackKey(cluster.fingerprint, hypothesis.id),
         event_count: cluster.count,
         cause_id: hypothesis.id,
         classification: 'POSSIBLE',
