@@ -51,6 +51,7 @@ test('maps an AI-3 POSSIBLE timeout signal to fixed read-only checks and a sugge
   assert.equal(result.recommendations[0].heuristic_signal, 'medium');
   assert.equal(result.recommendations[0].automatic_execution, false);
   assert.equal(result.recommendations[0].requires_human_approval, true);
+  assert.match(result.recommendations[0].feedback_key, /^sha256:[0-9a-f]{64}$/);
   assert.match(result.recommendations[0].read_only_checks[0], /راجع/);
 });
 
