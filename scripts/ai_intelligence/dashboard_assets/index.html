@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>لوحة الذكاء التشغيلي المحلية — Devobs</title>
+  <link rel="stylesheet" href="/dashboard.css">
+  <script type="module" src="/dashboard.js"></script>
+</head>
+<body>
+  <main class="layout">
+    <header class="hero">
+      <p class="eyebrow">AI-7 · محلي · قراءة فقط</p>
+      <h1>لوحة الذكاء التشغيلي</h1>
+      <p>ملخص للأحداث المحلية، فرضيات الحوادث، والتوصيات التي تحتاج مراجعة بشرية.</p>
+      <p id="status" class="status" role="status" aria-live="polite">جارٍ تحميل اللقطة المحلية…</p>
+    </header>
+
+    <section aria-labelledby="summary-title">
+      <h2 id="summary-title">الملخص</h2>
+      <dl id="summary" class="summary-grid"></dl>
+    </section>
+
+    <section aria-labelledby="incidents-title">
+      <h2 id="incidents-title">تجميعات السجلات والفرضيات</h2>
+      <div id="incidents" class="card-grid"></div>
+    </section>
+
+    <section aria-labelledby="recommendations-title">
+      <h2 id="recommendations-title">التوصيات</h2>
+      <p class="notice">التصنيف ودرجات الإشارة إرشادية وليست احتمالًا معايرًا. لا يُنفذ أي تغيير من هذه اللوحة.</p>
+      <div id="recommendations" class="card-grid"></div>
+    </section>
+
+    <footer>الواجهة تعرض لقطة من ملفات محلية عند بدء الخادم. أوقف الخادم بـCtrl+C. لا تُدخل بيانات حساسة.</footer>
+  </main>
+</body>
+</html>
