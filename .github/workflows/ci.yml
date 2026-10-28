@@ -123,8 +123,11 @@ jobs:
         run: |
           node --check scripts/ai_intelligence/event_schema.mjs
           node --check scripts/ai_intelligence/event_ingest.mjs
+          node --check scripts/ai_intelligence/anomaly_detector.mjs
+          node --check scripts/ai_intelligence/anomaly_report.mjs
           node --check tests/ai_event_ingest.test.mjs
-          node --test tests/incident_guard.test.cjs tests/ai_event_ingest.test.mjs
+          node --check tests/ai_anomaly_detector.test.mjs
+          node --test tests/incident_guard.test.cjs tests/ai_event_ingest.test.mjs tests/ai_anomaly_detector.test.mjs
 
   security:
     if: inputs.validation_profile != 'rollback'
