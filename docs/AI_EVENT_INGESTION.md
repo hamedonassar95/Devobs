@@ -51,6 +51,7 @@ node scripts/ai_intelligence/event_ingest.mjs --input /path/to/synthetic-events.
 ## الفحوص والحدود
 
 ```sh
+node --check scripts/ai_intelligence/event_schema.mjs
 node --check scripts/ai_intelligence/event_ingest.mjs
 node --check tests/ai_event_ingest.test.mjs
 node --test tests/incident_guard.test.cjs tests/ai_event_ingest.test.mjs
