@@ -119,7 +119,7 @@ jobs:
         with:
           ref: ${{ inputs.source_ref || github.sha }}
           persist-credentials: false
-      - name: Check Node syntax and run offline guard and ingestion tests
+      - name: Check Node syntax and run offline AI safety tests
         run: |
           node --check scripts/ai_intelligence/event_schema.mjs
           node --check scripts/ai_intelligence/event_ingest.mjs
@@ -127,10 +127,13 @@ jobs:
           node --check scripts/ai_intelligence/anomaly_report.mjs
           node --check scripts/ai_intelligence/incident_analysis.mjs
           node --check scripts/ai_intelligence/incident_report.mjs
+          node --check scripts/ai_intelligence/recommendations.mjs
+          node --check scripts/ai_intelligence/recommendation_report.mjs
           node --check tests/ai_event_ingest.test.mjs
           node --check tests/ai_anomaly_detector.test.mjs
           node --check tests/ai_incident_analysis.test.mjs
-          node --test tests/incident_guard.test.cjs tests/ai_event_ingest.test.mjs tests/ai_anomaly_detector.test.mjs tests/ai_incident_analysis.test.mjs
+          node --check tests/ai_recommendations.test.mjs
+          node --test tests/incident_guard.test.cjs tests/ai_event_ingest.test.mjs tests/ai_anomaly_detector.test.mjs tests/ai_incident_analysis.test.mjs tests/ai_recommendations.test.mjs
 
   security:
     if: inputs.validation_profile != 'rollback'
