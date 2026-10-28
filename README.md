@@ -13,6 +13,7 @@
 - [تحليل الحوادث AI-3 محليًا](docs/AI_INCIDENT_ANALYSIS.md): تجميع سجلات اصطناعية وفرضيات أسباب محتملة وسياق CI فقط.
 - [توصيات AI-4 المحلية](docs/AI_RECOMMENDATIONS.md): مطابقة فرضيات AI-3 مع runbooks ثابتة، بوضع الاقتراح فقط.
 - [تقارير الاتجاه AI-5 محليًا](docs/AI_TREND_REPORTS.md): ملخص يومي/أسبوعي واستقراء أولي لمقاييس سجل محلي دون اتصال خارجي.
+- [تغذية راجعة للتوصيات AI-6](docs/AI_FEEDBACK_LEARNING.md): تسجيل قبول/رفض محلي اختياري يؤثر في ترتيب المراجعة بعد حد أدنى من القرارات.
 - [تدقيق حوكمة main الحالي](docs/DEVOBS_MAIN_GOVERNANCE_AUDIT.md): القواعد الفعالة وفحوص PR وحالة الموافقات وفق GitHub API.
 - [P00 release gate evidence](docs/P00_RELEASE_GATE_EVIDENCE.md): current branch rules, exact-main CI evidence, release safeguards and owner exit checklist.
 - [P00 unsigned owner decision packet](docs/P00_OWNER_DECISION.md): immutable evidence baseline and blank GO/NO-GO fields for the human owner.
@@ -27,7 +28,7 @@
 
 ## التثبيت والتشغيل محليًا
 
-المتطلبات: Git، وPython 3.10 أو أحدث لفحوص الموقع والاختبارات، وNode.js لاختبارات حارس الحوادث ومراحل AI-1 إلى AI-5 المحلية. لا توجد حزم تطبيق أو عملية build مطلوبة.
+المتطلبات: Git، وPython 3.10 أو أحدث لفحوص الموقع والاختبارات، وNode.js لاختبارات حارس الحوادث ومراحل AI-1 إلى AI-6 المحلية. لا توجد حزم تطبيق أو عملية build مطلوبة.
 
 ```sh
 git clone https://github.com/hamedonassar95/Devobs.git
@@ -44,7 +45,7 @@ python3 -m http.server 8000 --bind 127.0.0.1
 ```sh
 python3 -m compileall -q scripts tests
 python3 -m unittest discover -s tests -v
-node --test tests/incident_guard.test.cjs tests/ai_event_ingest.test.mjs tests/ai_anomaly_detector.test.mjs tests/ai_incident_analysis.test.mjs tests/ai_recommendations.test.mjs tests/ai_trend_forecast.test.mjs
+node --test tests/incident_guard.test.cjs tests/ai_event_ingest.test.mjs tests/ai_anomaly_detector.test.mjs tests/ai_incident_analysis.test.mjs tests/ai_recommendations.test.mjs tests/ai_trend_forecast.test.mjs tests/ai_feedback_learning.test.mjs
 python3 scripts/check_site.py
 ```
 
@@ -57,6 +58,8 @@ python3 scripts/check_site.py
 لتوليد اقتراحات محلية من runbooks ثابتة دون تنفيذ، اتبع [دليل AI-4](docs/AI_RECOMMENDATIONS.md). يلزم اعتماد بشري منفصل لأي تغيير؛ المخرجات احتمالية ولا تتصل بخدمات خارجية.
 
 لإنتاج ملخص يومي/أسبوعي واستقراء أولي للمقاييس من ملف JSONL محلي، شغّل `node scripts/ai_intelligence/trend_report.mjs --store <local-jsonl-file>` واتبع [دليل AI-5](docs/AI_TREND_REPORTS.md). لا يكتب الأمر في الملف أو يتصل بالشبكة، ولا ينتج قيمة تنبؤ عند نقص ستة أيام UTC متصلة.
+
+لتسجيل قبول/رفض توصية بموافقة المشغّل وترتيب الاقتراحات وفق سجل محلي اختياري، اتبع [دليل AI-6](docs/AI_FEEDBACK_LEARNING.md). لا تُجمع ملاحظات نصية، ولا يتصل النظام بالشبكة؛ المعدل إشارة تفضيل محدودة وليس قياسًا لدقة الأسباب.
 
 يفحص CI شيفرة Python باستخدام Bandit، والاعتماديات باستخدام `pip-audit`. لتشغيل الفحوص محليًا:
 
