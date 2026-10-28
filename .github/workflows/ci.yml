@@ -119,8 +119,15 @@ jobs:
         with:
           ref: ${{ inputs.source_ref || github.sha }}
           persist-credentials: false
-      - name: Run Node guard tests
-        run: node --test tests/incident_guard.test.cjs
+      - name: Check Node syntax and run offline guard and ingestion tests
+        run: |
+          node --check scripts/ai_intelligence/event_schema.mjs
+          node --check scripts/ai_intelligence/event_ingest.mjs
+          node --check scripts/ai_intelligence/anomaly_detector.mjs
+          node --check scripts/ai_intelligence/anomaly_report.mjs
+          node --check tests/ai_event_ingest.test.mjs
+          node --check tests/ai_anomaly_detector.test.mjs
+          node --test tests/incident_guard.test.cjs tests/ai_event_ingest.test.mjs tests/ai_anomaly_detector.test.mjs
 
   security:
     if: inputs.validation_profile != 'rollback'
