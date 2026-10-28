@@ -103,10 +103,14 @@ test('latest choice replaces earlier votes for the same recommendation during ag
 
 test('feedback stays advisory and does not reorder recommendations below the evidence threshold', () => {
   const report = { mode: 'suggestion_only', recommendations: [recommendation(KEY, 'timeout', 1), recommendation(`sha256:${'c'.repeat(64)}`, 'dns', 2)] };
-  const result = applyFeedbackLearning(report, [record(KEY, 'timeout', 'accepted')]);
+  const result = applyFeedbackLearning(report, [
+    record(KEY, 'timeout', 'accepted'),
+    record(`sha256:${'d'.repeat(64)}`, 'timeout', 'rejected'),
+  ]);
   assert.deepEqual(result.recommendations.map(item => item.review_order), [1, 2]);
   assert.equal(result.feedback_learning.ranking_adjusted, false);
-  assert.equal(result.recommendations[0].feedback_review_signal.smoothed_acceptance_rate, 0.6667);
+  assert.equal(result.recommendations[0].feedback_review_signal.sample_count, 2);
+  assert.equal(result.recommendations[0].feedback_review_signal.smoothed_acceptance_rate, 0.5);
   assert.equal(result.recommendations[0].heuristic_signal, 'low');
   assert.equal(result.mode, 'suggestion_only');
 });
@@ -127,7 +131,7 @@ test('three distinct reviewed recommendations enable deterministic smoothed orde
   assert.equal(result.recommendations[1].feedback_review_signal.smoothed_acceptance_rate, 0.4);
   assert.equal(result.feedback_learning.ranking_adjusted, true);
   assert.equal(result.feedback_learning.automatic_execution, false);
-  assert.equal(result.recommendations.every(item => item.requires_human_approval !== false), true);
+  assert.equal(result.recommendations.every(item => item.requires_human_approval === true && item.automatic_execution === false), true);
 });
 
 test('invalid, over-permissive, linked, or locked ledgers fail closed without echoing paths', async t => {
