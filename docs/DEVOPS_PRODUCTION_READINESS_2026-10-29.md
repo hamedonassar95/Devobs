@@ -83,7 +83,7 @@ The 18 Python skips require PostgreSQL and were not run against a local database
 
 ## Local remediation on the review branch
 
-After the owner approved the remediation plan, this branch added `requirements-api.lock` and `requirements-dev.lock`, both generated with `pip-tools 7.6.2`, and configured Python CI to use hash-checked installs and audits. The dev manifest pins pip itself. `scripts/assess_change.py` now selects the Python suite when either source manifest or lock changes. The API also has a bounded process-local rate/concurrency guard with 3 focused regression tests. Clean-environment installs, full local tests, and audits passed; GitHub Actions has not run on this unpushed branch.
+After the owner approved the remediation plan, this branch added `requirements-api.lock` and `requirements-dev.lock`, both generated with `pip-tools 7.6.2`, and configured Python CI to use hash-checked installs and audits. The dev manifest pins pip itself. `scripts/assess_change.py` now selects the Python suite when either source manifest or lock changes. The API also has a bounded process-local rate/concurrency guard with 3 focused regression tests. Clean-environment installs, full local tests, and audits passed on an earlier branch state; the exact tested SHA was not recorded. GitHub Actions has not run on this unpushed branch.
 
 ```text
 /tmp/devobs-lock-final/bin/python -m pip install --disable-pip-version-check --require-hashes -r requirements-api.lock
@@ -120,9 +120,11 @@ git diff --check: passed.
 
 The 18 Python skips require PostgreSQL and were not run against a local database. The reviewed `main` CI Postgres RLS job passed on its ephemeral service, but GitHub Actions has not run for this remediation branch. No load test, Docker build, hosted API or deployment test was run on the branch.
 
+The current local branch head is `d6bb4fa` (`fix(api): bound concurrent token verification`). The full Python/Node suites above predate that final API change and must not be reported as a full-suite pass on the current head. After that change, Python AST parsing and `git diff --check` passed. The exact SHA for the earlier full-suite run is unknown. The container workflow's local structural checks passed, but the workflow, Docker build, and Cosign signature verification have not run in hosted CI on this branch.
+
 ## Documentation and freshness
 
-`docs/DEVOBS_READINESS_CURRENT.md` contains older revision/date details than the reviewed `main` head; `STATE.md` now points to this dated review. This report records the current reviewed SHA and separates confirmed static-site evidence from unresolved SaaS and AI-9 gates. The AI-9 diagnostic branch has not been recovered or published as part of this work.
+`docs/DEVOBS_READINESS_CURRENT.md` is refreshed as a concise status page and points to this dated review, the P01 decision checklist, and `STATE.md`. This report records the reviewed `main` SHA separately from the local remediation branch and separates confirmed static-site evidence from unresolved SaaS and AI-9 gates. The AI-9 diagnostic branch has not been recovered or published as part of this work.
 
 ## Scope limits
 
