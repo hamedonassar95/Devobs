@@ -73,7 +73,7 @@ def make_app(verifier: AccessTokenVerifier, tenant_gate: object, *,
              requests_per_window: int = 60, window_seconds: int = 60,
              max_tracked_principals: int = 4096, max_in_flight: int = 8,
              clock: Callable[[], float] = time.monotonic) -> Callable:
-    """A bounded, process-local read API, not a production deployment."""
+    """A bounded, process-local GET path including token verification and storage reads."""
     limiter = _SubjectTenantRateLimiter(requests_per_window, window_seconds,
                                         max_tracked_principals, clock)
     if type(max_in_flight) is not int or max_in_flight < 1:
@@ -89,20 +89,20 @@ def make_app(verifier: AccessTokenVerifier, tenant_gate: object, *,
         if method != "GET":
             return _reply(start_response, "405 Method Not Allowed", {"error":"method_not_allowed"},
                           [("Allow", "GET")])
-        authorization = environ.get("HTTP_AUTHORIZATION", "")
-        if type(authorization) is not str or not authorization.startswith("Bearer "):
-            return _reply(start_response, "401 Unauthorized", {"error":"invalid_token"},
-                          [("WWW-Authenticate", 'Bearer error="invalid_token"')])
-        try:
-            principal = verifier.verify(authorization[7:])
-        except AuthenticationError:
-            return _reply(start_response, "401 Unauthorized", {"error":"invalid_token"},
-                          [("WWW-Authenticate", 'Bearer error="invalid_token"')])
-        tenant_id, project_id = match.groups()
         if not in_flight.acquire(blocking=False):
             return _reply(start_response, "503 Service Unavailable", {"error":"backend_busy"},
                           [("Retry-After", "1")])
         try:
+            authorization = environ.get("HTTP_AUTHORIZATION", "")
+            if type(authorization) is not str or not authorization.startswith("Bearer "):
+                return _reply(start_response, "401 Unauthorized", {"error":"invalid_token"},
+                              [("WWW-Authenticate", 'Bearer error="invalid_token"')])
+            try:
+                principal = verifier.verify(authorization[7:])
+            except AuthenticationError:
+                return _reply(start_response, "401 Unauthorized", {"error":"invalid_token"},
+                              [("WWW-Authenticate", 'Bearer error="invalid_token"')])
+            tenant_id, project_id = match.groups()
             try:
                 retry_after = limiter.retry_after(principal.subject, tenant_id)
             except Exception:
