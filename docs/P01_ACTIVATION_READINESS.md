@@ -1,6 +1,6 @@
 # P01 Managed Staging: Owner Activation Decision
 
-**Decision status: NO-GO / BLOCKED by default.** This is an unsigned preparation packet, not an authorization to create services, transfer data, spend money, deploy, or enable AI. The repository baseline used for this packet is `origin/main` [`1eaad2c95da559095aa2160f81bdda62d064dcee`](https://github.com/hamedonassar95/Devobs/commit/1eaad2c95da559095aa2160f81bdda62d064dcee). Repository state does not establish current provider settings or service health.
+**Decision status: NO-GO / BLOCKED by default.** This is an unsigned preparation packet, not an authorization to create services, transfer data, spend money, deploy a P01 service, or enable AI. The repository baseline used when this packet was prepared was `origin/main` [`1eaad2c95da559095aa2160f81bdda62d064dcee`](https://github.com/hamedonassar95/Devobs/commit/1eaad2c95da559095aa2160f81bdda62d064dcee). **Current repository evidence was refreshed on 2026-10-29 at `main` `837e9790ce45fbc7fa624fdf68db1c3b5b396105`**; repository checks do not establish P01 provider settings or service health.
 
 ## Authorization boundary
 
@@ -19,7 +19,12 @@
 | PostgreSQL boundary | **VERIFIED (source/CI fixture):** [RLS staging evidence](POSTGRES_RLS_STAGING.md) documents a restricted non-owner, non-BYPASSRLS reader, forced RLS and parameterized tenant/subject-scoped reads. [`test_postgres_rls_integration.py`](../tests/test_postgres_rls_integration.py) is a disposable-PostgreSQL integration suite. | A live managed database, its runtime role/policies, or production protection from direct SQL access. |
 | Health and recovery | **VERIFIED (source contract):** offline tests distinguish liveness from readiness. The staging proposal requires real runtime-role checks and a restore rehearsal. | Live readiness, backup integrity, restore time, RPO/RTO, incident response, or rollback performance. |
 | Spend, privacy and network | **UNVERIFIED:** no selected hard spend ceiling/enforcement, data classification, retention/deletion approval, or live network policy is evidenced by these source documents. | Do not infer a spend cap from an inference-authorization flag or a provider alert. |
-| Publication / preview | **VERIFIED (repository source):** the P00 packet notes a main merge can trigger GitHub Pages publication. **UNVERIFIED (current provider settings):** a prior read-only audit treated Vercel PR previews as possible; settings have not been rechecked for this packet. | A local branch does not publish; a future push/PR may create a preview. Choose whether that visibility is acceptable before authorizing either. See [Vercel Git integration docs](https://vercel.com/docs/git). |
+| Publication / preview | **VERIFIED (runtime, 2026-10-29):** PR #290 produced a Vercel preview at [the PR preview URL](https://devobs-git-docs-readiness-evidence-after-pr-289-hamedonassar.vercel.app); merging it published the static Pages site and passed `verify-production` in [CI run 40964990632](https://github.com/hamedonassar95/Devobs/actions/runs/40964990632). **UNVERIFIED:** Vercel configuration, preview access controls and intended audience have not been independently inspected. | This confirms behavior for a repository documentation PR and static Pages only. It does not authorize a P01 endpoint, staging data, or customer access. See [Vercel Git integration docs](https://vercel.com/docs/git). |
+
+### Repository publication evidence (2026-10-29)
+
+- **VERIFIED:** PR #290 was documentation-only and merged as `837e9790ce45fbc7fa624fdf68db1c3b5b396105`. Main CI [run 40964990632](https://github.com/hamedonassar95/Devobs/actions/runs/40964990632) and separate CodeQL [run 40964990346](https://github.com/hamedonassar95/Devobs/actions/runs/40964990346) succeeded. GitHub Pages publication and production-site verification succeeded; the PR's Vercel preview is linked above.
+- **Scope:** these results verify repository CI and static-site publication. No P01 service, database, provider resource, staging data transfer, paid inference, or customer data was created or used. **P01 remains NO-GO / BLOCKED.**
 
 ### Offline evidence versus live acceptance
 
@@ -29,7 +34,7 @@ After separate authorization and provisioning, **live P01 evidence** must includ
 
 ## Owner decisions required before any P01 action
 
-All fields are intentionally blank. Attach evidence or an owner-approved reference; do not put credentials, DSNs, tokens, keys, or private customer data in this document.
+P01 provider, service, budget, data, identity, runtime and release values remain blank. The repository-only preview and Pages entries below record the owner's standing repository instruction; they do not grant a P01 GO. Attach evidence or an owner-approved reference for the remaining decisions. Do not put credentials, DSNs, tokens, keys, or private customer data in this document.
 
 | Decision | Owner-selected value / evidence (blank) |
 | --- | --- |
@@ -44,8 +49,8 @@ All fields are intentionally blank. Attach evidence or an owner-approved referen
 | Readiness/liveness semantics, smoke-test target, failure thresholds and exact staged SHA |  |
 | Incident owner/on-call path, stop conditions, rollback procedure and resource deletion authority |  |
 | Independent release approver and approval mechanism; distinguish this from the implementer |  |
-| Vercel preview visibility accepted before any push/PR? Scope and audience |  |
-| Separate approval for any main merge that may publish GitHub Pages |  |
+| Vercel preview visibility accepted before any push/PR? Scope and audience | The owner's standing repository instruction authorizes routine source/documentation PRs, CI, and merge; PR #290's preview was generated. Scope is limited to repository artifacts and synthetic/static content. This does not approve a P01 staging endpoint, staging data, or customer access. The Vercel access-control settings remain unverified. |
+| Separate approval for any main merge that may publish GitHub Pages | The owner's standing repository instruction authorizes merge after green CI; PR #290's merge published and verified the static site. This is not approval to deploy a P01 service or create resources. |
 
 ### Unsigned decision record
 
@@ -76,9 +81,9 @@ These are future planning milestones only, not P01 requirements that activate an
 
 The deep-research article is a **planning input**, not validation of vendor claims. GPT-6.1 Terra performance, security benchmarks, API syntax, eligibility, licensing and prices remain **UNVERIFIED** and are not used here. No model, Copilot, API, telemetry, payment, or cloud integration is activated. Preserve tenant isolation, redaction, prompt-injection defenses, provenance, cost enforcement and human approval as later-stage gates.
 
-## Before publishing this packet
+## Publication and P01 authorization boundary
 
-Opening a PR can trigger an automatic Vercel Preview; merging to `main` can automatically publish GitHub Pages under the current workflow. This task changes neither behavior. **Do not push or open a PR until the owner has explicitly chosen the acceptable preview visibility and approved publication implications.** See the [current Pages release source](../.github/workflows/ci.yml) and [P00 publication boundary](P00_OWNER_DECISION.md).
+The owner has authorized routine repository PRs, CI, and merges after green checks; PR #290 confirms that a repository preview can be generated and a merge can publish the static Pages site. This standing instruction covers repository artifacts and the existing static-site path only. **It does not authorize P01 resource creation, provider spend, data transfer, staging endpoints, paid AI, or customer access. P01 remains NO-GO / BLOCKED until the owner completes the decision record and separately authorizes the exact bounded staging scope.** See the [current Pages release source](../.github/workflows/ci.yml) and [P00 publication boundary](P00_OWNER_DECISION.md).
 
 ## References
 
