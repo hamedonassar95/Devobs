@@ -2,8 +2,10 @@
 import io
 import json
 import sys
+import threading
 import time
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from wsgiref.util import setup_testing_defaults
 
@@ -44,7 +46,7 @@ class AuthAndTenantAPITests(unittest.TestCase):
         return jwt.encode(claims,key or self.private,algorithm="RS256",
                           headers={"kid":"rsa-one","typ":"at+jwt"})
 
-    def send(self,tenant="alpha",project="shared",token=None,method="GET",extra=None):
+    def send(self,tenant="alpha",project="shared",token=None,method="GET",extra=None,app=None):
         env={};setup_testing_defaults(env)
         env["PATH_INFO"]=f"/v1/tenants/{tenant}/projects/{project}/ci"
         env["REQUEST_METHOD"]=method
@@ -52,8 +54,60 @@ class AuthAndTenantAPITests(unittest.TestCase):
         if token:env["HTTP_AUTHORIZATION"]="Bearer "+token
         if extra:env.update(extra)
         responses=[]
-        body=b"".join(self.app(env,lambda status,headers:responses.append((status,dict(headers)))))
+        body=b"".join((app or self.app)(env,lambda status,headers:responses.append((status,dict(headers)))))
         return responses[0][0],responses[0][1],json.loads(body)
+
+    def test_rate_limit_is_scoped_to_subject_and_tenant_and_refills(self):
+        now = [100]
+        app = make_app(self.verifier, self.store, requests_per_window=1,
+                       window_seconds=60, max_tracked_principals=2,
+                       max_in_flight=2, clock=lambda: now[0])
+        self.assertEqual(self.send(token=self.token(), app=app)[0], "200 OK")
+        limited = self.send(token=self.token(), app=app)
+        self.assertEqual(limited[0], "429 Too Many Requests")
+        self.assertEqual(limited[1]["Retry-After"], "60")
+        self.assertEqual(limited[2], {"error": "rate_limited"})
+        # A verified subject has a separate tenant bucket; normal tenant
+        # authorization still rejects the cross-tenant read.
+        self.assertEqual(self.send(tenant="beta", token=self.token(), app=app)[0], "403 Forbidden")
+        now[0] = 160
+        self.assertEqual(self.send(token=self.token(), app=app)[0], "200 OK")
+
+    def test_concurrency_limit_rejects_without_calling_store(self):
+        started = threading.Event()
+        release = threading.Event()
+
+        class BlockingStore:
+            calls = 0
+            def read_status(inner_self, subject, tenant, project):
+                inner_self.calls += 1
+                started.set()
+                if not release.wait(timeout=3):
+                    raise RuntimeError("synthetic wait expired")
+                return {"ci_state": "success", "source_sha": "a" * 40}
+
+        store = BlockingStore()
+        app = make_app(self.verifier, store, max_in_flight=1)
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            first = executor.submit(self.send, token=self.token(), app=app)
+            self.assertTrue(started.wait(timeout=2))
+            rejected = self.send(token=self.token(), app=app)
+            self.assertEqual(rejected[0], "503 Service Unavailable")
+            self.assertEqual(rejected[1]["Retry-After"], "1")
+            self.assertEqual(rejected[2], {"error": "backend_busy"})
+            self.assertEqual(store.calls, 1)
+            release.set()
+            self.assertEqual(first.result(timeout=2)[0], "200 OK")
+
+    def test_invalid_request_protection_limits_fail_closed(self):
+        for options in (
+            {"requests_per_window": 0},
+            {"window_seconds": 0},
+            {"max_tracked_principals": 0},
+            {"max_in_flight": 0},
+        ):
+            with self.subTest(options=options), self.assertRaises(ValueError):
+                make_app(self.verifier, self.store, **options)
 
     def test_valid_signature_and_read_only_endpoint(self):
         principal=self.verifier.verify(self.token())
