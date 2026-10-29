@@ -325,7 +325,11 @@ jobs:
         run: |
           set -euo pipefail
           docker build --pull --tag "$IMAGE_TAG" .
-      - name: Install checksum-verified Trivy 0.76.1
+      - name: Install Cosign for release signature verification
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+        with:
+          cosign-release: v3.0.6
+      - name: Install signature- and checksum-verified Trivy 0.76.1
         shell: bash
         run: |
           set -euo pipefail
@@ -334,10 +338,17 @@ jobs:
           release_url="https://github.com/aquasecurity/trivy/releases/download/v${version}"
           archive_path="$RUNNER_TEMP/$archive"
           checksums_path="$RUNNER_TEMP/trivy_checksums.txt"
+          bundle_path="$RUNNER_TEMP/trivy_checksums.txt.sigstore.json"
           install_dir="$RUNNER_TEMP/trivy-install"
           mkdir -p "$install_dir"
           curl --fail --location --silent --show-error "$release_url/$archive" --output "$archive_path"
           curl --fail --location --silent --show-error "$release_url/trivy_${version}_checksums.txt" --output "$checksums_path"
+          curl --fail --location --silent --show-error "$release_url/trivy_${version}_checksums.txt.sigstore.json" --output "$bundle_path"
+          # Cosign verify-blob options: https://docs.sigstore.dev/cosign/verifying/verify/
+          cosign verify-blob "$checksums_path" \
+            --bundle "$bundle_path" \
+            --certificate-identity="https://github.com/aquasecurity/trivy/.github/workflows/reusable-release.yaml@refs/tags/v${version}" \
+            --certificate-oidc-issuer="https://token.actions.githubusercontent.com"
           expected_checksum="$(awk -v filename="$archive" '$2 == filename { print $1 }' "$checksums_path")"
           if [[ ! "$expected_checksum" =~ ^[a-f0-9]{64}$ ]]; then
             echo 'Could not find a valid Trivy archive checksum.' >&2
