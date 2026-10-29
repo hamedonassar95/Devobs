@@ -17,6 +17,12 @@ REVISION = "0123456789abcdef0123456789abcdef01234567"
 EXPECTED_IMAGE = f"devobs-web:{REVISION}"
 
 
+def container_build_job(workflow=None):
+    if workflow is None:
+        workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
+    return workflow.split("  container-build:\n", 1)[1].split("\n  terraform-validate:", 1)[0]
+
+
 def report(*severities, image=EXPECTED_IMAGE):
     return {
         "ArtifactName": image,
@@ -200,8 +206,8 @@ class TrivyReportPolicyTests(unittest.TestCase):
 class TrivyWorkflowContractTests(unittest.TestCase):
     def run_scan_step_with_stubs(self, *, image_missing=False, scanner_failure=False):
         workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
-        job = workflow.split("  container-image-scan:\n", 1)[1].split("\n  terraform-validate:", 1)[0]
-        scan_step = job.split("      - name: Scan image and enforce fail-closed vulnerability policy\n", 1)[1].split("\n      - name: Upload Trivy report", 1)[0]
+        job = container_build_job(workflow)
+        scan_step = job.split("      - name: Scan the exact image that passed the smoke test\n", 1)[1].split("\n      - name: Upload Trivy report", 1)[0]
         script = textwrap.dedent(scan_step.split("        run: |\n", 1)[1])
         temp = tempfile.TemporaryDirectory()
         self.addCleanup(temp.cleanup)
@@ -212,7 +218,8 @@ class TrivyWorkflowContractTests(unittest.TestCase):
         docker.write_text(
             '#!/bin/sh\n'
             '[ "${FAKE_DOCKER_FAILURE:-0}" != 1 ] || exit 31\n'
-            '[ "$1" = image ] && [ "$2" = inspect ] && [ "$3" = "$IMAGE_TAG" ]\n',
+            '[ "$1" = image ] && [ "$2" = inspect ] && [ "$3" = --format ] && [ "$5" = "$IMAGE_TAG" ] || exit 33\n'
+            'printf "%s\\n" "$IMAGE_ID"\n',
             encoding="utf-8",
         )
         trivy = bin_dir / "trivy"
@@ -235,6 +242,7 @@ class TrivyWorkflowContractTests(unittest.TestCase):
             "GITHUB_STEP_SUMMARY": str(summary_path),
             "COMMIT_SHA": REVISION,
             "IMAGE_TAG": EXPECTED_IMAGE,
+            "IMAGE_ID": "sha256:" + "a" * 64,
             "TRIVY_MARKER": str(marker),
             "FAKE_REPORT": json.dumps(report()),
             "FAKE_DOCKER_FAILURE": "1" if image_missing else "0",
@@ -246,24 +254,27 @@ class TrivyWorkflowContractTests(unittest.TestCase):
         )
         return result, marker.exists(), summary_path.exists()
 
-    def test_single_scan_job_is_required_and_keeps_rollback_skipped(self):
+    def test_combined_container_build_and_scan_job_is_required_and_keeps_rollback_skipped(self):
         workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
-        self.assertEqual(workflow.count("  container-image-scan:"), 1)
-        job = workflow.split("  container-image-scan:\n", 1)[1].split("\n  terraform-validate:", 1)[0]
+        self.assertEqual(workflow.count("  container-build:"), 1)
+        self.assertNotIn("  container-image-scan:", workflow)
+        job = container_build_job(workflow)
         validate = workflow.split("\n  validate:\n", 1)[1].split("\n  production-release:", 1)[0]
-        self.assertIn("container-image-scan", validate.split("needs:", 1)[1].splitlines()[0])
-        self.assertIn("CONTAINER_SCAN_RESULT", validate)
+        self.assertIn("container-build", validate.split("needs:", 1)[1].splitlines()[0])
+        self.assertIn("CONTAINER_RESULT", validate)
         self.assertIn("if: inputs.validation_profile != 'rollback'", job)
-        self.assertIn('"$CONTAINER_SCAN_RESULT" != "skipped"', validate)
+        self.assertIn('"$CONTAINER_RESULT" != "skipped"', validate)
 
     def test_scan_builds_and_scans_the_same_local_checked_out_image(self):
         workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
-        job = workflow.split("  container-image-scan:\n", 1)[1].split("\n  terraform-validate:", 1)[0]
+        job = container_build_job(workflow)
         self.assertIn('echo "IMAGE_TAG=devobs-web:$commit_sha" >> "$GITHUB_ENV"', job)
         self.assertEqual(job.count('docker build --pull --tag "$IMAGE_TAG" .'), 1)
-        self.assertIn('docker image inspect "$IMAGE_TAG"', job)
-        scan_step = job.split("      - name: Scan image and enforce fail-closed vulnerability policy\n", 1)[1].split("      - name: Upload Trivy report\n", 1)[0]
-        self.assertLess(scan_step.index('docker image inspect "$IMAGE_TAG"'), scan_step.index("trivy image"))
+        self.assertGreaterEqual(job.count('docker image inspect --format'), 3)
+        self.assertGreaterEqual(job.count('actual_image_id="$(docker image inspect --format'), 2)
+        scan_step = job.split("      - name: Scan the exact image that passed the smoke test\n", 1)[1].split("      - name: Upload Trivy report\n", 1)[0]
+        self.assertLess(scan_step.index("actual_image_id=\"$(docker image inspect --format"), scan_step.index("trivy image"))
+        self.assertIn('if [[ "$actual_image_id" != "$IMAGE_ID" ]]', scan_step)
         self.assertIn("trivy image --image-src docker", scan_step)
         self.assertIn('"$IMAGE_TAG"', scan_step)
         self.assertIn('--expected-image "$IMAGE_TAG"', scan_step)
@@ -283,8 +294,8 @@ class TrivyWorkflowContractTests(unittest.TestCase):
 
     def test_scan_is_single_run_all_severities_and_fail_closed_policy_follows(self):
         workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
-        job = workflow.split("  container-image-scan:\n", 1)[1].split("\n  terraform-validate:", 1)[0]
-        scan_step = job.split("      - name: Scan image and enforce fail-closed vulnerability policy\n", 1)[1].split("      - name: Upload Trivy report\n", 1)[0]
+        job = container_build_job(workflow)
+        scan_step = job.split("      - name: Scan the exact image that passed the smoke test\n", 1)[1].split("      - name: Upload Trivy report\n", 1)[0]
         scan_at = job.index("trivy image")
         parser_at = job.index("scripts/trivy_report_policy.py")
         self.assertEqual(job.count("trivy image"), 1)
@@ -306,7 +317,7 @@ class TrivyWorkflowContractTests(unittest.TestCase):
 
     def test_build_identity_uses_checked_out_commit_not_github_event_sha(self):
         workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
-        job = workflow.split("  container-image-scan:\n", 1)[1].split("\n  terraform-validate:", 1)[0]
+        job = container_build_job(workflow)
         self.assertIn("git rev-parse HEAD", job)
         self.assertIn("COMMIT_SHA", job)
         self.assertIn('echo "IMAGE_TAG=devobs-web:$commit_sha"', job)
@@ -314,7 +325,7 @@ class TrivyWorkflowContractTests(unittest.TestCase):
 
     def test_image_scan_does_not_publish_and_artifact_upload_runs_after_failure(self):
         workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
-        job = workflow.split("  container-image-scan:\n", 1)[1].split("\n  terraform-validate:", 1)[0]
+        job = container_build_job(workflow)
         self.assertNotIn("docker push", job)
         self.assertIn("if: always()", job)
 
