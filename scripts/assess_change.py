@@ -118,7 +118,10 @@ def is_python_dependency(path: PurePosixPath) -> bool:
         "setup.cfg",
         "setup.py",
         "requirements.txt",
+        "requirements-api.txt",
         "requirements-dev.txt",
+        "requirements-api.lock",
+        "requirements-dev.lock",
     }
 
 

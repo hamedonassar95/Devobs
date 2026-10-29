@@ -9,7 +9,7 @@ This page describes the security checks configured for the original Devobs repos
 | Control | Repository implementation | Scope |
 | --- | --- | --- |
 | Python source analysis | Bandit in `.github/workflows/ci.yml` | Scans `scripts/`, excluding the static site contract checker. |
-| Dependency vulnerability audit | `pip-audit --requirement requirements-dev.txt` | Audits the direct and resolved transitive Python development dependencies. A finding fails the security job. |
+| Dependency vulnerability audit | `pip-audit --requirement requirements-dev.lock` and `pip-audit --requirement requirements-api.lock` | Audits the resolved development/security and proposed API dependency trees. A finding fails the security job. |
 | Secret scanning | Gitleaks GitHub Action | Scans repository history during CI. |
 | Workflow supply-chain check | `scripts/check_action_pins.py` | Requires third-party GitHub Actions to use full commit SHAs. |
 | Dependency updates | `.github/dependabot.yml` | Opens weekly update pull requests for Python packages and GitHub Actions. |
@@ -22,16 +22,17 @@ These checks run in the existing required `security` job and feed the existing `
 From the repository root, using Python 3.10 or newer:
 
 ```sh
-python3 -m pip install -r requirements-dev.txt
+python3 -m pip install --require-hashes -r requirements-dev.lock
 python3 -m bandit -r scripts -x scripts/check_site.py
-pip-audit --requirement requirements-dev.txt
+pip-audit --requirement requirements-dev.lock
+pip-audit --requirement requirements-api.lock
 ```
 
 `pip-audit` documents requirements-file auditing and its command options in the [official usage guide](https://github.com/pypa/pip-audit#usage). The audit needs network access to retrieve vulnerability data.
 
 ## Scope and operational limits
 
-- The dependency audit covers `requirements-dev.txt`. There is no application dependency manifest for the current static site, so this does not scan runtime packages.
+- The published static site has no application dependencies. The proposed, undeployed API has a separate hash-locked dependency tree in `requirements-api.lock`; it remains unevaluated under a hosted runtime.
 - Gitleaks, Bandit, and `pip-audit` findings still need human review and remediation; a green scan does not prove the site is vulnerability-free.
 - This repository change configures the checks. A successful hosted CI run on the resulting commit remains UNVERIFIED until CI runs after the change is merged.
 - Repository files cannot establish account-level CodeQL, branch-protection, or Dependabot settings. Confirm those in GitHub if they are required; this change does not modify them.
