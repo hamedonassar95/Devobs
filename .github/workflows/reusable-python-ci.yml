@@ -18,6 +18,11 @@ on:
         required: false
         type: string
         default: ""
+      require_hashes:
+        description: Require every resolved package to match an approved SHA256 hash
+        required: false
+        type: boolean
+        default: false
       compile_paths_json:
         description: JSON array of Python source paths to compile
         required: false
@@ -111,7 +116,13 @@ jobs:
         if: ${{ inputs.requirements_file != '' }}
         env:
           REQUIREMENTS_FILE: ${{ inputs.requirements_file }}
-        run: python -m pip install --disable-pip-version-check -r "$REQUIREMENTS_FILE"
+          REQUIRE_HASHES: ${{ inputs.require_hashes }}
+        run: |
+          pip_args=(--disable-pip-version-check)
+          if [[ "$REQUIRE_HASHES" == "true" ]]; then
+            pip_args+=(--require-hashes)
+          fi
+          python -m pip install "${pip_args[@]}" -r "$REQUIREMENTS_FILE"
 
       - name: Compile configured source paths
         env:

@@ -40,7 +40,7 @@ python3 -m unittest discover -s tests -v
 
 # With an EMPTY, disposable PostgreSQL 17+ instance only:
 # Set PG_TEST_ADMIN_DSN and PG_TEST_READER_DSN to disposable CI test roles.
-python3 -m pip install -r requirements-api.txt
+python3 -m pip install --require-hashes -r requirements-api.lock
 python3 -m unittest discover -s tests -p 'test_postgres_rls_integration.py' -v
 ```
 

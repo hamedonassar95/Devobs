@@ -1,2 +1,4 @@
 bandit==1.9.4
 pip-audit==2.10.1
+# Keep the package installer itself reproducible in hash-checked CI installs.
+pip==26.2.2

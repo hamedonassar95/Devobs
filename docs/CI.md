@@ -13,7 +13,7 @@
 - يرفض IDs المكررة ومراجع aria-labelledby المفقودة وعلامات تعارض الدمج.
 - يستخدم `scripts/stage_site.py` لإنشاء `_site` من النسخة التي جرى checkout لها، بعد تسجيل SHA الفعلي من `git rev-parse HEAD` والتحقق من أنه 40 خانة hex صغيرة. يشغّل `scripts/check_site.py` على `_site`، بما فيه اختبار HTTP محلي على loopback. معاينة PR ترفع نفس المجلد المفحوص كأثر قابل للتنزيل لمدة 7 أيام. على دفع `main` فقط، يرفع CI محتوى `_site` المفحوص بالاسم الثابت `validated-site-main-<run_id>`؛ وظيفة Pages العادية في استدعاء reusable workflow نفسه تنزّل الأثر نفسه حتى بعد إعادة تشغيل الوظائف الفاشلة، ثم ترفض غيابه أو اختلاف SHA/manifest أو ملفات غير مسموحة وتعيد فحص الموقع قبل رفعه إلى Pages. إعادة التشغيل الكاملة تستخدم `overwrite: true` لاستبدال أثر التشغيل بالاسم نفسه، مع احتفاظ 7 أيام. إعادتان كاملتان متزامنتان قد تتنافسان على الاسم؛ `overwrite` لا يوفر قفلًا وقد تفشل إحدى عمليتي الرفع/التنزيل، لذا تجنب الإعادات المتزامنة. لم يُنفّذ اختبار rerun فعلي على GitHub، ولم يتغير سجل مراجعة #273. لا تعيد وظيفة Pages العادية إنشاء الموقع. مسار الاستعادة rollback ما زال يجهز SHA السابق ويفحصه منفصلًا. هذا يربط ملفات الموقع التي فحصها CI بمدخل Pages العادي داخل التشغيل نفسه، لكنه لا يثبت أي تحويلات لاحقة في GitHub Pages/CDN، ولا يجعل Vercel يستهلك الأثر نفسه؛ Vercel يواصل فحص مرشحه منفصلًا. راجع [توثيق Git الرسمي لـ`git rev-parse`](https://git-scm.com/docs/git-rev-parse)، [توثيق GitHub لآثار workflow](https://docs.github.com/en/actions/concepts/workflows-and-actions/workflow-artifacts)، [توثيق إعادة تشغيل workflows](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/re-run-workflows-and-jobs)، [متغيرات التشغيل الرسمية](https://docs.github.com/en/actions/reference/workflows-and-actions/variables#default-environment-variables)، [توثيق upload-artifact وخيار الاستبدال](https://github.com/actions/upload-artifact)، و[إصدار وإجراء download-artifact v8.0.2 المثبت](https://github.com/actions/download-artifact/releases/tag/v8.0.2).
 - يفرض تثبيت الإجراءات الخارجية في GitHub Actions على commit SHA كامل، بما يشمل ملفات workflow وملفات lock وقوالب الوكلاء، عبر `scripts/check_action_pins.py`.
-- يشغّل Bandit لفحص شيفرة Python، و`pip-audit` لفحص الثغرات المعروفة في الاعتماديات المباشرة والانتقالية المعلنة في `requirements-dev.txt`. يفشل الفحص عند العثور على ثغرة.
+- يثبت اعتمادات Python من `requirements-api.lock` و`requirements-dev.lock` باستخدام `pip --require-hashes`، ثم يشغّل Bandit و`pip-audit` على كامل الاعتمادات المقفلة، المباشرة والانتقالية. يفشل الفحص عند العثور على ثغرة.
 - تتحقق Dependabot أسبوعيًا من تحديثات حزم Python وإجراءات GitHub.
 - يشغّل خادمًا محليًا مؤقتًا ويتحقق من HTTP 200 ونوع HTML وتطابق المحتوى في / و/index.html.
 - يشغّل اختبارات حواجز التحقق، وحالات الحوادث والتعافي، وعقد التحقيق والثقة.
@@ -38,6 +38,7 @@
 من جذر المستودع، باستخدام Python 3.10 أو أحدث:
 
 ```sh
+python3 -m pip install --require-hashes -r requirements-api.lock
 python3 -m unittest discover -s tests -v
 python3 scripts/check_site.py
 ```
@@ -52,7 +53,19 @@ python3 scripts/check_site.py
 4. ادمج PR التحسين بعد مراجعته؛ يعمل الفحص تلقائيًا على main. بعد الدمج يتاح Actions → CI → Run workflow.
 5. لا تغيّر اسم validate ولا تضف مرشحات paths تتخطى الفحص المطلوب.
 
-لا تحتاج اختبارات unittest إلى حزم Python خارجية. أدوات الفحص الأمني مثبتة بإصدارات محددة في `requirements-dev.txt`؛ يستخدم `pip-audit --requirement requirements-dev.txt` صيغة ملف المتطلبات الموثقة في [دليل pip-audit الرسمي](https://github.com/pypa/pip-audit#usage). يتطلب تدقيق الثغرات الوصول إلى مصدر بيانات الثغرات عبر الشبكة. لا يلزم Secret أو خدمة مدفوعة لهذا الفحص؛ يلزم السماح بـ GitHub Actions وGitHub-hosted runners وactions/checkout. لا يحتاج إعداد حماية الفرع الحالي إلى تعديل.
+ملفا `requirements-api.txt` و`requirements-dev.txt` يعلنان الاعتمادات المباشرة. الملفان `requirements-api.lock` و`requirements-dev.lock` يقفلان الاعتمادات الانتقالية بإصدارات وSHA256؛ CI يثبت منهما بوضع التحقق من hash ثم يدقق القفلين بواسطة `pip-audit --requirement`. مجموعة unittest تحتاج اعتمادات API، فثبت `requirements-api.lock` قبل تشغيلها. يتطلب تدقيق الثغرات الوصول إلى مصدر بيانات الثغرات عبر الشبكة. لا يلزم Secret أو خدمة مدفوعة لهذا الفحص.
+
+أُنشئت ملفات القفل باستخدام `pip-tools 7.6.2` وPython 3.12. ملف أدوات التطوير يثبت `pip` أيضًا حتى تكون عملية تثبيت CI نفسها محددة. لإعادة توليد الملفات بعد مراجعة تحديثات الاعتماديات:
+
+```sh
+python3 -m pip install pip-tools==7.6.2
+pip-compile --generate-hashes --strip-extras --resolver=backtracking \
+  --output-file=requirements-api.lock requirements-api.txt
+pip-compile --allow-unsafe --generate-hashes --strip-extras --resolver=backtracking \
+  --output-file=requirements-dev.lock requirements-dev.txt
+```
+
+اقرأ [وضع التحقق من hashes في pip](https://pip.pypa.io/en/stable/topics/secure-installs/#hash-checking-mode) و[دليل hashes في pip-tools](https://pip-tools.readthedocs.io/en/latest/#using-hashes). تغيير القفل يتطلب مراجعة فرق الإصدارات وإعادة تدقيق الثغرات. لا يحتاج إعداد حماية الفرع إلى تعديل.
 
 للتفاصيل وحدود كل فحص أمني، راجع [دليل DevSecOps](DEVSECOPS.md).
 

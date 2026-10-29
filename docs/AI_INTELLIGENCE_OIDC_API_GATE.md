@@ -9,7 +9,7 @@
 - `scripts/devobs_intelligence/api_app.py`: an *in-process, GET-only* WSGI callable. **No server listener** is created or deployed. Only endpoint: `GET /v1/tenants/{tenant}/projects/{project}/ci`.
 - Authentication failure yields HTTP 401 with `invalid_token`; valid identity without resource access yields 403 with a uniform `access_denied`; unexpected storage failure is not translated to success; no raw token in errors or responses.
 - `scripts/devobs_intelligence/tenant_store.py`: *SQLite memory-only fixture store* joining tenant, project and verified user on the same query; identical project names across tenants do not cause data crossover.
-- `requirements-api.txt`: pinned PyJWT and cryptography dependencies installed and scanned in the existing CI. Private keys are generated **only in test memory**. Nothing is deployed.
+- `requirements-api.txt` declares direct API dependencies; `requirements-api.lock` pins the resolved dependency tree with SHA256 hashes, and CI installs it using pip hash-checking mode. Private keys are generated **only in test memory**. Nothing is deployed.
 - `tests/test_intelligence_api_security.py`: verifies real test RSA signatures, rejection of unsigned/ID/wrong-scope/expired tokens, 401/403/405, tenant crossover and a real SQLite query.
 
 ## Trust contract (critical)
@@ -18,7 +18,7 @@
 2. The bearer access token must conform to the agreed JWT profile. **An ID Token is not valid API authorization.** Opaque token providers require a separately designed introspection boundary.
 3. `sub` is cryptographically verified before passing to `OfflineTenantStore`. The store never accepts a public token as its input. Roles or claimed tenant IDs in client-supplied headers are ignored.
 4. The API is **read-only**. No PR writing, build execution, merge, deploy, rollback, infrastructure mutation or payment action is exposed here.
-5. Tests run entirely in-process. Do not expose this WSGI callable publicly without TLS termination, validated issuer onboarding, reverse proxy hardening, rate limits, identity lifecycle, JWKS rotation, time-sync monitoring, sender-constrained or short-lived token risk controls and independent pentest.
+5. Tests run entirely in-process. The proposed API includes a process-local sliding-window limit of 60 requests per verified subject and tenant per 60-second window, a 4,096-key state cap, and at most 8 concurrent eligible GET requests per process. The concurrency guard includes local JWT verification and storage reads. It returns 429 with Retry-After for a verified-principal rate limit and 503 with Retry-After when all process slots are occupied. These are conservative starting defaults, not load-derived service limits: there is no unauthenticated request-rate limit and no coordination across processes/instances, so a sustained flood may occupy all process slots. Do not expose the WSGI callable publicly without TLS termination, a global gateway limit, validated issuer onboarding, reverse proxy hardening, identity lifecycle, JWKS rotation, time-sync monitoring, sender-constrained or short-lived token risk controls and independent pentest.
 6. SQLite fixture separation is **not PostgreSQL RLS**. Before SaaS, implement authenticated storage connections using per-tenant restrictions, negative RLS integration tests with non-owner DB roles and protection against admin bypass.
 7. The API has no background task, connection to GitLab, customer ingestion, production data, OpenTelemetry collector or external authentication provider. All of these remain **BLOCKED** pending review.
 
@@ -27,13 +27,13 @@
 From the original repository root on the feature branch:
 
 ```bash
-python3 -m pip install -r requirements-api.txt
+python3 -m pip install --require-hashes -r requirements-api.lock
 python3 -m unittest discover -s tests -p 'test_intelligence_api_security.py' -v
 python3 -m unittest discover -s tests -v
 python3 -m compileall -q scripts tests
 ```
 
-For further changes, run the existing `CI` and required security checks on the exact candidate SHA. The dependency manifest is audited by `pip-audit --requirement requirements-api.txt` in CI. Passing code checks do not verify a hosted API, provider configuration or production tenant isolation.
+For further changes, run the existing `CI` and required security checks on the exact candidate SHA. The resolved dependency lock is audited by `pip-audit --requirement requirements-api.lock` in CI. Passing code checks do not verify a hosted API, provider configuration or production tenant isolation.
 
 ## Pending requirements before a paid product
 
