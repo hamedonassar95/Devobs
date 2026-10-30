@@ -17,6 +17,10 @@
 
 A single [Combined preflight](LOCAL_PREFLIGHT.md) produces a machine-readable NO-GO matrix from both source and budget evidence files. Its nonzero exit status is intentional; no completeness check grants deployment approval.
 
+## Current commercial-provider evidence
+
+[October 31 provider/AI cost research](2026-10-31-production-provider-research.md) documents current official restrictions and a conservative commercial candidate. The [offline commercial target manifest](commercial_pilot_candidate.json) remains NO-GO with invoice and live-runtime proof unknown. `python3 -m unittest discover -s tests -p 'test_p01_commercial_pilot.py' -v` tests the guard, and `python3 scripts/check_p01_commercial_pilot.py --expected-sha e1e4223ff9853109b66972e7ba997a81240f9639` must exit 1 and report NO-GO, without provider actions.
+
 ## Offline verification (safe, no credentials)
 
 ```sh
