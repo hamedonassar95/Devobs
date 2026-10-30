@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "gate": "P01",
+  "decision": "NO-GO",
+  "source_sha": "838083fd490780ea27649a401777ad69bd767318",
+  "controls": {
+    "owner_approval": {
+      "state": "UNVERIFIED",
+      "source_sha": null,
+      "reviewer": null,
+      "observed_at": null,
+      "evidence_url": null
+    },
+    "provider_region": {
+      "state": "UNVERIFIED",
+      "source_sha": null,
+      "reviewer": null,
+      "observed_at": null,
+      "evidence_url": null
+    },
+    "budget_enforcement": {
+      "state": "UNVERIFIED",
+      "source_sha": null,
+      "reviewer": null,
+      "observed_at": null,
+      "evidence_url": null
+    },
+    "identity_oidc": {
+      "state": "UNVERIFIED",
+      "source_sha": null,
+      "reviewer": null,
+      "observed_at": null,
+      "evidence_url": null
+    },
+    "tenant_isolation": {
+      "state": "UNVERIFIED",
+      "source_sha": null,
+      "reviewer": null,
+      "observed_at": null,
+      "evidence_url": null
+    },
+    "operational_recovery": {
+      "state": "UNVERIFIED",
+      "source_sha": null,
+      "reviewer": null,
+      "observed_at": null,
+      "evidence_url": null
+    },
+    "independent_release_approval": {
+      "state": "UNVERIFIED",
+      "source_sha": null,
+      "reviewer": null,
+      "observed_at": null,
+      "evidence_url": null
+    }
+  }
+}

@@ -102,3 +102,30 @@ The owner has authorized routine repository PRs, CI, and merges after green chec
 - [Product/SaaS readiness blockers](PRODUCT_SAAS_READINESS.md)
 - [PostgreSQL row security documentation](https://www.postgresql.org/docs/current/ddl-rowsecurity.html)
 - [OWASP API Broken Object Level Authorization guidance](https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/)
+
+
+## P01 offline evidence gate (review only)
+
+The optional manual workflow `.github/workflows/p01-evidence-gate.yml` runs
+`scripts/check_p01_evidence.py` against `docs/p01/evidence.json`. The tracked
+sample is intentionally **NO-GO**, with all seven controls **UNVERIFIED**.
+The checker rejects missing/unknown fields, unexpected state, stale timestamps,
+SHA mismatch, and unsafe references; a missing control fails closed. It neither
+fetches external evidence nor authenticates a reviewer, therefore even a fully
+populated file is **READY_FOR_HUMAN_REVIEW**, never an authorization or runtime
+proof. Do not change the owner-signed P01 NO-GO based on this checker alone.
+The manual job is not wired into the static GitHub Pages release gate.
+
+Run locally from the repository root:
+
+```sh
+python3 -m unittest discover -s tests -p 'test_p01_evidence.py' -v
+python3 scripts/check_p01_evidence.py --file docs/p01/evidence.json --expected-sha 838083fd490780ea27649a401777ad69bd767318
+```
+
+The second command intentionally exits 1 while P01 remains blocked. Attestations
+must reference an actual reviewed source SHA and clean HTTPS evidence URLs, but
+that structure does not verify their authenticity or provider-account settings.
+Only explicit separate owner approval can authorize staging, spend, deployments,
+or production actions. Never include tokens, account identifiers, or sensitive
+customer evidence in this public repository.
