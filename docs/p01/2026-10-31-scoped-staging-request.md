@@ -1,5 +1,7 @@
 # P01 — account inspection and scoped staging authorization packet
 
+> **New owner screenshot supersedes the earlier inventory snapshot (2026-10-31):** separate **Devobs AI Intelligence Free** organization **and one project** are visible in Supabase UI; both linked API aliases still return only the old organization. Project identity and region are **unknown**. The original findings and `DRAFT_ONLY_NO_GO` request below are historical and **must not be used to create another Devobs project**. Reconcile the existing project first. [Detailed evidence](2026-10-31-supabase-owner-ui-evidence.md).
+
 **Observed:** 2026-10-31. **Owner authorization:** read-only plan/resource/cost investigation and preparation of this scoped packet, **not** cloud provisioning or spending. **Status:** `DRAFT_ONLY / P01 NO-GO`.
 
 **Inspected source:** Protected Devobs `main` at `e1e4223ff9853109b66972e7ba997a81240f9639` and the separate consolidated review branch. No provider settings, secrets, deployments, customer data or payment methods were changed, nor was a cloud resource created. No service/deployment can be inferred from a provider project alone.

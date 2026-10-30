@@ -1,5 +1,7 @@
 # P01 — one review entrypoint (consolidated, non-deploying)
 
+**New owner-supplied Supabase screenshot evidence (2026-10-31):** the Supabase organizations UI shows **Devobs AI Intelligence — Free Plan — 1 project**, separate from the original Free organization (also 1 project). Both connected Supabase aliases still list **only** the old organization and its Phone Repair Assistant project. This is a connector-vs-UI conflict, **not** permission to recreate a Devobs project. The new project's name, region, status and actual billing remain **UNVERIFIED**. See [evidence reconciliation](2026-10-31-supabase-owner-ui-evidence.md). P01 remains NO-GO.
+
 **Current decision: NO-GO / BLOCKED.** No setup, spending, production access, secrets, customer data, or resource creation is authorized here. Do not rebuild or delete the working Devobs repository. Use the protected `main` as source of truth and review branch changes under normal PR controls. The exact inspected main snapshot was `e1e4223ff9853109b66972e7ba997a81240f9639`; refresh the SHA and CI before any later owner decision.
 
 ## Existing evidence consolidated (not new provider proof)

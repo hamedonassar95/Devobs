@@ -1,5 +1,7 @@
 # Devobs control plane and separate experiment projects — owner architecture choice
 
+> **New evidence snapshot (2026-10-31):** the owner-provided Supabase organization screenshot now shows a separate **Devobs AI Intelligence Free** organization with **one existing project**. The connected Supabase API still lists only the prior organization. Therefore the earlier 'NOT CREATED' proposal states below are superseded as *owner-UI evidence* (not independently API-verified). **Do not create another project.** First inspect the existing project's name/region/status and reconcile the connector. See [Supabase screenshot reconciliation](../p01/2026-10-31-supabase-owner-ui-evidence.md). P01 remains NO-GO.
+
 **Decision date: 2026-10-31.** Owner clarified that **Devobs AI Intelligence** is the original central product; other projects are experiments for verifying how its automation and AI services operate. **Architecture authorized; no external deployment, transfer of data, new account or paid action has occurred.** P01 is **NO-GO**.
 
 ## Ownership and isolation
