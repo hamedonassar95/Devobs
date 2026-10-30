@@ -17,6 +17,10 @@
 
 A single [Combined preflight](LOCAL_PREFLIGHT.md) produces a machine-readable NO-GO matrix from both source and budget evidence files. Its nonzero exit status is intentional; no completeness check grants deployment approval.
 
+## Core platform and experimental clients (owner decision 2026-10-31)
+
+Devobs AI Intelligence remains the **canonical central control-plane repository**; PHONE REPAIR ASSISTANT and AL-DALA MOBILE are **independent experiment projects**, not shared databases, admin credentials, or automatic deploy targets. The [architecture decision](../architecture/DEVOBS_CORE_EXPERIMENTS.md), [proposed manifest](../architecture/devobs_experiment_policy.json), and [offline invariant checker](../../scripts/check_devobs_experiment_policy.py) document this boundary. The target **new separate Supabase Free organization** has **not** been created. The existing phone-repair project must never be reused for Devobs. Production/publishing and paid AI remain unauthorized.
+
 ## Scoped provider approval packet (2026-10-31)
 
 The [sanitized account review and scoped staging request](2026-10-31-scoped-staging-request.md) records connected Render/Supabase/Vercel observations, the 404 (not zero) Vercel billing result, published cost examples and the exact **independent owner authorization required before any create/deploy**. Its [machine-readable request](p01-staging-authorization-request.json) remains `DRAFT_ONLY_NO_GO`. Run `python3 -m unittest discover -s tests -p 'test_p01_staging_request.py' -v` to verify that read-only consent never becomes spend permission.

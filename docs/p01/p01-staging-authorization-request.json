@@ -61,5 +61,15 @@
   "resource_name_proposed": "devobs-ai-p01-staging",
   "create_action_selected": null,
   "spend_authorized": false,
-  "owner_p01_go": false
+  "owner_p01_go": false,
+  "owner_architecture_choice": {
+    "authority_repository": "hamedonassar95/Devobs",
+    "central_organization_strategy": "new_separate_free_organization",
+    "central_organization_name_proposed": "Devobs AI Intelligence",
+    "central_organization_created": false,
+    "initial_lab_project": "devobs-p01-staging",
+    "initial_lab_project_created": false,
+    "experiment_projects_remain_separate": true,
+    "external_workflow_changes_authorized": false
+  }
 }

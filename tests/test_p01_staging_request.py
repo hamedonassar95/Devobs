@@ -25,6 +25,16 @@ class ScopedRequestTests(unittest.TestCase):
         self.assertIs(self.data["owner_p01_go"], False)
         self.assertIsNone(self.data["create_action_selected"])
 
+    def test_owner_chose_separate_devobs_organization_not_repair_org(self):
+        choice = self.data["owner_architecture_choice"]
+        self.assertEqual(choice["authority_repository"], "hamedonassar95/Devobs")
+        self.assertEqual(choice["central_organization_strategy"], "new_separate_free_organization")
+        self.assertEqual(choice["central_organization_name_proposed"], "Devobs AI Intelligence")
+        self.assertFalse(choice["central_organization_created"])
+        self.assertFalse(choice["initial_lab_project_created"])
+        self.assertTrue(choice["experiment_projects_remain_separate"])
+        self.assertFalse(choice["external_workflow_changes_authorized"])
+
     def test_budget_target_and_examples_are_not_actual_quotes(self):
         b = self.data["budget_policy"]
         self.assertEqual(b, {"kind":"operating_target_not_guaranteed_cap",
