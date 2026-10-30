@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "gate": "P01",
+  "decision": "DRAFT_ONLY_NO_GO",
+  "inspection_date": "2026-10-31",
+  "owner_authorized_scope": {
+    "read_only_account_inspection": true,
+    "draft_scoped_request": true,
+    "create_resource": false,
+    "upgrade_plan": false,
+    "add_payment_method": false,
+    "deploy": false,
+    "enable_paid_ai": false,
+    "use_customer_data": false
+  },
+  "budget_policy": {
+    "kind": "operating_target_not_guaranteed_cap",
+    "monthly_target_usd": 100,
+    "core_usd": 60,
+    "metered_usd": 20,
+    "reserve_usd": 20
+  },
+  "environment": {
+    "kind": "synthetic_only",
+    "region_render": "frankfurt",
+    "region_supabase": "eu-central-1",
+    "separate_from_phone_repair": true,
+    "public_endpoint_authorized": false
+  },
+  "existing": {
+    "render_workspace_detected": true,
+    "render_workspace_subscription_verified": false,
+    "render_service_list_determinate": false,
+    "supabase_org_free_verified": true,
+    "separate_devobs_supabase_project_exists": false,
+    "vercel_team_projects_count": 7,
+    "vercel_devobs_deployment_ready": true,
+    "vercel_devobs_staging_deployment_ready": true,
+    "vercel_invoice_verified": false,
+    "auth0_account_verified": false
+  },
+  "public_list_price_examples_usd_per_month": {
+    "synthetic_free_base": 0,
+    "commercial_hobby_starter_supabase_pro": 32,
+    "commercial_render_pro_starter_supabase_pro": 57,
+    "auth0_free_if_eligible": 0
+  },
+  "unknowns": [
+    "render_workspace_subscription",
+    "render_account_level_actual_bill",
+    "render_paid_addons_and_payment_status",
+    "supabase_separate_org_or_project_eligibility",
+    "supabase_new_project_account_cost",
+    "vercel_subscription_and_invoice",
+    "auth0_tenant_and_jwks",
+    "recovery_and_extra_backup_cost",
+    "taxes_fees_egress_build",
+    "region_and_data_terms"
+  ],
+  "cost_quote_account_specific": false,
+  "resource_name_proposed": "devobs-ai-p01-staging",
+  "create_action_selected": null,
+  "spend_authorized": false,
+  "owner_p01_go": false
+}
