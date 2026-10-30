@@ -58,6 +58,13 @@ The binary security-impact labels are imbalanced (6 positive, 22 negative), and
 the severity levels are not evenly represented. These are coverage probes, not
 a representative sample of production incidents.
 
+`tests/test_openai_decisions_triage.py::OpenAIDecisionsTriageTests.test_prompt_injection_stays_in_untrusted_incident_input`
+checks that a synthetic injection string remains in the incident `input` field,
+is not copied into the fixed question instructions, and each question marks
+incident text as untrusted. This is an offline request-boundary regression
+test; it does not call a model or demonstrate that a model will resist
+injection.
+
 The offline evaluator validates a complete, one-to-one set of saved outputs
 and computes:
 
