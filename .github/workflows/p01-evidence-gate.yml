@@ -16,10 +16,21 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Checkout reviewed revision
+      - name: Checkout dispatched revision (no credentials)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.sha }}
           persist-credentials: false
+      - name: Bind reviewed SHA to exact main checkout (NO-GO on mismatch)
+        env:
+          CHECKED_SHA: ${{ inputs.source_sha }}
+        # git rev-parse --verify: https://git-scm.com/docs/git-rev-parse
+        run: |
+          set -euo pipefail
+          actual_sha="$(git rev-parse --verify HEAD)"
+          python3 scripts/verify_p01_checkout.py \
+            --expected-sha "$CHECKED_SHA" \
+            --checkout-sha "$actual_sha"
       - name: Validate evidence completeness (NO-GO by default)
         env:
           CHECKED_SHA: ${{ inputs.source_sha }}
