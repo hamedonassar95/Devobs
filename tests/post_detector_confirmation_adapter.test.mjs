@@ -34,9 +34,11 @@ function input(serviceId, minute, events) {
   return { serviceId, occurredAt: at(minute), events };
 }
 
+const allowService = async ({ serviceId }) => serviceId === 'service-a';
+
 test('an isolated real detector signal remains unconfirmed by the composed layer', async () => {
   const confirmationLayer = createPostDetectorConfirmationLayer();
-  const adapter = createDetectorConfirmationAdapter({ confirmationLayer });
+  const adapter = createDetectorConfirmationAdapter({ confirmationLayer, authorizeService: allowService });
   const events = history('cpu_percent', [20, 20, 20, 20, 20, 20, 60]);
   const result = await adapter.processEventWindow(input('service-a', 6, events));
 
@@ -53,7 +55,10 @@ test('persistent detector output starts one journaled incident without persistin
   t.after(() => rm(directory, { recursive: true, force: true }));
   const filePath = path.join(directory, 'journal.json');
   const journal = createPostDetectorConfirmationJournal({ filePath });
-  const adapter = createDetectorConfirmationAdapter({ confirmationLayer: journal });
+  const adapter = createDetectorConfirmationAdapter({
+    confirmationLayer: journal,
+    authorizeService: allowService,
+  });
   const events = history('cpu_percent', [20, 20, 20, 20, 20, 20, 60, 60]);
 
   for (let minute = 0; minute < 7; minute++) {
@@ -79,7 +84,7 @@ test('persistent detector output starts one journaled incident without persistin
 
 test('simultaneous detector signals on distinct metrics reach confirmation as one aligned window', async () => {
   const confirmationLayer = createPostDetectorConfirmationLayer();
-  const adapter = createDetectorConfirmationAdapter({ confirmationLayer });
+  const adapter = createDetectorConfirmationAdapter({ confirmationLayer, authorizeService: allowService });
   const events = [
     ...history('cpu_percent', [20, 20, 20, 20, 20, 20, 60]),
     ...history('latency_ms', [100, 100, 100, 100, 100, 100, 500]),
@@ -94,7 +99,7 @@ test('simultaneous detector signals on distinct metrics reach confirmation as on
 
 test('misaligned metric observations fail before confirmation state changes', async () => {
   const confirmationLayer = createPostDetectorConfirmationLayer();
-  const adapter = createDetectorConfirmationAdapter({ confirmationLayer });
+  const adapter = createDetectorConfirmationAdapter({ confirmationLayer, authorizeService: allowService });
   const before = confirmationLayer.getCheckpoint();
 
   await assert.rejects(async () => adapter.processEventWindow(input(
@@ -107,7 +112,7 @@ test('misaligned metric observations fail before confirmation state changes', as
 
 test('non-metric, duplicate, empty, and non-canonical inputs fail closed', async () => {
   const confirmationLayer = createPostDetectorConfirmationLayer();
-  const adapter = createDetectorConfirmationAdapter({ confirmationLayer });
+  const adapter = createDetectorConfirmationAdapter({ confirmationLayer, authorizeService: allowService });
   const valid = metricEvent('cpu_percent', 20, 0);
   const nonMetric = normalizeEvent({
     schema_version: 1,
@@ -135,13 +140,68 @@ test('non-metric, duplicate, empty, and non-canonical inputs fail closed', async
   assert.deepEqual(confirmationLayer.getSnapshot().service_count, 0);
 });
 
+test('authorization runs before metric parsing and receives only an immutable service ID', async () => {
+  const confirmationLayer = createPostDetectorConfirmationLayer();
+  let received;
+  const adapter = createDetectorConfirmationAdapter({
+    confirmationLayer,
+    authorizeService: async scope => {
+      received = scope;
+      return false;
+    },
+  });
+
+  await assert.rejects(async () => adapter.processEventWindow({
+    serviceId: 'service-a',
+    occurredAt: 'not-a-timestamp',
+    events: { malformed: true },
+  }), { code: 'service_not_authorized' });
+  assert.deepEqual(Object.keys(received), ['serviceId']);
+  assert.deepEqual(received, { serviceId: 'service-a' });
+  assert.equal(Object.isFrozen(received), true);
+  assert.equal(confirmationLayer.getSnapshot().service_count, 0);
+});
+
+test('non-boolean and throwing authorization decisions fail closed without leaking errors', async () => {
+  const confirmationLayer = createPostDetectorConfirmationLayer();
+  const nonBoolean = createDetectorConfirmationAdapter({
+    confirmationLayer,
+    authorizeService: () => 1,
+  });
+  await assert.rejects(async () => nonBoolean.processEventWindow(
+    input('service-a', 0, [metricEvent('cpu_percent', 20, 0)]),
+  ), { code: 'service_not_authorized' });
+
+  const throwing = createDetectorConfirmationAdapter({
+    confirmationLayer,
+    authorizeService: () => { throw new Error('synthetic private callback detail'); },
+  });
+  await assert.rejects(async () => throwing.processEventWindow(
+    input('service-a', 0, [metricEvent('cpu_percent', 20, 0)]),
+  ), error => error.code === 'service_authorization_failed'
+    && error.message === 'service_authorization_failed'
+    && !error.message.includes('private'));
+  assert.equal(confirmationLayer.getSnapshot().service_count, 0);
+});
+
 test('adapter and confirmation construction reject ambiguous dependencies and options', () => {
   assert.throws(() => createDetectorConfirmationAdapter(), { code: 'invalid_adapter_options' });
-  assert.throws(() => createDetectorConfirmationAdapter({ confirmationLayer: {} }), {
+  assert.throws(() => createDetectorConfirmationAdapter({
+    confirmationLayer: createPostDetectorConfirmationLayer(),
+  }), { code: 'invalid_adapter_options' });
+  assert.throws(() => createDetectorConfirmationAdapter({
+    confirmationLayer: {},
+    authorizeService: allowService,
+  }), {
     code: 'invalid_confirmation_implementation',
   });
   assert.throws(() => createDetectorConfirmationAdapter({
     confirmationLayer: createPostDetectorConfirmationLayer(),
+    authorizeService: true,
+  }), { code: 'invalid_service_authorizer' });
+  assert.throws(() => createDetectorConfirmationAdapter({
+    confirmationLayer: createPostDetectorConfirmationLayer(),
+    authorizeService: allowService,
     unused: true,
   }), { code: 'invalid_adapter_options' });
 });

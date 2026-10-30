@@ -39,6 +39,18 @@ function sameStrings(left, right) {
     && left.every((value, index) => value === right[index]);
 }
 
+function validateAdapterEnvelope(input) {
+  if (!isRecord(input) || Object.keys(input).length !== 3
+    || !Object.hasOwn(input, 'serviceId') || !Object.hasOwn(input, 'occurredAt')
+    || !Object.hasOwn(input, 'events')) reject('invalid_adapter_input');
+  if (!validIdentifier(input.serviceId)) reject('invalid_service_id');
+  return {
+    serviceId: input.serviceId,
+    occurredAt: input.occurredAt,
+    events: input.events,
+  };
+}
+
 function validateAnalysis(analysis, occurredAt, seenMetrics) {
   if (!isRecord(analysis) || !validIdentifier(analysis.metric)
     || seenMetrics.has(analysis.metric)
@@ -78,10 +90,6 @@ function validateAnalysis(analysis, occurredAt, seenMetrics) {
 }
 
 function toServiceWindow(input) {
-  if (!isRecord(input) || Object.keys(input).length !== 3
-    || !Object.hasOwn(input, 'serviceId') || !Object.hasOwn(input, 'occurredAt')
-    || !Object.hasOwn(input, 'events')) reject('invalid_adapter_input');
-  if (!validIdentifier(input.serviceId)) reject('invalid_service_id');
   canonicalUtcTimestamp(input.occurredAt);
   if (!Array.isArray(input.events) || input.events.length === 0
     || input.events.length > MAX_ANALYSIS_EVENTS) reject('invalid_metric_event_batch');
@@ -117,19 +125,31 @@ function toServiceWindow(input) {
 
 /**
  * Composes the existing event detector with an isolated post-detector
- * confirmation implementation. `serviceId` must come from an authenticated,
- * separately scoped caller; this module does not establish that trust.
+ * confirmation implementation. `authorizeService` must close over a trusted,
+ * separately authenticated caller scope; this module requires the callback but
+ * does not establish that the callback is correct.
  */
 export function createDetectorConfirmationAdapter(options = {}) {
-  if (!isRecord(options) || Object.keys(options).length !== 1
-    || !Object.hasOwn(options, 'confirmationLayer')) reject('invalid_adapter_options');
-  const { confirmationLayer } = options;
+  if (!isRecord(options) || Object.keys(options).length !== 2
+    || !Object.hasOwn(options, 'confirmationLayer') || !Object.hasOwn(options, 'authorizeService')) {
+    reject('invalid_adapter_options');
+  }
+  const { confirmationLayer, authorizeService } = options;
   if (!isRecord(confirmationLayer) || typeof confirmationLayer.processServiceWindow !== 'function') {
     reject('invalid_confirmation_implementation');
   }
+  if (typeof authorizeService !== 'function') reject('invalid_service_authorizer');
 
   async function processEventWindow(input) {
-    const serviceWindow = toServiceWindow(input);
+    const envelope = validateAdapterEnvelope(input);
+    let authorized;
+    try {
+      authorized = await authorizeService(Object.freeze({ serviceId: envelope.serviceId }));
+    } catch {
+      reject('service_authorization_failed');
+    }
+    if (authorized !== true) reject('service_not_authorized');
+    const serviceWindow = toServiceWindow(envelope);
     const confirmationOutput = await confirmationLayer.processServiceWindow(serviceWindow);
     return {
       adapter_version: POST_DETECTOR_CONFIRMATION_ADAPTER_VERSION,
