@@ -2,6 +2,8 @@
 import contextlib
 import io
 import json
+import subprocess
+import sys
 from pathlib import Path
 import tempfile
 import unittest
@@ -98,6 +100,17 @@ class PrecisionGapTests(unittest.TestCase):
             with contextlib.redirect_stdout(output):
                 self.assertEqual(main(["--file", str(path)]), 2)
             self.assertEqual(json.loads(output.getvalue())["evidence"], "INVALID")
+
+    def test_direct_cli_executes_without_import_failure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "fixture.json"
+            path.write_text(json.dumps(artificial_report()), encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, "scripts/check_ai9_precision_gap.py", "--file", str(path)],
+                check=False, capture_output=True, text=True,
+            )
+            self.assertEqual(result.returncode, 1, result.stderr)
+            self.assertEqual(json.loads(result.stdout)["synthetic_gate_status"], "FAIL")
 
     def test_if_synthetic_gate_passes_still_no_production_go(self):
         report = artificial_report(tp=76, fp=19)
