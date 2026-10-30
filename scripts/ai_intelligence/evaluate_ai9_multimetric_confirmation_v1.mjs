@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createPostDetectorConfirmationLayer, POST_DETECTOR_CONFIRMATION_POLICY } from './post_detector_confirmation.mjs';
+import { AI9_EWMA_NOISE_CANDIDATE_POLICY } from './ai9_ewma_noise_candidate.mjs';
 import {
   AI9_SYNTHETIC_EVALUATION_V2_POLICY,
   evaluateAi9SyntheticWindowV2,
@@ -292,11 +293,28 @@ function precisionCeiling() {
 }
 
 export function runAi9MultimetricConfirmationEvaluationV1() {
+  if (AI9_MULTIMETRIC_CONFIRMATION_V1_SEEDS.length !== 20
+    || new Set(AI9_MULTIMETRIC_CONFIRMATION_V1_SEEDS).size !== 20) reject('registered_seed_list_mismatch');
   if (AI9_MULTIMETRIC_CONFIRMATION_V1_SEEDS.some(seed => PREVIOUS_POLICY_SEEDS.has(seed))) {
     reject('registered_seed_reused');
   }
   if (POST_DETECTOR_CONFIRMATION_POLICY.version
     !== AI9_MULTIMETRIC_CONFIRMATION_V1_POLICY.layer_policy_version
+    || POST_DETECTOR_CONFIRMATION_POLICY.cadence_seconds !== 60
+    || POST_DETECTOR_CONFIRMATION_POLICY.coincidence_window_seconds !== 120
+    || POST_DETECTOR_CONFIRMATION_POLICY.persistence_window_count !== 3
+    || POST_DETECTOR_CONFIRMATION_POLICY.persistence_required_count !== 2
+    || POST_DETECTOR_CONFIRMATION_POLICY.quiet_windows_to_close
+      !== AI9_MULTIMETRIC_CONFIRMATION_V1_POLICY.quiet_windows_to_close
+    || AI9_EWMA_NOISE_CANDIDATE_POLICY.version !== AI9_MULTIMETRIC_CONFIRMATION_V1_POLICY.candidate_policy_version
+    || AI9_EWMA_NOISE_CANDIDATE_POLICY.alpha !== 0.3
+    || AI9_EWMA_NOISE_CANDIDATE_POLICY.baseline_points !== 30
+    || AI9_EWMA_NOISE_CANDIDATE_POLICY.synthetic_assumptions.before_seconds
+      !== AI9_MULTIMETRIC_CONFIRMATION_V1_POLICY.before_seconds
+    || AI9_EWMA_NOISE_CANDIDATE_POLICY.synthetic_assumptions.after_seconds
+      !== AI9_MULTIMETRIC_CONFIRMATION_V1_POLICY.after_seconds
+    || AI9_EWMA_NOISE_CANDIDATE_POLICY.synthetic_assumptions.quiet_windows_to_close
+      !== AI9_MULTIMETRIC_CONFIRMATION_V1_POLICY.quiet_windows_to_close
     || AI9_SYNTHETIC_EVALUATION_V2_POLICY.gates.precision !== AI9_MULTIMETRIC_CONFIRMATION_V1_POLICY.gates.precision
     || AI9_SYNTHETIC_EVALUATION_V2_POLICY.gates.recall !== AI9_MULTIMETRIC_CONFIRMATION_V1_POLICY.gates.recall
     || AI9_SYNTHETIC_EVALUATION_V2_POLICY.gates.fpr !== AI9_MULTIMETRIC_CONFIRMATION_V1_POLICY.gates.fpr
