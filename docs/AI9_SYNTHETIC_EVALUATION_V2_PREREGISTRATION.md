@@ -49,3 +49,14 @@ The episode check is separate from the window metrics: a predicted alarm can mat
 Run the evaluator once after its implementation and contract tests are fixed. Publish the candidate and baseline results together, including `TP/FP/FN/TN`, the input digest, policy versions, and episode eligibility. No result from this protocol can set AI-9 to PASS or P01 to GO. A failure requires a separately preregistered experiment; do not revise this protocol after observing the run.
 
 **At registration time:** no metrics have been computed, and the candidate has not been scored on these scenarios.
+
+## Pre-execution implementation addendum
+
+Registered before implementation scoring on 2026-10-30. This addendum resolves implementation details without changing the seed, scenarios, labels, gates, or assumptions above:
+
+- Use the same deterministic 32-bit generator as `ai9_factor_ablation.mjs`: add `0x6D2B79F5` to unsigned state; apply its existing `Math.imul` xor/mix sequence; return the unsigned result divided by `2^32`. Initialize once with seed `20261105`; consume exactly one draw per sample in scenario order, including recipes whose noise amplitude is zero. Noise equals `(draw*2-1)*amplitude`.
+- Baseline predictions use the current production `analyzeMetricEvents` function. Candidate predictions preserve that result's `z_score`, `moving_average`, and `error_rate_spike` flags and replace only its EWMA flag with `scoreEwmaNoiseCandidate` at alpha `0.3`, baseline `30`, and the event unit. At sample index `i`, candidate input is the raw metric history from `max(0,i-32)` through `i` inclusive (at most 33 observations), so the causal width-three filter has the required preceding observations whenever available. Both versions score indices 30 through the final sample.
+- A ground-truth positive window is exactly sample index 150, 151, 152, 153, or 154 in the six fault scenarios. The 120-second detection-match interval is exactly indices 150–152 inclusive. Report the first predicted index and whether it falls in that interval; do not convert an alarm after index 152 into a match.
+- For episode summaries, consecutive predicted windows belong to one episode until two observed false windows close it. Count every episode that remains open at sample end as ineligible. Report counts only; episode summaries do not add a gate to this selected window-metric run.
+
+No scoring command has been run as of this addendum.
