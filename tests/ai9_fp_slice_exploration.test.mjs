@@ -31,6 +31,13 @@ test('post-hoc synthetic slice totals agree with exact frozen first seed', () =>
   assert.ok(Object.hasOwn(report.by_control_or_fault_group, 'injected_fault'));
   assert.ok(!JSON.stringify(report).includes('"values"'));
   assert.ok(!JSON.stringify(report).includes('"events"'));
+  // Aggregate synthetic categories only. Keep the diagnostics inspectable in CI logs.
+  console.log('AI9_POSTHOC_FP_SLICES=' + JSON.stringify({
+    by_group: report.by_control_or_fault_group,
+    by_metric: report.by_metric,
+    by_channel: report.overlapping_current_window_channels,
+    by_reason: report.overlapping_confirmation_reasons,
+  }));
 });
 
 test('post-hoc diagnostic refuses any seed outside previously consumed set', () => {
