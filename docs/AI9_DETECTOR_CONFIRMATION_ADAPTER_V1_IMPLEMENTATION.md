@@ -1,6 +1,6 @@
 # AI-9 Detector-to-Confirmation Adapter v1 — Implementation Record
 
-**Status:** local composition prototype; hosted checks pending. AI-9 remains **FAIL** and P01 remains **NO-GO / BLOCKED**. No production detector, threshold, gate, evaluator, or live resource changed.
+**Status:** local composition prototype. AI-9 remains **FAIL** and P01 remains **NO-GO / BLOCKED**. No production detector, threshold, gate, evaluator, or live resource changed.
 
 ## API and data flow
 
@@ -20,8 +20,8 @@ The service ID is passed through from the caller. The event schema has no authen
 - `python3 scripts/check_action_pins.py` — **39 workflow/template files passed**.
 - `python3 scripts/check_agent_spec.py` and `python3 scripts/check_site.py` — **PASS**.
 - `node --check` for the adapter and its test, plus `git diff --check` — **PASS**.
-- A full local Python suite was attempted and did not complete: 534 tests ran, 18 skipped, and the staging-app test setup errored because `psycopg` is not installed in this workspace. This feature changes no Python source. The hosted Python CI result is still pending and remains required before merge.
-- CI workflow now syntax-checks and runs the adapter contract in the existing Node job. PR CI, CodeQL, preview and main-branch results are pending.
+- A full local Python suite was attempted and did not complete: 534 tests ran, 18 skipped, and the staging-app test setup errored because `psycopg` is not installed in this workspace. This feature changes no Python source; this is a local environment limitation, not a passing local Python result.
+- CI workflow now syntax-checks and runs the adapter contract in the existing Node job. On implementation head `ca4d744037a6f2694d85a52a82c8d71d7dc5839e`, PR #303 CI run [`41067497186`](https://github.com/hamedonassar95/Devobs/actions/runs/41067497186) passed, including hosted Python validation, and CodeQL run [`41067491831`](https://github.com/hamedonassar95/Devobs/actions/runs/41067491831) passed; Vercel Preview also succeeded. Those runs predate this evidence-only documentation update; the final PR head must pass its own required checks before merge. No main-branch result is claimed here.
 
 ## Limits and gate status
 
