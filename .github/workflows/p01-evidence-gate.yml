@@ -1,0 +1,27 @@
+name: P01 Evidence Gate (manual, advisory)
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: "The exact reviewed source commit SHA (no deployment)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  evidence:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout reviewed revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Validate evidence completeness (NO-GO by default)
+        env:
+          CHECKED_SHA: ${{ inputs.source_sha }}
+        run: |
+          python3 scripts/check_p01_evidence.py --file docs/p01/evidence.json --expected-sha "$CHECKED_SHA"
