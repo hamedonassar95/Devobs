@@ -15,6 +15,8 @@
 
 **Hard blocker:** the owner's **USD 100/month complete-invoice ceiling** includes all services, storage/backups, recurring fees, taxes and possible overrun. Railway cannot meet the requirement based on the repository-recorded support answer; AWS project limits apply pre-tax; an assertion that a provider offers a Free plan is **not** a guaranteed billing cap. The connected Render tools do not expose the workspace subscription. Do not guess Hobby/Pro or require the owner to know it.
 
+A single [Combined preflight](LOCAL_PREFLIGHT.md) produces a machine-readable NO-GO matrix from both source and budget evidence files. Its nonzero exit status is intentional; no completeness check grants deployment approval.
+
 ## Offline verification (safe, no credentials)
 
 ```sh

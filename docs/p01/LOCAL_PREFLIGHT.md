@@ -14,6 +14,6 @@ python3 scripts/p01_local_preflight.py --expected-sha e1e4223ff9853109b66972e7ba
 
 **Snapshot limitation:** The SHA above identifies the historical main evidence baseline, **not** this branch's checkout SHA. This tool does not query GitHub or authenticate evidence owners. Use the separate exact-main-checkout guard in the optional manual workflow for checkout binding, and independently verify the provider/billing/runtime facts before any GO decision.
 
-Expected current results: 7 blocked gates, at least 16 unresolved Free-only billing assertions, a historical evidence source-SHA mismatch, and \`resource_creation_authorized=false\`. In a report where all JSON fields *claim* VERIFIED, each control becomes \`CLAIM_ONLY_UNTRUSTED\`, **not GO**. Never commit credentials, invoices, payment methods, or real user data in these fixtures.
+Expected current results: 7 blocked gates, at least 16 unresolved Free-only billing assertions, a historical evidence source-SHA mismatch, and `resource_creation_authorized=false`. In a report where all JSON fields *claim* VERIFIED, each control becomes `CLAIM_ONLY_UNTRUSTED`, **not GO**. Never commit credentials, invoices, payment methods, or real user data in these fixtures.
 
 After provider and billing evidence is obtained through separately approved read-only means, owner must approve the precise scope and region, and staging still requires live identity, RLS and isolated restore evidence. Do not modify main, provider resources or deployment settings as part of this offline preflight.
