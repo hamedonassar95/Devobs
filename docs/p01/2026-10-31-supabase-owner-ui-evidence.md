@@ -31,6 +31,22 @@
 
 **Next read-only question:** tap the **existing project card** and inspect its Project Settings → General overview (full project name, displayed region, project status). Do not view or transmit database passwords, API keys or personal data. The connector may need its account authorization refreshed before it can independently see this new organization.
 
+## New screenshot: existing project dashboard (2026-10-31)
+
+**VERIFIED (owner's screenshot, not connected API):** The project dashboard within the selected Devobs organization reports:
+- **Status: Healthy** at screenshot time, instance compute size **Nano**. This is only infrastructure health, not application/API/tenant isolation readiness.
+- **Project name:** default account-associated name, partly clipped by the mobile viewport; exact full name not independently confirmed.
+- **GitHub: No repository connected.** The [official Supabase deployment guide](https://supabase.com/docs/guides/deployment) explicitly states GitHub integration is **optional**; do not authorize repository access or automatic branching based on this display.
+- **Recent branch: No branches.** This is not a requirement to create paid or preview branches on the Free plan.
+- **Last backup: No backups** in the dashboard. [Supabase official backups guidance](https://supabase.com/docs/guides/platform/backups) gives automatic accessible daily backups to Pro/Team/Enterprise and recommends independent CLI dump/off-site backups for Free. **No recoverable RPO/RTO or backup/restore evidence exists for Devobs.**
+- **Region:** previous same-organization project-list screenshot shows `us-east-1`; new dashboard does not show region. Frankfurt remains merely an earlier alternative proposal.
+
+**VERIFIED (connected tool limitation):** Two linked Supabase aliases re-listed only the older Phone Repair Assistant organization/project; direct read of the new Devobs project reference returned **'You do not have permission to perform this action'** on both. This is a **connector authorization mismatch**, not evidence that the owner's screenshot or project is fake, and not permission to create a duplicate or use the repair database.
+
+**NO-GO effects:** Preserve the working Free project as a candidate **synthetic-only lab**, not customer production. Do **not** enable repository integrations, write migrations, open Data API exposure, add keys, connect Render or upgrade service without a new, scoped owner approval. Account linkage, project name, region acceptance, independent backup-and-restore, least-privilege database identity and OIDC/JWKS remain gates.
+
+**One next owner UI action:** from the existing project, open **Project Settings → General** for the full project name and existing region/status; share only nonsensitive fields. Separately, reconnect the ChatGPT Supabase plugin under the same signed-in Supabase account so the API can re-read the new organization before automation. Never share an access token, password or service-role key.
+
 ## Next safe action
 
 1. In Supabase, open **Devobs AI Intelligence** → its **existing** project; read the project **name, region, status and Free plan** without opening API keys, database passwords or personal customer data.
