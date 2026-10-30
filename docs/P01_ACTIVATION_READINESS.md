@@ -38,30 +38,30 @@ P01 provider, service, budget, data, identity, runtime and release values remain
 
 | Decision | Owner-selected value / evidence (blank) |
 | --- | --- |
-| Provider, account/workspace, service and authorized operator |  |
-| Region, data residency and permitted data classification |  |
-| Maximum monthly spend ceiling **and enforceable provider quota/cap mechanism**; alerting and stop procedure |  |
-| PII/telemetry allowance, purpose, retention, deletion and privacy/legal approval |  |
-| IdP, issuer/audience/client scope, trusted JWKS source, rotation/revocation and failure behavior |  |
-| PostgreSQL runtime identity: non-owner, non-superuser, no `BYPASSRLS`, minimum read grants; migration owner and reviewed policy evidence |  |
-| TLS/CA verification and allowed network ingress/egress, including private access restrictions |  |
-| Backup encryption/retention and successful restore evidence; approved RPO/RTO |  |
-| Readiness/liveness semantics, smoke-test target, failure thresholds and exact staged SHA |  |
-| Incident owner/on-call path, stop conditions, rollback procedure and resource deletion authority |  |
-| Independent release approver and approval mechanism; distinguish this from the implementer |  |
+| Provider, account/workspace, service and authorized operator | Proposed: Render workspace “My Workspace” (`tea-dafq4ue7bikc73d7tmig`) + Supabase; one staging service, `devobs-staging`; operator Mohammad Nassar. Exact Supabase organization/project: [FILL]. This entry does not establish that either service exists or is configured. |
+| Region, data residency and permitted data classification | EU region; synthetic data ONLY; no customer data and no real PII. Exact provider region(s), if narrower than EU: [FILL]. |
+| Maximum monthly spend ceiling **and enforceable provider quota/cap mechanism**; alerting and stop procedure | Owner-stated monthly ceiling: USD 50. Budget alert at 80% (USD 40). Supabase Spend Cap ON; it does not cover compute. At 80%, the owner manually suspends the Render service and pauses the Supabase project. This alert/manual stop is not an enforceable combined-provider spend cap; evidence of the total-cap enforcement mechanism: [FILL]. |
+| PII/telemetry allowance, purpose, retention, deletion and privacy/legal approval | No PII; synthetic telemetry only; 30-day retention. Owner deletes all staging resources on request or at the end of P01. Privacy/legal approval reference: [FILL]. |
+| IdP, issuer/audience/client scope, trusted JWKS source, rotation/revocation and failure behavior | One OIDC provider. Exact provider, issuer, audience and client scope: [FILL]. JWKS only from the provider’s official discovery URL over TLS; rotate on the provider schedule; fail closed on discovery, JWKS, or validation failure. |
+| PostgreSQL runtime identity: non-owner, non-superuser, no `BYPASSRLS`, minimum read grants; migration owner and reviewed policy evidence | Dedicated read-only runtime role: non-owner, non-superuser, no `BYPASSRLS`, `SELECT` only; forced RLS. Migrations use a separate owner role. Exact role names and reviewed policy evidence: [FILL]. |
+| TLS/CA verification and allowed network ingress/egress, including private access restrictions | Full certificate validation; HTTPS only; no public database access; egress limited to the IdP and database. Exact approved egress destinations: [FILL]. |
+| Backup encryption/retention and successful restore evidence; approved RPO/RTO | Encrypted backups; 7-day retention; one successful isolated restore rehearsal required before sign-off; RPO 24 hours; RTO 24 hours. Restore evidence: [FILL]. |
+| Readiness/liveness semantics, smoke-test target, failure thresholds and exact staged SHA | Liveness means process is up; readiness checks the database using the runtime role; all six smoke calls must pass (100%). Record the staged source SHA at decision time: [FILL]. |
+| Incident owner/on-call path, stop conditions, rollback procedure and resource deletion authority | Mohammad Nassar is incident owner. Stop at 80% spend, any cross-tenant leak, or readiness failure lasting over 15 minutes. Rollback means redeploying the previous SHA. Only the owner may delete resources. On-call/contact path: [FILL]. |
+| Independent release approver and approval mechanism; distinguish this from the implementer | [FILL] |
 | Vercel preview visibility accepted before any push/PR? Scope and audience | The owner's standing repository instruction authorizes routine source/documentation PRs, CI, and merge; PR #290's preview was generated. Scope is limited to repository artifacts and synthetic/static content. This does not approve a P01 staging endpoint, staging data, or customer access. The Vercel access-control settings remain unverified. |
 | Separate approval for any main merge that may publish GitHub Pages | The owner's standing repository instruction authorizes merge after green CI; PR #290's merge published and verified the static site. This is not approval to deploy a P01 service or create resources. |
 
 ### Unsigned decision record
 
-- Decision: [ ] **GO for the bounded P01 scope above**  [ ] **NO-GO — remain blocked**
-- Scope and exclusions:
-- Owner identity:
-- Independent approver (if applicable):
-- UTC timestamp:
-- Decision-time main SHA and exact required-check run:
-- Evidence/approval reference:
-- Owner signature/reference:
+- Decision: **PROPOSED — GO for the bounded P01 scope above only. This is not a final or signed GO; complete the required `[FILL]` items and owner signature before recording a decision.**
+- Scope and exclusions: P01 staging with synthetic data only; excludes production, customer data, commercial use, paid AI inference, and P13–P19.
+- Owner identity: Mohammad Nassar.
+- Independent approver (if applicable): [FILL]
+- UTC timestamp: [FILL]
+- Decision-time main SHA and exact required-check run: [FILL]
+- Evidence/approval reference: [FILL]
+- Owner signature/reference: [FILL]
 
 Until a human completes this record and gives separate explicit authorization for the specific action, P01 remains **NO-GO / BLOCKED**. A GO here is not a general production release, customer-data, billing, or AI-inference approval.
 
