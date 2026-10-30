@@ -8,15 +8,19 @@ import argparse
 import json
 from pathlib import Path
 
-from scripts.check_ai9_multimetric_evidence import (
-    GATES,
-    InvalidAI9Evidence,
-    MAX_BYTES,
-    audit,
-    natural,
-    record,
-    unique_pairs,
-)
+# Support both package imports (unittest) and direct script invocation.
+if __package__:
+    from . import check_ai9_multimetric_evidence as evidence
+else:
+    import check_ai9_multimetric_evidence as evidence
+
+GATES = evidence.GATES
+InvalidAI9Evidence = evidence.InvalidAI9Evidence
+MAX_BYTES = evidence.MAX_BYTES
+audit = evidence.audit
+natural = evidence.natural
+record = evidence.record
+unique_pairs = evidence.unique_pairs
 
 VARIANT = "post_confirmation_layer"
 
