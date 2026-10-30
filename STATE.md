@@ -164,3 +164,9 @@
 - اختبارات `tests/test_postgres_rls_integration.py` تغطي أسماء المشاريع/الخدمات المتطابقة بين المستأجرين، رفض العضوية أو tuple غير المطابق، المدخلات الخبيثة، الصلاحيات والكتابة وRLS وانجراف السياسة والأقفال. على PostgreSQL مؤقت محلي v17.11: `python3 -m unittest discover -s tests -p 'test_postgres_rls_integration.py' -v` — `Ran 21 tests ... OK`. مجموعة Python الكاملة على الاعتمادات المقفلة: `python3 -m unittest discover -s tests -v` — `Ran 543 tests ... OK (skipped=21)`. التفاصيل في [تقرير التنفيذ](docs/AI9_TENANT_SERVICE_REGISTRY_RLS_V1_IMPLEMENTATION.md).
 - هذه خطوة تخزين/تخويل داخلية فقط؛ لا يوجد مسار API يناديها، ولا طريقة تشغيلية لتسجيل الخدمات، ولا توصيل بين Node وPython. CI المستضاف وCodeQL على الرأس النهائي لم يُتحققا بعد في لحظة هذا السجل.
 - لا تقييم AI-9 ولا تعديل للكاشف أو البوابات. الحالة ثابتة: AI-9 **FAIL**، P01 **NO-GO / BLOCKED**، النموذج التقني **6/10**. لا قاعدة بيانات مستضافة أو نشر أو بيانات حقيقية.
+
+## أدلة ما بعد دمج سجل خدمة AI-9 — 2026-10-30
+
+- دُمج PR #306 عند `83f729b6aa2fff0f617e6a38a1a6bfc0c5315c26`، وكان رأسه `c59f88e3db4b44c991152f931c4ab2875ff75c42`. نجح CI للـPR في [run 41075077622](https://github.com/hamedonassar95/Devobs/actions/runs/41075077622)، بما فيه `postgres-rls` وPython وsecurity و`validate`؛ ونجح CodeQL في [run 41075072434](https://github.com/hamedonassar95/Devobs/actions/runs/41075072434). نجحت معاينة Vercel.
+- على commit الدمج `83f729b6aa2fff0f617e6a38a1a6bfc0c5315c26` نجح main CI في [run 41075299391](https://github.com/hamedonassar95/Devobs/actions/runs/41075299391) وCodeQL في [run 41075298698](https://github.com/hamedonassar95/Devobs/actions/runs/41075298698). شمل CI نجاح `postgres-rls` وPython وsecurity ومسح صورة الحاوية وsite-contract و`validate`، ثم نشر GitHub Pages والتحقق `verify-production`.
+- هذه أدلة مستودع وCI ونشر الموقع الثابت فقط. لم يُنشأ PostgreSQL مستضاف أو endpoint أو خدمة مدفوعة، ولم تُنقل بيانات. AI-9 **FAIL** وP01 **NO-GO / BLOCKED**، والتقييم التقني بقي **6/10**.
