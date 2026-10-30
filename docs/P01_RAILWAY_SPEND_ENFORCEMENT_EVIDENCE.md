@@ -1,8 +1,22 @@
 # P01 Railway Spend Enforcement Evidence
 
-**Assessment date:** 2026-10-30. **Decision:** P01 remains **NO-GO / BLOCKED**. This is documentation-only preparation against official public Railway documentation; no Railway account, workspace, service, database, volume, or other resource was created, and no spend or test run occurred.
+**Assessment date:** 2026-10-30. **Decision:** P01 remains **NO-GO / BLOCKED**. No Railway account, workspace, service, database, volume, or other resource was created, and no spend or test run occurred. Railway Support sent a written response on 2026-10-30 to the owner's pre-sales inquiry; a brief acknowledgement was sent on the owner's behalf and the inquiry was closed. The response is provider correspondence, not a contractual amendment or EU data-processing commitment.
 
 The owner-approved ceiling is **USD 100 total per month**, conditional on verifiable enforcement. Railway is an evaluation candidate for Amsterdam; the location is only preliminarily acceptable, and contractual data-residency terms must be resolved before any real data. The signed conditional decision and remaining P01 controls are in [P01_ACTIVATION_READINESS.md](P01_ACTIVATION_READINESS.md).
+
+## Written Railway Support response — received 2026-10-30
+
+**VERIFIED (owner's Gmail correspondence):** Railway Support (`support@railway.com`) answered the questions in the pre-sales email. The response says:
+
+- There is **no single hard limit for the complete invoice**. Compute and Agent limits are independent; the subscription fee is outside both.
+- Compute usage covers CPU, memory, storage, and network egress. At the Compute limit, workloads go offline and bucket access is suspended, including access to the bucket holding PostgreSQL PITR data. At the Agent limit, Agent use stops but workloads continue running.
+- Railway provides **no guaranteed maximum enforcement delay or maximum overrun**. It described alerts at 75%, 90%, and 100%.
+- Workloads and bucket access are suspended, but volumes, backups, and bucket storage **continue to incur charges**. Nothing is deleted by the limit; the owner must delete a volume or bucket to stop its storage charges, which deletes that data. The response did not specify a retention duration.
+- Railway says workloads, volumes, volume backups, and PITR data stay in the deploy region; PITR buckets run on Tigris. Service logs are stored in US West. Railway states that no plan has a contractual EU-only processing commitment.
+
+**Decision from this evidence:** Railway does not meet the owner's total USD 100/month cap requirement. Its limit cannot stop every billable category, the provider gives no bounded overrun, and some storage charges continue after the workload shutdown. The written response also does not satisfy the preliminary Amsterdam residency condition for real data. No Railway resources may be created under this P01 decision.
+
+**Limits:** The response is written support evidence, not a contract. The exact retention period, tax treatment, managed PostgreSQL meter details, and subprocessor-specific transfer terms remain **UNVERIFIED**. The owner can verify the response in the Gmail thread; the public repository does not contain the email or personal mailbox metadata.
 
 ## What the official Railway documentation establishes
 
@@ -17,26 +31,25 @@ The owner-approved ceiling is **USD 100 total per month**, conditional on verifi
 
 ## What remains unverified
 
-- **UNVERIFIED:** the longest delay between crossing a hard limit and all applicable workloads becoming unavailable, and the greatest possible usage or invoice overshoot before shutdown.
-- **UNVERIFIED:** whether managed PostgreSQL/database deployments, persistent volumes, backups, and PITR are all covered by the same Compute hard limit, or whether any continue accruing charges after shutdown.
-- **UNVERIFIED:** whether volumes or backups are retained after a hard-limit shutdown, for how long, and whether they continue to incur charges.
-- **UNVERIFIED:** whether the separate Compute and Agent limits cap the complete invoice, including any plan/subscription fees, taxes, or other line items. The official documentation explicitly describes separate Compute and Agent limits and does not establish a combined total-bill ceiling.
-- **UNVERIFIED:** contractual Amsterdam data residency, including the locations of database copies, backups, logs, and subprocessors.
+- **VERIFIED (support response):** Railway does not guarantee a maximum enforcement delay or overrun; the value is therefore unbounded by the evidence available to this assessment.
+- **VERIFIED (support response):** storage charges for volumes, backups, and buckets continue during suspension; deletion stops those charges but deletes the data. **UNVERIFIED:** the retention duration and exact billing treatment of every managed PostgreSQL component.
+- **VERIFIED (support response):** Compute and Agent use have separate limits, and the subscription fee is outside both. **UNVERIFIED:** whether taxes or other invoice line items have any separate controls; there is no complete-invoice hard cap in the described controls.
+- **VERIFIED (support response):** service logs are stored in US West, and Railway offers no contractual EU-only processing commitment on any plan. The response says workload/volume/backup/PITR data stay in the deploy region and that PITR uses Tigris. **UNVERIFIED:** exact replica locations and subprocessor-specific contractual transfer terms.
 - **UNVERIFIED:** Railway's settings for any Devobs account. No Railway account or workspace was inspected.
 
-## Proposed compensating controls — not configured
+## Proposed compensating controls — not configured; insufficient for P01
 
-1. For a future, specifically authorized experiment, set the Compute hard limit to **USD 10**, the documented minimum. This is **USD 90 below** the owner's USD 100 monthly ceiling, leaving a 90% headroom in that budget, but it does not cover the separately metered Agent or prove a total invoice cap.
+1. The Compute limit can be set to **USD 10**, the documented minimum, but the support response confirms this is **not** a safe substitute for a USD 100 total invoice cap: Agent, subscription, and persistent-storage charges are separate or continue after shutdown.
 2. Set a custom email alert at **USD 5** (50% of the proposed Compute limit). Retain Railway's documented reminders at **USD 7.50 (75%)** and **USD 9 (90%)**. Treat every alert as an operator signal only.
-3. Configure the Agent hard limit separately at the lowest value the eventual subscription plan accepts; record that value before any test. Do not use Railway Agent during the test or staging until the owner approves its use.
-4. Do not use a managed database, persistent volume, backup, or PITR until Railway confirms in writing how each is charged and retained after a hard-limit shutdown. Keep all test data synthetic and ephemeral.
+3. A separate Agent limit does not stop workloads; disabling Agent use does not close the total-bill gap.
+4. Do not use a managed database, persistent volume, backup, or PITR on Railway for P01 under the current decision. Support says their storage charges continue during enforcement and no EU-only contractual processing commitment exists.
 5. Do not create resources or spend money under this evidence packet. The prior USD 100 approval is conditional and does not approve the experiment's spend.
 
 ## Pre-registered compute enforcement test — NOT RUN
 
 **Policy ID:** `p01-railway-hard-limit-enforcement-v1`  
 **Registration baseline:** `origin/main` `f691baeceabdeecffcd1f6dd826c1972f284b4f3`; this design must be committed before any measurement.  
-**Status:** Design frozen for review; **NOT RUN**; one-time owner authorization for test spending is still required.  
+**Status:** Design frozen for review; **NOT RUN**. The support response now establishes that this Compute-only test cannot demonstrate a total invoice cap or bound storage charges. It is not a qualifying path to P01 GO and should not be run for that purpose.
 **Purpose:** measure the observed workload shutdown delay and actual billed Compute overrun for one isolated, stateless workload. This test does not claim to test managed databases or persistent storage.
 
 ### Fixed test settings
@@ -70,19 +83,32 @@ This registration does **not** authorize account creation, resource creation, a 
 
 A passing compute-only test proves only the observed behavior of that tested workspace, plan, and ephemeral workload. It does not prove managed-database, volume, backup/PITR, Agent, tax, or contractual residency behavior. Because P01 includes a database, these unresolved categories remain outside any GO until Railway answers them in writing or a separately approved test validly covers them. No database or persistent storage may be used to extend this test before written confirmation.
 
-## Railway support request
+## Railway support request and closure
 
-Railway's official [Support documentation](https://docs.railway.com/platform/support) says support requests should be submitted through [Central Station](https://station.railway.com) and that Railway does not provide support by email. No request was sent: this workspace has no authenticated Railway support connection. Copy this text into Central Station from the owner's account:
+The pre-sales inquiry below was sent from the owner's Gmail account at the owner's instruction, and Railway replied with the written response summarized above. An acknowledgement was sent on the owner's behalf; no further follow-up is pending. The test registration is retained as a historical, unrun design and is not a route to GO.
 
 > We plan to set a $100/month hard limit. Please confirm in writing: (1) the maximum delay or overshoot between reaching the limit and workloads being stopped; (2) whether managed databases, volumes, backups and network egress are all covered or continue to accrue charges after shutdown; (3) whether volume data and backups are retained after a hard-limit shutdown, and for how long.
 
 ## P01 budget-gate decision
 
-**Current result: NO-GO / BLOCKED.** The documentation confirms a useful Compute hard-stop control, but it does not establish a complete USD 100 total monthly cap or answer the managed-database and post-shutdown storage questions.
+**Current result: NO-GO / BLOCKED. Railway is rejected for the current bounded P01 scope.** Its separate limits do not cap the complete invoice; no maximum overrun is guaranteed; persistent-storage charges continue after shutdown; and the support response does not provide the required contractual EU-only processing commitment.
 
-The budget evidence path may close only by either:
+The prior Railway evidence path may not close the budget gate: its written response is negative for the required total cap, and the Compute-only test cannot cover all invoice categories. A future P01 budget gate requires a separately selected provider and evidence that its enforceable ceiling covers every in-scope billable category, including ongoing storage and any fixed or tax charges; any unbounded overrun or excluded billable category keeps P01 blocked. Provider, region, and residency changes need the owner's decision. No provider account, resource, test spend, or integration is authorized by this report.
 
-1. an official written Railway response that resolves the open coverage, delay/overrun, and post-shutdown charge/retention questions for every resource in the approved P01 scope and confirms the resulting exposure can stay within the USD 100 ceiling; or
-2. a successful run of this frozen test, after separate owner authorization, meeting every pre-registered criterion above.
+## Alternative provider candidate — AWS new experience (research only)
 
-The test intentionally excludes databases and persistent storage. Therefore, even a successful test closes only the tested Compute enforcement evidence; managed PostgreSQL, volumes, backups/PITR, and residency remain blocked until Railway confirms those items in writing or the P01 scope is changed and separately approved. A written response that reveals unbounded overrun or continued charges capable of breaching the USD 100 ceiling leaves P01 blocked. A written response or passing test is evidence for the budget sub-gate only; all P01 security, identity, residency, recovery, and owner-signoff gates still apply.
+**VERIFIED (official AWS documentation; not an account check):** AWS's *new* account experience offers a project-level spend limit on its Paid Plan. AWS says reaching the limit pauses the project and stops its resources; the configured ceiling applies to **pre-tax project costs**, excludes credits, and has a minimum of the greater of USD 20 or AWS's conservative estimate. The feature is unavailable on the advanced account experience, and enabling advanced features removes spend limits. A project owner remains responsible for monthly usage charges and recurring fees. See [AWS spend limits](https://docs.aws.amazon.com/accounts/latest/reference/create-spend-limit.html), [project creation and billing](https://docs.aws.amazon.com/accounts/latest/reference/create-project.html), and [advanced feature effects](https://docs.aws.amazon.com/accounts/latest/reference/activate-advanced-features.html).
+
+AWS assigns new-experience projects by contact-address country to US East (Ohio), Europe (Stockholm), or Asia Pacific (Sydney); it does not let the owner select a specific Region in that experience. The currently documented European region is Stockholm (`eu-north-1`), not Amsterdam or Frankfurt. Advanced signup is required for exact Region selection, but that removes the spend-limit feature. See [AWS project Regions](https://docs.aws.amazon.com/accounts/latest/reference/project-regions.html) and [signup options](https://docs.aws.amazon.com/accounts/latest/reference/sign-up-for-aws.html). This is a material provider/region change and has not been approved by the owner.
+
+**UNVERIFIED for Devobs/P01:** account eligibility; whether every required charge (especially persistent database/storage/backups, recurring fees, and taxes) is bounded by the project limit; any maximum enforcement delay or overrun; the applicable data-processing/residency terms and subprocessor locations; and compatibility with Devobs identity/network controls. AWS's service list includes RDS, EC2, EBS, S3, and VPC in the new experience, but that does not by itself prove all associated charges stop at the limit. See [supported services](https://docs.aws.amazon.com/accounts/latest/reference/supported-services-sign-up-new.html). No AWS account was created, and no AWS support request was sent.
+
+**Other reviewed controls are not substitutes:** Google Cloud's documented spend caps are scoped to one eligible service in one project, and persistent resources keep accruing charges; in-flight requests can add charges and overages are billed ([official documentation](https://docs.cloud.google.com/billing/docs/how-to/budgets-spend-caps)). Laravel Cloud stops app/database/cache compute but retains billable storage and explicitly allows a small overage ([official documentation](https://laravel.com/cloud/docs/spending-limits)). Neither establishes the owner's complete USD 100 monthly invoice ceiling.
+
+### Prepared AWS clarification request — NOT SENT
+
+Before any account or project is created, AWS would need to confirm in writing:
+
+> We are considering AWS's new experience for a synthetic-data-only Devobs staging project and require a USD 100 maximum total monthly invoice. Please confirm: (1) whether the project spend limit pauses all resources and prevents charges for RDS/PostgreSQL, EBS, S3, snapshots/backups, PITR, data transfer, CloudWatch/logging, and any recurring or account fees; (2) whether storage or any other charge continues after the project is paused; (3) the maximum enforcement delay and possible overrun; (4) how taxes are treated, since the documentation describes a pre-tax limit, and whether a lower pre-tax limit can guarantee a total invoice below USD 100; (5) the project Region and data locations, including logs and backups, for the country used in the owner's billing/contact address; and (6) the applicable contractual data-processing terms and subprocessors. Please cite current official terms for each answer.
+
+**Status:** this is a prepared question only. No AWS support request has been sent. Sending it, creating an account, or creating resources requires the owner's explicit authorization for AWS. Before any account or resource creation, the owner would also need to accept or reject the assigned Stockholm region and separately approve any test spending. If no provider demonstrates a bounded complete invoice at or below USD 100, retain offline-only development and keep P01 **NO-GO / BLOCKED**. The existing AI-9 result remains **FAIL**.
