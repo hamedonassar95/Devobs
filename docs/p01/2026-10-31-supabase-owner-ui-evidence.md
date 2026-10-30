@@ -29,7 +29,7 @@
 - https://supabase.com/docs/guides/platform/regions
 - https://supabase.com/docs/guides/platform/project-transfer
 
-**Next read-only question:** tap the **existing project card** and inspect its Project Settings → General overview (full project name, displayed region, project status). Do not view or transmit database passwords, API keys or personal data. The connector may need its account authorization refreshed before it can independently see this new organization.
+**Project Settings → General was viewed (owner screenshot, 2026-10-31):** the project reference and region are now visually confirmed; the default project display name is still partially clipped on mobile. Its reference is intentionally excluded from public documentation. **Next step is reconnecting the correct Supabase account to ChatGPT** to resolve the API permission denial, not creating a new project or requesting credentials.
 
 ## New screenshot: existing project dashboard (2026-10-31)
 
@@ -46,6 +46,14 @@
 **NO-GO effects:** Preserve the working Free project as a candidate **synthetic-only lab**, not customer production. Do **not** enable repository integrations, write migrations, open Data API exposure, add keys, connect Render or upgrade service without a new, scoped owner approval. Account linkage, project name, region acceptance, independent backup-and-restore, least-privilege database identity and OIDC/JWKS remain gates.
 
 **One next owner UI action:** from the existing project, open **Project Settings → General** for the full project name and existing region/status; share only nonsensitive fields. Separately, reconnect the ChatGPT Supabase plugin under the same signed-in Supabase account so the API can re-read the new organization before automation. Never share an access token, password or service-role key.
+
+## Owner screenshot: General settings verification (2026-10-31)
+
+**VERIFIED from user-provided screenshot, NOT from linked Supabase API:** The selected Devobs project now has a visually confirmed **project reference/ID** (intentionally not reproduced in this PUBLIC GitHub report), **Project region: `us-east-1` / East US (North Virginia)**, and an account-derived default **Project name** displayed partially on the mobile screen. A screenshot from the preceding project dashboard showed **Healthy / Nano**. The General settings screen also displays **organization-wide access**; the text says all members of this organization can access the project, but does not prove user counts, authentication configuration or least privilege. Project credentials/passwords were never requested or exposed.
+
+**Fresh read-only connector result:** both linked Supabase account aliases still list only the old repair organization; `get_project` on the new user-supplied project ref produced `ProtocolError: You do not have permission to perform this action` for both aliases. Therefore the project exists **according to owner UI evidence**, but is **not yet accessible for safe automation through the current connected app**. Do not change Supabase organization roles or share secrets to work around this; reconnect/reauthorize the proper account through ChatGPT before attempting any future managed operations.
+
+**Practical next gate:** confirm desired display name (e.g. `Devobs AI Intelligence - Staging`) and only rename after a separate owner instruction. For now keep the existing name and `us-east-1` infrastructure, with **synthetic-only data** and no new migrations. Refresh the linked account, then read organization/project details and independently evaluate the DB's actual schema/RLS and recovery plan **before** a live API integration. The separate phone-repair project remains untouched.
 
 ## Next safe action
 
