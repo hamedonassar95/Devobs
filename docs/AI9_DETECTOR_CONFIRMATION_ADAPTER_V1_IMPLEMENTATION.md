@@ -2,6 +2,8 @@
 
 **Status:** local composition prototype. AI-9 remains **FAIL** and P01 remains **NO-GO / BLOCKED**. No production detector, threshold, gate, evaluator, or live resource changed.
 
+**Interface update:** the later [service-authorization boundary v1](AI9_CONFIRMATION_SERVICE_AUTH_BOUNDARY_V1_IMPLEMENTATION.md) extends the constructor to require an injected `authorizeService` callback. The interface below records the original adapter increment; the current constructor requires both dependencies.
+
 ## API and data flow
 
 `createDetectorConfirmationAdapter({ confirmationLayer })` exposes asynchronous `processEventWindow({ serviceId, occurredAt, events })`. It runs the repository's existing `analyzeMetricEvents` detector over stored server-metric events, validates that each metric's latest observation is aligned to the canonical UTC window timestamp, and forwards only `{ metric, channels }` plus the caller-provided service ID to the injected confirmation layer or local journal.
