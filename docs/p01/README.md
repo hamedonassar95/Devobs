@@ -13,7 +13,7 @@
 | Advisory review integrity | [Evidence gate script](../../scripts/check_p01_evidence.py), [exact-checkout guard](../../scripts/verify_p01_checkout.py) | Fail closed unless reviewed SHA matches checkout; evidence authenticity and real provider spend not verified |
 | Live acceptance | [RLS evidence](../POSTGRES_RLS_STAGING.md) and [staging acceptance](../STAGING_ACCEPTANCE.md) | CI/local synthetic only; no live OIDC, managed RLS, restore or all-in hard cap proof |
 
-**Hard blocker:** the owner's **USD 100/month complete-invoice ceiling** includes all services, storage/backups, recurring fees, taxes and possible overrun. Railway cannot meet the requirement based on the repository-recorded support answer; AWS project limits apply pre-tax; an assertion that a provider offers a Free plan is **not** a guaranteed billing cap. The connected Render tools do not expose the workspace subscription. Do not guess Hobby/Pro or require the owner to know it.
+**Updated financial policy:** the owner accepted **USD 100/month as an operating target**, *not* a provider-guaranteed all-in invoice ceiling. This supersedes the historical hard-ceiling *for prospective financial planning only*. It does **not** authorize spending, a new subscription, resource creation or P01 activation. See [owner-directed policy](2026-10-31-operating-target-decision.md) and [offline operating budget guard](../../scripts/check_p01_operating_budget.py). Render's connected workspace subscription remains UNKNOWN, and the complete invoice is not verified. The old hard-cap analysis remains in the historical matrix and reports for audit.
 
 A single [Combined preflight](LOCAL_PREFLIGHT.md) produces a machine-readable NO-GO matrix from both source and budget evidence files. Its nonzero exit status is intentional; no completeness check grants deployment approval.
 
@@ -22,6 +22,8 @@ A single [Combined preflight](LOCAL_PREFLIGHT.md) produces a machine-readable NO
 [October 31 provider/AI cost research](2026-10-31-production-provider-research.md) documents current official restrictions and a conservative commercial candidate. The [offline commercial target manifest](commercial_pilot_candidate.json) remains NO-GO with invoice and live-runtime proof unknown. `python3 -m unittest discover -s tests -p 'test_p01_commercial_pilot.py' -v` tests the guard, and `python3 scripts/check_p01_commercial_pilot.py --expected-sha e1e4223ff9853109b66972e7ba997a81240f9639` must exit 1 and report NO-GO, without provider actions.
 
 ## Offline verification (safe, no credentials)
+
+For the new operating target, use `python3 -m unittest discover -s tests -p 'test_p01_operating_budget.py' -v` and `python3 scripts/check_p01_operating_budget.py --expected-main-sha e1e4223ff9853109b66972e7ba997a81240f9639` (expected exit 1 / NO-GO). These checks evaluate internal policy only, not the provider bill.
 
 ```sh
 python3 -m unittest discover -s tests -p 'test_p01_evidence.py' -v
@@ -38,4 +40,4 @@ python3 scripts/check_p01_evidence.py --file docs/p01/evidence.json --expected-s
 python3 scripts/check_p01_zero_bill_candidate.py --file docs/p01/zero_bill_candidate.json --expected-sha e1e4223ff9853109b66972e7ba997a81240f9639
 ```
 
-**Next owner decision, only after new evidence:** choose an eligible provider/region and accept a proven combined all-in billing mechanism. Until then keep `main` healthy and prepare only offline security, identity and recovery tests. No production/paid action is justified by this packet.
+**Next controlled stage:** obtain non-secret, account-specific provider/region, recurring-price and billing evidence under the new *target* policy; secure explicit scope-limited approval for any paid resources or staging creation, then prove OIDC/JWKS, tenant RLS and encrypted restore in a separately authorized synthetic staging environment. The [operating-target decision](2026-10-31-operating-target-decision.md) does not itself create a GO or justify spending.
