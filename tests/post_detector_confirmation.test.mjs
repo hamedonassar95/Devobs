@@ -130,10 +130,10 @@ test('service time gaps interrupt open incidents and reset evidence', () => {
   assert.equal(layer.getSnapshot().interrupted_incidents, 1);
 });
 
-test('duplicate, out-of-order, and sub-cadence windows fail closed', () => {
+test('exact duplicate windows are idempotent while out-of-order and sub-cadence windows fail closed', () => {
   const layer = createPostDetectorConfirmationLayer();
-  layer.processServiceWindow(window(1, []));
-  assert.throws(() => layer.processServiceWindow(window(1, [])), { code: 'timestamp_not_increasing' });
+  const first = layer.processServiceWindow(window(1, []));
+  assert.deepEqual(layer.processServiceWindow(window(1, [])), first);
   assert.throws(() => layer.processServiceWindow(window(0, [])), { code: 'timestamp_not_increasing' });
   assert.throws(() => layer.processServiceWindow({
     serviceId: 'service-a',
