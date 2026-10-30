@@ -29,3 +29,20 @@ node scripts/ai_intelligence/ai9_robust_shift_evaluation_v1.mjs --replay-used
 The one-time holdout command `--fresh-once` is **not** part of CI or automated deployment and is deliberately not run in this change.
 
 **Decision remains:** AI-9 **FAIL**, P01 **NO-GO / BLOCKED**, no cloud, payment, data transfer, secrets or tenant activation.
+
+## VERIFIED development replay outcome (already-consumed seed, not fresh)
+
+The focused Node job in [branch CI run 41133890392](https://github.com/hamedonassar95/Devobs/actions/runs/41133890392) matched the frozen baseline digest and counts on previously-used seed `20270201`. The new post-hoc candidate result was:
+
+| Metric | Frozen confirmed baseline | Robust-shift candidate | Frozen gate |
+| --- | ---: | ---: | --- |
+| TP / FP / FN / TN | 76 / 1,126 / 14 / 44,024 | 59 / 66 / 31 / 45,084 | Population preserved |
+| Precision | 6.3228% | **47.2000% FAIL** | ≥80% |
+| Recall | 84.4444% | **65.5556% FAIL** | ≥80% |
+| FPR | 2.4939% | **0.1462% PASS** | ≤5% |
+
+**Decision:** robust-shift v1 is **REJECTED AS A QUALITY CANDIDATE ON THE CONSUMED DEVELOPMENT REPLAY**. It suppresses many false positives but removes 17 true-positive windows; no production integration or threshold adjustment is justified. This is not a fresh independent score or a historical AI-9 PASS.
+
+**Fresh evaluation status:** `20270401`–`20270404` are **NOT RUN**, intentionally untouched. The already observed failed development sanity check makes an automatic holdout run inappropriate at this stage; its preregistered frozen evaluation remains unexecuted, never substituted or silently repurposed. Any later attempt would require the frozen protocol and explicit documented decision. A materially new candidate requires a **new versioned preregistration** with independent unconsumed seeds before evaluation.
+
+Quality remains AI-9 **FAIL** and platform P01 **NO-GO / BLOCKED**.
