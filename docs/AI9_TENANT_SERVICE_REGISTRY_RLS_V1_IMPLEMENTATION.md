@@ -42,4 +42,9 @@ Other local checks passed: Bandit reported no issues, the action-pin check cover
 - These are local source and disposable-PostgreSQL CI-fixture results, not a hosted staging test or production evidence.
 - No route, service identity provider, API registration path, Node/Python protocol, real telemetry, or AI-9 evaluator was exercised.
 - No detector, threshold, gate, AI-9 result, P01 decision, cloud setting, or deployment changed. No live service, real data, or secret was used.
-- Hosted PR CI, CodeQL, preview, and main checks must be verified on the final repository commits before the increment is considered merged. This document does not infer those results.
+
+## Hosted checks and merge evidence
+
+- PR #306 passed CI in [run 41075077622](https://github.com/hamedonassar95/Devobs/actions/runs/41075077622) on exact head `c59f88e3db4b44c991152f931c4ab2875ff75c42`. Its PostgreSQL RLS, Python, security, image, site-contract, and required `validate` checks passed; CodeQL passed in [run 41075072434](https://github.com/hamedonassar95/Devobs/actions/runs/41075072434), and the Vercel preview check passed.
+- PR #306 merged as `83f729b6aa2fff0f617e6a38a1a6bfc0c5315c26`. Main CI passed in [run 41075299391](https://github.com/hamedonassar95/Devobs/actions/runs/41075299391), including the disposable PostgreSQL RLS suite and static Pages publication plus `verify-production`. Main CodeQL passed in [run 41075298698](https://github.com/hamedonassar95/Devobs/actions/runs/41075298698).
+- These results establish repository CI and static-site publication only. They do not establish a hosted P01 database, a real authentication integration, service ingestion, AI-9 quality, or production SaaS readiness.
