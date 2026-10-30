@@ -4,7 +4,7 @@
 
 ## Verified baseline and boundary
 
-- **VERIFIED (GitHub API):** `main` resolves to the exact SHA above and is protected. The [exact-SHA CI run #41135588530](https://github.com/hamedonassar95/Devobs/actions/runs/41135588530) completed **success**, including `validate`, `security`, `postgres-rls`, `python-tests`, `node-tests`, `site-contract`, `container-build`, and `terraform-validate`. Static Pages publishing and `verify-production` passed in that same run. No new workflow was dispatched for this review.
+- **VERIFIED (GitHub API):** `main` resolves to the exact SHA above and is protected. The [exact-SHA CI run #41135588530](https://github.com/hamedonassar95/Devobs/actions/runs/41135588530) completed **success**, including `validate`, `security`, `postgres-rls`, `python-tests`, `node-tests`, `site-contract`, `container-build`, and `terraform-validate`. Static Pages publishing and `verify-production` passed in that same run. The baseline run predates this package; branch pushes can independently trigger CI and preview workflows. No manual workflow_dispatch was invoked.
 - **VERIFIED (pinned repository sources):** [AGENTS.md](https://github.com/hamedonassar95/Devobs/blob/e1e4223ff9853109b66972e7ba997a81240f9639/AGENTS.md) requires fail-closed evidence, human approval, small reviewable changes, no secrets and no unapproved deployments; [STATE.md](https://github.com/hamedonassar95/Devobs/blob/e1e4223ff9853109b66972e7ba997a81240f9639/STATE.md) records P01 NO-GO and AI-9 FAIL. The [P00–P12 roadmap](https://github.com/hamedonassar95/Devobs/blob/e1e4223ff9853109b66972e7ba997a81240f9639/docs/plans/2026-10-26-devobs-production-execution-roadmap.md) records **P00 owner GO only; P01–P12 BLOCKED**. The [P01 activation document](https://github.com/hamedonassar95/Devobs/blob/e1e4223ff9853109b66972e7ba997a81240f9639/docs/P01_ACTIVATION_READINESS.md) explicitly records **owner-signed conditional P01 NO-GO**. The P00 GO is not permission for P01.
 - **VERIFIED scope limit:** The healthy deployment is a static site, not a live tenant-isolated SaaS API. The existing P01 evidence checker can establish *structural completeness only*, not independent authenticity; the tracked `docs/p01/evidence.json` is an older SHA and all seven controls are `UNVERIFIED`. It must not be silently rebased or relabeled VERIFIED.
 
@@ -30,11 +30,10 @@
 
 ## Repeatable verification (reviewer commands; read-only)
 
-From a working checkout at the recorded SHA:
+From a checkout of this review branch (the historical SHA is the evidence anchor, not this branch HEAD):
 
 ```sh
-git rev-parse HEAD
-# Must equal e1e4223ff9853109b66972e7ba997a81240f9639
+python3 -c "import json; print(json.load(open('docs/p01/2026-10-31-e1e4223-acceptance-matrix.json'))['observed_main_sha'])"
 python3 -m unittest discover -s tests -p 'test_p01_decision_packet.py' -v
 python3 -m unittest discover -s tests -p 'test_p01_evidence.py' -v
 # EXPECTED FAIL-CLOSED (exit 1): historical evidence sample is for an older SHA.

@@ -83,6 +83,7 @@ class P01DecisionPacketTests(unittest.TestCase):
         self.assertIn("41135588530", self.report)
         self.assertIn("static site", self.report)
         self.assertIn("not a live tenant-isolated SaaS API", self.report)
+        self.assertIn("From a checkout of this review branch", self.report)
 
     def test_no_runtime_keys_in_artifacts(self):
         for body in (MATRIX.read_text(encoding="utf-8"), self.report):
