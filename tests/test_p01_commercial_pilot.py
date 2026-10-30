@@ -24,7 +24,7 @@ class SupplierEligibilityTests(unittest.TestCase):
         r = gate.assess(candidate(), SHA)
         self.assertEqual(r["decision"], "NO-GO")
         self.assertEqual(len(r["known_plan_obstacles"]), 2)
-        self.assertEqual(len(r["unverified_invoice_categories"]), 9)
+        self.assertEqual(len(r["unverified_invoice_categories"]), 10)
         self.assertEqual(len(r["unverified_live_controls"]), 6)
         self.assertFalse(r["provisioning_authorized"])
 

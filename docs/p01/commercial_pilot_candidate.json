@@ -24,6 +24,7 @@
   },
   "invoice_coverage": {
     "web_compute": null,
+    "workspace_subscription": null,
     "database_compute": null,
     "identity": null,
     "ai_inference": null,

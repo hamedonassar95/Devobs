@@ -12,7 +12,7 @@ import re
 
 SHA = re.compile(r"[0-9a-f]{40}\Z")
 ROLES = ("web", "database", "identity", "ai")
-COSTS = ("web_compute", "database_compute", "identity", "ai_inference",
+COSTS = ("web_compute", "workspace_subscription", "database_compute", "identity", "ai_inference",
          "backups_and_storage", "network_and_build", "taxes_and_fees",
          "addons", "other_providers")
 LIVE = ("oidc_jwks", "restricted_postgres_rls", "isolated_encrypted_restore",
