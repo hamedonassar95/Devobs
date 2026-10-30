@@ -92,6 +92,18 @@ class SupplierEligibilityTests(unittest.TestCase):
         with self.assertRaises(gate.InvalidTarget):
             json.loads('{"decision":1,"decision":2}', object_pairs_hook=gate.unique_pairs)
 
+
+    def test_owner_budget_policy_is_target_and_never_hard_cap(self):
+        d = candidate()
+        self.assertEqual(d["budget_policy_mode"], "operating_target_not_guaranteed_cap")
+        self.assertEqual(d["monthly_operating_target_usd"], 100)
+        r = gate.assess(d, SHA)
+        self.assertTrue(r["budget_target_not_guaranteed_cap"])
+        self.assertFalse(r["independent_provider_invoice_guarantee"])
+        d["budget_policy_mode"] = "guaranteed_hard_invoice_cap"
+        with self.assertRaises(gate.InvalidTarget):
+            gate.assess(d, SHA)
+
     def test_cli_fails_closed_for_complete_claims_and_missing_file(self):
         d = candidate()
         d["providers"]["web"]["plan"] = "starter"

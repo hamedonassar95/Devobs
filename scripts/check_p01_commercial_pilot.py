@@ -46,14 +46,15 @@ def assess(data, expected_sha):
         raise InvalidTarget("invalid requested revision")
     if type(data) is not dict or set(data) != {
         "schema_version", "decision", "source_sha", "scope",
-        "monthly_total_ceiling_usd", "providers", "invoice_coverage",
+        "monthly_operating_target_usd", "budget_policy_mode", "providers", "invoice_coverage",
         "live_security", "owner_production_signoff"
     }:
         raise InvalidTarget("invalid target shape")
     if (type(data["schema_version"]) is not int or data["schema_version"] != 1
             or data["decision"] != "NO-GO" or data["scope"] != "commercial_pilot"
-            or type(data["monthly_total_ceiling_usd"]) is not int
-            or data["monthly_total_ceiling_usd"] != 100):
+            or data["budget_policy_mode"] != "operating_target_not_guaranteed_cap"
+            or type(data["monthly_operating_target_usd"]) is not int
+            or data["monthly_operating_target_usd"] != 100):
         raise InvalidTarget("unsupported policy or cost threshold")
     if type(data["source_sha"]) is not str or SHA.fullmatch(data["source_sha"]) is None:
         raise InvalidTarget("invalid source revision")
@@ -103,6 +104,7 @@ def assess(data, expected_sha):
         "unverified_live_controls": live,
         "claimed_controls_complete": not (hard or costs or live or not revision_match),
         "independent_provider_invoice_guarantee": False,
+        "budget_target_not_guaranteed_cap": True,
         "provisioning_authorized": False,
         "ai_paid_calls_authorized": False,
         "owner_production_signoff": False,

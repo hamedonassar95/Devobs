@@ -1,5 +1,7 @@
 # Devobs P01 → commercial pilot: provider and AI cost review
 
+> **Updated financial policy (2026-10-31):** The owner later selected a **USD 100/month operating TARGET, not an enforceable invoice guarantee**. See [owner-directed decision](2026-10-31-operating-target-decision.md). The 2026-10-31 research facts below are historical, but all live/billing gates remain NO-GO, and no paid action was approved.
+
 **Evidence snapshot:** 2026-10-31. **Decision: NO-GO / BLOCKED.** Inspected protected `main` = `e1e4223ff9853109b66972e7ba997a81240f9639`; the GitHub Pages static site and passing CI **do not prove a live tenant-isolated SaaS**. Official public pages are *policy research*, not provider/account invoices. No new account, billing instrument, secret, resource, AI API invocation or deployment was created.
 
 ## Recommendation
@@ -30,13 +32,13 @@
 ## Conservative eligibility model
 
 - `commercial_pilot_candidate.json` is a **proposed** architecture, not a real configured deployment. All ten invoice components and six live controls are `null`; owner production signoff is `false`.
-- `scripts/check_p01_commercial_pilot.py` rejects incomplete/unknown suppliers, prohibits fake owner signoff, rejects Render Free, Vercel Hobby, Supabase Free managed-backup assumptions, D1-for-PostgreSQL substitutions, and AI prepaid hard-cap assumptions. It **always exits nonzero and says NO-GO**, even if someone submits positive assertions; only an independent provider contract, account-specific billing review, signed owner approval and runtime tests can clear P01.
+- `scripts/check_p01_commercial_pilot.py` rejects incomplete/unknown suppliers, prohibits fake owner signoff, rejects Render Free, Vercel Hobby, Supabase Free managed-backup assumptions, D1-for-PostgreSQL substitutions, and AI prepaid hard-cap assumptions. It **always exits nonzero and says NO-GO**, even if someone submits positive assertions; only fresh provider billing estimates, an explicit owner authorization for the precise paid action, a recorded acceptance of possible overrun and subsequent live runtime tests can clear their respective gates.
 - `python3 -m unittest discover -s tests -p 'test_p01_commercial_pilot.py' -v` exercises the guard.
 - `python3 scripts/check_p01_commercial_pilot.py --file docs/p01/commercial_pilot_candidate.json --expected-sha e1e4223ff9853109b66972e7ba997a81240f9639` returns 1 (expected NO-GO).
 
 ## Required next gates
 
-**G1 financial**: owner/account-level all-in USD 100/month enforceable cap **including** web compute, Render workspace subscription, DB/identity/AI, egress/build, backups/storage, optional services, taxes/fees and delay/overrun risk. If impossible, owner must expressly revise the hard condition before *any* expense (alerts alone cannot meet it).
+**G1 financial**: owner accepted an operating **target**, not a guaranteed hard cap, of **USD 100/month** including web compute, Render workspace subscription, DB/identity/AI, egress/build, backup/storage, other services and taxes/fees. Before *any* charge obtain account-specific price/risk estimates, separate scope-limited approval, selected alert/stop-usage controls where actually supported, and explicit acknowledgement that the invoice can exceed target. See [new budget policy](operating_budget_policy.json) and [read-only advisory](../../scripts/check_p01_operating_budget.py).
 
 **G2 isolation**: independent Devobs database in approved EU region; non-owner/non-BYPASSRLS role, FORCE RLS and adversarial cross-tenant tests on staging; do not repurpose another project's DB.
 
