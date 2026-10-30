@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "policy_version": "devobs-ai-eval-synthetic-v1",
+  "scope": "synthetic fixture provenance and schema validation only",
+  "dataset_id": "decisions-triage-synthetic",
+  "dataset_path": "tests/fixtures/ai-evals/decisions-triage.jsonl",
+  "dataset_sha256": "9282f62cd6cac306975ede8b8abcebf9504bf963dbad14126dae81afacb91b8e",
+  "max_bytes": 5000000,
+  "max_rows": 100,
+  "max_input_bytes": 64000,
+  "label_status": "synthetic_unreviewed",
+  "prompt_version": "decisions-triage-v1",
+  "allowed_categories": [
+    "ci_cd",
+    "deployment",
+    "monitoring",
+    "security",
+    "data_store",
+    "billing",
+    "other"
+  ],
+  "severity_min": 0,
+  "severity_max": 4,
+  "production_gate": false
+}

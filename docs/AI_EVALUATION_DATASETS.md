@@ -6,6 +6,16 @@ without echoing incident text. Dataset labels and generated candidate outputs
 are different things: the corpus currently contains synthetic, unreviewed
 examples and is not evidence of production model quality.
 
+The Decisions fixture is pinned by
+[`evaluation-policy-v1.json`](ai/evaluation-policy-v1.json) and checked in CI
+with `python3 scripts/validate_ai_eval_fixtures.py`. The validator checks the
+fixture digest, synthetic label status, prompt version, row schema, category
+and severity labels, and duplicate case IDs. Its report contains only the
+policy version, row count, and SHA-256 digest. This is fixture integrity and
+schema validation; it does not detect semantic data poisoning, evaluate a live
+model, or authorize production use. Updating the fixture requires a deliberate
+policy-version and digest update in the same reviewed change.
+
 ## Incident investigator reports
 
 Cases are in
