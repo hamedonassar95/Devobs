@@ -137,6 +137,7 @@ export function runAi9SyntheticFpDiagnosticV2() {
         negative_windows: 0,
         baseline_fp: 0,
         candidate_fp: 0,
+        candidate_fp_signal_patterns: {},
       };
       if (!isPositive) group.negative_windows++;
       if (isBaselineFp) {
@@ -151,6 +152,7 @@ export function runAi9SyntheticFpDiagnosticV2() {
           .map(([channel]) => channel);
         const signature = channels.join('+');
         signalPatterns.set(signature, (signalPatterns.get(signature) ?? 0) + 1);
+        group.candidate_fp_signal_patterns[signature] = (group.candidate_fp_signal_patterns[signature] ?? 0) + 1;
         for (const channel of channels) signalPresence.set(channel, (signalPresence.get(channel) ?? 0) + 1);
         if (candidateChannelFlags.ewma_candidate) candidateFpWithEwma++;
         else candidateFpWithoutEwma++;
@@ -214,6 +216,8 @@ export function runAi9SyntheticFpDiagnosticV2() {
   const groupReport = Object.fromEntries([...groupCounts.entries()].sort(([left], [right]) => left.localeCompare(right))
     .map(([group, counts]) => [group, {
       ...counts,
+      candidate_fp_signal_patterns: Object.fromEntries(Object.entries(counts.candidate_fp_signal_patterns)
+        .sort(([left], [right]) => left.localeCompare(right))),
       candidate_fpr_percent: Number(((counts.candidate_fp / counts.negative_windows) * 100).toFixed(4)),
     }]));
   const sortedPatterns = Object.fromEntries([...signalPatterns.entries()].sort(([left], [right]) => left.localeCompare(right)));
