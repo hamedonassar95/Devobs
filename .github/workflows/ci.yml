@@ -166,6 +166,8 @@ jobs:
           fi
       - name: Validate AI agent inventory and guardrails
         run: python3 scripts/check_agent_spec.py
+      - name: Validate pinned synthetic AI evaluation dataset
+        run: python3 scripts/validate_ai_eval_fixtures.py
       - name: Set up Python with dependency cache
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
