@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "policy": "operating_target_not_guaranteed_cap",
+  "decision": "PREPARE_ONLY",
+  "main_snapshot_sha": "e1e4223ff9853109b66972e7ba997a81240f9639",
+  "monthly_target_usd": 100,
+  "allocation_usd": {
+    "core_services": 60,
+    "metered_services": 20,
+    "reserve": 20
+  },
+  "alert_percent": [
+    50,
+    75,
+    90,
+    100
+  ],
+  "new_paid_commitment_review_at_usd": 75,
+  "metered_activity_review_at_usd": 80,
+  "spending_authorized": false,
+  "paid_ai_enabled": false,
+  "provider_accounts_confirmed": false,
+  "p01_go": false
+}
