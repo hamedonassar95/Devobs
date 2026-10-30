@@ -25,7 +25,12 @@ jobs:
         env:
           CHECKED_SHA: ${{ inputs.source_sha }}
         # git rev-parse --verify: https://git-scm.com/docs/git-rev-parse
-        run: python3 scripts/verify_p01_checkout.py --expected-sha "$CHECKED_SHA"
+        run: |
+          set -euo pipefail
+          actual_sha="$(git rev-parse --verify HEAD)"
+          python3 scripts/verify_p01_checkout.py \
+            --expected-sha "$CHECKED_SHA" \
+            --checkout-sha "$actual_sha"
       - name: Validate evidence completeness (NO-GO by default)
         env:
           CHECKED_SHA: ${{ inputs.source_sha }}

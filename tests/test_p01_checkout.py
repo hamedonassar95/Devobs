@@ -5,7 +5,6 @@ from contextlib import redirect_stderr, redirect_stdout
 import importlib.util
 import io
 from pathlib import Path
-import subprocess
 import unittest
 from unittest.mock import patch
 
@@ -45,35 +44,29 @@ class P01CheckoutTests(unittest.TestCase):
                 with self.assertRaisesRegex(guard.InvalidCheckout, "checked-out"):
                     guard.verify(SHA, invalid, "refs/heads/main")
 
-    def test_git_command_failure_does_not_disclose_output(self):
-        for error in (OSError("secret payload"),
-                      subprocess.CalledProcessError(1, "git", stderr="secret payload"),
-                      subprocess.TimeoutExpired("git", 5)):
-            with self.subTest(error=type(error).__name__):
-                with patch.object(guard.subprocess, "run", side_effect=error):
-                    with self.assertRaises(guard.InvalidCheckout) as raised:
-                        guard._checkout_sha()
-                self.assertEqual(str(raised.exception), "unable to verify checked-out commit")
-                self.assertNotIn("secret payload", str(raised.exception))
-
     def test_cli_exit_status_is_fail_closed(self):
         with patch.dict(guard.os.environ, {"GITHUB_REF": "refs/heads/main"}):
-            with patch.object(guard, "_checkout_sha", return_value=OTHER_SHA):
-                output = io.StringIO()
-                with redirect_stderr(output):
-                    self.assertEqual(guard.main(["--expected-sha", SHA]), 1)
-                self.assertIn("NO-GO", output.getvalue())
-            with patch.object(guard, "_checkout_sha", return_value=SHA):
-                output = io.StringIO()
-                with redirect_stdout(output):
-                    self.assertEqual(guard.main(["--expected-sha", SHA]), 0)
-                self.assertIn("independent review", output.getvalue())
+            output = io.StringIO()
+            with redirect_stderr(output):
+                self.assertEqual(guard.main([
+                    "--expected-sha", SHA, "--checkout-sha", OTHER_SHA,
+                ]), 1)
+            self.assertIn("NO-GO", output.getvalue())
+            output = io.StringIO()
+            with redirect_stdout(output):
+                self.assertEqual(guard.main([
+                    "--expected-sha", SHA, "--checkout-sha", SHA,
+                ]), 0)
+            self.assertIn("independent review", output.getvalue())
 
     def test_workflow_runs_revision_guard_before_evidence_gate(self):
         text = (ROOT / ".github/workflows/p01-evidence-gate.yml").read_text(encoding="utf-8")
         self.assertIn("ref: "+ "$"+"{{ github.sha }}", text)
         self.assertIn("persist-credentials: false", text)
-        self.assertIn("python3 scripts/verify_p01_checkout.py --expected-sha", text)
+        self.assertIn("git rev-parse --verify HEAD", text)
+        self.assertIn("python3 scripts/verify_p01_checkout.py", text)
+        self.assertIn('--expected-sha "$CHECKED_SHA"', text)
+        self.assertIn('--checkout-sha "$actual_sha"', text)
         self.assertLess(text.index("verify_p01_checkout.py"), text.index("check_p01_evidence.py"))
 
 
