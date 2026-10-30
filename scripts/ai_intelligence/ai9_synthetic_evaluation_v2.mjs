@@ -99,8 +99,9 @@ function makeScenario({ id, group, metric, unit, baseline, seasonality = 0, nois
   return { id, group, metric, unit, values, labels, events };
 }
 
-export function generateAi9SyntheticScenariosV2() {
-  const random = seededRandom(AI9_SYNTHETIC_EVALUATION_V2_POLICY.seed);
+export function generateAi9SyntheticScenariosV2(seed = AI9_SYNTHETIC_EVALUATION_V2_POLICY.seed) {
+  if (!Number.isInteger(seed) || seed < 0 || seed > 0xFFFF_FFFF) reject('invalid_seed');
+  const random = seededRandom(seed);
   const scenarios = [];
   for (const recipe of CONTROL_RECIPES) {
     for (let ordinal = 1; ordinal <= recipe.count; ordinal++) {
@@ -129,7 +130,7 @@ export function generateAi9SyntheticScenariosV2() {
   return {
     classification: AI9_SYNTHETIC_EVALUATION_V2_POLICY.classification,
     split: 'synthetic_evaluation_v2_only',
-    seed: AI9_SYNTHETIC_EVALUATION_V2_POLICY.seed,
+    seed,
     window_seconds: AI9_SYNTHETIC_EVALUATION_V2_POLICY.cadence_seconds,
     baseline_points: AI9_SYNTHETIC_EVALUATION_V2_POLICY.baseline_points,
     scenarios,
@@ -279,8 +280,8 @@ function countLabels(dataset) {
     }, { positive: 0, negative: 0 });
 }
 
-export function runAi9SyntheticEvaluationV2() {
-  const dataset = generateAi9SyntheticScenariosV2();
+export function runAi9SyntheticEvaluationV2(seed = AI9_SYNTHETIC_EVALUATION_V2_POLICY.seed) {
+  const dataset = generateAi9SyntheticScenariosV2(seed);
   const labelCounts = countLabels(dataset);
   const labels = [];
   const baselinePredictions = [];
