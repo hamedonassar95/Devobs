@@ -18,3 +18,14 @@
 - When a task needs cloud commands, finish the code changes, then give me the exact commands to run in Google Cloud Shell with --project tensile-verve-352716. For each command, add one line on what it does and how to undo it.
 - Warn me before any command that costs money or deletes resources.
 - Never put credentials or keys in any file.
+
+
+## Codex multi-agent operations (repository policy)
+- Never push directly to main. Make authorized changes only on an isolated feature branch or worktree and a reviewable diff.
+- Never merge or deploy without explicit owner approval for the reviewed SHA and scope, even if all checks pass.
+- Do not enable billable AI inference, external agent services, new subscriptions, or scheduled work without the owner's specific budget and scope approval.
+- Keep AI recommendations advisory: no agent may approve its own proposal, change IAM, reveal secrets, dispatch production actions or bypass Phase 8 PENDING HUMAN APPROVAL.
+- Use the existing CI, CodeQL, Trivy, tenant-isolation checks and human gates; do not create redundant scanning pipelines to claim added coverage.
+- For substantial Devobs multi-step work, consult `.agents/skills/devobs-codex-operating-cycle/SKILL.md` and `docs/CODEX_AGENT_OPERATING_MODEL.md`. Delegate only useful specialist read-only reviews; subagents share the operator's permissions.
+- Cite the source revision and the latest relevant test/CI evidence. A repository configuration file is never proof of a running service, operating subagent, or production readiness.
+- Stop at BLOCKED when authorization, budget, tool access, test evidence, or runtime status is missing; state the exact owner decision required.
