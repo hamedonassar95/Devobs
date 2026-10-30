@@ -1,6 +1,6 @@
 # AI-9 Service Authorization API v1 — Implementation Record
 
-**Status:** Implemented locally on `feature/ai9-python-service-authorization-api-v1`, based on `main` tree `2d6a347618c4f075390a418cc6d7e758861cc687` (main commit `6f16e2f923536526ef563377f2dc6775c4dc370c`). The contract was registered and merged first in [the preregistration](AI9_SERVICE_AUTHORIZATION_API_V1_PREREGISTRATION.md). This is application integration evidence only, not an AI-9 model evaluation, hosted-service test, or production approval.
+**Status:** Merged in [PR #309](https://github.com/hamedonassar95/Devobs/pull/309) at main commit `60d64f14ee63c94806674b1a537d0180869b41d0` (PR head `8caf21698e2c56d96b8ab9701fec56c4aa0eb5e5`). The contract was registered and merged first in [the preregistration](AI9_SERVICE_AUTHORIZATION_API_V1_PREREGISTRATION.md). This is application integration evidence only, not an AI-9 model evaluation, hosted-service test, or production approval.
 
 ## Change
 
@@ -19,6 +19,11 @@ Dependencies came from the repository's hash-pinned requirements files. The Post
 | `python3 -m unittest discover -s tests -p 'test_intelligence_api_security.py' -v` | 17 tests, all passed. |
 | `PG_TEST_ADMIN_DSN=postgresql://postgres@127.0.0.1:55432/postgres PG_TEST_READER_DSN=postgresql://devobs_ci_reader@127.0.0.1:55432/postgres /tmp/devobs-ai9-service-api-v1-venv/bin/python -m unittest discover -s tests -p 'test_postgres_rls_integration.py' -v` | 22 tests, all passed against disposable PostgreSQL 17, including the new signed WSGI-to-RLS path. |
 | `/tmp/devobs-ai9-service-api-v1-venv/bin/python -m unittest discover -s tests -v` | 549 tests completed: `OK (skipped=22)`. The skipped cases require the PostgreSQL fixture, which was run separately above. |
+
+## Hosted repository verification
+
+- PR #309 head `8caf21698e2c56d96b8ab9701fec56c4aa0eb5e5` passed [CI run 41081064798](https://github.com/hamedonassar95/Devobs/actions/runs/41081064798), including Python, disposable PostgreSQL RLS, security, `validate`, container, Terraform and site-contract jobs; CodeQL passed in [run 41081060607](https://github.com/hamedonassar95/Devobs/actions/runs/41081060607). Node tests were skipped because the change is Python-only.
+- After merge, main commit `60d64f14ee63c94806674b1a537d0180869b41d0` passed [CI run 41081294563](https://github.com/hamedonassar95/Devobs/actions/runs/41081294563) and [CodeQL run 41081293399](https://github.com/hamedonassar95/Devobs/actions/runs/41081293399). GitHub Pages publication and `verify-production` both succeeded in the main CI workflow. This verifies the static site and repository gates only; no P01 service was deployed.
 
 These runs validate only mocked route behavior and an isolated disposable PostgreSQL fixture. No hosted identity provider, managed database, endpoint, live tenant, real data, AI-9 seed, benchmark, Precision/Recall/FPR calculation, or production gate was used. The global `AI-9 = FAIL`, `P01 = NO-GO / BLOCKED`, and technical rating `6/10` are unchanged.
 
