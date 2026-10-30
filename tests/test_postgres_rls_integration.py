@@ -34,6 +34,7 @@ class PostgresTenantRLSTests(unittest.TestCase):
     def setUpClass(cls):
         cls.admin = psycopg.connect(ADMIN_DSN, autocommit=True)
         cls.admin.execute((ROOT / "deploy/postgres/001_tenant_rls.sql").read_text())
+        cls.admin.execute((ROOT / "deploy/postgres/002_service_registry.sql").read_text())
         # This login role is a CI fixture only, with NO credentials or admin rights.
         cls.admin.execute("CREATE ROLE devobs_ci_reader LOGIN INHERIT NOBYPASSRLS")
         cls.admin.execute("GRANT devobs_ai_reader TO devobs_ci_reader")
@@ -45,6 +46,11 @@ class PostgresTenantRLSTests(unittest.TestCase):
         cls.admin.execute(
             "INSERT INTO devobs_ai.memberships VALUES (%s,%s,%s),(%s,%s,%s)",
             ("alpha","shared","alice","beta","shared","bob"))
+        cls.admin.execute(
+            "INSERT INTO devobs_ai.service_registry VALUES "
+            "(%s,%s,%s),(%s,%s,%s),(%s,%s,%s)",
+            ("alpha", "shared", "collector", "beta", "shared", "collector",
+             "alpha", "hidden", "private-service"))
         cls.store = PostgresTenantStore(READER_DSN)
 
     @classmethod
@@ -55,9 +61,11 @@ class PostgresTenantRLSTests(unittest.TestCase):
         with self.admin.cursor() as cur:
             cur.execute("""SELECT relname, relrowsecurity, relforcerowsecurity
                            FROM pg_class WHERE oid IN
-                            ('devobs_ai.project_ci'::regclass,'devobs_ai.memberships'::regclass)""")
+                            ('devobs_ai.project_ci'::regclass,
+                             'devobs_ai.memberships'::regclass,
+                             'devobs_ai.service_registry'::regclass)""")
             rows = cur.fetchall()
-        self.assertEqual(len(rows), 2)
+        self.assertEqual(len(rows), 3)
         self.assertTrue(all(enabled and forced for _,enabled,forced in rows))
 
     def test_readonly_runtime_role_is_not_owner_or_bypass(self):
@@ -69,24 +77,29 @@ class PostgresTenantRLSTests(unittest.TestCase):
             self.assertEqual(flags, (False,False,True))
             self.assertEqual(conn.execute("SELECT count(*) FROM devobs_ai.project_ci").fetchone(), (0,))
             self.assertEqual(conn.execute("SELECT count(*) FROM devobs_ai.memberships").fetchone(), (0,))
+            self.assertEqual(conn.execute("SELECT count(*) FROM devobs_ai.service_registry").fetchone(), (0,))
             with self.assertRaises(psycopg.errors.InsufficientPrivilege):
                 conn.execute("UPDATE devobs_ai.project_ci SET ci_state='success'")
+            with self.assertRaises(psycopg.errors.InsufficientPrivilege):
+                conn.execute("UPDATE devobs_ai.service_registry SET service_id='changed'")
 
     def test_readiness_refuses_extra_write_privileges(self):
         self.assertIs(self.store.probe_readiness(), True)
         # Disposable integration DB only. A leaked write grant must block readiness.
-        self.admin.execute("GRANT UPDATE ON devobs_ai.project_ci TO devobs_ci_reader")
-        try:
-            with self.assertRaisesRegex(StorageUnavailable, "^unsafe_database_schema$"):
-                self.store.probe_readiness()
-        finally:
-            self.admin.execute("REVOKE UPDATE ON devobs_ai.project_ci FROM devobs_ci_reader")
-        self.assertIs(self.store.probe_readiness(), True)
+        for table in ("project_ci", "memberships", "service_registry"):
+            with self.subTest(table=table):
+                self.admin.execute(f"GRANT UPDATE ON devobs_ai.{table} TO devobs_ci_reader")
+                try:
+                    with self.assertRaisesRegex(StorageUnavailable, "^unsafe_database_schema$"):
+                        self.store.probe_readiness()
+                finally:
+                    self.admin.execute(f"REVOKE UPDATE ON devobs_ai.{table} FROM devobs_ci_reader")
+                self.assertIs(self.store.probe_readiness(), True)
 
     def test_readiness_refuses_disabled_rls_on_each_table(self):
         # CI fixture only. Never change an external/customer database.
         self.assertIs(self.store.probe_readiness(), True)
-        for table in ("project_ci", "memberships"):
+        for table in ("project_ci", "memberships", "service_registry"):
             with self.subTest(table=table):
                 # Table names come from fixed trusted test fixtures, not inputs.
                 self.admin.execute(f"ALTER TABLE devobs_ai.{table} DISABLE ROW LEVEL SECURITY")
@@ -100,7 +113,7 @@ class PostgresTenantRLSTests(unittest.TestCase):
     def test_readiness_refuses_missing_select_on_each_table(self):
         # Simulates privilege drift using only the disposable PostgreSQL CI DB.
         self.assertIs(self.store.probe_readiness(), True)
-        for table in ("project_ci", "memberships"):
+        for table in ("project_ci", "memberships", "service_registry"):
             with self.subTest(table=table):
                 self.admin.execute(
                     f"REVOKE SELECT ON devobs_ai.{table} FROM devobs_ai_reader")
@@ -183,6 +196,33 @@ class PostgresTenantRLSTests(unittest.TestCase):
             )
         self.assertIs(self.store.probe_readiness(), True)
 
+    def test_readiness_rejects_changed_service_policy_body(self):
+        self.assertIs(self.store.probe_readiness(), True)
+        self.admin.execute(
+            "ALTER POLICY devobs_service_member_read ON devobs_ai.service_registry "
+            "USING (true)"
+        )
+        try:
+            # Existing rows become visible without a tenant/subject context.
+            with psycopg.connect(READER_DSN, autocommit=True) as conn:
+                self.assertGreater(
+                    conn.execute("SELECT count(*) FROM devobs_ai.service_registry").fetchone()[0], 0
+                )
+            with self.assertRaisesRegex(StorageUnavailable, "^unsafe_database_schema$"):
+                self.store.authorize_service("alice", "alpha", "shared", "collector")
+            with self.assertRaisesRegex(StorageUnavailable, "^unsafe_database_schema$"):
+                self.store.probe_readiness()
+        finally:
+            self.admin.execute(
+                "ALTER POLICY devobs_service_member_read ON devobs_ai.service_registry "
+                "USING (tenant_id = NULLIF(current_setting('devobs_ai.tenant_id', true), '') "
+                "AND EXISTS (SELECT 1 FROM devobs_ai.memberships AS m "
+                "WHERE m.tenant_id = service_registry.tenant_id "
+                "AND m.project_id = service_registry.project_id "
+                "AND m.subject_id = NULLIF(current_setting('devobs_ai.subject_id', true), '')))"
+            )
+        self.assertIs(self.store.probe_readiness(), True)
+
     def test_runtime_read_denies_original_policy_body_drift(self):
         # Read endpoint must fail closed even between Render readiness probes.
         # Disposable PostgreSQL in CI only; test owns the migration role.
@@ -225,7 +265,7 @@ class PostgresTenantRLSTests(unittest.TestCase):
         blocked = []
 
         def check_inside_active_transaction(connection):
-            for table in ("memberships", "project_ci"):
+            for table in ("memberships", "project_ci", "service_registry"):
                 # Identifier is a hardcoded fixture, not user input.
                 with psycopg.connect(ADMIN_DSN, autocommit=True) as migrator:
                     try:
@@ -245,7 +285,7 @@ class PostgresTenantRLSTests(unittest.TestCase):
                 self.store.read_status("alice", "alpha", "shared")["source_sha"],
                 "a" * 40
             )
-        self.assertEqual(blocked, ["memberships", "project_ci"])
+        self.assertEqual(blocked, ["memberships", "project_ci", "service_registry"])
 
     def test_exact_tenant_and_subject_match(self):
         self.assertEqual(self.store.read_status("alice","alpha","shared"),
@@ -263,8 +303,40 @@ class PostgresTenantRLSTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError,"^access_denied$"):
                     self.store.read_status(subject,tenant,project)
 
+    def test_registered_service_requires_exact_member_tenant_project_and_service(self):
+        self.assertIs(self.store.authorize_service("alice", "alpha", "shared", "collector"), True)
+        self.assertIs(self.store.authorize_service("bob", "beta", "shared", "collector"), True)
+        for subject, tenant, project, service_id in [
+            ("alice", "beta", "shared", "collector"),
+            ("bob", "alpha", "shared", "collector"),
+            ("alice", "alpha", "hidden", "private-service"),
+            ("unknown", "alpha", "shared", "collector"),
+            ("alice", "alpha", "shared", "missing-service"),
+            ("alice", "alpha", "missing", "collector"),
+            ("alice", "missing", "shared", "collector"),
+        ]:
+            with self.subTest(subject=subject, tenant=tenant, project=project, service=service_id):
+                self.assertIs(
+                    self.store.authorize_service(subject, tenant, project, service_id), False
+                )
+
+    def test_invalid_service_scope_is_denied_before_database_connect(self):
+        with patch("devobs_intelligence.postgres_store.psycopg.connect") as connect:
+            for subject, tenant, project, service_id in [
+                ("alice", "alpha' OR true --", "shared", "collector"),
+                ("alice", "alpha", "../shared", "collector"),
+                ("alice", "alpha", "shared", "collector;DROP TABLE"),
+                ("", "alpha", "shared", "collector"),
+            ]:
+                with self.subTest(subject=subject, tenant=tenant, project=project, service=service_id):
+                    with self.assertRaisesRegex(ValueError, "^access_denied$"):
+                        self.store.authorize_service(subject, tenant, project, service_id)
+        connect.assert_not_called()
+
     def test_context_does_not_survive_read_transaction(self):
         # Two identities are served by separate short-lived transactions.
+        self.assertIs(self.store.authorize_service(
+            "alice", "alpha", "shared", "collector"), True)
         self.store.read_status("alice","alpha","shared")
         self.store.read_status("bob","beta","shared")
         with psycopg.connect(READER_DSN, autocommit=True) as conn:
@@ -273,6 +345,9 @@ class PostgresTenantRLSTests(unittest.TestCase):
     def test_admin_connection_refused_by_read_adapter(self):
         with self.assertRaisesRegex(StorageUnavailable,"^unsafe_database_role$"):
             PostgresTenantStore(ADMIN_DSN).read_status("alice","alpha","shared")
+        with self.assertRaisesRegex(StorageUnavailable,"^unsafe_database_role$"):
+            PostgresTenantStore(ADMIN_DSN).authorize_service(
+                "alice", "alpha", "shared", "collector")
 
     def test_invalid_scope_rejected_before_database_connect(self):
         for subject,tenant,project in [
@@ -309,9 +384,12 @@ class PostgresTenantRLSTests(unittest.TestCase):
 
     def test_missing_database_not_claimed_as_denial(self):
         # Reject a credentialed runtime pointing to a wrong/inaccessible DB.
+        unavailable = PostgresTenantStore(
+            "host=127.0.0.1 port=1 dbname=absent connect_timeout=1")
         with self.assertRaises(StorageUnavailable):
-            PostgresTenantStore("host=127.0.0.1 port=1 dbname=absent connect_timeout=1").read_status(
-                "alice","alpha","shared")
+            unavailable.read_status("alice", "alpha", "shared")
+        with self.assertRaises(StorageUnavailable):
+            unavailable.authorize_service("alice", "alpha", "shared", "collector")
 
 
 if __name__=="__main__": unittest.main()

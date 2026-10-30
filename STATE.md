@@ -149,3 +149,18 @@
 - تحقق محليًا: الاختبار المركّز `8/8`، مجموعة Node `129/129`، عقد CI `2/2` وrelease gate `1/1`، تثبيت 39 ملف Actions، `check_agent_spec.py` و`check_site.py`، فحوص الصياغة و`git diff --check` كلها PASS. نتائج CI/CodeQL/Vercel وmain CI/Pages ستضاف بعد اكتمالها.
 - سجل التنفيذ وحدوده في [تقرير التطبيق](docs/AI9_CONFIRMATION_SERVICE_AUTH_BOUNDARY_V1_IMPLEMENTATION.md). لا مزود هوية أو token أو سجل خدمات أو ربط مستأجرين أو شبكة أو قاعدة بيانات؛ callback المحلي مجرد نقطة ربط ويجب أن يغلق على سياق موثوق قبل أي تكامل.
 - **الحالة لا تتغير:** AI-9 **FAIL** وP01 **NO-GO / BLOCKED**؛ لم تُشغّل مقاييس الجودة أو بذور التقييم، ولم يتغير الكاشف أو العتبات أو تعريف البوابات. هذه الخطوة لا تفعّل staging أو إنتاجًا.
+
+## تسجيل مسبق لسجل خدمات tenant-scoped تحت PostgreSQL RLS — 2026-10-30
+
+- سُجل تصميم `ai9-tenant-service-registry-rls-v1` قبل التنفيذ في [التسجيل المسبق](docs/AI9_TENANT_SERVICE_REGISTRY_RLS_V1_PREREGISTRATION.md)، على `main` عند `c778fe4e7ff9f26e7cd2d7f4b9bba1623bc9de6f`.
+- العقد يضيف migration منفصلًا `002_service_registry.sql` بعد `001_tenant_rls.sql`، وجدول `service_registry` بمفتاح `(tenant_id, project_id, service_id)` وسياسة قراءة RLS تربط tenant وsubject بالعضوية. واجهة التخويل المقترحة `PostgresTenantStore.authorize_service(subject, tenant, project, service_id)` تقرأ tuple مسجلًا بصلاحية قراءة فقط وتفشل مغلقًا عند خلل المخطط/الدور.
+- تجارب العقد المخططة تشمل تكرار معرف الخدمة واسم المشروع بين مستأجرين، ومنع subject/tenant/project/service غير المطابق، ورفض الكتابة، وانجراف الصلاحيات والسياسات، وفحص الأقفال، باستخدام PostgreSQL 17 المؤقت في GitHub Actions فقط.
+- هذا تسجيل تصميم فقط؛ لم يُنفذ SQL أو كود ولم يُشغّل اختبار أو تقييم في هذه الخطوة. لا route أو تكامل Node/Python أو خدمة حية. AI-9 **FAIL** وP01 **NO-GO / BLOCKED** بلا تغيير.
+
+## تنفيذ سجل خدمات tenant-scoped تحت PostgreSQL RLS — 2026-10-30
+
+- اكتمل التنفيذ المسجل في فرع `feature/ai9-tenant-service-registry-rls-v1` فوق `main` عند `c778fe4e7ff9f26e7cd2d7f4b9bba1623bc9de6f`. أضيف migration مستقل `deploy/postgres/002_service_registry.sql`؛ لم يتغير `001_tenant_rls.sql`.
+- أضيف `PostgresTenantStore.authorize_service(subject, tenant, project, service_id)` لاستعلام tuple مطابق ضمن هوية tenant/subject محددة في معاملة قراءة فقط. الغياب أو عدم العضوية يعيد `False`، والمدخل غير الصالح يرفض بـ`access_denied`، وأخطاء المخطط/الدور/قاعدة البيانات تفشل مغلقًا. فحص الجاهزية والأقفال يتحققان الآن من `project_ci` و`memberships` و`service_registry` وسياساتهم الثلاث الدقيقة.
+- اختبارات `tests/test_postgres_rls_integration.py` تغطي أسماء المشاريع/الخدمات المتطابقة بين المستأجرين، رفض العضوية أو tuple غير المطابق، المدخلات الخبيثة، الصلاحيات والكتابة وRLS وانجراف السياسة والأقفال. على PostgreSQL مؤقت محلي v17.11: `python3 -m unittest discover -s tests -p 'test_postgres_rls_integration.py' -v` — `Ran 21 tests ... OK`. مجموعة Python الكاملة على الاعتمادات المقفلة: `python3 -m unittest discover -s tests -v` — `Ran 543 tests ... OK (skipped=21)`. التفاصيل في [تقرير التنفيذ](docs/AI9_TENANT_SERVICE_REGISTRY_RLS_V1_IMPLEMENTATION.md).
+- هذه خطوة تخزين/تخويل داخلية فقط؛ لا يوجد مسار API يناديها، ولا طريقة تشغيلية لتسجيل الخدمات، ولا توصيل بين Node وPython. CI المستضاف وCodeQL على الرأس النهائي لم يُتحققا بعد في لحظة هذا السجل.
+- لا تقييم AI-9 ولا تعديل للكاشف أو البوابات. الحالة ثابتة: AI-9 **FAIL**، P01 **NO-GO / BLOCKED**، النموذج التقني **6/10**. لا قاعدة بيانات مستضافة أو نشر أو بيانات حقيقية.
