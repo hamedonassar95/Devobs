@@ -180,3 +180,9 @@
 - دُمج التنفيذ في PR #309 عند `60d64f14ee63c94806674b1a537d0180869b41d0`. نجح رأس PR في [CI run 41081064798](https://github.com/hamedonassar95/Devobs/actions/runs/41081064798) و[CodeQL run 41081060607](https://github.com/hamedonassar95/Devobs/actions/runs/41081060607)، بما فيه Python وPostgreSQL RLS وsecurity و`validate`؛ تخطت Node tests لأن التعديل Python فقط. بعد الدمج نجح [main CI run 41081294563](https://github.com/hamedonassar95/Devobs/actions/runs/41081294563) و[CodeQL run 41081293399](https://github.com/hamedonassar95/Devobs/actions/runs/41081293399)، ونُشر Pages ونجح `verify-production`.
 - تقرير التنفيذ وحدوده في [AI9_SERVICE_AUTHORIZATION_API_V1_IMPLEMENTATION.md](docs/AI9_SERVICE_AUTHORIZATION_API_V1_IMPLEMENTATION.md). هذا يربط هوية Python الموثقة بسجل RLS، لكنه لا يربط مصدر مقاييس أو عملية Node بآلة AI-9. يلزم تسجيل تشغيل خدمة مستقل؛ و`devobs_migrator` يبقى للمخططات فقط، دون صلاحية إدراج خدمات مضافة هنا.
 - لا قاعدة بيانات مستضافة أو OIDC حي أو endpoint عام أو بيانات حقيقية أو موارد مدفوعة. لم يُجر أي benchmark أو تقييم AI-9 ولم تتغير العتبات أو الكاشف. الحالة: AI-9 **FAIL**، P01 **NO-GO / BLOCKED**، التقييم التقني **6/10**.
+
+## تدقيق ضريبة AWS للأردن — 2026-10-30
+
+- فُحصت صفحة [AWS Tax Help الرسمية](https://aws.amazon.com/tax-help/) في 2026-10-30؛ استجابت الصفحة بنجاح ولم يظهر فيها مدخل خاص بالأردن. غياب مدخل من الصفحة لا يثبت عدم استحقاق ضريبة.
+- **UNVERIFIED:** الضريبة المطبقة على عنوان فوترة أردني، كيان AWS الذي سيصدر الفاتورة، وإمكان احتساب الضريبة والرسوم الدورية ضمن سقف إجمالي مضمون. توثيق حد المشروع يصف حدًا قبل الضريبة؛ لذلك لا يوجد دليل على سقف فاتورة شامل قدره 100 دولار.
+- لم يُنشأ حساب AWS ولم يُرسل طلب دعم ولم تُنشأ موارد. تبقى AWS خيارًا بحثيًا فقط، وP01 **NO-GO / BLOCKED** وAI-9 **FAIL**.
