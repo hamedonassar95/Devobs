@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "project": "Devobs AI Intelligence",
+  "authority_repository": "hamedonassar95/Devobs",
+  "architecture_status": "PROPOSED_NOT_DEPLOYED",
+  "central_control_plane": {
+    "role": "core",
+    "environment": "planned-p01-synthetic",
+    "organization_strategy": "dedicated_new_supabase_organization",
+    "organization_name_proposed": "Devobs AI Intelligence",
+    "organization_created": false,
+    "organization_plan_proposed": "free",
+    "project_name_proposed": "devobs-p01-staging",
+    "project_created": false,
+    "region_proposed": "eu-central-1",
+    "account_quote_verified": false,
+    "p01_go": false
+  },
+  "experiments": [
+    {
+      "id": "phone_repair_assistant_v2",
+      "label": "PHONE REPAIR ASSISTANT",
+      "role": "experiment",
+      "data_boundary": "own_existing_project",
+      "live_devobs_integration_verified": false
+    },
+    {
+      "id": "al_dala_mobile",
+      "label": "AL-DALA MOBILE",
+      "role": "experiment",
+      "data_boundary": "own_independent_resources",
+      "live_devobs_integration_verified": false
+    }
+  ],
+  "integration_policy": {
+    "cross_project_database_access": false,
+    "shared_admin_credentials": false,
+    "shared_tenant_identity_without_verification": false,
+    "copy_customer_data_into_core": false,
+    "experiment_can_trigger_production": false,
+    "experiment_can_modify_main": false,
+    "unapproved_paid_ai_calls": false,
+    "proposal_only": true,
+    "human_approval_required": true
+  },
+  "allowed_conceptual_flow": [
+    "anonymized_synthetic_test_event_to_devobs",
+    "devobs_read_only_diagnostic_recommendation_to_experiment"
+  ],
+  "real_external_connections_authorized": false,
+  "spend_authorized": false,
+  "customer_data_transfer_authorized": false
+}
