@@ -38,4 +38,4 @@ No PostgreSQL, API, cloud resource, external network, credentials, real telemetr
 - CI contract tests: `python3 tests/test_ci_trigger_contract.py` (**2 tests**) and `python3 tests/test_ci_release_gate.py` (**1 test**) — **PASS**.
 - Action pin audit: `python3 scripts/check_action_pins.py` — **39 workflow/template files, PASS**.
 - `git diff --check` — **PASS**.
-- Hosted GitHub CI and CodeQL results are pending PR creation; no hosted result is claimed in this record.
+- Hosted verification after implementation: PR #301 CI run [`41065078966`](https://github.com/hamedonassar95/Devobs/actions/runs/41065078966) and PR CodeQL run [`41065073727`](https://github.com/hamedonassar95/Devobs/actions/runs/41065073727) succeeded on head `a12d5ceee7540104355e86446a800667c0abdb11`; Vercel preview status succeeded. PR #301 merged as `2470f15b11159396bca72a57ddceed4bffc30409`. Post-merge main CI run [`41065461283`](https://github.com/hamedonassar95/Devobs/actions/runs/41065461283) succeeded, including GitHub Pages publish and `verify-production`; main CodeQL run [`41065458495`](https://github.com/hamedonassar95/Devobs/actions/runs/41065458495) succeeded.
