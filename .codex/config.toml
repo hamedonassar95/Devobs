@@ -1,0 +1,5 @@
+# Repo-scoped Codex settings load only in a trusted checkout.
+# Keep model, auth, provider and spending decisions in the operator's own settings.
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 2
