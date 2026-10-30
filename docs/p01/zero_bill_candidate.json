@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "decision": "NO-GO",
+  "source_sha": "e1e4223ff9853109b66972e7ba997a81240f9639",
+  "monthly_ceiling_usd": 100,
+  "external_paid_services_absent": null,
+  "providers": {
+    "web": {
+      "provider": "render",
+      "plan": "Free",
+      "free_tier_confirmed": null,
+      "payment_method_absent": null,
+      "paid_addons_absent": null,
+      "automatic_paid_upgrade_disabled": null,
+      "no_unpaid_or_pending_charges": null
+    },
+    "database": {
+      "provider": "supabase",
+      "plan": "Free",
+      "free_tier_confirmed": null,
+      "payment_method_absent": null,
+      "paid_addons_absent": null,
+      "automatic_paid_upgrade_disabled": null,
+      "no_unpaid_or_pending_charges": null
+    },
+    "identity": {
+      "provider": "auth0",
+      "plan": "Free",
+      "free_tier_confirmed": null,
+      "payment_method_absent": null,
+      "paid_addons_absent": null,
+      "automatic_paid_upgrade_disabled": null,
+      "no_unpaid_or_pending_charges": null
+    }
+  }
+}
