@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "package_type": "historical_read_only_no_go_decision",
+  "repository": "hamedonassar95/Devobs",
+  "observed_date_utc": "2026-10-30",
+  "observed_main_sha": "e1e4223ff9853109b66972e7ba997a81240f9639",
+  "observed_main_ci_run": 41135588530,
+  "decision": "NO-GO",
+  "scope": "P01 managed synthetic-data-only staging; NOT production or customer use",
+  "monthly_total_ceiling_usd": 100,
+  "spending_authorized": false,
+  "external_actions_authorized": false,
+  "evidence_levels": {
+    "VERIFIED_SOURCE": "Directly inspected at the pinned main commit or exact-SHA CI response; source/CI proof only",
+    "REPO_REPORTED": "Claim present in pinned repository documents but third-party correspondence or human signature was not independently authenticated",
+    "UNVERIFIED_LIVE": "Requires separately authorized provider/service/runtime evidence"
+  },
+  "checks": {
+    "owner_approval": {
+      "state": "BLOCKED",
+      "evidence_level": "REPO_REPORTED",
+      "finding": "P00 owner GO documented. P01 document records owner-signed conditional NO-GO: USD 100/month all-in cap must first be proven. No separate provider, account, region or staging activation approval is established.",
+      "requirement_to_clear": "Explicit owner selection and bounded approval AFTER acceptable cost enforcement and all pre-provision safeguards are evidenced",
+      "sources": [
+        "docs/P00_OWNER_DECISION.md",
+        "docs/P01_ACTIVATION_READINESS.md",
+        "docs/plans/2026-10-26-devobs-production-execution-roadmap.md"
+      ]
+    },
+    "provider_region": {
+      "state": "BLOCKED",
+      "evidence_level": "VERIFIED_SOURCE",
+      "finding": "No P01 provider/account selected or authorized. Railway is rejected for this cap and lacks contractual EU-only commitment according to repo-reported support; AWS new-experience is research only, with Jordan contact address mapping to Stockholm (eu-north-1), not owner-approved.",
+      "requirement_to_clear": "Named provider/account, region, data classification and applicable residency commitments approved by owner; verified eligibility",
+      "sources": [
+        "docs/P01_ACTIVATION_READINESS.md",
+        "docs/P01_RAILWAY_SPEND_ENFORCEMENT_EVIDENCE.md",
+        "https://docs.aws.amazon.com/accounts/latest/reference/project-regions.html"
+      ]
+    },
+    "budget_enforcement": {
+      "state": "BLOCKED",
+      "evidence_level": "VERIFIED_SOURCE",
+      "finding": "No proven enforceable complete-invoice USD 100 cap. Railway Compute and Agent limits are separate; repository reports continuing storage/backup charges and no guaranteed overrun maximum. AWS new-experience limit applies to pre-tax project costs; taxes, persistent storage, recurring fees, and max overrun for the total invoice remain unresolved. Alerts are not enforcement.",
+      "requirement_to_clear": "Independent provider evidence for enforceable combined monthly invoice <= USD 100 covering compute, agent, database, volumes, backups/PITR, transfer, logs, recurring fees and taxes, with bounded overrun and shutdown costs",
+      "sources": [
+        "docs/P01_RAILWAY_SPEND_ENFORCEMENT_EVIDENCE.md",
+        "https://docs.railway.com/pricing/cost-control",
+        "https://docs.aws.amazon.com/accounts/latest/reference/create-spend-limit.html"
+      ]
+    },
+    "identity_oidc": {
+      "state": "BLOCKED",
+      "evidence_level": "VERIFIED_SOURCE",
+      "finding": "OIDC and JWKS verification code and offline tests exist, but Auth0 is a candidate only. Live issuer, audience, client, trusted metadata, key rotation/revocation and provider-backed identity are not verified.",
+      "requirement_to_clear": "Owner-approved real IdP and origin-bound OIDC/JWKS; live valid/invalid/expired JWT and rotation/revocation negative tests on authorized synthetic staging",
+      "sources": [
+        "docs/P01_ACTIVATION_READINESS.md",
+        "docs/POSTGRES_RLS_STAGING.md",
+        "scripts/devobs_intelligence/staging_app.py"
+      ]
+    },
+    "tenant_isolation": {
+      "state": "BLOCKED",
+      "evidence_level": "VERIFIED_SOURCE",
+      "finding": "PostgreSQL RLS integrations pass on disposable CI PostgreSQL; local synthetic six-call staging smoke exercises tenant denial. Neither proves the live managed DB runtime role, FORCE RLS, grants, cross-tenant denial or service-registry policy in P01.",
+      "requirement_to_clear": "Approved hosted non-owner/no-BYPASSRLS restricted role; database catalog/grants/FORCE RLS evidence; real negative cross-tenant and denied-write tests with synthetic data",
+      "sources": [
+        "docs/POSTGRES_RLS_STAGING.md",
+        "docs/STAGING_ACCEPTANCE.md",
+        "tests/test_postgres_rls_integration.py",
+        "tests/test_intelligence_staging_smoke.py"
+      ]
+    },
+    "operational_recovery": {
+      "state": "BLOCKED",
+      "evidence_level": "VERIFIED_SOURCE",
+      "finding": "Source proposes encrypted backups, 7-day retention and RPO/RTO of 24h each; no approved hosted backup, isolated restoration transcript, measured recovery, service-level alerting or rollback evidence for P01 exists in reviewed sources.",
+      "requirement_to_clear": "Owner-approved encrypted backup retention and a successful isolated restore rehearsal, measured RPO <= 24h and RTO <= 24h, downtime/runbook/alerting and operator evidence",
+      "sources": [
+        "docs/P01_ACTIVATION_READINESS.md",
+        "docs/RENDER_SUPABASE_STAGING.md",
+        "docs/plans/2026-10-26-devobs-production-execution-roadmap.md"
+      ]
+    },
+    "independent_release_approval": {
+      "state": "BLOCKED",
+      "evidence_level": "REPO_REPORTED",
+      "finding": "Repository records owner accepting no independent approver for synthetic-only P01 staging; this is not operational P01 GO, does not waive the budget prerequisite, and current P01 decision is signed NO-GO.",
+      "requirement_to_clear": "Fresh documented owner P01 decision on exact evidence and SHA; decide whether documented owner-only release approval is sufficient under policy before any activation",
+      "sources": [
+        "docs/P01_ACTIVATION_READINESS.md",
+        "docs/plans/2026-10-26-devobs-production-execution-roadmap.md"
+      ]
+    }
+  },
+  "next_owner_decision": {
+    "decision_id": "P01-NEXT-01",
+    "question": "Authorize a no-account, no-resource, no-spend written clarification request to AWS covering enforceable all-in USD 100/month invoice, excluded charges, overrun bounds and Stockholm residency, or keep AWS unselected and P01 NO-GO?",
+    "approval_of_inquiry_does_not_authorize": [
+      "provider account or subscription",
+      "payment method or spend",
+      "resource creation or deployment",
+      "production or customer data",
+      "P01 GO"
+    ]
+  }
+}
