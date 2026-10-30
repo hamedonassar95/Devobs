@@ -382,6 +382,48 @@ class PostgresTenantRLSTests(unittest.TestCase):
         self.assertTrue(request("beta","alice")[0].startswith("403"))
         self.assertTrue(request("alpha","bob")[0].startswith("403"))
 
+    def test_wsgiread_verified_signed_token_to_service_registry_rls(self):
+        private = rsa.generate_private_key(public_exponent=65537,key_size=2048)
+        public = json.loads(jwt.algorithms.RSAAlgorithm.to_jwk(private.public_key()))
+        public.update(kid="service-rsa-one",alg="RS256",use="sig")
+        verifier=AccessTokenVerifier("https://issuer.example.test","devobs-api",
+                                     "devobs-client",{"keys":[public]})
+        app=make_app(verifier,self.store)
+        def request(tenant,project,service,subject):
+            now=int(time.time())
+            token=jwt.encode({"iss":"https://issuer.example.test","aud":"devobs-api",
+                        "sub":subject,"client_id":"devobs-client","iat":now,"exp":now+300,
+                        "jti":"service-test-only","scope":"devobs.read"},
+                        private,algorithm="RS256",
+                        headers={"typ":"at+jwt","kid":"service-rsa-one"})
+            env={};setup_testing_defaults(env)
+            env["REQUEST_METHOD"]="GET"
+            env["PATH_INFO"]=(f"/v1/tenants/{tenant}/projects/{project}/services/"
+                              f"{service}/authorization")
+            env["HTTP_AUTHORIZATION"]="Bearer "+token
+            responses=[]
+            body=b"".join(app(env,lambda status,headers:
+                              responses.append((status,dict(headers)))))
+            return responses[0][0],responses[0][1],body
+
+        for tenant,project,service,subject in (
+            ("alpha","shared","collector","alice"),
+            ("beta","shared","collector","bob"),
+        ):
+            status,headers,body=request(tenant,project,service,subject)
+            self.assertEqual(status,"204 No Content")
+            self.assertEqual(headers["Cache-Control"],"no-store")
+            self.assertEqual(body,b"")
+        for tenant,project,service,subject in (
+            ("beta","shared","collector","alice"),
+            ("alpha","shared","collector","bob"),
+            ("alpha","hidden","private-service","alice"),
+            ("alpha","shared","missing-service","alice"),
+        ):
+            status,_,body=request(tenant,project,service,subject)
+            self.assertEqual(status,"403 Forbidden")
+            self.assertEqual(body,b'{"error":"access_denied"}')
+
     def test_missing_database_not_claimed_as_denial(self):
         # Reject a credentialed runtime pointing to a wrong/inaccessible DB.
         unavailable = PostgresTenantStore(

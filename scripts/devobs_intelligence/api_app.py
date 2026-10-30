@@ -12,7 +12,10 @@ from typing import Callable
 
 from .oidc_tokens import AccessTokenVerifier, AuthenticationError
 
-_PATH = re.compile(r"/v1/tenants/([^/]+)/projects/([^/]+)/ci\Z")
+_CI_PATH = re.compile(r"/v1/tenants/([^/]+)/projects/([^/]+)/ci\Z")
+_SERVICE_AUTH_PATH = re.compile(
+    r"/v1/tenants/([^/]+)/projects/([^/]+)/services/([^/]+)/authorization\Z"
+)
 _SHA = re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})\Z")
 _STATES = frozenset({"success","failed","pending","running","stale","missing","skipped","canceled","manual","scheduled"})
 
@@ -83,8 +86,17 @@ def make_app(verifier: AccessTokenVerifier, tenant_gate: object, *,
     def app(environ, start_response):
         method = environ.get("REQUEST_METHOD")
         path = environ.get("PATH_INFO")
-        match = _PATH.fullmatch(path) if type(path) is str and len(path) <= 256 else None
-        if match is None:
+        route = None
+        match = None
+        if type(path) is str and len(path) <= 256:
+            match = _CI_PATH.fullmatch(path)
+            if match is not None:
+                route = "ci"
+            else:
+                match = _SERVICE_AUTH_PATH.fullmatch(path)
+                if match is not None:
+                    route = "service_authorization"
+        if route is None or match is None:
             return _reply(start_response, "404 Not Found", {"error":"not_found"})
         if method != "GET":
             return _reply(start_response, "405 Method Not Allowed", {"error":"method_not_allowed"},
@@ -102,7 +114,7 @@ def make_app(verifier: AccessTokenVerifier, tenant_gate: object, *,
             except AuthenticationError:
                 return _reply(start_response, "401 Unauthorized", {"error":"invalid_token"},
                               [("WWW-Authenticate", 'Bearer error="invalid_token"')])
-            tenant_id, project_id = match.groups()
+            tenant_id, project_id = match.groups()[:2]
             try:
                 retry_after = limiter.retry_after(principal.subject, tenant_id)
             except Exception:
@@ -110,6 +122,21 @@ def make_app(verifier: AccessTokenVerifier, tenant_gate: object, *,
             if retry_after is not None:
                 return _reply(start_response, "429 Too Many Requests", {"error":"rate_limited"},
                               [("Retry-After", str(retry_after))])
+            if route == "service_authorization":
+                try:
+                    allowed = tenant_gate.authorize_service(
+                        principal.subject, tenant_id, project_id, match.group(3))
+                except ValueError:
+                    return _reply(start_response, "403 Forbidden", {"error":"access_denied"})
+                except Exception:
+                    return _reply(start_response, "503 Service Unavailable",
+                                  {"error":"backend_unavailable"})
+                if type(allowed) is not bool:
+                    return _reply(start_response, "503 Service Unavailable",
+                                  {"error":"backend_unavailable"})
+                if not allowed:
+                    return _reply(start_response, "403 Forbidden", {"error":"access_denied"})
+                return _no_content(start_response)
             try:
                 status = tenant_gate.read_status(principal.subject, tenant_id, project_id)
             except ValueError:
@@ -134,3 +161,10 @@ def _reply(start, status: str, obj: dict, extra: list[tuple[str,str]] | None = N
                ("Content-Length", str(len(body)))] + (extra or [])
     start(status, headers)
     return [body]
+
+
+def _no_content(start):
+    start("204 No Content", [("Cache-Control", "no-store"),
+                             ("X-Content-Type-Options", "nosniff"),
+                             ("Content-Length", "0")])
+    return [b""]

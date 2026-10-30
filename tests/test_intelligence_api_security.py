@@ -57,6 +57,20 @@ class AuthAndTenantAPITests(unittest.TestCase):
         body=b"".join((app or self.app)(env,lambda status,headers:responses.append((status,dict(headers)))))
         return responses[0][0],responses[0][1],json.loads(body)
 
+    def send_service_authorization(self,tenant="alpha",project="shared",service="collector",
+                                   token=None,method="GET",extra=None,app=None):
+        env={};setup_testing_defaults(env)
+        env["PATH_INFO"]=(f"/v1/tenants/{tenant}/projects/{project}/services/"
+                          f"{service}/authorization")
+        env["REQUEST_METHOD"]=method
+        env["wsgi.input"]=io.BytesIO(b"")
+        if token:env["HTTP_AUTHORIZATION"]="Bearer "+token
+        if extra:env.update(extra)
+        responses=[]
+        body=b"".join((app or self.app)(env,
+                    lambda status,headers:responses.append((status,dict(headers)))))
+        return responses[0][0],responses[0][1],body
+
     def test_rate_limit_is_scoped_to_subject_and_tenant_and_refills(self):
         now = [100]
         app = make_app(self.verifier, self.store, requests_per_window=1,
@@ -170,6 +184,96 @@ class AuthAndTenantAPITests(unittest.TestCase):
             self.store.add_project("alpha","shared","a"*40,"success")
         with self.assertRaises(TenantDenied):
             self.store.read_status("alice","invalid tenant!","shared")
+
+    def test_service_authorization_route_uses_verified_subject_and_exact_scope(self):
+        class ServiceStore:
+            calls=[]
+            def authorize_service(inner_self,subject,tenant,project,service):
+                inner_self.calls.append((subject,tenant,project,service))
+                return (subject,tenant,project,service)==(
+                    "alice","alpha","shared","collector")
+
+        store=ServiceStore()
+        app=make_app(self.verifier,store)
+        status,headers,body=self.send_service_authorization(
+            token=self.token(),app=app,
+            extra={"HTTP_X_SUBJECT":"bob","QUERY_STRING":"subject=bob&tenant=beta"})
+        self.assertEqual(status,"204 No Content")
+        self.assertEqual(body,b"")
+        self.assertEqual(headers["Cache-Control"],"no-store")
+        self.assertEqual(store.calls,[ ("alice","alpha","shared","collector") ])
+
+    def test_service_authorization_denials_do_not_reveal_registry_or_membership(self):
+        class DenyStore:
+            def authorize_service(inner_self,subject,tenant,project,service):
+                return False
+
+        app=make_app(self.verifier,DenyStore())
+        requests=[
+            ("alpha","shared","collector",self.token(subject="bob")),
+            ("beta","shared","collector",self.token()),
+            ("alpha","other","collector",self.token()),
+            ("alpha","shared","missing-service",self.token()),
+        ]
+        results=[self.send_service_authorization(tenant,project,service,token,app=app)
+                 for tenant,project,service,token in requests]
+        self.assertTrue(all(status=="403 Forbidden" for status,_,_ in results))
+        self.assertEqual({body for _,_,body in results}, {b'{"error":"access_denied"}'})
+        self.assertTrue(all(headers["Cache-Control"]=="no-store"
+                            for _,headers,_ in results))
+
+    def test_service_authorization_rejects_invalid_token_before_store_call(self):
+        class CountingStore:
+            calls=0
+            def authorize_service(inner_self,*_):
+                inner_self.calls+=1
+                return True
+
+        store=CountingStore()
+        app=make_app(self.verifier,store)
+        for token in (None,"malformed.token","secret-not-echoed"):
+            status,_,body=self.send_service_authorization(token=token,app=app)
+            self.assertEqual(status,"401 Unauthorized")
+            self.assertIn(b"invalid_token",body)
+            self.assertNotIn(b"secret-not-echoed",body)
+        self.assertEqual(store.calls,0)
+
+    def test_service_authorization_route_method_and_path_are_bounded(self):
+        class CountingStore:
+            calls=0
+            def authorize_service(inner_self,*_):
+                inner_self.calls+=1
+                return True
+
+        store=CountingStore()
+        app=make_app(self.verifier,store)
+        status,headers,_=self.send_service_authorization(token=self.token(),method="POST",app=app)
+        self.assertEqual(status,"405 Method Not Allowed")
+        self.assertEqual(headers["Allow"],"GET")
+        env={};setup_testing_defaults(env)
+        env["PATH_INFO"]="/v1/tenants/alpha/projects/shared/services/collector/unexpected"
+        env["REQUEST_METHOD"]="GET"
+        responses=[]
+        body=b"".join(app(env,lambda code,headers:responses.append(code)))
+        self.assertEqual(responses,["404 Not Found"])
+        self.assertEqual(store.calls,0)
+
+    def test_service_authorization_store_errors_and_non_boolean_fail_closed(self):
+        class ResultStore:
+            def __init__(inner_self,result):
+                inner_self.result=result
+            def authorize_service(inner_self,*_):
+                if isinstance(inner_self.result,BaseException):
+                    raise inner_self.result
+                return inner_self.result
+
+        for result in (RuntimeError("private database detail"),None,1):
+            with self.subTest(result=type(result).__name__):
+                app=make_app(self.verifier,ResultStore(result))
+                status,_,body=self.send_service_authorization(token=self.token(),app=app)
+                self.assertEqual(status,"503 Service Unavailable")
+                self.assertEqual(body,b'{"error":"backend_unavailable"}')
+                self.assertNotIn(b"private database detail",body)
 
 
 if __name__=="__main__": unittest.main()
