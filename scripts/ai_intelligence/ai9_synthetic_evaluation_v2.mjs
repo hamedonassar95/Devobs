@@ -137,7 +137,7 @@ export function generateAi9SyntheticScenariosV2(seed = AI9_SYNTHETIC_EVALUATION_
   };
 }
 
-function digestInput(dataset) {
+export function digestAi9SyntheticInputV2(dataset) {
   const digestShape = {
     classification: dataset.classification,
     split: dataset.split,
@@ -186,6 +186,12 @@ export function evaluateAi9SyntheticWindowV2(scenario, sampleIndex) {
     baseline_flag: baseline.status === 'anomaly_candidate',
     candidate_flag: candidateFlag,
     candidate_ewma_flag: candidateEwma.flagged,
+    baseline_channel_flags: {
+      z_score: baseline.detectors.z_score.flagged,
+      moving_average: baseline.detectors.moving_average.flagged,
+      ewma: baseline.detectors.ewma.flagged,
+      error_rate_spike: baseline.detectors.error_rate_spike.flagged,
+    },
   };
 }
 
@@ -324,7 +330,7 @@ export function runAi9SyntheticEvaluationV2(seed = AI9_SYNTHETIC_EVALUATION_V2_P
     classification: dataset.classification,
     registration_id: AI9_SYNTHETIC_EVALUATION_V2_POLICY.version,
     seed: dataset.seed,
-    input_canonical_sha256: digestInput(dataset),
+    input_canonical_sha256: digestAi9SyntheticInputV2(dataset),
     candidate_policy_version: candidatePolicy,
     evaluation_policy_version: AI9_SYNTHETIC_EVALUATION_V2_POLICY.version,
     synthetic_assumptions: {
