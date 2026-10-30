@@ -137,6 +137,7 @@ jobs:
           node --check scripts/ai_intelligence/dashboard_assets/dashboard.js
           node --check scripts/ai_intelligence/post_detector_confirmation_adapter.mjs
           node --check scripts/ai_intelligence/post_detector_confirmation_journal.mjs
+          node --check scripts/ai_intelligence/ai9_fp_slice_exploration.mjs
           node --check tests/ai_event_ingest.test.mjs
           node --check tests/ai_anomaly_detector.test.mjs
           node --check tests/ai_incident_analysis.test.mjs
@@ -146,9 +147,11 @@ jobs:
           node --check tests/ai_dashboard_api.test.mjs
           node --check tests/post_detector_confirmation_adapter.test.mjs
           node --check tests/post_detector_confirmation_journal.test.mjs
+          node --check tests/ai9_fp_slice_exploration.test.mjs
           node --test tests/incident_guard.test.cjs tests/ai_event_ingest.test.mjs tests/ai_anomaly_detector.test.mjs tests/ai_incident_analysis.test.mjs tests/ai_recommendations.test.mjs tests/ai_trend_forecast.test.mjs tests/ai_feedback_learning.test.mjs tests/ai_dashboard_api.test.mjs
           node --test tests/post_detector_confirmation_adapter.test.mjs
           node --test tests/post_detector_confirmation_journal.test.mjs
+          node --test tests/ai9_fp_slice_exploration.test.mjs
 
   security:
     if: inputs.validation_profile != 'rollback'
