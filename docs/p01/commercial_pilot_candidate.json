@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "decision": "NO-GO",
+  "source_sha": "e1e4223ff9853109b66972e7ba997a81240f9639",
+  "scope": "commercial_pilot",
+  "monthly_total_ceiling_usd": 100,
+  "providers": {
+    "web": {
+      "provider": "render",
+      "plan": "free"
+    },
+    "database": {
+      "provider": "supabase",
+      "plan": "free"
+    },
+    "identity": {
+      "provider": "auth0",
+      "plan": "free"
+    },
+    "ai": {
+      "provider": "none",
+      "plan": "disabled"
+    }
+  },
+  "invoice_coverage": {
+    "web_compute": null,
+    "database_compute": null,
+    "identity": null,
+    "ai_inference": null,
+    "backups_and_storage": null,
+    "network_and_build": null,
+    "taxes_and_fees": null,
+    "addons": null,
+    "other_providers": null
+  },
+  "live_security": {
+    "oidc_jwks": null,
+    "restricted_postgres_rls": null,
+    "isolated_encrypted_restore": null,
+    "approved_region_and_terms": null,
+    "commercial_terms": null,
+    "operations_on_call": null
+  },
+  "owner_production_signoff": false
+}
