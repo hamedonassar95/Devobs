@@ -154,7 +154,7 @@
       "pr_head_sha": "e12a625ce3f1dc2c953f25010cafd709aa1888a2",
       "merge_sha": "23e3cc7eae0d455d3d0e5638835bd67651a3a080",
       "ci_run_id": 41189422355,
-      "verification": "VERIFIED GitHub 2026-10-31: PR head CI validate, Python, RLS, security, container and CodeQL successful; 634 Python tests, 22 skipped, 0 failed, including 14 new threat-model contract tests. Postmerge main CI 41189514856 was in progress at observation.",
+      "verification": "VERIFIED GitHub 2026-10-31: PR head CI validate, Python, RLS, security, container and CodeQL successful; 634 Python tests, 22 skipped, 0 failed, including 14 new threat-model contract tests. Postmerge main CI 41189514856 SUCCESS on exact merge commit; static Pages publication is not managed SaaS.",
       "limitations": "This proves a 12-zone/9-boundary/12-case OFFLINE model and fail-closed validation ONLY. Candidate test references are not full abuse-scenario or live staging evidence; P01 NO-GO and AI-9 FAIL."
     }
   ],
