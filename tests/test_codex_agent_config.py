@@ -24,6 +24,16 @@ class CodexAgentConfigurationTests(unittest.TestCase):
         self.assertNotIn("model_provider", data)
         self.assertNotIn("approval_policy", data)
 
+    def test_openai_docs_mcp_is_public_read_only_and_nonbillable(self):
+        data = tomllib.loads(CONFIG.read_text(encoding="utf-8"))
+        servers = data["mcp_servers"]
+        self.assertEqual(set(servers), {"openaiDeveloperDocs"})
+        self.assertEqual(servers["openaiDeveloperDocs"],
+                         {"url": "https://developers.openai.com/mcp"})
+        self.assertNotIn("openart", servers)
+        self.assertNotIn("env", servers["openaiDeveloperDocs"])
+        self.assertNotIn("headers", servers["openaiDeveloperDocs"])
+
     def test_all_four_agent_roles_have_valid_contracts(self):
         expected = {
             "devobs_architecture",
