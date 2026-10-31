@@ -29,3 +29,8 @@
 - For substantial Devobs multi-step work, consult `.agents/skills/devobs-codex-operating-cycle/SKILL.md` and `docs/CODEX_AGENT_OPERATING_MODEL.md`. Delegate only useful specialist read-only reviews; subagents share the operator's permissions.
 - Cite the source revision and the latest relevant test/CI evidence. A repository configuration file is never proof of a running service, operating subagent, or production readiness.
 - Stop at BLOCKED when authorization, budget, tool access, test evidence, or runtime status is missing; state the exact owner decision required.
+
+## Durable progress and duplicate-work prevention
+- Before proposing or coding an improvement, read `docs/MILESTONE_LEDGER.json` and run `python3 scripts/milestone_ledger.py --summary`; compare the requested outcome with previously merged milestones and unresolved gates.
+- Do not treat a ledger claim as live evidence. Check the referenced PR, exact SHAs and CI run before relying on its result. Never relabel a blocked gate COMPLETE based on a document alone.
+- After the owner merges a verified PR, record its PR number, head/merge SHAs, CI run ID and limits in the ledger on a new reviewed branch. Keep `STATE.md` in sync without erasing historical facts.
