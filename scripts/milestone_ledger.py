@@ -25,7 +25,7 @@ class InvalidLedger(ValueError):
 def required_string(value, name, limit=512):
     if not isinstance(value, str) or not value.strip() or len(value) > limit:
         raise InvalidLedger(f"{name}: expected nonempty string <= {limit} chars")
-    if "\\x00" in value:
+    if "\x00" in value:
         raise InvalidLedger(f"{name}: NUL is not permitted")
     return value
 
