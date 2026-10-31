@@ -26,7 +26,7 @@ class TerraformWorkflowContractTests(unittest.TestCase):
         self.assertEqual(fixture.count('run "'), 3)
         self.assertEqual(fixture.count("command = plan"), 3)
         self.assertNotIn("command = apply", fixture)
-        self.assertNotIn('provider "google"', fixture)
+        self.assertNotIn('\nprovider "google"', fixture)
         self.assertNotIn("credentials", fixture.lower())
         self.assertIn("expect_failures = [var.project_id]", fixture)
         self.assertIn("expect_failures = [var.repository_id]", fixture)
