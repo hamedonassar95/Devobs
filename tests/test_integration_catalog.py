@@ -95,7 +95,7 @@ class IntegrationCatalogTests(unittest.TestCase):
         self.assertEqual(record["integration_status"], "account_connected_unlinked")
         self.assertIs(record["runtime_verified"], False)
         self.assertIn("not found", record["verified_capability"].lower())
-        self.assertIn("repository grant", record["blocker"])
+        self.assertIn("authorize that exact repository", record["blocker"])
 
     def test_non_object_rejected(self):
         self.invalid([], "Catalog must be a JSON object")
