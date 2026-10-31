@@ -35,15 +35,37 @@
       "ci_run_id": 41147270551,
       "verification": "PR CI validate passed; 581 Python tests ran, 22 skipped, three new config tests passed.",
       "limitations": "Codex subagent runtime not exercised; AI Code Review inference skipped because budget approval absent."
+    },
+    {
+      "id": "devobs-milestone-evidence-ledger",
+      "area": "DOCUMENTATION",
+      "title": "Evidence-linked merged milestone index with CI validation and duplicate-work guard",
+      "pr_number": 326,
+      "pr_head_sha": "1c045c4b2705b3ac05dbea272d531035c36e54c7",
+      "merge_sha": "1357cc6b2a4520511fa098bb6c9248be7a2e9172",
+      "ci_run_id": 41147901365,
+      "verification": "PR head passed required validate; Python ran 590 tests with 22 skipped and 9 milestone-ledger tests passed. Merged state confirmed via GitHub PR metadata.",
+      "limitations": "Index validates records offline but does not prove live service state or continuously check GitHub."
+    },
+    {
+      "id": "ai9-coherent-onset-v3-merged",
+      "area": "QUALITY",
+      "title": "Synthetic-only two-metric coherent onset candidate and consumed-seed replay",
+      "pr_number": 327,
+      "pr_head_sha": "fa87cdb547f927beb82377e112432f62644f4a10",
+      "merge_sha": "5982bd239f7fc083163ce99e24f9bc3e20e75f5d",
+      "ci_run_id": 41148812810,
+      "verification": "PR head CI validate passed; reused synthetic seed 20270201 produced TP/FP/FN/TN=73/8/17/45142, Precision 90.1235%, Recall 81.1111%, FPR 0.0177%; documentation and tests merged.",
+      "limitations": "Existing development seed, NOT independent holdout or production authorization. AI-9 official FAIL and P01 NO-GO."
     }
   ],
   "gates": [
     {
       "id": "ai9-detection-quality",
       "status": "BLOCKED",
-      "source": "docs/AI9_ZMA_GROUPING_CANDIDATE_V1_RESULTS.md",
-      "reason": "All 20 paired development seeds fail the unchanged 80% window precision gate; synthetic evidence is not a fresh holdout.",
-      "next_action": "Pre-register one independently seeded holdout evaluation without altering quality gates or production detector."
+      "source": "docs/AI9_COHERENT_ONSET_V3_REPLAY_RESULTS.md",
+      "reason": "Merged v3 improves TP 58->73 and Recall 64.44%->81.11% on previously-consumed synthetic seed 20270201, but no frozen independent holdout, real-data generalization or owner production approval exists.",
+      "next_action": "After independent owner authorization and a verified collision-free preregistration, evaluate frozen seeds 20270601-20270604 exactly once, record per-seed metrics/digests and retain AI-9 FAIL until production gates are separately met."
     },
     {
       "id": "p01-managed-saas",
