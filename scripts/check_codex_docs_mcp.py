@@ -9,7 +9,9 @@ from __future__ import annotations
 import argparse
 import pathlib
 import shutil
-import subprocess
+# B404 review: only a fixed argv ["codex", "mcp", "list"] is executed;
+# no shell, user-controlled command, provider writes, or raw output disclosure.
+import subprocess  # nosec B404
 import sys
 import tomllib
 
