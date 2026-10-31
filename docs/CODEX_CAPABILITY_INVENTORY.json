@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "repository": "hamedonassar95/Devobs",
+  "reviewed_main_sha": "f1bd3c5717d95a9ee89116c0fce49ef9fac572d7",
+  "scope": "OFFLINE_REPOSITORY_EVIDENCE_ONLY",
+  "gate_status": {
+    "P01": "BLOCKED",
+    "AI-9": "BLOCKED"
+  },
+  "permissions": {
+    "merge": false,
+    "deploy": false,
+    "paid_inference": false,
+    "schedule": false,
+    "modify_secrets": false
+  },
+  "features": [
+    {
+      "id": "codex-cli-ide",
+      "status": "NO_RUNTIME_PROOF",
+      "runtime_verified": false,
+      "source_paths": [],
+      "next_proof": "Check trusted local Codex CLI/IDE session and safe read-only project recognition.",
+      "official_reference": "https://developers.openai.com/blog/mastering-codex-remote-for-engineering"
+    },
+    {
+      "id": "codex-cloud-github",
+      "status": "NO_RUNTIME_PROOF",
+      "runtime_verified": false,
+      "source_paths": [],
+      "next_proof": "Prove connected Codex cloud workspace/repo scope; GitHub workflow runs alone are not proof.",
+      "official_reference": "https://developers.openai.com/blog/mastering-codex-remote-for-engineering"
+    },
+    {
+      "id": "repo-instructions",
+      "status": "SOURCE_PRESENT",
+      "runtime_verified": false,
+      "source_paths": [
+        "AGENTS.md"
+      ],
+      "next_proof": "Confirm loaded root and scoped instruction hierarchy inside trusted Codex session.",
+      "official_reference": "https://developers.openai.com/cookbook/examples/gpt-5/codex_prompting_guide"
+    },
+    {
+      "id": "skills",
+      "status": "SOURCE_PRESENT",
+      "runtime_verified": false,
+      "source_paths": [
+        ".agents/skills/devobs-codex-operating-cycle/SKILL.md"
+      ],
+      "next_proof": "Verify Codex enumerates and invokes the skill in a safe controlled session.",
+      "official_reference": "https://developers.openai.com/plugins/concepts/skills"
+    },
+    {
+      "id": "subagents",
+      "status": "CONFIGURED_RUNTIME_UNVERIFIED",
+      "runtime_verified": false,
+      "source_paths": [
+        ".codex/config.toml",
+        ".codex/agents/devobs_architecture.toml",
+        ".codex/agents/devobs_security.toml",
+        ".codex/agents/devobs_qa.toml",
+        ".codex/agents/devobs_operations.toml"
+      ],
+      "next_proof": "Run one read-only two-role trial with actual separate contexts, usage and consolidated evidence.",
+      "official_reference": "https://developers.openai.com/api/docs/guides/agents-api/multi-agent"
+    },
+    {
+      "id": "goals",
+      "status": "DOCUMENTED_RUNTIME_UNVERIFIED",
+      "runtime_verified": false,
+      "source_paths": [
+        "docs/CODEX_AGENT_OPERATING_MODEL.md"
+      ],
+      "next_proof": "Verify /goal availability and actual thread-scoped Goal lifecycle in an eligible Codex host.",
+      "official_reference": "https://developers.openai.com/cookbook/examples/codex/using_goals_in_codex"
+    },
+    {
+      "id": "worktrees",
+      "status": "DOCUMENTED_RUNTIME_UNVERIFIED",
+      "runtime_verified": false,
+      "source_paths": [
+        ".agents/skills/dev-worktree/SKILL.md"
+      ],
+      "next_proof": "Record a safe Git worktree isolation trial in an eligible remote or local host.",
+      "official_reference": "https://developers.openai.com/blog/mastering-codex-remote-for-engineering"
+    },
+    {
+      "id": "docs-mcp",
+      "status": "CONFIGURED_RUNTIME_UNVERIFIED",
+      "runtime_verified": false,
+      "source_paths": [
+        ".codex/config.toml",
+        "scripts/check_codex_docs_mcp.py"
+      ],
+      "next_proof": "Perform one harmless public Docs MCP tool lookup in Codex; listing/configuration alone is insufficient.",
+      "official_reference": "https://developers.openai.com/resources/docs-mcp"
+    },
+    {
+      "id": "hooks",
+      "status": "NO_RUNTIME_PROOF",
+      "runtime_verified": false,
+      "source_paths": [],
+      "next_proof": "Design and review non-managed hook trust before opt-in; no repo hook activation or run is claimed.",
+      "official_reference": "https://learn.chatgpt.com/docs/hooks"
+    },
+    {
+      "id": "codex-security",
+      "status": "NO_RUNTIME_PROOF",
+      "runtime_verified": false,
+      "source_paths": [],
+      "next_proof": "Verify separate product eligibility and an explicitly authorized scoped scan; CodeQL/Trivy do not prove Codex Security.",
+      "official_reference": "https://developers.openai.com/blog/scaling-cyber-defenders-with-daybreak"
+    },
+    {
+      "id": "codex-sdk",
+      "status": "DOCUMENTED_RUNTIME_UNVERIFIED",
+      "runtime_verified": false,
+      "source_paths": [
+        "docs/CODEX_AGENT_OPERATING_MODEL.md"
+      ],
+      "next_proof": "Choose an approved SDK integration scope and prove lifecycle, approval, budget and cleanup in isolated test.",
+      "official_reference": "https://developers.openai.com/blog/codex-as-a-platform"
+    },
+    {
+      "id": "app-server",
+      "status": "DOCUMENTED_RUNTIME_UNVERIFIED",
+      "runtime_verified": false,
+      "source_paths": [
+        "docs/CODEX_AGENT_OPERATING_MODEL.md"
+      ],
+      "next_proof": "Design bounded local app-server proof, without OAuth token export or provider spend.",
+      "official_reference": "https://developers.openai.com/blog/codex-as-a-platform"
+    },
+    {
+      "id": "agents-api",
+      "status": "DOCUMENTED_RUNTIME_UNVERIFIED",
+      "runtime_verified": false,
+      "source_paths": [
+        "docs/CODEX_AGENT_OPERATING_MODEL.md"
+      ],
+      "next_proof": "Select environment, session storage, auth and cost boundary before any Agents API runtime.",
+      "official_reference": "https://developers.openai.com/api/docs/guides/agents"
+    },
+    {
+      "id": "automations",
+      "status": "DOCUMENTED_RUNTIME_UNVERIFIED",
+      "runtime_verified": false,
+      "source_paths": [
+        "docs/CODEX_AGENT_OPERATING_MODEL.md"
+      ],
+      "next_proof": "Approve a concrete schedule, host and cost scope; existing GitHub CI is not Codex Automations.",
+      "official_reference": "https://developers.openai.com/blog/run-long-horizon-tasks-with-codex"
+    },
+    {
+      "id": "remote-mobile",
+      "status": "DOCUMENTED_RUNTIME_UNVERIFIED",
+      "runtime_verified": false,
+      "source_paths": [
+        "docs/CODEX_AGENT_OPERATING_MODEL.md"
+      ],
+      "next_proof": "Confirm supported remote machine connection and isolated worktree from authorized host.",
+      "official_reference": "https://developers.openai.com/blog/mastering-codex-remote-for-engineering"
+    },
+    {
+      "id": "record-replay",
+      "status": "NO_RUNTIME_PROOF",
+      "runtime_verified": false,
+      "source_paths": [],
+      "next_proof": "Do not assume named Record & Replay feature exists in this runtime; request authoritative supported documentation and demonstration.",
+      "official_reference": "https://developers.openai.com/blog/mastering-codex-remote-for-engineering"
+    }
+  ]
+}
