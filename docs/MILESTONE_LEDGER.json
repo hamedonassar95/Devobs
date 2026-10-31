@@ -79,6 +79,17 @@
       "ci_run_id": 41150448628,
       "verification": "VERIFIED 2026-10-31: PR-head CI passed; main merge-SHA CI runs 41150776263 and 41151955898 passed. Frozen-seed contract tests ran without scoring reserved seeds.",
       "limitations": "Frozen independent holdout seeds NOT RUN; one-time run requires separate owner approval and clean full-history checks. No AI-9 production authorization."
+    },
+    {
+      "id": "openart-optional-governed-mcp-handoff",
+      "area": "AGENT_OPERATIONS",
+      "title": "Optional offline OpenArt MCP media-request manifest with owner approval gates",
+      "pr_number": 330,
+      "pr_head_sha": "fec9c6e5f4c4f36c72eea49797b9ca2f2d89037c",
+      "merge_sha": "dfc360857ffda586166df03799a6bec4be73486d",
+      "ci_run_id": 41152893449,
+      "verification": "VERIFIED 2026-10-31: PR #330 merged and CI success on exact PR head; post-merge main CI was still in progress at observation.",
+      "limitations": "Optional opt-in integration only; no OAuth, paid credits, media generation or public publication verified. No SaaS launch; AI-9 and P01 remain blocked."
     }
   ],
   "gates": [
