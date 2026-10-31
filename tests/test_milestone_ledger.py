@@ -41,6 +41,16 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("20270601", gate["next_action"])
         self.assertIn("20270604", gate["next_action"])
 
+    def test_v3_holdout_evaluator_is_recorded_without_claiming_execution(self):
+        records = {entry["pr_number"]: entry for entry in self.data["milestones"]}
+        self.assertEqual(records[328]["merge_sha"], "44380997850387fbc748890075bc3d414792cc6a")
+        self.assertEqual(records[329]["merge_sha"], "82bc271d145d374f5f12c4c1517eb936c1826549")
+        self.assertIn("NOT RUN", records[329]["limitations"])
+        gate = next(g for g in self.data["gates"] if g["id"] == "ai9-detection-quality")
+        self.assertEqual(gate["status"], "BLOCKED")
+        self.assertIn("NOT been run", gate["reason"])
+        self.assertIn("separate owner approval", gate["next_action"])
+
     def test_duplicate_achievement_rejected(self):
         self.data["milestones"].append(copy.deepcopy(self.data["milestones"][-1]))
         with self.assertRaisesRegex(InvalidLedger, "duplicate|not increasing"):
