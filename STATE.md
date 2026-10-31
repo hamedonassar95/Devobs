@@ -249,3 +249,10 @@
 - **النتيجة المحدودة:** `docs/CODEX_CAPABILITY_INVENTORY.json` يرصد 16 قدرة، و`scripts/check_codex_capabilities.py` يرفض ادعاءات تشغيل غير مثبتة ويراقب حدود `P01` و`AI-9`. هذا لا يثبت عمل Codex Cloud، أو Subagents، أو /goal، أو MCP remote handshake، أو Codex Security، أو SDK/App Server/Agents API.
 - **لا تغيير في البوابات:** `P01 NO-GO / BLOCKED`، `AI-9 FAIL / BLOCKED`، وقبول تشغيل Codex الحقيقي `OPEN`. لا إنفاق أو صلاحيات أو بيانات عملاء أو SaaS منتج أو تنفيذ إنتاجي جديد.
 
+## متابعة CI وTerraform دون نشر — 2026-10-31
+
+- **VERIFIED GitHub:** [PR #339](https://github.com/hamedonassar95/Devobs/pull/339) دُمج على `6024fa2eda44e9e207d6c59c5f5e21723af197c8`، HEAD `4dcbf9e7b1c53d59ba0e7d5763e4abfefd217744`، [CI 41190651115](https://github.com/hamedonassar95/Devobs/actions/runs/41190651115) نجح و[main CI 41190768547](https://github.com/hamedonassar95/Devobs/actions/runs/41190768547) نجح. هذا سجل للإنجازات وليس تشغيلًا حيًا لـCodex.
+- **VERIFIED GitHub:** [PR #340](https://github.com/hamedonassar95/Devobs/pull/340) دُمج على `166177abb5144b4115d8d72a309daadf73d2b227`، HEAD `059a9a17ed12d6b1c1cb02cf1146d7c96ea0d88f`. نجح [PR CI 41191053107](https://github.com/hamedonassar95/Devobs/actions/runs/41191053107): `Terraform test` بمزوّد وهمي 3 PASS و0 FAIL، واختبارات Python 650 منها 22 متجاوزة وصفر إخفاقات؛ `validate` وSecurity وCodeQL وRLS وTrivy ناجحة. نجح [main CI 41191150424](https://github.com/hamedonassar95/Devobs/actions/runs/41191150424) على SHA الدمج نفسه، بما فيه نشر الموقع الثابت والتحقق منه؛ وليس نشر SaaS.
+- **الحدود:** هذا إنجاز جزئي لـP01-T09، يثبت صحة `plan-only` اصطناعي لإعداد Artifact Registry الحالي، وليس بنية استضافة P01 الكاملة أو ضوابط التكلفة أو الوصول إلى السحابة. لا تضع علامة قبول كاملة لـT09 دون التحقق من متطلبات التهيئة المستضافة والاختبارات المصرح بها.
+- **باقي البوابات:** P01 **NO-GO/BLOCKED**؛ AI-9 **FAIL/BLOCKED**؛ قبول تشغيل Codex الفعلي **OPEN**. لا نشر مدفوع، ولا بيانات عملاء، ولا وصول إلى Google Cloud، ولا تشغيل وكيل ذاتي الإنتاج.
+
