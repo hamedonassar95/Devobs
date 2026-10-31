@@ -34,3 +34,8 @@
 - Before proposing or coding an improvement, read `docs/MILESTONE_LEDGER.json` and run `python3 scripts/milestone_ledger.py --summary`; compare the requested outcome with previously merged milestones and unresolved gates.
 - Do not treat a ledger claim as live evidence. Check the referenced PR, exact SHAs and CI run before relying on its result. Never relabel a blocked gate COMPLETE based on a document alone.
 - After the owner merges a verified PR, record its PR number, head/merge SHAs, CI run ID and limits in the ledger on a new reviewed branch. Keep `STATE.md` in sync without erasing historical facts.
+
+## Optional OpenArt creative integration (not an AI-9 dependency)
+- For private creative media briefs, use `docs/OPENART_MCP_INTEGRATION.md` and `python3 scripts/openart_media_request.py --input <path>`; this checks a DRAFT only, never generates, approves credits or publishes.
+- The optional OAuth MCP snippet under `.codex/examples/` must not be activated in repository-wide trusted config by default. Never commit OpenArt or Codex authentication tokens.
+- No OpenArt generation may run without an explicit owner-approved live price/credits quote. Creative media cannot serve as evidence that AI-9 or P01 passed.
