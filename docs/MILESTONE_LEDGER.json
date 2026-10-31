@@ -198,7 +198,7 @@
       "pr_head_sha": "059a9a17ed12d6b1c1cb02cf1146d7c96ea0d88f",
       "merge_sha": "166177abb5144b4115d8d72a309daadf73d2b227",
       "ci_run_id": 41191053107,
-      "verification": "VERIFIED 2026-10-31: Exact PR-head CI 41191053107 SUCCESS; Terraform native mock-provider tests 3 passed/0 failed; Python suite 650 tests, 22 skipped, zero failures; validate, CodeQL, RLS, security and same-image Trivy SUCCESS. Main CI 41191150424 is still pending at the observation.",
+      "verification": "VERIFIED 2026-10-31: Exact PR-head CI 41191053107 SUCCESS; Terraform native mock-provider tests 3 passed/0 failed; Python suite 650 tests, 22 skipped, zero failures; validate, CodeQL, RLS, security and same-image Trivy SUCCESS. Postmerge main CI 41191150424 SUCCESS on the exact merge SHA, including the existing static Pages release and verification.",
       "limitations": "Only synthetic plan-only validation of existing Artifact Registry module; NOT a live P01 managed staging plan, real provider/API access, enforceable all-in USD 100 cap, runtime identity or recovery test. P01 and AI-9 remain BLOCKED."
     }
   ],
