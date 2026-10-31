@@ -32,6 +32,9 @@ test('low recall is a frozen gate failure, not an invalid count', () => {
 
 test('no-alert denominator fails precision without hiding missed faults', () => {
   assert.equal(validateSyntheticScore(sample(0, 0, 90, 45150)), false);
+  const incorrect = sample(0, 0, 90, 45150);
+  incorrect.precision = 0;
+  assert.throws(() => validateSyntheticScore(incorrect), { code: 'invalid_scoring_contract' });
 });
 
 test('reject inconsistent populations, bad metrics, and count corruption', () => {
