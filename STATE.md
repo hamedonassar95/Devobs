@@ -1,5 +1,17 @@
 # حالة مستودع Devobs
 
+آخر تحديث: 2026-10-31 UTC؛ مزامنة إنجازات AI-9 v3 ودفتر الأدلة على فرع مراجعة مستقل.
+
+## مستجدات 2026-10-31 — VERIFIED من GitHub (توثيق فقط)
+
+- دُمج [PR #328](https://github.com/hamedonassar95/Devobs/pull/328) لتثبيت أدلة v3 وحدود الاختبار المستقل: head `05a6397d9f221995774025ed372fff8a4de62d08`، merge `44380997850387fbc748890075bc3d414792cc6a`؛ اجتاز CI على رأس PR في [run 41149965696](https://github.com/hamedonassar95/Devobs/actions/runs/41149965696).
+- دُمج [PR #329](https://github.com/hamedonassar95/Devobs/pull/329) لإضافة مقيّم v3 مغلق يدوي فقط: head `1b951ba55b25e2a89e1044d25b0b801384cd1aee`، merge `82bc271d145d374f5f12c4c1517eb936c1826549`؛ اجتاز CI على رأس PR في [run 41150448628](https://github.com/hamedonassar95/Devobs/actions/runs/41150448628) واجتاز CI على `main` بعد الدمج في [run 41150776263](https://github.com/hamedonassar95/Devobs/actions/runs/41150776263).
+- العينات المستقلة المحجوزة `20270601–20270604` **لم تُشغّل**. دمج أداة التقييم لا يمنح تفويضًا بتشغيلها. حالة AI-9 تبقى **FAIL / NOT AUTHORIZED**، وP01 **NO-GO / BLOCKED**.
+- [PR #330](https://github.com/hamedonassar95/Devobs/pull/330) لتكامل OpenArt MCP اختياري مع موافقات بشرية **مفتوح وغير مدموج** عند الفحص؛ يُراجع بدل تكرار الوظيفة أو تنفيذ عمليات مدفوعة. لا يوجد تصريح لتفعيل OAuth أو توليد وسائط أو نشر.
+- يحدّث فرع `docs/ledger-sync-ai9-v3-merges-20261031` سجل `docs/MILESTONE_LEDGER.json` واختبار الحماية التراجعي. **هذه الإضافة فرع مراجعة لا تعني دمجها في main**؛ نتيجة CI على رأسها تُثبت منفصلًا بعد رفع PR.
+- لا تغييرات تشغيلية أو مفاتيح أو إعدادات خدمات أو نشر SaaS؛ التشغيل المحجوز والدمج والنشر الإنتاجي يتطلبان تفويض المالك حسب قواعد `AGENTS.md`.
+
+### تحديث الحالة السابق
 آخر تحديث: 2026-10-30 UTC؛ توثيق بوابة إنفاذ إنفاق Railway لـP01.
 
 ## الهدف الكبير
