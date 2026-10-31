@@ -187,6 +187,8 @@ jobs:
           fi
       - name: Validate AI agent inventory and guardrails
         run: python3 scripts/check_agent_spec.py
+      - name: Validate evidence-linked milestone index
+        run: python3 scripts/milestone_ledger.py
       - name: Validate pinned synthetic AI evaluation dataset
         run: python3 scripts/validate_ai_eval_fixtures.py
       - name: Set up Python with dependency cache

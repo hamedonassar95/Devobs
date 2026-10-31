@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "repository": "hamedonassar95/Devobs",
+  "disclaimer": "Offline index of GitHub evidence verified during project work; local checks verify record structure, not live API status or production readiness.",
+  "milestones": [
+    {
+      "id": "p00-container-supply-chain",
+      "area": "CI_SECURITY",
+      "title": "Hash-locked dependencies and single-image smoke/Trivy scan",
+      "pr_number": 289,
+      "pr_head_sha": "76fc18b6f035214d682b84e26f7f221a91863997",
+      "merge_sha": "7fbc0c88fb3e0362c119dd9ddc2a03478753d33d",
+      "ci_run_id": 40963695235,
+      "verification": "PR CI and CodeQL passed on head; documented main CI also passed.",
+      "limitations": "No container image published; no SaaS staging or production API."
+    },
+    {
+      "id": "ai9-tenant-service-authorization",
+      "area": "AI_GOVERNANCE",
+      "title": "Signed Python API service authorization via tenant-scoped RLS",
+      "pr_number": 309,
+      "pr_head_sha": "8caf21698e2c56d96b8ab9701fec56c4aa0eb5e5",
+      "merge_sha": "60d64f14ee63c94806674b1a537d0180869b41d0",
+      "ci_run_id": 41081064798,
+      "verification": "PR CI, PostgreSQL RLS and security passed on head.",
+      "limitations": "No live OIDC provider, database or direct Python-to-Node detector integration."
+    },
+    {
+      "id": "codex-governed-agent-roles",
+      "area": "AGENT_OPERATIONS",
+      "title": "Codex four-role governance and bounded multi-agent configuration",
+      "pr_number": 325,
+      "pr_head_sha": "583a2389583f1d5e8bc4f0aa3b95896709cff1c7",
+      "merge_sha": "daa750d34003eb44bfecfe2b8bd1272859520217",
+      "ci_run_id": 41147270551,
+      "verification": "PR CI validate passed; 581 Python tests ran, 22 skipped, three new config tests passed.",
+      "limitations": "Codex subagent runtime not exercised; AI Code Review inference skipped because budget approval absent."
+    }
+  ],
+  "gates": [
+    {
+      "id": "ai9-detection-quality",
+      "status": "BLOCKED",
+      "source": "docs/AI9_ZMA_GROUPING_CANDIDATE_V1_RESULTS.md",
+      "reason": "All 20 paired development seeds fail the unchanged 80% window precision gate; synthetic evidence is not a fresh holdout.",
+      "next_action": "Pre-register one independently seeded holdout evaluation without altering quality gates or production detector."
+    },
+    {
+      "id": "p01-managed-saas",
+      "status": "BLOCKED",
+      "source": "docs/P01_ACTIVATION_READINESS.md",
+      "reason": "No approved managed staging/provider/region, enforceable all-in spending cap, live IdP, live RLS, recovery proof or owner activation decision.",
+      "next_action": "Resolve owner provider, region, cost, privacy, identity and backup approvals before provisioning."
+    },
+    {
+      "id": "codex-agent-runtime-acceptance",
+      "status": "OPEN",
+      "source": "docs/CODEX_AGENT_OPERATING_MODEL.md",
+      "reason": "Configuration and contract tests exist but subagents have not been exercised in a compatible Codex runtime.",
+      "next_action": "Run a read-only two-role architecture/security trial against a selected PR and record fresh evidence."
+    }
+  ]
+}
