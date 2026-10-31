@@ -437,6 +437,8 @@ jobs:
         run: terraform -chdir=infra/terraform init -backend=false -input=false -lockfile=readonly
       - name: Validate Terraform configuration
         run: terraform -chdir=infra/terraform validate
+      - name: Test synthetic Terraform plan with mocked provider only
+        run: terraform -chdir=infra/terraform test -no-color
 
   # Keep this ID: the Protect main ruleset requires the validate check.
   validate:
