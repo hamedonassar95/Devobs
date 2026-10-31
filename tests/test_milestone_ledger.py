@@ -26,6 +26,21 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertGreaterEqual(result["open_gates"], 2)
         self.assertEqual(result["latest_pr"], self.data["milestones"][-1]["pr_number"])
 
+    def test_recent_merges_are_recorded_without_ai9_production_promotion(self):
+        records = {entry["pr_number"]: entry for entry in self.data["milestones"]}
+        self.assertIn(326, records)
+        self.assertIn(327, records)
+        self.assertEqual(
+            records[327]["merge_sha"],
+            "5982bd239f7fc083163ce99e24f9bc3e20e75f5d",
+        )
+        self.assertIn("NOT independent", records[327]["limitations"])
+        gate = next(g for g in self.data["gates"] if g["id"] == "ai9-detection-quality")
+        self.assertEqual(gate["status"], "BLOCKED")
+        self.assertEqual(gate["source"], "docs/AI9_COHERENT_ONSET_V3_REPLAY_RESULTS.md")
+        self.assertIn("20270601", gate["next_action"])
+        self.assertIn("20270604", gate["next_action"])
+
     def test_duplicate_achievement_rejected(self):
         self.data["milestones"].append(copy.deepcopy(self.data["milestones"][-1]))
         with self.assertRaisesRegex(InvalidLedger, "duplicate|not increasing"):
