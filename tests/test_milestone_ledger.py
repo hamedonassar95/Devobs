@@ -69,6 +69,19 @@ class MilestoneLedgerTests(unittest.TestCase):
             "BLOCKED",
         )
 
+    def test_pr333_merge_logged_without_mcp_runtime_claim(self):
+        records = {entry["pr_number"]: entry for entry in self.data["milestones"]}
+        self.assertIn(333, records)
+        self.assertEqual(records[333]["pr_head_sha"], "5ccbf6083ffcd72e8ad05b0142d1ffc24c420402")
+        self.assertEqual(records[333]["merge_sha"], "89367014e29df1e2f913394f0e2dba39a0ff3d8d")
+        self.assertEqual(records[333]["ci_run_id"], 41174724412)
+        self.assertIn("CONFIGURATION ONLY", records[333]["limitations"])
+        self.assertIn("not_found", records[333]["limitations"])
+        gates = {entry["id"]: entry["status"] for entry in self.data["gates"]}
+        self.assertEqual(gates["codex-agent-runtime-acceptance"], "OPEN")
+        self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
+        self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
+
     def test_duplicate_achievement_rejected(self):
         self.data["milestones"].append(copy.deepcopy(self.data["milestones"][-1]))
         with self.assertRaisesRegex(InvalidLedger, "duplicate|not increasing"):
