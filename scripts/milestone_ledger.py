@@ -13,7 +13,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 DEFAULT_LEDGER = ROOT / "docs" / "MILESTONE_LEDGER.json"
 SHA = re.compile(r"^[0-9a-f]{40}$")
 IDENT = re.compile(r"^[a-z][a-z0-9-]{2,63}$")
-AREAS = {"CI_SECURITY", "AI_GOVERNANCE", "AGENT_OPERATIONS"}
+AREAS = {"CI_SECURITY", "AI_GOVERNANCE", "AGENT_OPERATIONS", "PLATFORM", "QUALITY",
+         "TENANT_ISOLATION", "RELIABILITY", "OPERATIONS", "BILLING", "DOCUMENTATION"}
 GATE_STATUSES = {"BLOCKED", "OPEN"}
 REPO = "hamedonassar95/Devobs"
 
