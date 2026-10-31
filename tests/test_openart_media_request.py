@@ -64,6 +64,15 @@ class OpenArtMediaRequestTests(unittest.TestCase):
         with self.assertRaisesRegex(InvalidMediaRequest, "video-only"):
             validate_media_request(self.data)
 
+    def test_wrong_typed_ratio_and_language_rejected(self):
+        self.data["deliverables"][0]["aspect_ratio"] = ["16:9"]
+        with self.assertRaisesRegex(InvalidMediaRequest, "unsupported"):
+            validate_media_request(self.data)
+        self.data["deliverables"][0]["aspect_ratio"] = "16:9"
+        self.data["deliverables"][0]["language"] = {"code": "ar"}
+        with self.assertRaisesRegex(InvalidMediaRequest, "unsupported"):
+            validate_media_request(self.data)
+
     def test_image_rejects_duration(self):
         self.data["deliverables"][0]["requested_duration_seconds"] = 8
         with self.assertRaisesRegex(InvalidMediaRequest, "video-only"):
