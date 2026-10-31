@@ -1,5 +1,4 @@
 import unittest
-import re
 from pathlib import Path
 
 WORKFLOW = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
@@ -21,26 +20,17 @@ class TerraformWorkflowContractTests(unittest.TestCase):
         self.assertNotIn("terraform apply", WORKFLOW)
         self.assertNotIn("terraform plan", WORKFLOW)
 
-    def test_mocked_terraform_plan_is_plan_only_and_runs_in_required_ci(self):
+    def test_mocked_plan_only_terraform_tests_run_in_required_ci(self):
         fixture = Path("infra/terraform/tests/registry_mock.tftest.hcl").read_text(encoding="utf-8")
-        self.assertEqual(len(re.findall(r'(?m)^mock_provider "google"\\s*\\{\\}', fixture)), 1)
-        self.assertEqual(len(re.findall(r'(?m)^run "[a-z_]+"\\s*\\{', fixture)), 3)
-        self.assertEqual(len(re.findall(r'(?m)^\\s*command\\s*=\\s*plan\\s*
-        self.assertIn("container-build", VALIDATE_NEEDS)
-        self.assertIn("terraform-validate", VALIDATE_NEEDS)
-        self.assertIn("TERRAFORM_RESULT", WORKFLOW)
-        job = WORKFLOW.split("  terraform-validate:\n", 1)[1].split("\n  validate:\n", 1)[0]
-        self.assertIn("if: inputs.validation_profile != 'rollback'", job)
-
-
-if __name__ == "__main__":
-    unittest.main()
-, fixture)), 3)
-        self.assertNotRegex(fixture, r'(?m)^\\s*(provider "google"|command\\s*=\\s*apply)')
+        self.assertEqual(fixture.count('mock_provider "google" {}'), 1)
+        self.assertEqual(fixture.count('run "'), 3)
+        self.assertEqual(fixture.count("command = plan"), 3)
+        self.assertNotIn("command = apply", fixture)
+        self.assertNotIn('provider "google"', fixture)
         self.assertNotIn("credentials", fixture.lower())
-        self.assertIn('expect_failures = [var.project_id]', fixture)
-        self.assertIn('expect_failures = [var.repository_id]', fixture)
-        job = WORKFLOW.split("  terraform-validate:\\n", 1)[1].split("\\n  validate:\\n", 1)[0]
+        self.assertIn("expect_failures = [var.project_id]", fixture)
+        self.assertIn("expect_failures = [var.repository_id]", fixture)
+        job = WORKFLOW.split("  terraform-validate:\n", 1)[1].split("\n  validate:\n", 1)[0]
         self.assertIn("terraform -chdir=infra/terraform test -no-color", job)
         self.assertNotIn("terraform apply", job)
         self.assertNotIn("terraform plan", job)
