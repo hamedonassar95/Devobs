@@ -90,6 +90,28 @@
       "ci_run_id": 41152893449,
       "verification": "VERIFIED 2026-10-31: PR #330 merged and CI success on exact PR head; post-merge main CI was still in progress at observation.",
       "limitations": "Optional opt-in integration only; no OAuth, paid credits, media generation or public publication verified. No SaaS launch; AI-9 and P01 remain blocked."
+    },
+    {
+      "id": "verified-ai9-openart-milestone-ledger-sync",
+      "area": "DOCUMENTATION",
+      "title": "Verified merged AI-9 v3 and OpenArt evidence recorded without changing release gates",
+      "pr_number": 331,
+      "pr_head_sha": "8f0ac9c7a0f22bd38a0d3ff295f694b7edd14dea",
+      "merge_sha": "08ca255967a1390888cab7010bb618180e83dba6",
+      "ci_run_id": 41173701899,
+      "verification": "VERIFIED 2026-10-31: PR #331 merged; required validate/CI succeeded on exact head and main CI passed at the merged revision.",
+      "limitations": "Records historical evidence only; AI-9 frozen holdout NOT RUN, OpenArt OAuth/generation not authorized, P01 NO-GO."
+    },
+    {
+      "id": "openai-public-docs-mcp-codex-config",
+      "area": "AGENT_OPERATIONS",
+      "title": "Configured public OpenAI Developer Docs MCP and expanded guarded integration inventory",
+      "pr_number": 332,
+      "pr_head_sha": "52472e7780a5c5ff73a9e11bce7de97d58fa280c",
+      "merge_sha": "d412f15894bc5767c86fa0e6261836d1a2b45ddb",
+      "ci_run_id": 41174197132,
+      "verification": "VERIFIED 2026-10-31: PR #332 merged; required validate and Python, security, RLS and container checks passed on exact PR head; main CI 41174373376 passed on merge commit.",
+      "limitations": "Repository configuration and offline tests only; real Codex MCP handshake/tool discovery NOT VERIFIED. No provider OAuth, paid inference, tenant staging or SaaS activation."
     }
   ],
   "gates": [
