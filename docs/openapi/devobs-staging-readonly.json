@@ -1,0 +1,321 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Devobs staging read-only API — source contract",
+    "version": "0.1.0",
+    "description": "Offline source-backed WSGI contract only. Not a live HTTPS host, deployment, IdP, billing or OpenAPI conformance certification. P01 remains NO-GO."
+  },
+  "tags": [
+    {
+      "name": "health",
+      "description": "Process liveness and restricted datastore readiness"
+    },
+    {
+      "name": "tenant-read",
+      "description": "Bearer-authenticated, tenant-scoped read-only API"
+    }
+  ],
+  "paths": {
+    "/healthz": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Process liveness, not DB readiness",
+        "security": [],
+        "responses": {
+          "204": {
+            "description": "Liveness response; no response body"
+          },
+          "405": {
+            "description": "Unsupported method; no response body"
+          }
+        }
+      }
+    },
+    "/readyz": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Datastore readiness probe",
+        "security": [],
+        "responses": {
+          "204": {
+            "description": "Restricted-store readiness successful; no body"
+          },
+          "405": {
+            "description": "Unsupported method; no response body"
+          },
+          "503": {
+            "description": "Store readiness failed; no response body"
+          }
+        }
+      }
+    },
+    "/v1/tenants/{tenant}/projects/{project}/ci": {
+      "get": {
+        "tags": [
+          "tenant-read"
+        ],
+        "summary": "Read a tenant/project CI status",
+        "parameters": [
+          {
+            "name": "tenant",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "description": "Opaque synthetic scope identifier; not an authentication claim"
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "description": "Opaque synthetic scope identifier; not an authentication claim"
+          }
+        ],
+        "security": [
+          {
+            "BearerJWT": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authorized read-only CI status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CiState"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Bearer access token missing or rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Tenant or service scope denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Only GET is supported on this route",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Process-local limit; Retry-After header provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Backend unavailable or process busy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tenants/{tenant}/projects/{project}/services/{service}/authorization": {
+      "get": {
+        "tags": [
+          "tenant-read"
+        ],
+        "summary": "Check service access without returning an existence oracle",
+        "parameters": [
+          {
+            "name": "tenant",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "description": "Opaque synthetic scope identifier; not an authentication claim"
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "description": "Opaque synthetic scope identifier; not an authentication claim"
+          },
+          {
+            "name": "service",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "description": "Opaque synthetic scope identifier; not an authentication claim"
+          }
+        ],
+        "security": [
+          {
+            "BearerJWT": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Service authorized; no response body"
+          },
+          "401": {
+            "description": "Bearer access token missing or rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Tenant or service scope denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Only GET is supported on this route",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Process-local limit; Retry-After header provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Backend unavailable or process busy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerJWT": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Operator-pinned OAuth access JWT, never ID token. Issuer/JWKS are set externally; this document does not authorize any OAuth client."
+      }
+    },
+    "schemas": {
+      "CiState": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ci_state",
+          "source_sha"
+        ],
+        "properties": {
+          "ci_state": {
+            "type": "string",
+            "enum": [
+              "success",
+              "failed",
+              "pending",
+              "running",
+              "stale",
+              "missing",
+              "skipped",
+              "canceled",
+              "manual",
+              "scheduled"
+            ]
+          },
+          "source_sha": {
+            "type": "string",
+            "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"
+          }
+        }
+      },
+      "ApiError": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "invalid_token",
+              "access_denied",
+              "rate_limited",
+              "backend_unavailable",
+              "backend_busy",
+              "method_not_allowed",
+              "not_found"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
