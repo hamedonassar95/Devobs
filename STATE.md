@@ -256,3 +256,7 @@
 - **الحدود:** هذا إنجاز جزئي لـP01-T09، يثبت صحة `plan-only` اصطناعي لإعداد Artifact Registry الحالي، وليس بنية استضافة P01 الكاملة أو ضوابط التكلفة أو الوصول إلى السحابة. لا تضع علامة قبول كاملة لـT09 دون التحقق من متطلبات التهيئة المستضافة والاختبارات المصرح بها.
 - **باقي البوابات:** P01 **NO-GO/BLOCKED**؛ AI-9 **FAIL/BLOCKED**؛ قبول تشغيل Codex الفعلي **OPEN**. لا نشر مدفوع، ولا بيانات عملاء، ولا وصول إلى Google Cloud، ولا تشغيل وكيل ذاتي الإنتاج.
 
+## آخر توثيق مدموج — PR #341 (2026-10-31)
+
+- **VERIFIED GitHub:** [PR #341](https://github.com/hamedonassar95/Devobs/pull/341) دُمج عند `c23965d439ebc6c82d91ba213888df83f050cdf4`، HEAD `34bf13ba8a76345193bfa3aa7e418654242e50cb`. [PR CI 41191357480](https://github.com/hamedonassar95/Devobs/actions/runs/41191357480) نجح مع `651 Python tests, 22 skipped, 0 failures`، و[main CI 41191496396](https://github.com/hamedonassar95/Devobs/actions/runs/41191496396) نجح على SHA الدمج مع نشر الموقع الثابت والتحقق منه.
+- **الحدود:** PR #341 يوثّق إنجازات PR #339–#340 فقط؛ لا يغيّر P01 NO-GO، أو AI-9 FAIL، أو قبول Codex OPEN، ولا يثبت استضافة API أو تطبيقًا سحابيًا. [PR #342](https://github.com/hamedonassar95/Devobs/pull/342) يحتوي عقد OpenAPI جديدًا لكنه **لم يكن مدموجًا** عند توثيق هذا الإنجاز، لذلك لم يُضف إلى السجل.
