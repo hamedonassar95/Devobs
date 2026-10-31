@@ -7,9 +7,9 @@ description: Coordinate an evidence-first Codex investigation or implementation 
 
 ## Preconditions
 1. Read root `AGENTS.md`, `STATE.md`, `docs/DEVOBS_READINESS_CURRENT.md` and the files directly relevant to this task. Do not mistake the state document for live GitHub evidence.
-2. Capture repository, base/head SHA, task outcome, acceptance checks and forbidden actions. If no measurable outcome exists, create a finite plan rather than claiming an active Goal.
-3. Default to read-only investigation. Never create or change a paid service, secret, production resource, authentication or repository rule.
-4. Respect existing `verify` and `dev-worktree` skills where applicable. Do not open a PR or push unless the user requested it.
+2. Read `docs/MILESTONE_LEDGER.json` and run `python3 scripts/milestone_ledger.py --summary`. Compare merged work and open gates before proposing a duplicate improvement. Its entries require fresh GitHub verification.\n3. Capture repository, base/head SHA, task outcome, acceptance checks and forbidden actions. If no measurable outcome exists, create a finite plan rather than claiming an active Goal.
+4. Default to read-only investigation. Never create or change a paid service, secret, production resource, authentication or repository rule.
+5. Respect existing `verify` and `dev-worktree` skills where applicable. Do not open a PR or push unless the user requested it.
 
 ## Assign only useful specialists
 - **Parent/orchestrator:** owns plan, shared context, final verification and owner approval request.
