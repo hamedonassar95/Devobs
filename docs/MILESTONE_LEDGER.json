@@ -156,6 +156,28 @@
       "ci_run_id": 41189422355,
       "verification": "VERIFIED GitHub 2026-10-31: PR head CI validate, Python, RLS, security, container and CodeQL successful; 634 Python tests, 22 skipped, 0 failed, including 14 new threat-model contract tests. Postmerge main CI 41189514856 SUCCESS on exact merge commit; static Pages publication is not managed SaaS.",
       "limitations": "This proves a 12-zone/9-boundary/12-case OFFLINE model and fail-closed validation ONLY. Candidate test references are not full abuse-scenario or live staging evidence; P01 NO-GO and AI-9 FAIL."
+    },
+    {
+      "id": "verified-pr334-336-ledger-sync",
+      "area": "DOCUMENTATION",
+      "title": "Verified PR334-336 evidence ledger synchronization without stage gate promotion",
+      "pr_number": 337,
+      "pr_head_sha": "0703694b7987bbe2ca0c45c149651535f9fed927",
+      "merge_sha": "f1bd3c5717d95a9ee89116c0fce49ef9fac572d7",
+      "ci_run_id": 41189673147,
+      "verification": "VERIFIED 2026-10-31: PR-head CI 41189673147 succeeded on exact reviewed head; 635 Python tests, 22 skipped, 0 failed, including milestone regression. Main CI 41190022778 succeeded on exact merge SHA.",
+      "limitations": "Records earlier merged evidence; no Codex runtime, SaaS API, AI-9 independent holdout or provider activation. P01 and AI-9 remain BLOCKED."
+    },
+    {
+      "id": "codex-capability-source-readiness-audit",
+      "area": "AGENT_OPERATIONS",
+      "title": "Evidence-first Codex capability inventory and fail-closed offline validator",
+      "pr_number": 338,
+      "pr_head_sha": "65a0cd7032043d167edf009699e1b88bc3c32ab0",
+      "merge_sha": "304665cbfb1576427f3ff74e0a946762f38906b7",
+      "ci_run_id": 41190379411,
+      "verification": "VERIFIED 2026-10-31: PR-head required CI 41190379411 succeeded with 648 Python tests, 22 skipped, 0 failed, including actual checkout reference test. CodeQL/validate/security passed. Main CI 41190479428 succeeded on exact merge SHA, including static Pages publication and verify.",
+      "limitations": "16 capabilities inventoried as SOURCE/DOCUMENTED/UNVERIFIED only, NOT verified executing Codex runtime, Goals, multi-agent sessions, MCP handshake, SDK/App Server, Mobile Remote or Codex Security. AI-9 and P01 remain BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
