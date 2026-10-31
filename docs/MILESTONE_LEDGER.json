@@ -178,6 +178,28 @@
       "ci_run_id": 41190379411,
       "verification": "VERIFIED 2026-10-31: PR-head required CI 41190379411 succeeded with 648 Python tests, 22 skipped, 0 failed, including actual checkout reference test. CodeQL/validate/security passed. Main CI 41190479428 succeeded on exact merge SHA, including static Pages publication and verify.",
       "limitations": "16 capabilities inventoried as SOURCE/DOCUMENTED/UNVERIFIED only, NOT verified executing Codex runtime, Goals, multi-agent sessions, MCP handshake, SDK/App Server, Mobile Remote or Codex Security. AI-9 and P01 remain BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "codex-evidence-pr337-338-ledger-sync",
+      "area": "DOCUMENTATION",
+      "title": "Record reviewed Codex readiness merges PR337-338 in durable milestone ledger",
+      "pr_number": 339,
+      "pr_head_sha": "4dcbf9e7b1c53d59ba0e7d5763e4abfefd217744",
+      "merge_sha": "6024fa2eda44e9e207d6c59c5f5e21723af197c8",
+      "ci_run_id": 41190651115,
+      "verification": "VERIFIED 2026-10-31: PR-head CI 41190651115 SUCCESS, 649 Python tests with 22 skipped and zero failures; main CI 41190768547 SUCCESS on the exact merge SHA, including static Pages release.",
+      "limitations": "Documentation and anti-duplication record only, NOT evidence of live Codex runtime, MCP handshake, P01 staging or AI-9 production quality. P01 and AI-9 remain BLOCKED."
+    },
+    {
+      "id": "p01-t09-terraform-mocked-plan-only",
+      "area": "CI_SECURITY",
+      "title": "Provider-mocked Terraform plan-only Artifact Registry tests in required CI",
+      "pr_number": 340,
+      "pr_head_sha": "059a9a17ed12d6b1c1cb02cf1146d7c96ea0d88f",
+      "merge_sha": "166177abb5144b4115d8d72a309daadf73d2b227",
+      "ci_run_id": 41191053107,
+      "verification": "VERIFIED 2026-10-31: Exact PR-head CI 41191053107 SUCCESS; Terraform native mock-provider tests 3 passed/0 failed; Python suite 650 tests, 22 skipped, zero failures; validate, CodeQL, RLS, security and same-image Trivy SUCCESS. Main CI 41191150424 is still pending at the observation.",
+      "limitations": "Only synthetic plan-only validation of existing Artifact Registry module; NOT a live P01 managed staging plan, real provider/API access, enforceable all-in USD 100 cap, runtime identity or recovery test. P01 and AI-9 remain BLOCKED."
     }
   ],
   "gates": [
