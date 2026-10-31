@@ -44,6 +44,12 @@ class CodexCapabilitiesTests(unittest.TestCase):
         self.assertEqual(result['runtime_verified'], 0)
         self.assertGreater(result['needs_runtime_or_external_proof'], 10)
 
+    def test_actual_checkout_sources_and_ledgers_agree(self):
+        # CI must validate real repository files, not just synthetic fixtures.
+        result = validate(self.data, ROOT)
+        self.assertEqual(result['total'], 16)
+        self.assertEqual(result['runtime_verified'], 0)
+
     def test_missing_source_file_fails_closed(self):
         (self.root / 'AGENTS.md').unlink()
         with self.assertRaises(CapabilityError):
