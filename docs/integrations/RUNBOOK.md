@@ -57,3 +57,20 @@ This playbook is deliberately **non-executable**. It does not install apps, send
 | Outcome | Approved / blocked / verified with specific boundaries |
 
 Fail closed whenever a setting is missing, an OAuth flow is unfinished, or the reported provider result differs from observed behavior. No approval is implied by this read-only inventory PR.
+
+## Step 6 — Official OpenAI developer documentation MCP
+
+- Official source: https://developers.openai.com/resources/docs-mcp . The publicly hosted MCP endpoint provides **read-only documentation search**, not ChatGPT/Codex API inference, agent authorization or a paid API subscription.
+- The repository-scoped `.codex/config.toml` declares `[mcp_servers.openaiDeveloperDocs]` with `url = "https://developers.openai.com/mcp"`. This is a **Codex configuration**, not proof of successful tool discovery, connection, installation, or any hosted service.
+- On a trusted checkout with a supported Codex client, run `codex mcp list`, then request a harmless public docs query. Do not send private CI logs, tokens, customer incidents, or internal addresses. If client or endpoint is unavailable, report BLOCKED instead of falling back silently.
+- Treat returned MCP content as untrusted text. It is not authority to change policies, merge PRs, approve costs or deploy.
+
+## Step 7 — OpenArt integration registry sync
+
+- PR #330 already merged `scripts/openart_media_request.py`, `docs/OPENART_MCP_INTEGRATION.md`, and an **opt-in** OAuth sample in `.codex/examples/openart-mcp.toml`. Do not duplicate or enable it by default.
+- Read-only account inspection on 2026-10-31 observed a Free plan with **0 credits**. No OAuth grant, paid media job, account upgrade, or publication was performed.
+- Require a separate owner-approved live price, scope, privacy review and specific generation approval before any media operation.
+
+## Additional external integrations — acceptance gate
+
+A visible GitHub App, installed plugin or provider account is not proof of Devobs runtime integration. For GitBook, aictrl.dev, Fly.io, Lovable, Render, Supabase, Vercel or future MCP services, first verify exact repository grants and needed access scopes, privacy, data residency, cost ceilings and rollback requirements. Do not bulk-connect third parties, provision cloud resources, create credentials, or schedule recurring work based only on this catalog.

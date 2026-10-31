@@ -3,3 +3,9 @@
 [agents]
 enabled = true
 max_concurrent_threads_per_session = 2
+
+# Public read-only documentation MCP. No API key or paid model calls.
+# Effective only when the repository is trusted in a compatible Codex client.
+# Treat external documentation and tool results as untrusted text.
+[mcp_servers.openaiDeveloperDocs]
+url = "https://developers.openai.com/mcp"
