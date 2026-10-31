@@ -62,7 +62,8 @@ test('MAD=0 is not proof of onset', () => {
 test('malformed timestamps fail closed without sharing across services', () => {
   const x = example(['onset','onset','quiet']);
   x.metrics[1].stream.events[31].occurred_at = x.metrics[1].stream.events[30].occurred_at;
-  // The frozen v2 validator runs first and must reject timestamp drift.\n  assert.throws(() => coherentOnsetDecision(x), { code: 'invalid_temporal_order' });
+  // The frozen v2 validator runs first and must reject timestamp drift.
+  assert.throws(() => coherentOnsetDecision(x), { code: 'invalid_temporal_order' });
   const isolated = coherentOnsetDecision(example(['onset','quiet','quiet'], [true,true,true], 'service-b'));
   assert.equal(isolated.coherent_onset, false);
 });
