@@ -112,6 +112,17 @@
       "ci_run_id": 41174197132,
       "verification": "VERIFIED 2026-10-31: PR #332 merged; required validate and Python, security, RLS and container checks passed on exact PR head; main CI 41174373376 passed on merge commit.",
       "limitations": "Repository configuration and offline tests only; real Codex MCP handshake/tool discovery NOT VERIFIED. No provider OAuth, paid inference, tenant staging or SaaS activation."
+    },
+    {
+      "id": "codex-public-docs-mcp-operating-guidance",
+      "area": "AGENT_OPERATIONS",
+      "title": "Governed use of public OpenAI Docs MCP in Codex with preserved evidence and privacy boundaries",
+      "pr_number": 333,
+      "pr_head_sha": "5ccbf6083ffcd72e8ad05b0142d1ffc24c420402",
+      "merge_sha": "89367014e29df1e2f913394f0e2dba39a0ff3d8d",
+      "ci_run_id": 41174724412,
+      "verification": "VERIFIED 2026-10-31: PR #333 merged with required CI on the exact reviewed head after a corrected test assertion; 611 tests ran, 22 skipped. Main CI 41174861181 passed, including static Pages publish and verification.",
+      "limitations": "Docs MCP in Codex still CONFIGURATION ONLY; no local Codex CLI session, MCP handshake, remote tool call or subagent exercise. aictrl repository authorization returned not_found; no OAuth, paid inference or SaaS activation."
     }
   ],
   "gates": [
