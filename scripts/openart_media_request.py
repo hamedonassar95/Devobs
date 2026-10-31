@@ -66,7 +66,8 @@ def validate_media_request(value):
         seen.add(ident)
         if item["media_type"] not in ("image", "video"):
             reject(f"{label}.media_type: expected image or video")
-        if item["aspect_ratio"] not in RATIOS or item["language"] not in LANGUAGES:
+        if (type(item["aspect_ratio"]) is not str or item["aspect_ratio"] not in RATIOS
+                or type(item["language"]) is not str or item["language"] not in LANGUAGES):
             reject(f"{label}: unsupported ratio or language")
         prompt = nonempty(item["prompt"], f"{label}.prompt", 2000)
         if len(prompt.strip()) < 40:
