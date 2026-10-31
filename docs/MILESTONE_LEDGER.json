@@ -200,6 +200,17 @@
       "ci_run_id": 41191053107,
       "verification": "VERIFIED 2026-10-31: Exact PR-head CI 41191053107 SUCCESS; Terraform native mock-provider tests 3 passed/0 failed; Python suite 650 tests, 22 skipped, zero failures; validate, CodeQL, RLS, security and same-image Trivy SUCCESS. Postmerge main CI 41191150424 SUCCESS on the exact merge SHA, including the existing static Pages release and verification.",
       "limitations": "Only synthetic plan-only validation of existing Artifact Registry module; NOT a live P01 managed staging plan, real provider/API access, enforceable all-in USD 100 cap, runtime identity or recovery test. P01 and AI-9 remain BLOCKED."
+    },
+    {
+      "id": "merged-p01-t09-evidence-sync",
+      "area": "DOCUMENTATION",
+      "title": "Record PR339-340 merged evidence and P01 T09 partial mock-only status",
+      "pr_number": 341,
+      "pr_head_sha": "34bf13ba8a76345193bfa3aa7e418654242e50cb",
+      "merge_sha": "c23965d439ebc6c82d91ba213888df83f050cdf4",
+      "ci_run_id": 41191357480,
+      "verification": "VERIFIED 2026-10-31: PR-head CI 41191357480 SUCCESS, Python 651 tests with 22 skipped/0 failures plus required validate, CodeQL, Terraform/RLS/security/container checks; postmerge main CI 41191496396 SUCCESS on exact merge SHA including static Pages publication/verify.",
+      "limitations": "Historical merged evidence only. P01 T09 remains a partial mocked Terraform plan check, NOT approved hosted SaaS, cost cap, identity, recovery or production. P01/AI-9 remain BLOCKED; Codex runtime OPEN."
     }
   ],
   "gates": [
