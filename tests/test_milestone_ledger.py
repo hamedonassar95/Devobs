@@ -4,6 +4,7 @@ import json
 import pathlib
 import subprocess
 import sys
+import tempfile
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -23,7 +24,7 @@ class MilestoneLedgerTests(unittest.TestCase):
         result = validate(self.data)
         self.assertGreaterEqual(result["merged_milestones"], 3)
         self.assertGreaterEqual(result["open_gates"], 2)
-        self.assertEqual(result["latest_pr"], 325)
+        self.assertEqual(result["latest_pr"], self.data["milestones"][-1]["pr_number"])
 
     def test_duplicate_achievement_rejected(self):
         self.data["milestones"].append(copy.deepcopy(self.data["milestones"][-1]))
@@ -55,13 +56,24 @@ class MilestoneLedgerTests(unittest.TestCase):
         with self.assertRaisesRegex(InvalidLedger, "docs path"):
             validate(self.data)
 
+    def test_cli_rejects_malformed_json_without_fallback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = pathlib.Path(tmp) / "broken.json"
+            path.write_text('{"schema_version":', encoding="utf-8")
+            run = subprocess.run(
+                [sys.executable, str(ROOT / "scripts" / "milestone_ledger.py"), "--file", str(path)],
+                capture_output=True, text=True, check=False
+            )
+        self.assertEqual(run.returncode, 1)
+        self.assertIn("MILESTONE_LEDGER_INVALID", run.stderr)
+
     def test_cli_machine_summary(self):
         run = subprocess.run(
             [sys.executable, str(ROOT / "scripts" / "milestone_ledger.py"), "--summary"],
             capture_output=True, text=True, check=False
         )
         self.assertEqual(run.returncode, 0, run.stderr)
-        self.assertEqual(json.loads(run.stdout)["latest_pr"], 325)
+        self.assertEqual(json.loads(run.stdout)["latest_pr"], self.data["milestones"][-1]["pr_number"])
 
 
 if __name__ == "__main__":
