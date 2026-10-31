@@ -57,11 +57,12 @@
       "repository_scope": "Devobs authorization not verified",
       "observed_branch": null,
       "observed_directory": null,
-      "verified_capability": "Personal aictrl organization exists. No published workflows; the readiness endpoint reported another repository, not Devobs.",
-      "blocker": "Authorize Devobs in aictrl and verify it appears in get_started/list_tasks before any workflow execution.",
+      "verified_capability": "Read-only aictrl get_started on 2026-10-31 reported 'Automatic review is on' without proving this repository's authorization. A repository-scoped list_tasks attempt for hamedonassar95/Devobs returned 'Organization or repository not found'.",
+      "blocker": "Repository-level aictrl access for hamedonassar95/Devobs remains unverified/blocked. Owner must review and authorize that exact repository with minimum permissions in aictrl before another task-list check or any workflow execution; an account-level onboarding banner is not sufficient.",
       "evidence": [
-        "aictrl list_organizations, list_workflows, get_started, 2026-10-25",
-        "GitHub Installed Apps screenshot supplied by owner, 2026-10-25"
+        "aictrl list_organizations (read-only) on 2026-10-31 returned one accessible personal organization.",
+        "aictrl get_started (read-only) on 2026-10-31 reported 'Automatic review is on' without an exact repo identifier.",
+        "aictrl list_tasks (read-only) targeting hamedonassar95/Devobs on 2026-10-31 returned error not_found: Organization or repository not found."
       ]
     },
     {
