@@ -53,8 +53,10 @@ export function validateSyntheticScore(metrics, expectedWindows = FROZEN_HOLDOUT
     )
     || Math.abs(metrics.recall - metrics.tp / FROZEN_HOLDOUT_CONTRACT.positives) > 1e-12
     || Math.abs(metrics.fpr - metrics.fp / FROZEN_HOLDOUT_CONTRACT.negatives) > 1e-12
-    || Math.abs(metrics.precision - (metrics.tp + metrics.fp ? metrics.tp / (metrics.tp + metrics.fp) : 0)) > 1e-12
-       && !(metrics.precision === null && metrics.tp + metrics.fp === 0)) {
+    || (metrics.tp + metrics.fp === 0
+      ? metrics.precision !== null
+      : metrics.precision === null
+        || Math.abs(metrics.precision - metrics.tp / (metrics.tp + metrics.fp)) > 1e-12)) {
     reject('invalid_scoring_contract');
   }
   return frozenGates(metrics);
