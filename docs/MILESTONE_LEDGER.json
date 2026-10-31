@@ -57,6 +57,39 @@
       "ci_run_id": 41148812810,
       "verification": "PR head CI validate passed; reused synthetic seed 20270201 produced TP/FP/FN/TN=73/8/17/45142, Precision 90.1235%, Recall 81.1111%, FPR 0.0177%; documentation and tests merged.",
       "limitations": "Existing development seed, NOT independent holdout or production authorization. AI-9 official FAIL and P01 NO-GO."
+    },
+    {
+      "id": "ai9-v3-postmerge-holdout-guard",
+      "area": "AI_GOVERNANCE",
+      "title": "Record merged v3 evidence and guard the independent holdout",
+      "pr_number": 328,
+      "pr_head_sha": "05a6397d9f221995774025ed372fff8a4de62d08",
+      "merge_sha": "44380997850387fbc748890075bc3d414792cc6a",
+      "ci_run_id": 41149965696,
+      "verification": "VERIFIED 2026-10-31: PR-head CI passed; main merge-SHA CI run 41150074357 passed.",
+      "limitations": "Documentation and gate preparation only; no independent holdout executed. AI-9 FAIL and P01 NO-GO."
+    },
+    {
+      "id": "ai9-v3-manual-locked-holdout-evaluator",
+      "area": "QUALITY",
+      "title": "Fail-closed manual-only independent v3 holdout evaluator",
+      "pr_number": 329,
+      "pr_head_sha": "1b951ba55b25e2a89e1044d25b0b801384cd1aee",
+      "merge_sha": "82bc271d145d374f5f12c4c1517eb936c1826549",
+      "ci_run_id": 41150448628,
+      "verification": "VERIFIED 2026-10-31: PR-head CI passed; main merge-SHA CI runs 41150776263 and 41151955898 passed. Frozen-seed contract tests ran without scoring reserved seeds.",
+      "limitations": "Frozen independent holdout seeds NOT RUN; one-time run requires separate owner approval and clean full-history checks. No AI-9 production authorization."
+    },
+    {
+      "id": "openart-optional-governed-mcp-handoff",
+      "area": "AGENT_OPERATIONS",
+      "title": "Optional offline OpenArt MCP media-request manifest with owner approval gates",
+      "pr_number": 330,
+      "pr_head_sha": "fec9c6e5f4c4f36c72eea49797b9ca2f2d89037c",
+      "merge_sha": "dfc360857ffda586166df03799a6bec4be73486d",
+      "ci_run_id": 41152893449,
+      "verification": "VERIFIED 2026-10-31: PR #330 merged and CI success on exact PR head; post-merge main CI was still in progress at observation.",
+      "limitations": "Optional opt-in integration only; no OAuth, paid credits, media generation or public publication verified. No SaaS launch; AI-9 and P01 remain blocked."
     }
   ],
   "gates": [
@@ -64,8 +97,8 @@
       "id": "ai9-detection-quality",
       "status": "BLOCKED",
       "source": "docs/AI9_COHERENT_ONSET_V3_REPLAY_RESULTS.md",
-      "reason": "Merged v3 improves TP 58->73 and Recall 64.44%->81.11% on previously-consumed synthetic seed 20270201, but no frozen independent holdout, real-data generalization or owner production approval exists.",
-      "next_action": "After independent owner authorization and a verified collision-free preregistration, evaluate frozen seeds 20270601-20270604 exactly once, record per-seed metrics/digests and retain AI-9 FAIL until production gates are separately met."
+      "reason": "The v3 reused-seed evaluation is NOT independent. PR #329 merged a manual-only locked evaluator, but frozen seeds 20270601-20270604 have NOT been run or reviewed. No real-data generalization or owner production approval exists.",
+      "next_action": "Obtain separate owner approval tied to a reviewed main SHA. Only then, after full-history collision checks, use the documented one-time manual evaluator for frozen seeds 20270601-20270604 and record even FAIL/INVALID evidence in a separate PR. Retain AI-9 FAIL until independently authorized."
     },
     {
       "id": "p01-managed-saas",
