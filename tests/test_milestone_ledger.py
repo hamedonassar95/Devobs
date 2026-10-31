@@ -46,6 +46,8 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(records[328]["merge_sha"], "44380997850387fbc748890075bc3d414792cc6a")
         self.assertEqual(records[329]["merge_sha"], "82bc271d145d374f5f12c4c1517eb936c1826549")
         self.assertIn("NOT RUN", records[329]["limitations"])
+        self.assertEqual(records[330]["merge_sha"], "dfc360857ffda586166df03799a6bec4be73486d")
+        self.assertIn("no OAuth", records[330]["limitations"])
         gate = next(g for g in self.data["gates"] if g["id"] == "ai9-detection-quality")
         self.assertEqual(gate["status"], "BLOCKED")
         self.assertIn("NOT been run", gate["reason"])
