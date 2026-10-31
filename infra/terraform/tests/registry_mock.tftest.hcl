@@ -1,5 +1,5 @@
 # P01 T09: provider-mocked, plan-only acceptance tests.
-# Every run is command = plan: never apply or contact Google Cloud.
+# Every run is plan-only: never apply or contact Google Cloud.
 # Docs: https://developer.hashicorp.com/terraform/language/tests/mocking
 #       https://developer.hashicorp.com/terraform/language/tests
 
