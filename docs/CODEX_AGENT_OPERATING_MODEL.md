@@ -20,6 +20,22 @@ When doing OpenAI API/Plugins/Codex/MCP development, `AGENTS.md` now asks Codex 
 
 To verify from the operator's own trusted Codex session, run `codex mcp list` and then perform one innocuous public docs search. Record observed tool names, status and official source URLs but **never** record tokens or copied private logs. Configuration inspection or `codex mcp list` alone is **not** proof that remote tools were successfully called. Until an actual lookup succeeds, classify runtime as **UNVERIFIED**. This independent check does not prove Codex agent subagents have run; their acceptance gate stays OPEN.
 
+### Local registration smoke check (manual, cost-free)
+
+From a trusted Devobs checkout with Python 3.12+:
+
+```sh
+python3 scripts/check_codex_docs_mcp.py
+python3 scripts/check_codex_docs_mcp.py --codex-list
+python3 -m unittest discover -s tests -p 'test_codex_docs_mcp_probe.py' -v
+```
+
+- The default CLI checks the reviewed repository TOML **offline**, with no network access. The `--codex-list` option invokes the documented `codex mcp list` command, with a 10-second timeout, and checks that the configured server name and exact official URL appear. It never prints raw Codex output or reads credentials.
+- **Even if both return PASS, the result is only local configuration/registration evidence (`MCP_RUNTIME_UNVERIFIED`).** It does not demonstrate a live remote MCP request, tool discovery, a successful documentation lookup or a running subagent.
+- In a compatible trusted Codex session, request a single harmless public documentation lookup and record the observed tool name, citation URL and final status. **Do not** copy private prompts, tokens, logs, customer details or session transcripts into this public repo.
+- If Codex CLI is missing, exit `BLOCKED` rather than setting `runtime_verified=true`. The operator sandbox on 2026-10-31 had no Codex CLI or connected remote desktop. No live acceptance evidence is available.
+- Official setup reference: https://developers.openai.com/resources/docs-mcp .
+
 ## Safe operating procedure
 1. Trust and open the repository in a supported Codex runtime; verify which custom agents were discovered. On an unsupported surface, use the roles sequentially.
 2. Read `AGENTS.md`, `STATE.md`, recent relevant GitHub runs and `docs/DEVOBS_READINESS_CURRENT.md`. Distinguish stored records from live verification.

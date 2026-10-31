@@ -1,5 +1,12 @@
 # حالة مستودع Devobs
 
+## مراجعة 2026-10-31 — MCP المحلي ودليل دمج PR #333
+
+- **VERIFIED من GitHub:** [PR #333](https://github.com/hamedonassar95/Devobs/pull/333) دُمج عند `89367014e29df1e2f913394f0e2dba39a0ff3d8d`، برأس `5ccbf6083ffcd72e8ad05b0142d1ffc24c420402`. اجتاز CI على رأس PR في [run 41174724412](https://github.com/hamedonassar95/Devobs/actions/runs/41174724412)، وCI بعد الدمج في [run 41174861181](https://github.com/hamedonassar95/Devobs/actions/runs/41174861181)، بما فيه نشر Pages والتحقق؛ هذا **ليس** نشر SaaS.
+- **VERIFIED (offline):** فاحص `scripts/check_codex_docs_mcp.py` واختباراته الثمانية في فرع المراجعة `feat/codex-mcp-local-proof-and-ledger-333` اجتازت الاختبار المحلي الأولي؛ النجاح يعني تحقق التهيئة فقط.
+- **BLOCKED (runtime):** محاولة `--codex-list` في بيئة المشغل الحالية فشلت بأمان لأن `codex` غير مثبت؛ لم يُنفذ أي استدعاء MCP فعلي أو تشغيل وكلاء فرعيين. لا تُغيَّر حالة `codex-agent-runtime-acceptance` من OPEN.
+- **BLOCKED (external providers):** لم تُفعّل صلاحيات aictrl لمستودع Devobs. لا مفاتيح أو دفع أو نشر منصة أو تشغيل holdout. تظل AI-9 **FAIL/NOT AUTHORIZED** وP01 **NO-GO/BLOCKED**.
+
 ## تقدم 2026-10-31 — توجيه Codex لاستخدام Docs MCP وسجل الإنجازات
 
 - **VERIFIED من GitHub:** دُمج PR [#332](https://github.com/hamedonassar95/Devobs/pull/332) برأس `52472e7780a5c5ff73a9e11bce7de97d58fa280c` إلى `main` بالدمج `d412f15894bc5767c86fa0e6261836d1a2b45ddb`. اجتاز CI على الرأس في [run 41174197132](https://github.com/hamedonassar95/Devobs/actions/runs/41174197132)، ونجح CI بعد الدمج في [run 41174373376](https://github.com/hamedonassar95/Devobs/actions/runs/41174373376).
@@ -10,7 +17,7 @@
 
 آخر تحديث: 2026-10-31 UTC؛ مزامنة إنجازات AI-9 v3 ودفتر الأدلة على فرع مراجعة مستقل.
 
-## تكامل MCP لتوثيق OpenAI — فرع مراجعة غير مدموج (2026-10-31)
+## تكامل MCP لتوثيق OpenAI — أُدمج لاحقًا عبر PR #332 (2026-10-31)
 
 - **VERIFIED (repository configuration):** فرع `feature/read-only-docs-mcp-integration-20261031` يضيف خادم التوثيق الرسمي العام `https://developers.openai.com/mcp` إلى إعداد Codex المحلي الموثوق، ويوسع جرد التكاملات إلى سبعة مع اختبارات تمنع الادعاء بنجاح الاتصال.
 - **UNVERIFIED (runtime):** لم يتم تشغيل جلسة Codex مرتبطة بهذا MCP أو اختبار handshake فعلي في حساب المالك؛ إعداد المسار لا يثبت تشغيله. الاستدعاءات إلى خادم التوثيق للقراءة فقط وليست استدلال AI مدفوعًا.
