@@ -13,11 +13,11 @@
 
 ## Provider snapshot
 
-| Provider | Verified observation (2026-10-25) | Not established | Next safe step |
+| Provider | Verified observation (as dated) | Not established | Next safe step |
 | --- | --- | --- | --- |
 | GitBook | Git Sync is **active**; the GitHub → GitBook import succeeded; scoped to `docs/gitbook-sync-prep` on `main`. | Safe future write-back, publication, or preserved original primary space. | Freeze edits to the synced space; review branch/writeback setup while preserving its separate private 10-page backup. |
 | ChatGPT Codex Connector | Installed GitHub App shown in account screenshot; repository contains gated `ai-code-review.yml` and AI DevKit. | The installed app's exact repository grant or a successful Codex inference for Devobs. | Verify repository grant and optional budget gate; never assume any billed inference is approved. |
-| aictrl.dev | Authenticated personal organization, but **zero published workflows**; readiness identified another repository. | That Devobs is currently aictrl-authorized or runnable. | Authorize *only* Devobs in aictrl via the owner-controlled UI and recheck readiness before running anything. |
+| aictrl.dev | Read-only check on **2026-10-31** confirmed a personal organization. A generic onboarding banner said automatic review was on, but `list_tasks` for `hamedonassar95/Devobs` returned **Organization or repository not found**. | Devobs repository grant, runnable tasks, or completed automatic code review. | Owner verifies and approves the exact repository grant in aictrl; re-run read-only task listing before any external execution. |
 | Fly.io | GitHub App shown as installed. | Deployment, app existence, connectivity, billing or repository grant. | Defer until a verified workload needs Fly; obtain separate cost/deploy approval. |
 | Lovable.dev | Authenticated workspace with one **unrelated** invoice application; no custom connectors. | Devobs application or GitHub project mapping. | If a Devobs UI is needed, agree on scope, cost, visibility and repo isolation first. |
 | OpenArt MCP | PR #330 merged a private DRAFT validator and opt-in example. OpenArt account checked read-only 2026-10-31: Free, **0 credits**. | Codex OAuth, actual generation, or approved credits. | Keep generation disabled until exact cost quote and separate approval. |

@@ -1,5 +1,13 @@
 # حالة مستودع Devobs
 
+## تقدم 2026-10-31 — توجيه Codex لاستخدام Docs MCP وسجل الإنجازات
+
+- **VERIFIED من GitHub:** دُمج PR [#332](https://github.com/hamedonassar95/Devobs/pull/332) برأس `52472e7780a5c5ff73a9e11bce7de97d58fa280c` إلى `main` بالدمج `d412f15894bc5767c86fa0e6261836d1a2b45ddb`. اجتاز CI على الرأس في [run 41174197132](https://github.com/hamedonassar95/Devobs/actions/runs/41174197132)، ونجح CI بعد الدمج في [run 41174373376](https://github.com/hamedonassar95/Devobs/actions/runs/41174373376).
+- **VERIFIED:** دُمج PR [#331](https://github.com/hamedonassar95/Devobs/pull/331) برأس `8f0ac9c7a0f22bd38a0d3ff295f694b7edd14dea` إلى `main` بالدمج `08ca255967a1390888cab7010bb618180e83dba6`؛ نجح CI على الرأس في [run 41173701899](https://github.com/hamedonassar95/Devobs/actions/runs/41173701899).
+- فرع `feature/docs-mcp-agent-guidance-ledger-sync-20261031` يسجل الدمجين في `docs/MILESTONE_LEDGER.json` ويضيف إلى `AGENTS.md` توجيهًا لاستخدام توثيق OpenAI العام عبر MCP عند توفره في Codex موثوق. **UNVERIFIED:** لم يُجر اختبار اتصال خادم MCP أو اكتشاف أدواته في جلسة Codex فعلية؛ لا يُعتبر إعداد الملف إثباتًا لذلك.
+- **VERIFIED عبر aictrl read-only:** محاولة `list_tasks` للمستودع `hamedonassar95/Devobs` في الحساب المتصل أعادت `Organization or repository not found`. تسجيل هذه النتيجة لا يجيز إضافة إذن للمستودع أو تشغيل مراجعة خارجية تلقائيًا.
+- لا تغيير لأوضاع **AI-9 FAIL / NOT AUTHORIZED** و**P01 NO-GO / BLOCKED**؛ لا تكاليف أو نشر أو استدعاء نماذج أو أسرار أو تشغيل بذور holdout.
+
 آخر تحديث: 2026-10-31 UTC؛ مزامنة إنجازات AI-9 v3 ودفتر الأدلة على فرع مراجعة مستقل.
 
 ## تكامل MCP لتوثيق OpenAI — فرع مراجعة غير مدموج (2026-10-31)

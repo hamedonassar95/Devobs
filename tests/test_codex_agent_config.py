@@ -34,6 +34,15 @@ class CodexAgentConfigurationTests(unittest.TestCase):
         self.assertNotIn("env", servers["openaiDeveloperDocs"])
         self.assertNotIn("headers", servers["openaiDeveloperDocs"])
 
+    def test_docs_mcp_operator_instruction_respects_privacy(self):
+        instructions = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
+        self.assertIn("## OpenAI documentation MCP usage (public read-only)", instructions)
+        self.assertIn("openaiDeveloperDocs", instructions)
+        self.assertIn("codex mcp list", instructions)
+        self.assertIn("Never copy secrets", instructions)
+        self.assertIn("UNVERIFIED", instructions)
+        self.assertIn("not authorization", instructions.lower())
+
     def test_all_four_agent_roles_have_valid_contracts(self):
         expected = {
             "devobs_architecture",

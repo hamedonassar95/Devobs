@@ -90,6 +90,13 @@ class IntegrationCatalogTests(unittest.TestCase):
             data["services"][index]["cost_authorized"] = True
             self.invalid(data, "paid operations require")
 
+    def test_aictrl_repository_denial_is_not_runtime_proof(self):
+        record = next(s for s in self.inventory["services"] if s["id"] == "aictrl")
+        self.assertEqual(record["integration_status"], "account_connected_unlinked")
+        self.assertIs(record["runtime_verified"], False)
+        self.assertIn("not found", record["verified_capability"].lower())
+        self.assertIn("authorize that exact repository", record["blocker"])
+
     def test_non_object_rejected(self):
         self.invalid([], "Catalog must be a JSON object")
 

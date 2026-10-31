@@ -53,6 +53,22 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("NOT been run", gate["reason"])
         self.assertIn("separate owner approval", gate["next_action"])
 
+    def test_openai_docs_mcp_milestone_is_saved_without_claiming_runtime(self):
+        records = {entry["pr_number"]: entry for entry in self.data["milestones"]}
+        self.assertEqual(records[331]["merge_sha"], "08ca255967a1390888cab7010bb618180e83dba6")
+        self.assertEqual(records[332]["merge_sha"], "d412f15894bc5767c86fa0e6261836d1a2b45ddb")
+        self.assertIn("NOT VERIFIED", records[332]["limitations"])
+        self.assertIn("NOT RUN", records[331]["limitations"])
+        self.assertEqual(len(self.data["milestones"]), len(records))
+        self.assertEqual(
+            next(g for g in self.data["gates"] if g["id"] == "ai9-detection-quality")["status"],
+            "BLOCKED",
+        )
+        self.assertEqual(
+            next(g for g in self.data["gates"] if g["id"] == "p01-managed-saas")["status"],
+            "BLOCKED",
+        )
+
     def test_duplicate_achievement_rejected(self):
         self.data["milestones"].append(copy.deepcopy(self.data["milestones"][-1]))
         with self.assertRaisesRegex(InvalidLedger, "duplicate|not increasing"):
