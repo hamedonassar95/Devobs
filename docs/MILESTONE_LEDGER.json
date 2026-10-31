@@ -123,6 +123,39 @@
       "ci_run_id": 41174724412,
       "verification": "VERIFIED 2026-10-31: PR #333 merged with required CI on the exact reviewed head after a corrected test assertion; 611 tests ran, 22 skipped. Main CI 41174861181 passed, including static Pages publish and verification.",
       "limitations": "Docs MCP in Codex still CONFIGURATION ONLY; no local Codex CLI session, MCP handshake, remote tool call or subagent exercise. aictrl repository authorization returned not_found; no OAuth, paid inference or SaaS activation."
+    },
+    {
+      "id": "codex-docs-mcp-offline-registration-probe",
+      "area": "AGENT_OPERATIONS",
+      "title": "Fail-closed local Codex Docs MCP configuration/registration probe",
+      "pr_number": 334,
+      "pr_head_sha": "cd7049247d76e248ad9624b080458c1f13d3963b",
+      "merge_sha": "104050c066ec165ed3cd71aec738b0d3b96132c8",
+      "ci_run_id": 41175266360,
+      "verification": "VERIFIED GitHub 2026-10-31: PR CI success on exact head; postmerge main CI 41175406373 successful. Eight new offline probe tests passed on PR head.",
+      "limitations": "MCP runtime tool discovery and remote handshake NOT VERIFIED. Codex CLI was unavailable to local operator; P01 BLOCKED and AI-9 FAIL."
+    },
+    {
+      "id": "devobs-p00-p19-evidence-checklist",
+      "area": "DOCUMENTATION",
+      "title": "Reviewable P00-P19 execution checklist for official T01-T72 acceptance items",
+      "pr_number": 335,
+      "pr_head_sha": "c6b2bd1034f0ed30199c93818ea5179aa65c67ec",
+      "merge_sha": "a7eeafcb88f06f6afac10bf8a9dbd22ad6d22c84",
+      "ci_run_id": 41189031324,
+      "verification": "VERIFIED GitHub 2026-10-31: PR head CI success; 72 official T IDs, 20-phase table and one-file scope confirmed by source readback. Postmerge main CI 41189145921 successful.",
+      "limitations": "A checklist is NOT acceptance of unchecked tasks. No canonical B-series mapping verified, no SaaS hosting or new provider deployment, P01 BLOCKED and AI-9 FAIL."
+    },
+    {
+      "id": "p01-t07-offline-threat-model-matrix",
+      "area": "TENANT_ISOLATION",
+      "title": "P01 T07 offline trust boundaries and mutation-tested abuse-case contract",
+      "pr_number": 336,
+      "pr_head_sha": "e12a625ce3f1dc2c953f25010cafd709aa1888a2",
+      "merge_sha": "23e3cc7eae0d455d3d0e5638835bd67651a3a080",
+      "ci_run_id": 41189422355,
+      "verification": "VERIFIED GitHub 2026-10-31: PR head CI validate, Python, RLS, security, container and CodeQL successful; 634 Python tests, 22 skipped, 0 failed, including 14 new threat-model contract tests. Postmerge main CI 41189514856 SUCCESS on exact merge commit; static Pages publication is not managed SaaS.",
+      "limitations": "This proves a 12-zone/9-boundary/12-case OFFLINE model and fail-closed validation ONLY. Candidate test references are not full abuse-scenario or live staging evidence; P01 NO-GO and AI-9 FAIL."
     }
   ],
   "gates": [

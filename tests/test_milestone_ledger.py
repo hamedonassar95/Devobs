@@ -82,6 +82,29 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
 
+    def test_pr334_336_merges_recorded_without_promoting_blocked_gates(self):
+        records = {entry["pr_number"]: entry for entry in self.data["milestones"]}
+        expected = {
+            334: ("cd7049247d76e248ad9624b080458c1f13d3963b",
+                  "104050c066ec165ed3cd71aec738b0d3b96132c8", 41175266360),
+            335: ("c6b2bd1034f0ed30199c93818ea5179aa65c67ec",
+                  "a7eeafcb88f06f6afac10bf8a9dbd22ad6d22c84", 41189031324),
+            336: ("e12a625ce3f1dc2c953f25010cafd709aa1888a2",
+                  "23e3cc7eae0d455d3d0e5638835bd67651a3a080", 41189422355),
+        }
+        for number, (head, merged, ci) in expected.items():
+            with self.subTest(pr=number):
+                self.assertEqual(records[number]["pr_head_sha"], head)
+                self.assertEqual(records[number]["merge_sha"], merged)
+                self.assertEqual(records[number]["ci_run_id"], ci)
+                self.assertIn("P01", records[number]["limitations"])
+        self.assertIn("NOT VERIFIED", records[334]["limitations"])
+        self.assertIn("NOT acceptance", records[335]["limitations"])
+        self.assertIn("OFFLINE", records[336]["limitations"])
+        gates = {gate["id"]: gate["status"] for gate in self.data["gates"]}
+        self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
+        self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
+
     def test_duplicate_achievement_rejected(self):
         self.data["milestones"].append(copy.deepcopy(self.data["milestones"][-1]))
         with self.assertRaisesRegex(InvalidLedger, "duplicate|not increasing"):
