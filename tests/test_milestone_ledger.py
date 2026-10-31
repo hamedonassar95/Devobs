@@ -105,6 +105,26 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
 
+    def test_pr337_338_evidence_logged_without_codex_runtime_claim(self):
+        entries = {item["pr_number"]: item for item in self.data["milestones"]}
+        expected = {
+            337: ("0703694b7987bbe2ca0c45c149651535f9fed927",
+                  "f1bd3c5717d95a9ee89116c0fce49ef9fac572d7", 41189673147),
+            338: ("65a0cd7032043d167edf009699e1b88bc3c32ab0",
+                  "304665cbfb1576427f3ff74e0a946762f38906b7", 41190379411),
+        }
+        for number, (head, merged, ci) in expected.items():
+            with self.subTest(pr=number):
+                self.assertEqual(entries[number]["pr_head_sha"], head)
+                self.assertEqual(entries[number]["merge_sha"], merged)
+                self.assertEqual(entries[number]["ci_run_id"], ci)
+                self.assertIn("BLOCKED", entries[number]["limitations"])
+        self.assertIn("NOT verified executing Codex runtime", entries[338]["limitations"])
+        gates = {item["id"]: item["status"] for item in self.data["gates"]}
+        self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
+        self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
+        self.assertEqual(gates["codex-agent-runtime-acceptance"], "OPEN")
+
     def test_duplicate_achievement_rejected(self):
         self.data["milestones"].append(copy.deepcopy(self.data["milestones"][-1]))
         with self.assertRaisesRegex(InvalidLedger, "duplicate|not increasing"):
