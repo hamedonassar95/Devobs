@@ -398,6 +398,17 @@
       "ci_run_id": 41359976109,
       "verification": "VERIFIED 2026-11-01: PR #359 merged with CI run 41359976109 SUCCESS on the exact head; CodeQL run 41359974319 SUCCESS. PR CI skipped node-tests by its path condition; push CI run 41359959860 SUCCESS on the same head and ran Node and Python tests plus validate. Main CI run 41360103112 SUCCESS on exact merge SHA, including Pages publish and verify-production; Node tests skipped by path condition. Main CodeQL run 41360102509 SUCCESS. Vercel status failed on PR and merge SHA with `Deployment rate limited — retry in 24 hours` / build-rate-limit link.",
       "limitations": "Documentation/readiness synchronization and ledger regression only. Vercel was rate-limited on both PR preview and merged main; account plan/settings were not inspected or changed. Pages/verify-production establish the static site only. No live SaaS staging or AI service was activated. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
+    },
+    {
+      "id": "verified-readiness-ledger-pr360",
+      "area": "DOCUMENTATION",
+      "title": "Record PR #359 merge evidence and synchronize the current readiness snapshot",
+      "pr_number": 360,
+      "pr_head_sha": "b0796873b1d5916266a7cf88c6bfaddf8b2c9e6c",
+      "merge_sha": "3cc934e3199d1abed5366c92b17eeeff9be77d8f",
+      "ci_run_id": 41360357480,
+      "verification": "VERIFIED 2026-11-01: PR #360 merged with CI run 41360357480 SUCCESS on exact head; CodeQL run 41360354335 SUCCESS. PR CI skipped node-tests by its path condition; push CI run 41360344522 SUCCESS on the same head and ran Node/Python tests plus validate. Main CI run 41360454373 SUCCESS on exact merge SHA, including Pages publish and verify-production; node-tests skipped by path condition. Main CodeQL run 41360454062 SUCCESS. Vercel failed on PR and merge SHA with `Deployment rate limited — retry in 24 hours` / build-rate-limit link.",
+      "limitations": "Documentation/readiness synchronization and ledger regression only. Vercel was rate-limited on both PR preview and merged main; account plan/settings were not inspected or changed. Pages/verify-production establish the static site only. No live SaaS staging or AI service was activated. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
     }
   ],
   "gates": [
