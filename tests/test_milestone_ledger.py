@@ -186,6 +186,20 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
         self.assertEqual(gates["codex-agent-runtime-acceptance"], "OPEN")
 
+    def test_pr346_merge_is_recorded_without_advancing_readiness_gates(self):
+        result = validate(self.data)
+        self.assertEqual(result["latest_pr"], 346)
+        entry = next(item for item in self.data["milestones"] if item["pr_number"] == 346)
+        self.assertEqual(entry["pr_head_sha"], "1645df5c149323f250d68830123907ff2bbe8242")
+        self.assertEqual(entry["merge_sha"], "e5bfd3e46a44e8946056b1040d8043f3a22f4b23")
+        self.assertEqual(entry["ci_run_id"], 41350441454)
+        self.assertIn("Main CI 41350693382 SUCCESS", entry["verification"])
+        self.assertIn("verify-production", entry["verification"])
+        gates = {item["id"]: item["status"] for item in self.data["gates"]}
+        self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
+        self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
+        self.assertEqual(gates["codex-agent-runtime-acceptance"], "OPEN")
+
     def test_duplicate_achievement_rejected(self):
         self.data["milestones"].append(copy.deepcopy(self.data["milestones"][-1]))
         with self.assertRaisesRegex(InvalidLedger, "duplicate|not increasing"):
