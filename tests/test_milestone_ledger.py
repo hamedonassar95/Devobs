@@ -163,20 +163,24 @@ class MilestoneLedgerTests(unittest.TestCase):
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         expected = {
             342: ("aa6d90556353423290b52e5032e5d5dbd8e3ed2e",
-                  "b741d4b29e39e99de4f6fb29e7ed1fc7aed06940", 41191958371),
+                  "b741d4b29e39e99de4f6fb29e7ed1fc7aed06940", 41191958371, 41192337652),
             343: ("b759d9d1164ffb03baf03cf702ff417bc86a3e36",
-                  "24d71c753354f452ea5239aa659b8d94bedcad8e", 41192715097),
+                  "24d71c753354f452ea5239aa659b8d94bedcad8e", 41192715097, 41192806183),
             344: ("694c4e2612393508ca616a13b91c4219d81e9a62",
-                  "552bc49c5c9add27ab38552f36a45a73b311dd23", 41342999772),
+                  "552bc49c5c9add27ab38552f36a45a73b311dd23", 41342999772, 41343195262),
             345: ("324db74a0429404067f318772a4cce1938c3607d",
-                  "26f8adcbae62aab0cbd6bd24a692c8c443c3619b", 41344032855),
+                  "26f8adcbae62aab0cbd6bd24a692c8c443c3619b", 41344032855, 41344203872),
         }
-        for number, (head, merged, ci) in expected.items():
+        for number, (head, merged, ci, main_ci) in expected.items():
             with self.subTest(pr=number):
                 self.assertEqual(records[number]["pr_head_sha"], head)
                 self.assertEqual(records[number]["merge_sha"], merged)
                 self.assertEqual(records[number]["ci_run_id"], ci)
                 self.assertIn("VERIFIED", records[number]["verification"])
+                self.assertIn(
+                    f"main ci {main_ci} success".lower(),
+                    records[number]["verification"].lower(),
+                )
         gates = {item["id"]: item["status"] for item in self.data["gates"]}
         self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")

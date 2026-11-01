@@ -231,7 +231,7 @@
       "pr_head_sha": "b759d9d1164ffb03baf03cf702ff417bc86a3e36",
       "merge_sha": "24d71c753354f452ea5239aa659b8d94bedcad8e",
       "ci_run_id": 41192715097,
-      "verification": "VERIFIED 2026-11-01: PR-head CI 41192715097 SUCCESS on exact SHA; main CI 41342866653 SUCCESS on exact merge SHA.",
+      "verification": "VERIFIED 2026-11-01: PR-head CI 41192715097 SUCCESS on exact SHA; main CI 41192806183 SUCCESS on exact merge SHA.",
       "limitations": "Ledger/documentation and regression-test evidence only. Does not establish provider activation, live MCP/subagent execution, AI-9 quality or P01 readiness; those gates remain unchanged."
     },
     {
@@ -242,7 +242,7 @@
       "pr_head_sha": "694c4e2612393508ca616a13b91c4219d81e9a62",
       "merge_sha": "552bc49c5c9add27ab38552f36a45a73b311dd23",
       "ci_run_id": 41342999772,
-      "verification": "VERIFIED 2026-11-01: PR-head CI 41342999772 SUCCESS on exact SHA; main CI 41343813435 SUCCESS on exact merge SHA. Offline handoff preflight and tests only.",
+      "verification": "VERIFIED 2026-11-01: PR-head CI 41342999772 SUCCESS on exact SHA; main CI 41343195262 SUCCESS on exact merge SHA. Offline handoff preflight and tests only.",
       "limitations": "No API calls, data transfer, provider authentication or external project authorization was exercised. This is not a live integration or identity/privacy approval; P01 remains NO-GO."
     },
     {
@@ -253,7 +253,7 @@
       "pr_head_sha": "324db74a0429404067f318772a4cce1938c3607d",
       "merge_sha": "26f8adcbae62aab0cbd6bd24a692c8c443c3619b",
       "ci_run_id": 41344032855,
-      "verification": "VERIFIED 2026-11-01: PR-head CI 41344032855 SUCCESS on exact SHA; 659 Python tests passed, 22 skipped, 0 failed. CodeQL and review workflow 41344035391 succeeded. Main CI 41344886930 SUCCESS on exact merge SHA.",
+      "verification": "VERIFIED 2026-11-01: PR-head CI 41344032855 SUCCESS on exact SHA; 659 Python tests passed, 22 skipped, 0 failed. CodeQL succeeded on the same SHA; code-scanning review run 41344035391 succeeded. Main CI 41344203872 SUCCESS on exact merge SHA.",
       "limitations": "Offline validation only; does not prove reviewer identity, independent redaction, rights, provenance or a live integration. P01 remains NO-GO and AI-9 remains FAIL."
     }
   ],
