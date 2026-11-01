@@ -1,5 +1,16 @@
 # Devobs production readiness — current evidence
 
+## Superseding snapshot — 2026-11-01
+
+The dated assessment below records the repository state on 2026-10-29. The current `main` revision is `26f8adcbae62aab0cbd6bd24a692c8c443c3619b` (merged PR #345); this snapshot supersedes statements below that conflict with later source evidence.
+
+- **AI-9: FAIL / BLOCKED.** The synthetic v2 evaluator is now present at [`scripts/ai_intelligence/ai9_synthetic_evaluation_v2.mjs`](../scripts/ai_intelligence/ai9_synthetic_evaluation_v2.mjs), with synthetic results and pre-registration documents in `docs/`. Its existence and synthetic runs do not prove independent real-world quality or authorize production. The independent v3 frozen seeds remain unrun pending separate approval.
+- **P01: NO-GO / BLOCKED.** No enforceable all-in monthly spend cap, live identity, hosted tenant isolation, or restore evidence is established. No staging service is authorized.
+- **Codex agent runtime: OPEN.** Local Docs MCP configuration/registration checks pass but explicitly report runtime unverified. Specialist-agent discovery and execution in a trusted Codex runtime have not been verified.
+- PRs [#342](https://github.com/hamedonassar95/Devobs/pull/342)–[#345](https://github.com/hamedonassar95/Devobs/pull/345) added offline contracts and preflight checks; none proves hosted API, live OIDC/RLS, or external project authorization.
+
+The current running history and exact merge evidence are maintained in [`STATE.md`](../STATE.md) and the milestone ledger.
+
 **Assessment date:** 2026-10-29 UTC
 **Repository:** `hamedonassar95/Devobs`
 **PR #289 implementation merge commit:** `7fbc0c88fb3e0362c119dd9ddc2a03478753d33d`
