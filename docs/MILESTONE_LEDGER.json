@@ -255,6 +255,17 @@
       "ci_run_id": 41344032855,
       "verification": "VERIFIED 2026-11-01: PR-head CI 41344032855 SUCCESS on exact SHA; 659 Python tests passed, 22 skipped, 0 failed. CodeQL succeeded on the same SHA; code-scanning review run 41344035391 succeeded. Main CI 41344203872 SUCCESS on exact merge SHA.",
       "limitations": "Offline validation only; does not prove reviewer identity, independent redaction, rights, provenance or a live integration. P01 remains NO-GO and AI-9 remains FAIL."
+    },
+    {
+      "id": "verified-readiness-ledger-pr346",
+      "area": "DOCUMENTATION",
+      "title": "Synchronize verified milestones through PR #345 and supersede stale readiness evidence",
+      "pr_number": 346,
+      "pr_head_sha": "1645df5c149323f250d68830123907ff2bbe8242",
+      "merge_sha": "e5bfd3e46a44e8946056b1040d8043f3a22f4b23",
+      "ci_run_id": 41350441454,
+      "verification": "VERIFIED 2026-11-01: PR-head CI 41350441454 SUCCESS; CodeQL 41350436863, code-scanning 41350442722, advisory AI review 41350441333 and Vercel succeeded on the exact head. Main CI 41350693382 SUCCESS on the exact merge SHA, including Pages publish and verify-production; main CodeQL run 41350692588 SUCCESS.",
+      "limitations": "Documentation and regression evidence only. No live SaaS staging or runtime agent discovery. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
     }
   ],
   "gates": [
