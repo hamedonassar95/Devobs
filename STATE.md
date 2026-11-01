@@ -1,5 +1,12 @@
 # حالة مستودع Devobs
 
+## دمج PR #362 — تحقق 2026-11-01
+
+- **VERIFIED من GitHub:** دُمج [PR #362](https://github.com/hamedonassar95/Devobs/pull/362)، رأسه `be9f716a7181dc5a005db33267f5aa316d4388b2`، عند merge SHA `916d511665370b8533ff502c68e71b5e12fcf24b`.
+- **CI الرأس:** نجح PR CI في [run 41361116522](https://github.com/hamedonassar95/Devobs/actions/runs/41361116522) وCodeQL في [run 41361113923](https://github.com/hamedonassar95/Devobs/actions/runs/41361113923). تخطّى PR CI اختبارات Node لشرط المسارات؛ نجح push CI [run 41361102359](https://github.com/hamedonassar95/Devobs/actions/runs/41361102359) على الرأس نفسه وشغّل Node وPython وبقية الفحوص.
+- **بعد الدمج:** نجح main CI [run 41361229621](https://github.com/hamedonassar95/Devobs/actions/runs/41361229621) على SHA الدمج، بما فيه نشر Pages و`verify-production`؛ تخطّى Node لاختبار المسارات. نجح CodeQL على main في [run 41361228767](https://github.com/hamedonassar95/Devobs/actions/runs/41361228767). فشل Vercel على معاينة PR وعلى SHA الدمج بسبب حد معدل البناء؛ لم تُغيّر إعدادات الحساب.
+- PR #362 سجّل دمج #361 وحدّث لقطة الجاهزية؛ لا يثبت خدمة SaaS. AI-9 **FAIL / BLOCKED**، وP01 **NO-GO / BLOCKED**، وقبول Codex agent runtime **OPEN**.
+
 ## دمج PR #361 — تحقق 2026-11-01
 
 - **VERIFIED من GitHub:** دُمج [PR #361](https://github.com/hamedonassar95/Devobs/pull/361)، رأسه `c85fed83cbeee6cdb1fbee8dba50301765a1a888`، عند merge SHA `0147224f9177fb956e5ff58fea8df242dbbd7d4a`.
