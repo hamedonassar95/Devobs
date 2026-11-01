@@ -1,5 +1,12 @@
 # حالة مستودع Devobs
 
+## دمج PR #363 — تحقق 2026-11-01
+
+- **VERIFIED من GitHub:** دُمج [PR #363](https://github.com/hamedonassar95/Devobs/pull/363)، رأسه `79f8eb9793b1acd541bd39cdd71c637989a95085`، عند merge SHA `2eeb5298dd846c236c4a825cc739874bd2d067e6`. يطابق `git ls-remote origin refs/heads/main` هذا الـSHA.
+- **CI الرأس:** نجح PR CI في [run 41361488020](https://github.com/hamedonassar95/Devobs/actions/runs/41361488020) وCodeQL في [run 41361485982](https://github.com/hamedonassar95/Devobs/actions/runs/41361485982) والمراجعة الإرشادية في [run 41361488059](https://github.com/hamedonassar95/Devobs/actions/runs/41361488059). تخطّى PR CI اختبار Node بسبب شرط المسارات؛ نجح push CI [run 41361474917](https://github.com/hamedonassar95/Devobs/actions/runs/41361474917) على الرأس نفسه وشغّل Node وPython.
+- **بعد الدمج:** نجح main CI [run 41361625894](https://github.com/hamedonassar95/Devobs/actions/runs/41361625894) وCodeQL [run 41361625560](https://github.com/hamedonassar95/Devobs/actions/runs/41361625560) على SHA الدمج. شمل CI `validate` وPython وPostgreSQL RLS والأمان وصورة الحاوية وTerraform ونشر Pages والتحقق من الموقع الثابت؛ تخطّى Node لشرط المسارات. فشلت حالة Vercel على PR وSHA الدمج برابط حد معدل البناء؛ لم تتغير إعدادات الحساب.
+- PR #363 سجّل دمج #362 فقط؛ لا يثبت خدمة SaaS. AI-9 **FAIL / BLOCKED**، وP01 **NO-GO / BLOCKED**، وقبول Codex agent runtime **OPEN**.
+
 ## دمج PR #362 — تحقق 2026-11-01
 
 - **VERIFIED من GitHub:** دُمج [PR #362](https://github.com/hamedonassar95/Devobs/pull/362)، رأسه `be9f716a7181dc5a005db33267f5aa316d4388b2`، عند merge SHA `916d511665370b8533ff502c68e71b5e12fcf24b`.
