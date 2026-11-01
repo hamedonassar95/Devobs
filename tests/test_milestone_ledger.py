@@ -188,7 +188,7 @@ class MilestoneLedgerTests(unittest.TestCase):
 
     def test_pr346_merge_is_recorded_without_advancing_readiness_gates(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 350)
+        self.assertEqual(result["latest_pr"], 351)
         entry = next(item for item in self.data["milestones"] if item["pr_number"] == 346)
         self.assertEqual(entry["pr_head_sha"], "1645df5c149323f250d68830123907ff2bbe8242")
         self.assertEqual(entry["merge_sha"], "e5bfd3e46a44e8946056b1040d8043f3a22f4b23")
@@ -202,7 +202,7 @@ class MilestoneLedgerTests(unittest.TestCase):
 
     def test_pr347_merge_records_pr_preview_limit_and_main_success_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 350)
+        self.assertEqual(result["latest_pr"], 351)
         entry = next(item for item in self.data["milestones"] if item["pr_number"] == 347)
         self.assertEqual(entry["pr_head_sha"], "8d8c59d38b3509bd80a5055053f36bb43df1ece3")
         self.assertEqual(entry["merge_sha"], "de11d125f0146b627a220683df8143d8dc0b01f1")
@@ -219,7 +219,7 @@ class MilestoneLedgerTests(unittest.TestCase):
 
     def test_pr348_merge_records_vercel_rate_limit_and_main_success_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 350)
+        self.assertEqual(result["latest_pr"], 351)
         entry = next(item for item in self.data["milestones"] if item["pr_number"] == 348)
         self.assertEqual(entry["pr_head_sha"], "2e690c1bba30da70aa5ece696a056a95829764eb")
         self.assertEqual(entry["merge_sha"], "2639aad5f62ba1cb0b0192ad25d8853f6828023e")
@@ -236,7 +236,7 @@ class MilestoneLedgerTests(unittest.TestCase):
 
     def test_pr349_merge_records_exact_checks_and_vercel_limit_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 350)
+        self.assertEqual(result["latest_pr"], 351)
         entry = next(item for item in self.data["milestones"] if item["pr_number"] == 349)
         self.assertEqual(entry["pr_head_sha"], "d4ffaf9423fd98c61f12bdaed997dbb1bb621288")
         self.assertEqual(entry["merge_sha"], "f8e55d71ef194f5abb729dcf179ebb647eafe43b")
@@ -254,7 +254,7 @@ class MilestoneLedgerTests(unittest.TestCase):
 
     def test_pr350_merge_records_main_success_and_preserves_readiness_gates(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 350)
+        self.assertEqual(result["latest_pr"], 351)
         entry = next(item for item in self.data["milestones"] if item["pr_number"] == 350)
         self.assertEqual(entry["pr_head_sha"], "d7d6a206c4fbc56d3ecb76458a423a2b4bb599b9")
         self.assertEqual(entry["merge_sha"], "1b32f0ffdfbbaacd60207be995d34f2b88d271d4")
@@ -264,6 +264,23 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("verify-production", entry["verification"])
         self.assertIn("41353315286 SUCCESS", entry["verification"])
         self.assertIn("Vercel status SUCCESS", entry["verification"])
+        gates = {item["id"]: item["status"] for item in self.data["gates"]}
+        self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
+        self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
+        self.assertEqual(gates["codex-agent-runtime-acceptance"], "OPEN")
+
+    def test_pr351_merge_records_main_success_and_preserves_readiness_gates(self):
+        result = validate(self.data)
+        self.assertEqual(result["latest_pr"], 351)
+        entry = next(item for item in self.data["milestones"] if item["pr_number"] == 351)
+        self.assertEqual(entry["pr_head_sha"], "7d71fc6a8a151db61f652d4bdce38ceb5c3ae240")
+        self.assertEqual(entry["merge_sha"], "a30dbeae08d54edbbff7c6790f7e59a6cd47bb14")
+        self.assertEqual(entry["ci_run_id"], 41353541830)
+        self.assertIn("41353531301", entry["verification"])
+        self.assertIn("41354155904 SUCCESS", entry["verification"])
+        self.assertIn("verify-production", entry["verification"])
+        self.assertIn("41354155804 SUCCESS", entry["verification"])
+        self.assertIn("Vercel status remained FAILURE", entry["verification"])
         gates = {item["id"]: item["status"] for item in self.data["gates"]}
         self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
