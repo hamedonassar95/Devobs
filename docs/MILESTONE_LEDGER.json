@@ -266,6 +266,17 @@
       "ci_run_id": 41350441454,
       "verification": "VERIFIED 2026-11-01: PR-head CI 41350441454 SUCCESS; CodeQL 41350436863, code-scanning 41350442722, advisory AI review 41350441333 and Vercel succeeded on the exact head. Main CI 41350693382 SUCCESS on the exact merge SHA, including Pages publish and verify-production; main CodeQL run 41350692588 SUCCESS.",
       "limitations": "Documentation and regression evidence only. No live SaaS staging or runtime agent discovery. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
+    },
+    {
+      "id": "verified-readiness-ledger-pr347",
+      "area": "DOCUMENTATION",
+      "title": "Record PR #346 merge evidence and synchronize the current readiness snapshot",
+      "pr_number": 347,
+      "pr_head_sha": "8d8c59d38b3509bd80a5055053f36bb43df1ece3",
+      "merge_sha": "de11d125f0146b627a220683df8143d8dc0b01f1",
+      "ci_run_id": 41350908437,
+      "verification": "VERIFIED 2026-11-01: PR-head CI 41350908437 SUCCESS; CodeQL 41350906148, code-scanning 41350911550, and advisory AI review 41350908307 SUCCESS. PR preview Vercel failed with `Deployment rate limited — retry in 24 hours`. Main CI 41352023746 SUCCESS on the exact merge SHA, including validate, Pages publish, and verify-production; main CodeQL run 41352024004 SUCCESS; Vercel status SUCCESS on the merge SHA.",
+      "limitations": "Documentation and ledger regression only. The PR preview rate limit was observed before merge; the post-merge Vercel status passed. No Vercel plan/settings were inspected or changed, and no live SaaS staging was created. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
     }
   ],
   "gates": [
