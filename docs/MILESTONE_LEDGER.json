@@ -387,6 +387,17 @@
       "ci_run_id": 41359194103,
       "verification": "VERIFIED 2026-11-01: owner approval comment on PR #357 authorized one no-fee run on main SHA 80dbcb3466c1368662190736a442d1082e7f2b54 using registration ai9-coherent-onset-v3 and seeds 20270601-20270604 exactly once. Evaluator result ALL_FROZEN_WINDOW_GATES_PASS; each v3 seed met the frozen Precision/Recall/FPR thresholds. PR CI 41359194103 SUCCESS including Node and Python; CodeQL run 41359222608 and GitHub Advanced Security run 41359229242 SUCCESS; Vercel PR preview SUCCESS. Main CI 41359551458 SUCCESS on merge SHA including validate, Pages publish and verify-production; Node/Python were skipped by the docs-only path condition. Main CodeQL run 41359550746 SUCCESS; Vercel status SUCCESS on the merge SHA.",
       "limitations": "Four independent seed draws on the existing synthetic generator only, not real incident labels or real-world quality evidence. Result does not supersede the historical AI-9 FAIL or authorize production; AI-9 remains FAIL/BLOCKED and P01 remains NO-GO/BLOCKED. No detector changes, live SaaS resources, customer data or paid inference. The reserved seeds are consumed and must never be rerun."
+    },
+    {
+      "id": "verified-readiness-ledger-pr359",
+      "area": "DOCUMENTATION",
+      "title": "Record PR #358 merge evidence and synchronize the current readiness snapshot",
+      "pr_number": 359,
+      "pr_head_sha": "841bac90be6ac46ef31463de54a884eca7a79c08",
+      "merge_sha": "4ec87730f0eb768c7ebe7757a77631279004df2a",
+      "ci_run_id": 41359976109,
+      "verification": "VERIFIED 2026-11-01: PR #359 merged with CI run 41359976109 SUCCESS on the exact head; CodeQL run 41359974319 SUCCESS. PR CI skipped node-tests by its path condition; push CI run 41359959860 SUCCESS on the same head and ran Node and Python tests plus validate. Main CI run 41360103112 SUCCESS on exact merge SHA, including Pages publish and verify-production; Node tests skipped by path condition. Main CodeQL run 41360102509 SUCCESS. Vercel status failed on PR and merge SHA with `Deployment rate limited — retry in 24 hours` / build-rate-limit link.",
+      "limitations": "Documentation/readiness synchronization and ledger regression only. Vercel was rate-limited on both PR preview and merged main; account plan/settings were not inspected or changed. Pages/verify-production establish the static site only. No live SaaS staging or AI service was activated. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
     }
   ],
   "gates": [
