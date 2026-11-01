@@ -1,5 +1,13 @@
 # حالة مستودع Devobs
 
+## دمج PR #358 — تحقق 2026-11-01
+
+- **VERIFIED من GitHub:** دُمج [PR #358](https://github.com/hamedonassar95/Devobs/pull/358)، رأسه `8ac1ce8be2218946c87a97c5105ec57cc49b49fb`، عند merge SHA `3eb987a85c2d85071ad760b205e6f5c84a3ab586`.
+- **CI الرأس:** [run 41359194103](https://github.com/hamedonassar95/Devobs/actions/runs/41359194103) نجح، بما فيه اختبارات Node وPython وRLS وsecurity وTerraform والحاوية وsite-contract. نجح CodeQL في [run 41359222608](https://github.com/hamedonassar95/Devobs/actions/runs/41359222608)، وGitHub Advanced Security في [run 41359229242](https://github.com/hamedonassar95/Devobs/actions/runs/41359229242)، ومعاينة Vercel.
+- **بعد الدمج:** [main CI run 41359551458](https://github.com/hamedonassar95/Devobs/actions/runs/41359551458) نجح على SHA الدمج، بما فيه validate ونشر Pages و`verify-production`. تخطّى اختبارات Node وPython لشرط المسارات في هذا التغيير التوثيقي. نجح تحليل CodeQL على main في [run 41359550746](https://github.com/hamedonassar95/Devobs/actions/runs/41359550746)، وحالة Vercel على SHA الدمج ناجحة.
+- **AI-9 v3 — قياس اصطناعي مرة واحدة:** نُفّذ المقيم المسجل `ai9-coherent-onset-v3` على SHA `80dbcb3466c1368662190736a442d1082e7f2b54` بموافقة المالك المسجلة على PR #357، للبذور `20270601`–`20270604`. ظهر `ALL_FROZEN_WINDOW_GATES_PASS`. لكل بذرة 45,240 نافذة؛ متوسط V3 Precision `94.8288%`، Recall `84.1667%`، وFPR `0.009413%`. لا حالات مفقودة؛ أقصى تأخير نافذة واحدة. سجل [ملف النتائج](docs/AI9_V3_FROZEN_HOLDOUT_RESULTS.json) المقاييس والبصمات بالتفصيل.
+- **الحدود:** هذه أربعة سحوبات من المولد الاصطناعي الحالي، وليست حوادث حقيقية ولا دليلًا على التعميم الواقعي. النتيجة لا ترفع البوابة الرسمية: AI-9 **FAIL / NOT AUTHORIZED**، وP01 **NO-GO / BLOCKED**. لم يتغير كاشف الإنتاج ولم تُنشأ موارد SaaS أو يُستخدم استدلال مدفوع. البذور مستهلكة ولا يجوز إعادة تشغيلها.
+
 ## دمج PR #356 — تحقق 2026-11-01
 
 - **VERIFIED من GitHub:** دُمج PR [#356](https://github.com/hamedonassar95/Devobs/pull/356)، برأس `faf873cdaa5ee2bcaa6a2ac6b105f9186adb799d` إلى `main` عند merge SHA `e5af2aebef15d2cd6587406e0f49f9f28c824feb`. نجح PR CI run `41356339944`، وتحليل CodeQL run `41356337722`، وGitHub Advanced Security run `41356343048`. تخطّى PR CI اختبارات Node وفق شرط المسارات؛ push CI run `41356329310` شغّل اختبارات Node ونجح على الرأس نفسه.

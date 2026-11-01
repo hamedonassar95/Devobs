@@ -376,15 +376,26 @@
       "ci_run_id": 41356339944,
       "verification": "VERIFIED 2026-11-01: PR-head CI 41356339944 SUCCESS; CodeQL run 41356337722 and GitHub Advanced Security run 41356343048 SUCCESS. PR CI skipped node-tests by its path condition; push CI 41356329310 SUCCESS on the same exact head and ran node-tests successfully. PR-preview Vercel failed with the build-rate-limit upgrade link. Main CI 41356533259 SUCCESS on the exact merge SHA, including validate, Pages publish, and verify-production; main security analysis run 41356533488 SUCCESS. Vercel status remained FAILURE on the merge SHA with the build-rate-limit upgrade link.",
       "limitations": "Documentation and ledger regression only. Vercel was rate-limited on the PR preview and merged main; account plan/settings were not inspected or changed. No live SaaS staging was created. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
+    },
+    {
+      "id": "ai9-v3-frozen-holdout-result-pr358",
+      "area": "QUALITY",
+      "title": "Record the one-time preregistered synthetic AI-9 v3 frozen holdout result",
+      "pr_number": 358,
+      "pr_head_sha": "8ac1ce8be2218946c87a97c5105ec57cc49b49fb",
+      "merge_sha": "3eb987a85c2d85071ad760b205e6f5c84a3ab586",
+      "ci_run_id": 41359194103,
+      "verification": "VERIFIED 2026-11-01: owner approval comment on PR #357 authorized one no-fee run on main SHA 80dbcb3466c1368662190736a442d1082e7f2b54 using registration ai9-coherent-onset-v3 and seeds 20270601-20270604 exactly once. Evaluator result ALL_FROZEN_WINDOW_GATES_PASS; each v3 seed met the frozen Precision/Recall/FPR thresholds. PR CI 41359194103 SUCCESS including Node and Python; CodeQL run 41359222608 and GitHub Advanced Security run 41359229242 SUCCESS; Vercel PR preview SUCCESS. Main CI 41359551458 SUCCESS on merge SHA including validate, Pages publish and verify-production; Node/Python were skipped by the docs-only path condition. Main CodeQL run 41359550746 SUCCESS; Vercel status SUCCESS on the merge SHA.",
+      "limitations": "Four independent seed draws on the existing synthetic generator only, not real incident labels or real-world quality evidence. Result does not supersede the historical AI-9 FAIL or authorize production; AI-9 remains FAIL/BLOCKED and P01 remains NO-GO/BLOCKED. No detector changes, live SaaS resources, customer data or paid inference. The reserved seeds are consumed and must never be rerun."
     }
   ],
   "gates": [
     {
       "id": "ai9-detection-quality",
       "status": "BLOCKED",
-      "source": "docs/AI9_COHERENT_ONSET_V3_REPLAY_RESULTS.md",
-      "reason": "The v3 reused-seed evaluation is NOT independent. PR #329 merged a manual-only locked evaluator, but frozen seeds 20270601-20270604 have NOT been run or reviewed. No real-data generalization or owner production approval exists.",
-      "next_action": "Obtain separate owner approval tied to a reviewed main SHA. Only then, after full-history collision checks, use the documented one-time manual evaluator for frozen seeds 20270601-20270604 and record even FAIL/INVALID evidence in a separate PR. Retain AI-9 FAIL until independently authorized."
+      "source": "docs/AI9_V3_INDEPENDENT_EVAL_GATE.md",
+      "reason": "VERIFIED 2026-11-01: the preregistered four-seed v3 synthetic holdout produced ALL_FROZEN_WINDOW_GATES_PASS on the approved SHA. It uses seed draws from the existing synthetic generator, not independent labeled incident data or real-world evidence. Official AI-9 remains FAIL / NOT AUTHORIZED for production.",
+      "next_action": "Obtain independently sourced, privacy/provenance-reviewed labeled incident evidence and preregister any new evaluation before use. Keep consumed seeds closed, retain AI-9 FAIL, and require a separate owner release decision; synthetic results do not authorize production."
     },
     {
       "id": "p01-managed-saas",
