@@ -365,6 +365,17 @@
       "ci_run_id": 41355833192,
       "verification": "VERIFIED 2026-11-01: PR-head CI 41355833192 SUCCESS; CodeQL run 41355830866 and GitHub Advanced Security run 41355837446 SUCCESS. PR CI skipped node-tests by its path condition; push CI 41355820779 SUCCESS on the same exact head and ran node-tests successfully. PR-preview Vercel failed with the build-rate-limit upgrade link. Main CI 41356132745 SUCCESS on the exact merge SHA, including validate, Pages publish, and verify-production; main security analysis run 41356132195 SUCCESS; Vercel status SUCCESS on the merge SHA.",
       "limitations": "Documentation and ledger regression only. Vercel was rate-limited on the PR preview but succeeded on the merged main SHA; account plan/settings were not inspected or changed. No live SaaS staging was created. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
+    },
+    {
+      "id": "verified-readiness-ledger-pr356",
+      "area": "DOCUMENTATION",
+      "title": "Record PR #355 merge evidence and synchronize the current readiness snapshot",
+      "pr_number": 356,
+      "pr_head_sha": "faf873cdaa5ee2bcaa6a2ac6b105f9186adb799d",
+      "merge_sha": "e5af2aebef15d2cd6587406e0f49f9f28c824feb",
+      "ci_run_id": 41356339944,
+      "verification": "VERIFIED 2026-11-01: PR-head CI 41356339944 SUCCESS; CodeQL run 41356337722 and GitHub Advanced Security run 41356343048 SUCCESS. PR CI skipped node-tests by its path condition; push CI 41356329310 SUCCESS on the same exact head and ran node-tests successfully. PR-preview Vercel failed with the build-rate-limit upgrade link. Main CI 41356533259 SUCCESS on the exact merge SHA, including validate, Pages publish, and verify-production; main security analysis run 41356533488 SUCCESS. Vercel status remained FAILURE on the merge SHA with the build-rate-limit upgrade link.",
+      "limitations": "Documentation and ledger regression only. Vercel was rate-limited on the PR preview and merged main; account plan/settings were not inspected or changed. No live SaaS staging was created. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
     }
   ],
   "gates": [
