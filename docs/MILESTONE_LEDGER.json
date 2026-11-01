@@ -211,6 +211,50 @@
       "ci_run_id": 41191357480,
       "verification": "VERIFIED 2026-10-31: PR-head CI 41191357480 SUCCESS, Python 651 tests with 22 skipped/0 failures plus required validate, CodeQL, Terraform/RLS/security/container checks; postmerge main CI 41191496396 SUCCESS on exact merge SHA including static Pages publication/verify.",
       "limitations": "Historical merged evidence only. P01 T09 remains a partial mocked Terraform plan check, NOT approved hosted SaaS, cost cap, identity, recovery or production. P01/AI-9 remain BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "p01-t14-openapi-wsgi-contract",
+      "area": "TENANT_ISOLATION",
+      "title": "Source-backed OpenAPI and synthetic WSGI contracts for read-only staging routes",
+      "pr_number": 342,
+      "pr_head_sha": "aa6d90556353423290b52e5032e5d5dbd8e3ed2e",
+      "merge_sha": "b741d4b29e39e99de4f6fb29e7ed1fc7aed06940",
+      "ci_run_id": 41191958371,
+      "verification": "VERIFIED 2026-11-01: PR-head CI 41191958371 SUCCESS on exact SHA; 636 Python tests passed, 22 skipped, 0 failed, including 7 new WSGI/OpenAPI contract tests. Main CI 41192337652 SUCCESS on exact merge SHA.",
+      "limitations": "Offline/source-backed contracts only; no live HTTPS, OIDC, hosted tenant isolation, gateway/load or production evidence. P01 NO-GO and AI-9 FAIL."
+    },
+    {
+      "id": "verified-pr343-ledger-sync",
+      "area": "DOCUMENTATION",
+      "title": "Persist reviewed PR #341 evidence in the milestone ledger",
+      "pr_number": 343,
+      "pr_head_sha": "b759d9d1164ffb03baf03cf702ff417bc86a3e36",
+      "merge_sha": "24d71c753354f452ea5239aa659b8d94bedcad8e",
+      "ci_run_id": 41192715097,
+      "verification": "VERIFIED 2026-11-01: PR-head CI 41192715097 SUCCESS on exact SHA; main CI 41342866653 SUCCESS on exact merge SHA.",
+      "limitations": "Ledger/documentation and regression-test evidence only. Does not establish provider activation, live MCP/subagent execution, AI-9 quality or P01 readiness; those gates remain unchanged."
+    },
+    {
+      "id": "offline-independent-project-handoff-preflight",
+      "area": "AGENT_OPERATIONS",
+      "title": "Fail-closed offline handoff preflight across four independent projects",
+      "pr_number": 344,
+      "pr_head_sha": "694c4e2612393508ca616a13b91c4219d81e9a62",
+      "merge_sha": "552bc49c5c9add27ab38552f36a45a73b311dd23",
+      "ci_run_id": 41342999772,
+      "verification": "VERIFIED 2026-11-01: PR-head CI 41342999772 SUCCESS on exact SHA; main CI 41343813435 SUCCESS on exact merge SHA. Offline handoff preflight and tests only.",
+      "limitations": "No API calls, data transfer, provider authentication or external project authorization was exercised. This is not a live integration or identity/privacy approval; P01 remains NO-GO."
+    },
+    {
+      "id": "repair-knowledge-packet-review-contract",
+      "area": "AGENT_OPERATIONS",
+      "title": "Fail-closed offline review contract for local repair knowledge packets",
+      "pr_number": 345,
+      "pr_head_sha": "324db74a0429404067f318772a4cce1938c3607d",
+      "merge_sha": "26f8adcbae62aab0cbd6bd24a692c8c443c3619b",
+      "ci_run_id": 41344032855,
+      "verification": "VERIFIED 2026-11-01: PR-head CI 41344032855 SUCCESS on exact SHA; 659 Python tests passed, 22 skipped, 0 failed. CodeQL and review workflow 41344035391 succeeded. Main CI 41344886930 SUCCESS on exact merge SHA.",
+      "limitations": "Offline validation only; does not prove reviewer identity, independent redaction, rights, provenance or a live integration. P01 remains NO-GO and AI-9 remains FAIL."
     }
   ],
   "gates": [
@@ -232,8 +276,8 @@
       "id": "codex-agent-runtime-acceptance",
       "status": "OPEN",
       "source": "docs/CODEX_AGENT_OPERATING_MODEL.md",
-      "reason": "Configuration and contract tests exist but subagents have not been exercised in a compatible Codex runtime.",
-      "next_action": "Run a read-only two-role architecture/security trial against a selected PR and record fresh evidence."
+      "reason": "VERIFIED 2026-11-01: Codex CLI 0.163.0 is installed; the local Docs MCP config and `--codex-list` registration checks pass, but the checker explicitly leaves MCP runtime UNVERIFIED. A public docs lookup succeeded through the ChatGPT OpenAI Docs connector, not the repository Codex endpoint. Discovery and execution of `devobs_architecture`/`devobs_security` in the Codex runtime remain UNVERIFIED; no subagent trial was launched.",
+      "next_action": "In a trusted Codex session opened on this repository, verify the two specialist agents are discovered and perform one public Docs MCP lookup through the configured Codex server. Keep this gate OPEN until the runtime outputs are recorded; any subagent trial requires separate owner approval."
     }
   ]
 }

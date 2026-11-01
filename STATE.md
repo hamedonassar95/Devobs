@@ -1,5 +1,13 @@
 # حالة مستودع Devobs
 
+## تحقق 2026-11-01 — مزامنة الأدلة حتى PR #345
+
+- **VERIFIED من GitHub:** `origin/main` هو `26f8adcbae62aab0cbd6bd24a692c8c443c3619b`، وهو دمج PR #345. تم التحقق من metadata والـhead والـmerge لكل PR #342–#345 ومن نجاح CI على كل رأس PR: #342 run `41191958371`، #343 run `41192715097`، #344 run `41342999772`، #345 run `41344032855`. نجح CI بعد الدمج على SHA الدمج: #342 run `41192337652`، #343 run `41342866653`، #344 run `41343813435`، #345 run `41344886930`.
+- **VERIFIED (حدود الدليل):** PR #342 يضيف عقد OpenAPI/WSGI اصطناعيًا فقط؛ #344 و#345 يضيفان فحوص preflight محلية مغلقة افتراضيًا فقط. لا تثبت هذه التغييرات HTTPS أو OIDC حيًا أو عزلًا مستضافًا أو تفويض مشاريع خارجية. سجلّ الأدلة كان متأخرًا عند #341؛ أُضيفت هذه الأربعة إلى `docs/MILESTONE_LEDGER.json` مع اختبار يمنع تكرار الفجوة.
+- **VERIFIED محليًا، لا كقبول Runtime:** Codex CLI `0.163.0` متاح في هذه البيئة. `python3 scripts/check_codex_docs_mcp.py` و`python3 scripts/check_codex_docs_mcp.py --codex-list` نجحا، وخرج الفاحص يصرح `MCP_RUNTIME_UNVERIFIED`؛ اختبارات probe الثمانية نجحت. نُفذ بحث توثيق عام عبر موصل OpenAI Docs في جلسة ChatGPT، لكنه لا يثبت أن Codex المحلي نفّذ MCP. لم أتحقق من اكتشاف `devobs_architecture` أو `devobs_security` في runtime ولم أطلق وكلاء فرعيين؛ بوابة Codex تبقى OPEN.
+- **VERIFIED (الموانع الحالية):** تظهر حالة Vercel الخارجية على الرؤوس المفحوصة و`main` فشلًا برابط حد البناء/ترقية الخطة؛ لا أملك إذنًا لتغيير إعدادات Vercel أو الإنفاق. لا يوجد دليل إنفاذ سقف إجمالي P01، فلا موارد حية أو اختبار staging. AI-9 ما زالت **FAIL** وP01 ما زالت **NO-GO / BLOCKED**.
+- هذا التحديث اللاحق يحل محل ملاحظة PR #342 غير المدمج في القسم التاريخي أدناه؛ أبقينا النص القديم كسجل زمني بدل إعادة كتابته.
+
 ## مراجعة 2026-10-31 — MCP المحلي ودليل دمج PR #333
 
 - **VERIFIED من GitHub:** [PR #333](https://github.com/hamedonassar95/Devobs/pull/333) دُمج عند `89367014e29df1e2f913394f0e2dba39a0ff3d8d`، برأس `5ccbf6083ffcd72e8ad05b0142d1ffc24c420402`. اجتاز CI على رأس PR في [run 41174724412](https://github.com/hamedonassar95/Devobs/actions/runs/41174724412)، وCI بعد الدمج في [run 41174861181](https://github.com/hamedonassar95/Devobs/actions/runs/41174861181)، بما فيه نشر Pages والتحقق؛ هذا **ليس** نشر SaaS.
