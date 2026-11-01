@@ -17,6 +17,8 @@ class ApprovalDecision:
 
 
 def evaluate(record: dict) -> ApprovalDecision:
+    if not isinstance(record, dict):
+        return ApprovalDecision(False, "BLOCKED", "record must be a JSON object", "PENDING HUMAN APPROVAL")
     required = ("verification_status", "approval", "approver_is_human",
                 "approver_has_write", "pr_open", "pr_merged")
     missing = [key for key in required if key not in record]
