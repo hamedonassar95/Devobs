@@ -1,5 +1,12 @@
 # حالة مستودع Devobs
 
+## دمج PR #364 — تحقق 2026-11-01
+
+- **VERIFIED من GitHub:** دُمج [PR #364](https://github.com/hamedonassar95/Devobs/pull/364)، رأسه `87d289e1ee5134734a157a51b0302907b40f2400`، عند merge SHA `baa4db24dc4bebf364410cd6790dba6d4e0b1fea`. يطابق `git ls-remote origin refs/heads/main` هذا الـSHA.
+- **CI الرأس:** نجح PR CI في [run 41362939397](https://github.com/hamedonassar95/Devobs/actions/runs/41362939397) وCodeQL في [run 41362935643](https://github.com/hamedonassar95/Devobs/actions/runs/41362935643) والمراجعة الإرشادية في [run 41362939317](https://github.com/hamedonassar95/Devobs/actions/runs/41362939317). نجح push CI [run 41362934702](https://github.com/hamedonassar95/Devobs/actions/runs/41362934702) على الرأس نفسه. تخطّى PR CI وpush CI اختبارات Node وproduction-release بشرط المسارات/الحدث؛ لا تُعدّ اختبارات Node ناجحة مستضافة لهذا التغيير.
+- **بعد الدمج:** نجح main CI [run 41363048571](https://github.com/hamedonassar95/Devobs/actions/runs/41363048571) وCodeQL [run 41363048181](https://github.com/hamedonassar95/Devobs/actions/runs/41363048181) على SHA الدمج. نجحت Python validation وPostgreSQL RLS وsecurity وTrivy/container smoke وTerraform و`validate` وsite-contract. نُشر GitHub Pages واجتاز `verify-production` للموقع الثابت؛ تخطّى Node وincident drill بشرط المسارات/الحدث. فشل Vercel على PR برسالة حدّ معدل البناء؛ وعلى SHA الدمج أظهر فحص الحالة فشلًا ورابط حد معدل البناء.
+- PR #364 أضاف تقييمًا توثيقيًا لمصدر بيانات AI-9 وتحديث دليل إنفاق P01 واختبار انحدار لسجل الإنجازات. لم تُنزّل بيانات خارجية ولم يُشغّل تقييم AI-9 ولم تُنشأ موارد AWS أو تُرسل رسالة دعم. لا يثبت نشر Pages خدمة SaaS. AI-9 **FAIL / BLOCKED**، وP01 **NO-GO / BLOCKED**، وقبول Codex agent runtime **OPEN**.
+
 ## دمج PR #363 — تحقق 2026-11-01
 
 - **VERIFIED من GitHub:** دُمج [PR #363](https://github.com/hamedonassar95/Devobs/pull/363)، رأسه `79f8eb9793b1acd541bd39cdd71c637989a95085`، عند merge SHA `2eeb5298dd846c236c4a825cc739874bd2d067e6`. يطابق `git ls-remote origin refs/heads/main` هذا الـSHA.

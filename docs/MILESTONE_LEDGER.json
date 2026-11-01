@@ -442,6 +442,17 @@
       "ci_run_id": 41361488020,
       "verification": "VERIFIED 2026-11-01: PR #363 CI run 41361488020 SUCCESS and CodeQL run 41361485982 SUCCESS on the exact head; advisory review run 41361488059 SUCCESS. PR CI skipped node-tests by path condition; push CI run 41361474917 SUCCESS on the same head ran Node and Python plus the existing checks. PR #363 merged at 2eeb5298dd846c236c4a825cc739874bd2d067e6. Main CI run 41361625894 SUCCESS with validate, Python, PostgreSQL RLS, security, image scan, Terraform, Pages publish and verify-production; Node tests skipped by the docs-only path condition. Main CodeQL run 41361625560 SUCCESS. Vercel failed on the PR and merge SHA with the build-rate-limit upgrade link.",
       "limitations": "Documentation and ledger regression only. Vercel rate-limit failure remains unresolved and account settings were not inspected or changed. Pages/verify-production establish the static site only. No live SaaS staging or AI service was activated. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
+    },
+    {
+      "id": "verified-readiness-ledger-pr364",
+      "area": "DOCUMENTATION",
+      "title": "Record PR #364 merge evidence and synchronize current readiness state",
+      "pr_number": 364,
+      "pr_head_sha": "87d289e1ee5134734a157a51b0302907b40f2400",
+      "merge_sha": "baa4db24dc4bebf364410cd6790dba6d4e0b1fea",
+      "ci_run_id": 41362939397,
+      "verification": "VERIFIED 2026-11-01: PR #364 CI run 41362939397 SUCCESS and CodeQL run 41362935643 SUCCESS on exact head; advisory review run 41362939317 SUCCESS. Push CI run 41362934702 SUCCESS on the same head. Node tests and production-release were skipped in PR/push workflows by path/event conditions. Main CI run 41363048571 SUCCESS and CodeQL run 41363048181 SUCCESS on exact merge SHA; Python validation, PostgreSQL RLS, security, Trivy/container smoke, Terraform, validate and site-contract passed. GitHub Pages publish and verify-production for the static site passed; Node tests and incident drill were skipped by path/event conditions. Vercel PR check failed with `Deployment rate limited — retry in 24 hours`; the merge-SHA commit status also failed with the build-rate-limit URL. `git ls-remote origin refs/heads/main` matched the merge SHA.",
+      "limitations": "Documentation/source assessment and ledger regression only. Node tests were skipped in hosted CI for this change. Pages verifies the static site only, not a SaaS service or live AI deployment. Vercel rate limiting remains unresolved; settings were not inspected or changed. No external dataset was downloaded or evaluated, no AWS support request was sent, and no cloud resource, paid inference, customer data or production action was used. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
     }
   ],
   "gates": [
