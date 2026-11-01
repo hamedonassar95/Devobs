@@ -65,6 +65,14 @@ class HumanApprovalCliTests(unittest.TestCase):
         self.assertEqual(output["status"], "BLOCKED")
         self.assertIs(output["authorized"], False)
 
+    def test_scalar_json_returns_machine_readable_block(self):
+        for value in (None, 42, True, "not-a-record"):
+            with self.subTest(value=value):
+                status, output = self.run_gate(value)
+                self.assertNotEqual(status, 0)
+                self.assertEqual(output["status"], "BLOCKED")
+                self.assertIs(output["authorized"], False)
+
     def test_absent_file_returns_failure_exit(self):
         target = ROOT / "tests" / "__does_not_exist_human_approval_record__.json"
         result = subprocess.run(
