@@ -2,13 +2,14 @@
 
 ## Superseding snapshot — 2026-11-01
 
-The dated assessment below records the repository state on 2026-10-29. The current `main` revision is `f8e55d71ef194f5abb729dcf179ebb647eafe43b` (merged PR #349); this snapshot supersedes statements below that conflict with later source evidence. PR #349's exact-head CI, CodeQL, and post-merge main CI/site verification passed on 2026-11-01. Its PR-preview Vercel status and the post-merge Vercel status were rate-limited.
+The dated assessment below records the repository state on 2026-10-29. The current `main` revision is `1b32f0ffdfbbaacd60207be995d34f2b88d271d4` (merged PR #350); this snapshot supersedes statements below that conflict with later source evidence. PR #350's exact-head CI, CodeQL, and post-merge main CI/site verification passed on 2026-11-01. Its PR-preview Vercel status was rate-limited; the post-merge Vercel status succeeded.
 
 - **AI-9: FAIL / BLOCKED.** The synthetic v2 evaluator is now present at [`scripts/ai_intelligence/ai9_synthetic_evaluation_v2.mjs`](../scripts/ai_intelligence/ai9_synthetic_evaluation_v2.mjs), with synthetic results and pre-registration documents in `docs/`. Its existence and synthetic runs do not prove independent real-world quality or authorize production. The independent v3 frozen seeds remain unrun pending separate approval.
 - **P01: NO-GO / BLOCKED.** No enforceable all-in monthly spend cap, live identity, hosted tenant isolation, or restore evidence is established. No staging service is authorized.
 - **Codex agent runtime: OPEN.** Local Docs MCP configuration/registration checks pass but explicitly report runtime unverified. Specialist-agent discovery and execution in a trusted Codex runtime have not been verified.
 - PRs [#342](https://github.com/hamedonassar95/Devobs/pull/342)–[#345](https://github.com/hamedonassar95/Devobs/pull/345) added offline contracts and preflight checks; none proves hosted API, live OIDC/RLS, or external project authorization.
 - PR #349 recorded the merge evidence for PR #348 and synchronized this readiness snapshot. Main CI run [41352831133](https://github.com/hamedonassar95/Devobs/actions/runs/41352831133) published Pages and passed `verify-production`; main CodeQL run [41352830537](https://github.com/hamedonassar95/Devobs/actions/runs/41352830537) passed. Vercel remained rate-limited on the PR and merged main SHA; no account settings were changed.
+- PR #350 recorded the merge evidence for PR #349 and synchronized this readiness snapshot. Main CI run [41353315577](https://github.com/hamedonassar95/Devobs/actions/runs/41353315577) published Pages and passed `verify-production`; main CodeQL run [41353315286](https://github.com/hamedonassar95/Devobs/actions/runs/41353315286) passed. The PR-preview Vercel status was rate-limited, while Vercel on the merged main SHA succeeded; no account settings were changed.
 
 The current running history and exact merge evidence are maintained in [`STATE.md`](../STATE.md) and the milestone ledger.
 
