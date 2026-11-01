@@ -431,6 +431,17 @@
       "ci_run_id": 41361116522,
       "verification": "VERIFIED 2026-11-01: PR #362 CI run 41361116522 SUCCESS; CodeQL run 41361113923 SUCCESS. PR CI skipped node-tests by its path condition; push CI run 41361102359 SUCCESS on the same head and ran Node tests, Python validation, PostgreSQL RLS, security, Terraform and validate. Main CI run 41361229621 SUCCESS on exact merge SHA; Python validation, PostgreSQL RLS, security, image smoke/Trivy scan, Terraform, validate, Pages publish and verify-production succeeded; Node tests skipped by path condition. Main CodeQL run 41361228767 SUCCESS. Vercel failed on both the PR preview and merged main SHA due to the build rate limit.",
       "limitations": "Documentation/readiness synchronization and ledger regression only. Vercel was rate-limited on the PR preview and merged main; account plan/settings were not inspected or changed. Pages/verify-production establish the static site only. No live SaaS staging, AI service, customer data or paid inference was activated. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
+    },
+    {
+      "id": "verified-readiness-ledger-pr363",
+      "area": "DOCUMENTATION",
+      "title": "Record PR #363 merge evidence and synchronize current readiness state",
+      "pr_number": 363,
+      "pr_head_sha": "79f8eb9793b1acd541bd39cdd71c637989a95085",
+      "merge_sha": "2eeb5298dd846c236c4a825cc739874bd2d067e6",
+      "ci_run_id": 41361488020,
+      "verification": "VERIFIED 2026-11-01: PR #363 CI run 41361488020 SUCCESS and CodeQL run 41361485982 SUCCESS on the exact head; advisory review run 41361488059 SUCCESS. PR CI skipped node-tests by path condition; push CI run 41361474917 SUCCESS on the same head ran Node and Python plus the existing checks. PR #363 merged at 2eeb5298dd846c236c4a825cc739874bd2d067e6. Main CI run 41361625894 SUCCESS with validate, Python, PostgreSQL RLS, security, image scan, Terraform, Pages publish and verify-production; Node tests skipped by the docs-only path condition. Main CodeQL run 41361625560 SUCCESS. Vercel failed on the PR and merge SHA with the build-rate-limit upgrade link.",
+      "limitations": "Documentation and ledger regression only. Vercel rate-limit failure remains unresolved and account settings were not inspected or changed. Pages/verify-production establish the static site only. No live SaaS staging or AI service was activated. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
     }
   ],
   "gates": [
@@ -439,14 +450,14 @@
       "status": "BLOCKED",
       "source": "docs/AI9_V3_INDEPENDENT_EVAL_GATE.md",
       "reason": "VERIFIED 2026-11-01: the preregistered four-seed v3 synthetic holdout produced ALL_FROZEN_WINDOW_GATES_PASS on the approved SHA. It uses seed draws from the existing synthetic generator, not independent labeled incident data or real-world evidence. Official AI-9 remains FAIL / NOT AUTHORIZED for production.",
-      "next_action": "Obtain independently sourced, privacy/provenance-reviewed labeled incident evidence and preregister any new evaluation before use. Keep consumed seeds closed, retain AI-9 FAIL, and require a separate owner release decision; synthetic results do not authorize production."
+      "next_action": "Review docs/AI9_EXTERNAL_DATASET_ASSESSMENT.md, obtain owner approval for one exact no-cost local source inspection/evaluation, and preregister the corpus, adapter, labels and unchanged gates before scoring. Keep consumed synthetic seeds closed and AI-9 FAIL until all required evidence and a separate release decision exist."
     },
     {
       "id": "p01-managed-saas",
       "status": "BLOCKED",
       "source": "docs/P01_ACTIVATION_READINESS.md",
       "reason": "No approved managed staging/provider/region, enforceable all-in spending cap, live IdP, live RLS, recovery proof or owner activation decision.",
-      "next_action": "Resolve owner provider, region, cost, privacy, identity and backup approvals before provisioning."
+      "next_action": "Keep resources off. Review the AWS new-experience candidate in docs/P01_RAILWAY_SPEND_ENFORCEMENT_EVIDENCE.md; obtain owner approval before contacting AWS or changing provider/region, and require written answers on total post-tax cap, persistent storage/backup charges, enforcement delay, eligibility and residency before any provisioning."
     },
     {
       "id": "codex-agent-runtime-acceptance",
