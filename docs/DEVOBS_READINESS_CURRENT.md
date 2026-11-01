@@ -2,7 +2,7 @@
 
 ## Superseding snapshot — 2026-11-01
 
-The dated assessment below records the repository state on 2026-10-29. The current `main` revision is `de11d125f0146b627a220683df8143d8dc0b01f1` (merged PR #347); this snapshot supersedes statements below that conflict with later source evidence. PR #347's exact-head CI and post-merge main CI/site verification passed on 2026-11-01. Its PR-preview Vercel status was rate-limited, while the post-merge Vercel status succeeded.
+The dated assessment below records the repository state on 2026-10-29. The current `main` revision is `2639aad5f62ba1cb0b0192ad25d8853f6828023e` (merged PR #348); this snapshot supersedes statements below that conflict with later source evidence. PR #348's exact-head CI and post-merge main CI/site verification passed on 2026-11-01. Its PR-preview Vercel status and the post-merge Vercel status were rate-limited.
 
 - **AI-9: FAIL / BLOCKED.** The synthetic v2 evaluator is now present at [`scripts/ai_intelligence/ai9_synthetic_evaluation_v2.mjs`](../scripts/ai_intelligence/ai9_synthetic_evaluation_v2.mjs), with synthetic results and pre-registration documents in `docs/`. Its existence and synthetic runs do not prove independent real-world quality or authorize production. The independent v3 frozen seeds remain unrun pending separate approval.
 - **P01: NO-GO / BLOCKED.** No enforceable all-in monthly spend cap, live identity, hosted tenant isolation, or restore evidence is established. No staging service is authorized.
