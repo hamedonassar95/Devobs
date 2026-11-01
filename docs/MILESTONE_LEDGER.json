@@ -288,6 +288,17 @@
       "ci_run_id": 41352262112,
       "verification": "VERIFIED 2026-11-01: PR-head CI 41352262112 SUCCESS; CodeQL check 124984927499 and advisory AI review 41352262031 SUCCESS. PR-preview Vercel failed with `Deployment rate limited — retry in 24 hours`. Main CI 41352504016 SUCCESS on the exact merge SHA, including validate, Pages publish, and verify-production; main CodeQL run 41352503961 SUCCESS. Vercel status remained FAILURE on the merge SHA with the build-rate-limit upgrade link.",
       "limitations": "Documentation and ledger regression only. Vercel was rate-limited on the PR preview and merged main; account plan/settings were not inspected or changed. No live SaaS staging was created. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
+    },
+    {
+      "id": "verified-readiness-ledger-pr349",
+      "area": "DOCUMENTATION",
+      "title": "Record PR #349 merge evidence and synchronize the current readiness snapshot",
+      "pr_number": 349,
+      "pr_head_sha": "d4ffaf9423fd98c61f12bdaed997dbb1bb621288",
+      "merge_sha": "f8e55d71ef194f5abb729dcf179ebb647eafe43b",
+      "ci_run_id": 41352723960,
+      "verification": "VERIFIED 2026-11-01: PR-head CI 41352723960 SUCCESS; CodeQL run 41352720476 and code-scanning check 124986303133 SUCCESS; advisory AI review 41352723966 SUCCESS. PR CI skipped node-tests by its path condition; push CI 41352718980 SUCCESS on the same exact head and ran node-tests successfully. PR-preview Vercel failed with `Deployment rate limited — retry in 24 hours`. Main CI 41352831133 SUCCESS on the exact merge SHA, including validate, Pages publish, and verify-production; main CodeQL run 41352830537 SUCCESS. Vercel status remained FAILURE on the merge SHA with the build-rate-limit upgrade link.",
+      "limitations": "Documentation and ledger regression only. Vercel was rate-limited on the PR preview and merged main; account plan/settings were not inspected or changed. No live SaaS staging was created. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
     }
   ],
   "gates": [
