@@ -1,0 +1,318 @@
+{
+  "classification": "independent_synthetic_only",
+  "registration": "ai9-coherent-onset-v3",
+  "evaluated_sha": "80dbcb3466c1368662190736a442d1082e7f2b54",
+  "seed_order": [
+    20270601,
+    20270602,
+    20270603,
+    20270604
+  ],
+  "frozen_gates": {
+    "precision": 0.8,
+    "recall": 0.8,
+    "fpr": 0.05
+  },
+  "result": "ALL_FROZEN_WINDOW_GATES_PASS",
+  "per_seed": [
+    {
+      "seed": 20270601,
+      "input_canonical_sha256": "71a193d2f45768c80301e5237cefabfa7dbec7648366085718eca6c644f6ed57",
+      "scored_windows": 45240,
+      "positive_windows": 90,
+      "negative_windows": 45150,
+      "post_confirmation_baseline": {
+        "tp": 75,
+        "fp": 1156,
+        "fn": 15,
+        "tn": 43994,
+        "windows": 45240,
+        "precision": 0.060926076360682375,
+        "recall": 0.8333333333333334,
+        "fpr": 0.025603543743078626,
+        "gate_status": {
+          "precision": "FAIL",
+          "recall": "PASS",
+          "fpr": "PASS"
+        }
+      },
+      "frozen_joint_v2": {
+        "tp": 57,
+        "fp": 4,
+        "fn": 33,
+        "tn": 45146,
+        "windows": 45240,
+        "precision": 0.9344262295081968,
+        "recall": 0.6333333333333333,
+        "fpr": 0.00008859357696567,
+        "gate_status": {
+          "precision": "PASS",
+          "recall": "FAIL",
+          "fpr": "PASS"
+        }
+      },
+      "candidate_v3": {
+        "tp": 75,
+        "fp": 4,
+        "fn": 15,
+        "tn": 45146,
+        "windows": 45240,
+        "precision": 0.9493670886075949,
+        "recall": 0.8333333333333334,
+        "fpr": 0.00008859357696567,
+        "gate_status": {
+          "precision": "PASS",
+          "recall": "PASS",
+          "fpr": "PASS"
+        }
+      },
+      "first_detection_delay_windows": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "missing_fault_metric_detections": 0,
+      "window_gate_result": "PASS"
+    },
+    {
+      "seed": 20270602,
+      "input_canonical_sha256": "75d8da8c5ae8050fc5dfdda88611d6cce86fded1a8a3a46c099af215f2622129",
+      "scored_windows": 45240,
+      "positive_windows": 90,
+      "negative_windows": 45150,
+      "post_confirmation_baseline": {
+        "tp": 77,
+        "fp": 1238,
+        "fn": 13,
+        "tn": 43912,
+        "windows": 45240,
+        "precision": 0.05855513307984791,
+        "recall": 0.8555555555555555,
+        "fpr": 0.02741971207087486,
+        "gate_status": {
+          "precision": "FAIL",
+          "recall": "PASS",
+          "fpr": "PASS"
+        }
+      },
+      "frozen_joint_v2": {
+        "tp": 59,
+        "fp": 5,
+        "fn": 31,
+        "tn": 45145,
+        "windows": 45240,
+        "precision": 0.921875,
+        "recall": 0.6555555555555556,
+        "fpr": 0.00011074197120708749,
+        "gate_status": {
+          "precision": "PASS",
+          "recall": "FAIL",
+          "fpr": "PASS"
+        }
+      },
+      "candidate_v3": {
+        "tp": 77,
+        "fp": 5,
+        "fn": 13,
+        "tn": 45145,
+        "windows": 45240,
+        "precision": 0.9390243902439024,
+        "recall": 0.8555555555555555,
+        "fpr": 0.00011074197120708749,
+        "gate_status": {
+          "precision": "PASS",
+          "recall": "PASS",
+          "fpr": "PASS"
+        }
+      },
+      "first_detection_delay_windows": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "missing_fault_metric_detections": 0,
+      "window_gate_result": "PASS"
+    },
+    {
+      "seed": 20270603,
+      "input_canonical_sha256": "ea96b0901c4b88245ede8d9254a12a2576ba7ca01bf4e7102665bafee3b641fc",
+      "scored_windows": 45240,
+      "positive_windows": 90,
+      "negative_windows": 45150,
+      "post_confirmation_baseline": {
+        "tp": 76,
+        "fp": 1119,
+        "fn": 14,
+        "tn": 44031,
+        "windows": 45240,
+        "precision": 0.06359832635983263,
+        "recall": 0.8444444444444444,
+        "fpr": 0.02478405315614618,
+        "gate_status": {
+          "precision": "FAIL",
+          "recall": "PASS",
+          "fpr": "PASS"
+        }
+      },
+      "frozen_joint_v2": {
+        "tp": 58,
+        "fp": 8,
+        "fn": 32,
+        "tn": 45142,
+        "windows": 45240,
+        "precision": 0.8787878787878788,
+        "recall": 0.6444444444444445,
+        "fpr": 0.00017718715393134,
+        "gate_status": {
+          "precision": "PASS",
+          "recall": "FAIL",
+          "fpr": "PASS"
+        }
+      },
+      "candidate_v3": {
+        "tp": 76,
+        "fp": 8,
+        "fn": 14,
+        "tn": 45142,
+        "windows": 45240,
+        "precision": 0.9047619047619048,
+        "recall": 0.8444444444444444,
+        "fpr": 0.00017718715393134,
+        "gate_status": {
+          "precision": "PASS",
+          "recall": "PASS",
+          "fpr": "PASS"
+        }
+      },
+      "first_detection_delay_windows": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "missing_fault_metric_detections": 0,
+      "window_gate_result": "PASS"
+    },
+    {
+      "seed": 20270604,
+      "input_canonical_sha256": "d85e7271218c62ab9b6aa7fac2173f32d3558e0fc4778c2e341aab559e512768",
+      "scored_windows": 45240,
+      "positive_windows": 90,
+      "negative_windows": 45150,
+      "post_confirmation_baseline": {
+        "tp": 75,
+        "fp": 1189,
+        "fn": 15,
+        "tn": 43961,
+        "windows": 45240,
+        "precision": 0.05933544303797468,
+        "recall": 0.8333333333333334,
+        "fpr": 0.026334440753045404,
+        "gate_status": {
+          "precision": "FAIL",
+          "recall": "PASS",
+          "fpr": "PASS"
+        }
+      },
+      "frozen_joint_v2": {
+        "tp": 58,
+        "fp": 0,
+        "fn": 32,
+        "tn": 45150,
+        "windows": 45240,
+        "precision": 1,
+        "recall": 0.6444444444444445,
+        "fpr": 0,
+        "gate_status": {
+          "precision": "PASS",
+          "recall": "FAIL",
+          "fpr": "PASS"
+        }
+      },
+      "candidate_v3": {
+        "tp": 75,
+        "fp": 0,
+        "fn": 15,
+        "tn": 45150,
+        "windows": 45240,
+        "precision": 1,
+        "recall": 0.8333333333333334,
+        "fpr": 0,
+        "gate_status": {
+          "precision": "PASS",
+          "recall": "PASS",
+          "fpr": "PASS"
+        }
+      },
+      "first_detection_delay_windows": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "missing_fault_metric_detections": 0,
+      "window_gate_result": "PASS"
+    }
+  ],
+  "production_decision": "NOT_AUTHORIZED",
+  "ai9_gate": "BLOCKED",
+  "p01_decision": "NO-GO / BLOCKED"
+}
