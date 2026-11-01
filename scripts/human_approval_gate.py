@@ -53,7 +53,7 @@ def main() -> int:
     else:
         result = evaluate(record)
     print(json.dumps(asdict(result), sort_keys=True))
-    return 0
+    return 0 if result.authorized else 1
 
 
 if __name__ == "__main__":
