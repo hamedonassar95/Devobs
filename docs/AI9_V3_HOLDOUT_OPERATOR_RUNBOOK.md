@@ -47,3 +47,4 @@ If any seed misses a threshold the result is **FROZEN_WINDOW_GATES_FAIL**, not a
 ## Rollback and safety
 
 Closing this PR before merge changes nothing on main. Reverting the evaluator code after a future merge does not invalidate previously recorded evidence or permit another run. The dry/unit tests prove **contract behavior only**, not the independent holdout or production readiness.
+I approve one single, no-fee, deterministic offline run of the preregistered AI-9 v3 frozen holdout evaluator on main SHA 80dbcb3466c1368662190736a442d1082e7f2b54, using exactly seeds 20270601, 20270602, 20270603, and 20270604 in registered order. Record PASS, FAIL, or INVALID as produced. No retries, seed substitutions, threshold tuning, production changes, deployment, or paid inference.
