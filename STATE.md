@@ -1,5 +1,13 @@
 # حالة مستودع Devobs
 
+## دمج PR #349 — تحقق 2026-11-01
+
+- **VERIFIED من GitHub:** دُمج PR [#349](https://github.com/hamedonassar95/Devobs/pull/349)، برأس `d4ffaf9423fd98c61f12bdaed997dbb1bb621288` إلى `main` عند merge SHA `f8e55d71ef194f5abb729dcf179ebb647eafe43b`. نجح PR CI run `41352723960`، وCodeQL run `41352720476`، وفحص code-scanning `124986303133`، ومراجعة AI الإرشادية `41352723966`. تخطّى PR CI اختبار Node وفق شرط المسارات؛ push CI run `41352718980` شغّل اختبارات Node ونجح على الرأس نفسه.
+- **حد Vercel:** فشل status معاينة PR برسالة `Deployment rate limited — retry in 24 hours`. بقي Vercel فاشلًا على SHA الدمج مع رابط حد البناء/الترقية. لم تُفحص إعدادات الحساب أو الخطة ولم تتغير.
+- **VERIFIED بعد الدمج:** CI run `41352831133` نجح على `main` عند SHA الدمج، بما فيه `validate` ونشر GitHub Pages و`verify-production`. نجح CodeQL على main في run `41352830537`. تطابق `git ls-remote origin refs/heads/main` مع SHA الدمج وقت التحقق. هذا دليل للمستودع والموقع الثابت فقط، وليس لخدمة SaaS.
+- PR #349 سجّل دمج #348 في دفتر الإنجازات وحدّث لقطة الجاهزية؛ لم يغيّر كاشف AI-9 أو البوابات أو موارد التشغيل.
+- **الحدود الثابتة:** AI-9 **FAIL / BLOCKED**، وP01 **NO-GO / BLOCKED**، وقبول Codex agent runtime **OPEN**.
+
 ## دمج PR #348 — تحقق 2026-11-01
 
 - **VERIFIED من GitHub:** دُمج PR [#348](https://github.com/hamedonassar95/Devobs/pull/348) برأس `2e690c1bba30da70aa5ece696a056a95829764eb` إلى `main` عند merge SHA `2639aad5f62ba1cb0b0192ad25d8853f6828023e`. Required PR CI run `41352262112` نجح؛ نجح CodeQL check `124984927499` ومراجعة AI الإرشادية `41352262031` على الرأس.
