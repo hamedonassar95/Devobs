@@ -354,6 +354,17 @@
       "ci_run_id": 41355180888,
       "verification": "VERIFIED 2026-11-01: PR-head CI 41355180888 SUCCESS; CodeQL run 41355178888 and GitHub Advanced Security run 41355184888 SUCCESS. Advisory AI Code Review run 41355180824 completed successfully with model inference skipped by the explicit budget gate. PR CI skipped node-tests by its path condition; push CI 41355170895 SUCCESS on the exact same head and ran node-tests successfully. PR-preview Vercel failed with the build-rate-limit upgrade link. Main CI 41355453787 SUCCESS on the exact merge SHA, including validate, Pages publish, and verify-production; main security analysis run 41355453093 SUCCESS. Vercel status remained FAILURE on the merge SHA with the build-rate-limit upgrade link.",
       "limitations": "Documentation and ledger regression only. Vercel was rate-limited on the PR preview and merged main; account plan/settings were not inspected or changed. No live SaaS staging was created. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
+    },
+    {
+      "id": "verified-readiness-ledger-pr355",
+      "area": "DOCUMENTATION",
+      "title": "Record PR #354 merge evidence and synchronize the current readiness snapshot",
+      "pr_number": 355,
+      "pr_head_sha": "c33f284e2267e17e25aef78f8c1a1c16f05b9b27",
+      "merge_sha": "9dfdc9ccb12525165dfa34a0c3f4b75c51830a65",
+      "ci_run_id": 41355833192,
+      "verification": "VERIFIED 2026-11-01: PR-head CI 41355833192 SUCCESS; CodeQL run 41355830866 and GitHub Advanced Security run 41355837446 SUCCESS. PR CI skipped node-tests by its path condition; push CI 41355820779 SUCCESS on the same exact head and ran node-tests successfully. PR-preview Vercel failed with the build-rate-limit upgrade link. Main CI 41356132745 SUCCESS on the exact merge SHA, including validate, Pages publish, and verify-production; main security analysis run 41356132195 SUCCESS; Vercel status SUCCESS on the merge SHA.",
+      "limitations": "Documentation and ledger regression only. Vercel was rate-limited on the PR preview but succeeded on the merged main SHA; account plan/settings were not inspected or changed. No live SaaS staging was created. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
     }
   ],
   "gates": [
