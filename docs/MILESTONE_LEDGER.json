@@ -717,6 +717,17 @@
       "ci_run_id": 41459188955,
       "verification": "VERIFIED 2026-11-02: PR #389 merged at 27349fcdb9f3753a7bc686dd2177795ef005014d from head b42a5f0b280491c3ef064b48ea6e3476f2d6191a. Exact-head PR CI 41459188955 SUCCESS, push CI 41459163558 SUCCESS, and CodeQL 41459181626 SUCCESS. Exact-merge main CI 41459888214 and CodeQL 41459887605 SUCCESS on the merge SHA. Main CI passed Python validation, PostgreSQL RLS, security, container scan, Terraform, validate, static Pages publication, and verify-production; Node tests and the controlled incident drill were skipped by path/event conditions.",
       "limitations": "The optional Ed25519 envelope uses a caller-owned key and requires a separately trusted public key. Key enrollment, rotation/revocation, trusted timestamps, protected external retention, hosted audit storage, and operator identity remain unimplemented; T34 is still open. No hosted service or production application was added. Readiness gates remain BLOCKED or OPEN."
+    },
+    {
+      "id": "audit-store-readonly-pr390",
+      "area": "QUALITY",
+      "title": "Verify an existing local audit store through a read-only SQLite connection",
+      "pr_number": 390,
+      "pr_head_sha": "08e03201d85ddeeccd10b00bcebede31da06dd69",
+      "merge_sha": "2346d5006d8f602f42d3e17e11e0cf296d8ece05",
+      "ci_run_id": 41461221768,
+      "verification": "VERIFIED 2026-11-02: PR #390 merged at 2346d5006d8f602f42d3e17e11e0cf296d8ece05 from head 08e03201d85ddeeccd10b00bcebede31da06dd69. Exact-head PR CI 41461221768 SUCCESS (Node tests skipped by path selection); exact-head push CI 41461187596 SUCCESS including Node; CodeQL 41461214931 SUCCESS for Actions, Python, and JavaScript/TypeScript. Exact-merge main CI 41463879043 and CodeQL 41463878344 SUCCESS. Main CI passed Python validation, PostgreSQL RLS, security, container build/smoke/Trivy, Terraform, validate, static Pages publication, and verify-production; Node tests and controlled incident drill were skipped by path/event conditions. PR Vercel preview failed due to build-rate limit; Vercel status on the merge SHA succeeded.",
+      "limitations": "AuditStore.open_readonly provides read-only access through this SQLite connection only; it does not prevent another process from modifying the database file and does not provide protected external retention, operator authentication, hosted audit storage, restore evidence, or a production service. Workflow success does not establish a successful AI model call. No readiness gate changed; AI-9 remains BLOCKED/FAIL, P01 remains BLOCKED/NO-GO, and Codex runtime remains OPEN."
     }
   ],
   "gates": [

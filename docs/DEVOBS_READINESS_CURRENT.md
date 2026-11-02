@@ -1,8 +1,19 @@
 # Devobs production readiness — current evidence
 
-## Superseding snapshot — 2026-11-01 (after PR #362)
+## Superseding snapshot — 2026-11-02 (after PR #390)
 
-The dated assessment below records the repository state on 2026-10-29. The current `main` revision is `916d511665370b8533ff502c68e71b5e12fcf24b` (merged PR #362); this snapshot supersedes statements below that conflict with later source evidence. PR #362 CI and CodeQL, plus post-merge main CI and CodeQL, passed on 2026-11-01; main CI published Pages and passed `verify-production`. Vercel was rate-limited on both the PR preview and merged main SHA.
+**VERIFIED from GitHub:** current `main` is merge SHA `2346d5006d8f602f42d3e17e11e0cf296d8ece05`, from PR [#390](https://github.com/hamedonassar95/Devobs/pull/390), head `08e03201d85ddeeccd10b00bcebede31da06dd69`. Exact-head PR CI [41461221768](https://github.com/hamedonassar95/Devobs/actions/runs/41461221768) succeeded with Node skipped by path selection; exact-head push CI [41461187596](https://github.com/hamedonassar95/Devobs/actions/runs/41461187596) ran Node successfully. PR CodeQL [41461214931](https://github.com/hamedonassar95/Devobs/actions/runs/41461214931) succeeded for Actions, Python, and JavaScript/TypeScript. The PR Vercel preview failed due to a build-rate limit.
+
+- Exact-merge main CI [41463879043](https://github.com/hamedonassar95/Devobs/actions/runs/41463879043) and CodeQL [41463878344](https://github.com/hamedonassar95/Devobs/actions/runs/41463878344) succeeded. Main CI passed Python validation, PostgreSQL RLS, security, container build/smoke/Trivy, Terraform, `validate`, GitHub Pages publication, and `verify-production`; Node tests and the controlled incident drill were skipped by path/event conditions. Vercel status on the merge SHA succeeded.
+- PR #390 added `AuditStore.open_readonly` for an existing local SQLite audit database. This does not prove protected external retention, a hosted audit service, or live P01 readiness. No AI model-call evidence is inferred from workflow success.
+- **AI-9: FAIL / BLOCKED.** The recorded four-seed v3 result is synthetic-only and bound to its earlier evaluated SHA; the seeds are consumed. Independently sourced, approved incident labels and an authorized preregistered evaluation remain missing.
+- **P01: NO-GO / BLOCKED.** No enforceable all-in spend cap, selected provider/region, live identity, hosted tenant isolation, or restore evidence is established; no staging service is authorized.
+- **Codex agent runtime: OPEN.** Repository configuration exists, but this environment did not verify the configured Codex Docs MCP handshake or runtime discovery/execution of specialist agents.
+- PR #390 did not change any readiness gate. GitHub Actions publishing the static Pages site is not evidence of a hosted API or P01 service.
+
+## Historical snapshot — 2026-11-01 (after PR #362; superseded on 2026-11-02)
+
+This dated assessment records the repository state at the time: `main` was `916d511665370b8533ff502c68e71b5e12fcf24b` (merged PR #362). The snapshot was superseded by the 2026-11-02 evidence above. PR #362 CI and CodeQL, plus post-merge main CI and CodeQL, passed on 2026-11-01; main CI published Pages and passed `verify-production`. Vercel was rate-limited on both the PR preview and merged main SHA.
 
 - **AI-9: FAIL / BLOCKED.** The registered v3 candidate passed all frozen window gates on four one-time synthetic seed draws authorized for evaluated SHA `80dbcb3466c1368662190736a442d1082e7f2b54`. Mean Precision was 94.8288%, Recall 84.1667%, and FPR 0.009413%; no detections were missing and maximum delay was one window. This does not establish generalization to independently sourced real incidents or authorize production; the seeds are consumed and must not be rerun. See [the exact result record](AI9_V3_FROZEN_HOLDOUT_RESULTS.json) and [the gate evidence](AI9_V3_INDEPENDENT_EVAL_GATE.md).
 - **P01: NO-GO / BLOCKED.** No enforceable all-in monthly spend cap, live identity, hosted tenant isolation, or restore evidence is established. No staging service is authorized.
