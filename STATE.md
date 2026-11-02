@@ -1,5 +1,12 @@
 # حالة مستودع Devobs
 
+## دمج PR #392 — تحقق 2026-11-02
+
+- **VERIFIED من GitHub:** دُمج [PR #392](https://github.com/hamedonassar95/Devobs/pull/392)، رأسه `7373feedd193e9aa498c3eb4d77bce8f19657a9b`، عند merge SHA `0688f3aad663d5a5be7bb5d72dce28966a2c781e`، وهو `main` الحالي وفق `git ls-remote origin refs/heads/main`.
+- **على رأس PR:** نجح CI `41474580125` (Node تخطّى باختيار المسارات)، ونجح push CI `41474547278` مع Node، ونجح CodeQL `41474575499`. معاينة Vercel للـPR نجحت.
+- **بعد الدمج:** نجح main CI `41475266103` وCodeQL `41475263029` على merge SHA نفسه. شمل CI تحقق Python وPostgreSQL RLS والأمان والحاوية/Trivy وTerraform و`validate` ونشر Pages الثابت والتحقق `verify-production`. تخطّى Node، والتدريب المضبوط للحوادث، وفحوص الاستعادة/التراجع وفق شروط سير العمل.
+- نجح سير عمل مراجعة Codex الإرشادي، لكن خطوة الاستدلال لم تعمل لأن مفتاح الميزانية لم يكن `true`؛ لذلك لا يثبت هذا استدعاء نموذج. PR #392 حدّث سجل الأدلة فقط؛ لم يغيّر خدمة أو بيانات أو بوابة جاهزية. AI-9 ما زالت FAIL/BLOCKED، وP01 ما زالت NO-GO/BLOCKED، وقبول Codex runtime ما زال OPEN.
+
 ## دمج PR #391 — تحقق 2026-11-02
 
 - **VERIFIED من GitHub:** دُمج [PR #391](https://github.com/hamedonassar95/Devobs/pull/391)، رأسه `6369846a872942d56731a68301747006e0956c73`، عند merge SHA `230468f345f1426852a229565f9dde801cf0100f`.
