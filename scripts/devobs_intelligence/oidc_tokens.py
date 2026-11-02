@@ -43,6 +43,9 @@ class AccessTokenVerifier:
             if (type(candidate) is not dict or candidate.get("kty") != "RSA"
                     or _PRIVATE_RSA_PARAMETERS.intersection(candidate)
                     or candidate.get("alg") != "RS256" or candidate.get("use") != "sig"
+                    or ("key_ops" in candidate and
+                        (type(candidate["key_ops"]) is not list
+                         or candidate["key_ops"] != ["verify"]))
                     or type(candidate.get("kid")) is not str or not _ID.fullmatch(candidate["kid"])
                     or type(candidate.get("n")) is not str or type(candidate.get("e")) is not str
                     or candidate["kid"] in keys):
