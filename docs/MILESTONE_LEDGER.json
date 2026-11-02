@@ -882,6 +882,17 @@
       "ci_run_id": 41512457878,
       "verification": "VERIFIED 2026-11-02: PR #404 merged at 3c7caeeb9ce4262580a1ca9a17224a0cace3e370 from head d5e4c5f15d0ef109812b7ecdeeee82011c4db244. PR CI 41512457878 and push CI 41512495321 succeeded; PR CodeQL 41512490550 passed for Actions, JavaScript/TypeScript, and Python. Vercel preview succeeded. Exact-merge main CI 41513967517 and CodeQL 41513966193 succeeded; main CI published and verified the static Pages site. Advisory model inference was skipped because explicit budget approval was absent.",
       "limitations": "Offline synthetic evaluation only. Removing the default target does not establish model quality, a representative corpus, or owner approval of any caller-supplied target."
+    },
+    {
+      "id": "p04-explicit-eval-target-pr405",
+      "area": "QUALITY",
+      "title": "Require an explicit target for offline evaluation comparisons",
+      "pr_number": 405,
+      "pr_head_sha": "5028a988caac8733d10d256dc87f3c46e4b6fffd",
+      "merge_sha": "b5041628a60e027858e1ec6941f1721950f5253d",
+      "ci_run_id": 41515090118,
+      "verification": "VERIFIED 2026-11-02: PR #405 merged at b5041628a60e027858e1ec6941f1721950f5253d from head 5028a988caac8733d10d256dc87f3c46e4b6fffd. PR CI 41515118230 and push CI 41515090118 succeeded; CodeQL 41515112633 passed for Actions, JavaScript/TypeScript, and Python; Vercel preview succeeded. AI Code Review workflow 41515118129 completed, but the model-review step was skipped because explicit budget approval was absent. Exact-merge main CI 41516714868 and CodeQL 41516713885 succeeded on the merge SHA; main CI published and verified static Pages and skipped controlled incident drill/restoration checks by workflow conditions.",
+      "limitations": "The change removes an implicit target from deterministic synthetic evaluation only. A caller-supplied comparison is not evidence of owner approval, representative data, or model quality. No AI model inference occurred; Pages is static-site evidence, not a hosted API runtime. Gate dispositions did not change."
     }
   ],
   "gates": [

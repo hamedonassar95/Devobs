@@ -1,6 +1,14 @@
 # Devobs production readiness — current evidence
 
-## Superseding snapshot — 2026-11-02 (after PR #404)
+## Superseding snapshot — 2026-11-02 (after PR #405)
+
+**VERIFIED from GitHub:** current `main` is merge SHA `b5041628a60e027858e1ec6941f1721950f5253d`, from PR [#405](https://github.com/hamedonassar95/Devobs/pull/405), head `5028a988caac8733d10d256dc87f3c46e4b6fffd`.
+
+- **PR #405:** PR CI [41515118230](https://github.com/hamedonassar95/Devobs/actions/runs/41515118230), push CI [41515090118](https://github.com/hamedonassar95/Devobs/actions/runs/41515090118), and CodeQL [41515112633](https://github.com/hamedonassar95/Devobs/actions/runs/41515112633) passed on the exact head; the Vercel preview succeeded. The AI review workflow [41515118129](https://github.com/hamedonassar95/Devobs/actions/runs/41515118129) completed, but its model-review step was skipped because explicit budget approval was absent.
+- Exact-merge main CI [41516714868](https://github.com/hamedonassar95/Devobs/actions/runs/41516714868) and CodeQL [41516713885](https://github.com/hamedonassar95/Devobs/actions/runs/41516713885) passed on the merge SHA. Main CI passed Python, Node, PostgreSQL RLS, security, container/Trivy, Terraform, site contract, `validate`, static Pages publication and verification. Controlled incident drill and restoration checks were skipped by workflow conditions. Pages is static-site evidence, not a hosted API runtime.
+- PR #405 removed the default accuracy target from the offline synthetic evaluator. It reports a comparison only when a caller provides a target; this does not prove owner approval, representative data, or model quality. The AI-9, P01 and Codex runtime dispositions are unchanged.
+
+## Prior snapshot — 2026-11-02 (after PR #404; superseded by PR #405)
 
 **VERIFIED from GitHub:** current `main` is merge SHA `3c7caeeb9ce4262580a1ca9a17224a0cace3e370`, from PR [#404](https://github.com/hamedonassar95/Devobs/pull/404), head `d5e4c5f15d0ef109812b7ecdeeee82011c4db244`.
 
