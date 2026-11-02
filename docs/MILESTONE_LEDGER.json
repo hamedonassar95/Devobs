@@ -728,6 +728,17 @@
       "ci_run_id": 41461221768,
       "verification": "VERIFIED 2026-11-02: PR #390 merged at 2346d5006d8f602f42d3e17e11e0cf296d8ece05 from head 08e03201d85ddeeccd10b00bcebede31da06dd69. Exact-head PR CI 41461221768 SUCCESS (Node tests skipped by path selection); exact-head push CI 41461187596 SUCCESS including Node; CodeQL 41461214931 SUCCESS for Actions, Python, and JavaScript/TypeScript. Exact-merge main CI 41463879043 and CodeQL 41463878344 SUCCESS. Main CI passed Python validation, PostgreSQL RLS, security, container build/smoke/Trivy, Terraform, validate, static Pages publication, and verify-production; Node tests and controlled incident drill were skipped by path/event conditions. PR Vercel preview failed due to build-rate limit; Vercel status on the merge SHA succeeded.",
       "limitations": "AuditStore.open_readonly provides read-only access through this SQLite connection only; it does not prevent another process from modifying the database file and does not provide protected external retention, operator authentication, hosted audit storage, restore evidence, or a production service. Workflow success does not establish a successful AI model call. No readiness gate changed; AI-9 remains BLOCKED/FAIL, P01 remains BLOCKED/NO-GO, and Codex runtime remains OPEN."
+    },
+    {
+      "id": "readiness-sync-pr391",
+      "area": "DOCUMENTATION",
+      "title": "Record verified PR 391 merge and synchronize current readiness evidence",
+      "pr_number": 391,
+      "pr_head_sha": "6369846a872942d56731a68301747006e0956c73",
+      "merge_sha": "230468f345f1426852a229565f9dde801cf0100f",
+      "ci_run_id": 41466736255,
+      "verification": "VERIFIED 2026-11-02: PR #391 merged at 230468f345f1426852a229565f9dde801cf0100f from head 6369846a872942d56731a68301747006e0956c73. Exact-head PR CI 41466736255 SUCCESS (Node skipped by path selection); exact-head push CI 41466709183 SUCCESS including Node; PR CodeQL 41466731548 SUCCESS. Exact-merge main CI 41470834569 and CodeQL 41470832717 SUCCESS. Main CI passed Python, PostgreSQL RLS, security, container/Trivy, Terraform, validate, static Pages publication and verify-production; Node, controlled incident drill and restoration/rollback checks were skipped under path/event conditions. PR Vercel preview succeeded.",
+      "limitations": "PR #391 records evidence and readiness only. Static Pages publication does not prove an API/staging service; advisory workflow success does not establish model inference. No live service, customer data, migration or AI call was introduced. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex runtime remains OPEN."
     }
   ],
   "gates": [
