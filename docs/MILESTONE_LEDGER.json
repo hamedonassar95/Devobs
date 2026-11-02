@@ -574,6 +574,17 @@
       "ci_run_id": 41431843697,
       "verification": "VERIFIED 2026-11-02: PR CI 41431843697 and push CI 41431820624 SUCCESS on exact head; push CI ran Node tests, PR CI skipped them by path selection. Python validation, RLS, security, container scan, Terraform, validate, CodeQL 41431840914 and advisory review 41431843504 SUCCESS. PR #376 merged at bfd40df4f3ae9ceb0c539c3ed6861c24c88e6aee. Main CI 41431998816 and CodeQL 41431997968 SUCCESS on exact merge SHA; main CI passed Pages publication and verify-production, while Node tests and incident drill were skipped by path/event. Vercel PR status failed due to its build-rate limit.",
       "limitations": "Offline topology interchange only; digest is not a signature or collector authentication. No live source, persistence, or hosted ingestion. Main CI skipped Node by path selection; push CI on the exact PR head ran it. Pages verifies the static site only. No readiness gate changed; release gates remain BLOCKED or OPEN."
+    },
+    {
+      "id": "incident-memory-provenance-pr377",
+      "area": "QUALITY",
+      "title": "Add provenance-aware freshness filtering for offline incident memory",
+      "pr_number": 377,
+      "pr_head_sha": "9e32035d5bf7b94c8cfd7b15384db8e4c3559024",
+      "merge_sha": "34b47f1352e489d9a92b2e202441a8469d66fabb",
+      "ci_run_id": 41432899091,
+      "verification": "VERIFIED 2026-11-02: PR CI 41432899091 and exact-head push CI 41432872907 SUCCESS; the push run executed Node tests while the PR run skipped them by path condition. PR CodeQL 41432894758 SUCCESS. PR #377 was merged by hamedonassar95 at 34b47f1352e489d9a92b2e202441a8469d66fabb. Main CI 41433070130 and CodeQL 41433069213 SUCCESS on the exact merge SHA; main CI passed Python validation, RLS, security, container scan, Terraform, validate and static Pages publish/verify; Node tests and incident drill were skipped by path/event. The merge SHA status included a successful Vercel deployment.",
+      "limitations": "Offline metadata-only retrieval; no persisted corpus, live source, or hosted ingestion. The Codex AI review workflow skipped inference because explicit budget approval was absent, and a separate Codex review attempt failed at the usage limit. The PR Vercel preview was rate-limited. No readiness gate changed, release gates remain BLOCKED or OPEN, and no live service or model inference was enabled."
     }
   ],
   "gates": [
