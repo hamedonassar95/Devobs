@@ -750,6 +750,17 @@
       "ci_run_id": 41474580125,
       "verification": "VERIFIED 2026-11-02: PR #392 merged at 0688f3aad663d5a5be7bb5d72dce28966a2c781e from head 7373feedd193e9aa498c3eb4d77bce8f19657a9b. Exact-head PR CI 41474580125 SUCCESS (Node skipped by path selection); exact-head push CI 41474547278 SUCCESS including Node; PR CodeQL 41474575499 SUCCESS; PR Vercel preview succeeded. Exact-merge main CI 41475266103 and CodeQL 41475263029 SUCCESS. Main CI passed Python, PostgreSQL RLS, security, container/Trivy, Terraform, validate, static Pages publication and verify-production; Node, controlled incident drill and restoration/rollback checks were skipped by workflow conditions.",
       "limitations": "PR #392 records evidence for PR #391 and synchronizes readiness only. The advisory Codex workflow succeeded with model inference skipped because the budget approval switch was not true; this is not a model call. Static Pages does not prove an API/staging deployment. No service, migration, customer data or AI call was introduced. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex runtime remains OPEN."
+    },
+    {
+      "id": "local-intelligence-audit-report-pr393",
+      "area": "QUALITY",
+      "title": "Add a redacted, read-only local audit-chain status report",
+      "pr_number": 393,
+      "pr_head_sha": "1813e4645b179812c3f7be4c8f2f95f47e3cdc87",
+      "merge_sha": "dda0d28c036e90af236596e377a8299762638a46",
+      "ci_run_id": 41480022731,
+      "verification": "VERIFIED 2026-11-02: PR #393 merged at dda0d28c036e90af236596e377a8299762638a46 from head 1813e4645b179812c3f7be4c8f2f95f47e3cdc87. Exact-head PR CI 41480022731 SUCCESS (Node skipped by path selection); exact-head push CI 41479978302 SUCCESS including Node; PR CodeQL 41480018267 SUCCESS for Actions, Python and JavaScript/TypeScript; PR Vercel preview succeeded. Exact-merge main CI 41483738977 and CodeQL 41483734733 SUCCESS. Main CI passed Python validation, PostgreSQL RLS, security, container/Trivy, Terraform, validate, static Pages publication and verify-production; Node and controlled incident drill were skipped by path/event conditions.",
+      "limitations": "PR #393 added a local redacted read-only report of an existing SQLite audit chain. It does not verify a signed checkpoint unless supplied in a follow-up, provide protected external retention, or establish hosted service readiness. The advisory Codex workflow skipped model inference; no AI call or live service was introduced. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex runtime remains OPEN."
     }
   ],
   "gates": [
