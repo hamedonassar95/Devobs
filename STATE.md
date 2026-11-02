@@ -1,5 +1,13 @@
 # حالة مستودع Devobs
 
+## دمج PR #393 — تحقق 2026-11-02
+
+- **VERIFIED من GitHub:** دُمج [PR #393](https://github.com/hamedonassar95/Devobs/pull/393)، رأسه `1813e4645b179812c3f7be4c8f2f95f47e3cdc87`، عند SHA `dda0d28c036e90af236596e377a8299762638a46`، وهو `main` الحالي.
+- نجح PR CI `41480022731` (تخطّى Node باختيار المسارات)، ونجح push CI `41479978302` بما فيه Node، ونجح PR CodeQL `41480018267`؛ نجحت معاينة Vercel. بعد الدمج نجح main CI `41483738977` وCodeQL `41483734733` على SHA الدمج. اجتاز CI التحقق والأمان وRLS والحاوية/Trivy وTerraform ونشر Pages الثابت و`verify-production`؛ تخطّى Node وcontrolled-incident-drill وفق شروط التشغيل.
+- أضاف PR #393 تقريرًا محليًا منقحًا للقراءة فقط لسلسلة تدقيق SQLite الموجودة. لم يشغّل خدمة أو يرحّل قاعدة أو يغيّر بوابة جاهزية. سير مراجعة Codex الإرشادي تخطّى الاستدلال؛ لا يثبت استدعاء نموذج.
+- **VERIFIED من GitHub Rulesets API:** توجد مجموعتان نشطتان متداخلتان على `main`، `Protect main` و`protect-main`، بلا صلاحيات تجاوز. الأولى تفرض `validate` الصارم وفحص CodeQL الأمني؛ الثانية تضيف فحص حالة `CodeQL`. محاولة توحيدهما عبر التكامل رُفضت بـHTTP 403 ولم تغيّر الإعدادات؛ لم تُحذف أي قاعدة.
+- AI-9 ما زالت FAIL/BLOCKED، وP01 ما زالت NO-GO/BLOCKED، وقبول Codex runtime ما زال OPEN.
+
 ## دمج PR #392 — تحقق 2026-11-02
 
 - **VERIFIED من GitHub:** دُمج [PR #392](https://github.com/hamedonassar95/Devobs/pull/392)، رأسه `7373feedd193e9aa498c3eb4d77bce8f19657a9b`، عند merge SHA `0688f3aad663d5a5be7bb5d72dce28966a2c781e`، وهو `main` الحالي وفق `git ls-remote origin refs/heads/main`.

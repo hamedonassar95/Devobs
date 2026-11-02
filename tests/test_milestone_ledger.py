@@ -500,7 +500,7 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
         self.assertEqual(gates["codex-agent-runtime-acceptance"], "OPEN")
 
-    def test_pr365_to_392_merges_are_recorded_without_promoting_readiness_gates(self):
+    def test_pr365_to_393_merges_are_recorded_without_promoting_readiness_gates(self):
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         expected = {
             365: ("bf1d158dee28a9b8a00bfc0c29e847b7398867e6",
@@ -555,6 +555,8 @@ class MilestoneLedgerTests(unittest.TestCase):
                   "230468f345f1426852a229565f9dde801cf0100f", 41466736255),
             392: ("7373feedd193e9aa498c3eb4d77bce8f19657a9b",
                   "0688f3aad663d5a5be7bb5d72dce28966a2c781e", 41474580125),
+            393: ("1813e4645b179812c3f7be4c8f2f95f47e3cdc87",
+                  "dda0d28c036e90af236596e377a8299762638a46", 41480022731),
         }
         for number, (head, merged, ci) in expected.items():
             with self.subTest(pr=number):
@@ -658,6 +660,11 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("41475266103", records[392]["verification"])
         self.assertIn("41475263029 SUCCESS", records[392]["verification"])
         self.assertIn("model inference skipped", records[392]["limitations"])
+        self.assertIn("41479978302 SUCCESS", records[393]["verification"])
+        self.assertIn("41480018267 SUCCESS", records[393]["verification"])
+        self.assertIn("41483738977", records[393]["verification"])
+        self.assertIn("41483734733 SUCCESS", records[393]["verification"])
+        self.assertIn("no AI call", records[393]["limitations"])
         self.assertIn("41459163558 SUCCESS", records[389]["verification"])
         self.assertIn("41459181626 SUCCESS", records[389]["verification"])
         self.assertIn("41459888214", records[389]["verification"])
@@ -671,7 +678,7 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("Node tests and controlled incident drill were skipped", records[390]["verification"])
         self.assertIn("does not prevent another process", records[390]["limitations"])
         self.assertIn("AI-9 remains BLOCKED/FAIL", records[390]["limitations"])
-        self.assertEqual(validate(self.data)["latest_pr"], 392)
+        self.assertEqual(validate(self.data)["latest_pr"], 393)
         gates = {item["id"]: item["status"] for item in self.data["gates"]}
         self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
