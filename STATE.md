@@ -1,5 +1,12 @@
 # حالة مستودع Devobs
 
+## دمج PR #375 — تحقق 2026-11-02
+
+- **VERIFIED من GitHub:** دُمج [PR #375](https://github.com/hamedonassar95/Devobs/pull/375)، رأسه `a86510564f01c9b4ef10a180cea063f3df6782c8`، عند merge SHA `c5e25db806500429ac7d5b83b663eb2a566151e1`، وهو `main` الحالي.
+- **CI على الرأس:** نجح PR CI `41430830200` وpush CI `41430806878`؛ تخطّى PR CI اختبارات Node بشرط المسارات، وشغّلها push CI على الرأس نفسه. نجحت Python وRLS والأمان والحاوية وTerraform و`validate`، وCodeQL `41430826736` ومراجعة Codex الإرشادية `41430830132`. فشل Vercel بسبب حد معدل البناء.
+- **بعد الدمج:** نجح [main CI run 41431148732](https://github.com/hamedonassar95/Devobs/actions/runs/41431148732) و[CodeQL run 41431147710](https://github.com/hamedonassar95/Devobs/actions/runs/41431147710) على SHA الدمج. اجتاز CI فحوص Python وRLS والأمان والحاوية وTerraform و`validate` ونشر Pages والتحقق من الموقع الثابت؛ تخطّى Node شرط المسارات.
+- ربط PR #375 اللقطة المحلية بمكوّن الربط الحتمي وأضاف بصمة/وقت المصدر للنتيجة. هذا لا يثبت مصدرًا موثوقًا أو تشغيلًا حيًا ولا يغيّر أي بوابة جاهزية؛ Vercel لم ينشئ معاينة بسبب حد المعدل.
+
 ## دمج PR #374 — تحقق 2026-11-02
 
 - **VERIFIED من GitHub:** دُمج [PR #374](https://github.com/hamedonassar95/Devobs/pull/374)، رأسه `cd96da7bf5ba4d529bfff6bc37aa54cf2a3bc746`، عند merge SHA `0988a5e58f7b8dba7066eb0b9079539e6d0b58a5`، وهو `main` الحالي.
@@ -30,8 +37,8 @@
 
 ## آخر تحقق من main — 2026-11-02
 
-- **VERIFIED:** `origin/main` عند `0988a5e58f7b8dba7066eb0b9079539e6d0b58a5`. نجح main CI `41429682676` وCodeQL `41429681653` على هذا SHA. اجتازت Python validation وRLS والأمان والحاوية وTerraform و`validate` ونشر Pages و`verify-production` للموقع الثابت؛ تخطّى Node وcontrolled-incident-drill شروط المسارات/الحدث.
-- يسجل دفتر الإنجازات الآن PR #374 إضافةً إلى السجل السابق؛ كان PR #374 تحديثًا توثيقيًا واختبارًا للسجل فقط، ولم تتغير أي بوابة جاهزية.
+- **VERIFIED:** `origin/main` عند `c5e25db806500429ac7d5b83b663eb2a566151e1`. نجح main CI `41431148732` وCodeQL `41431147710` على هذا SHA. اجتازت Python validation وRLS والأمان والحاوية وTerraform و`validate` ونشر Pages و`verify-production` للموقع الثابت؛ تخطّى Node وcontrolled-incident-drill شروط المسارات/الحدث.
+- يسجل دفتر الإنجازات الآن PR #375 إضافةً إلى السجل السابق؛ أضاف PR #375 ربط الطوبولوجيا والتوثيق واختبارًا للسجل. تظل البوابات كما هي ولا توجد أدلة على مصدر طوبولوجيا حي.
 
 ## دمج PR #366 — تحقق 2026-11-02
 

@@ -25,7 +25,7 @@ flowchart LR
 | --- | --- | --- |
 | Agent/model | Existing offline deterministic adviser; optional model callback disabled by default. Other repo workflows have budget approval variables | Record provider name, exact model snapshot, prompts, tool manifest, cost limits and evaluation for **each** live invocation |
 | Training / incident memory | New metadata-only, tenant-scoped, closed-vocabulary resolved incident retrieval | Consent, encrypted tenant storage, validated retention and deletions, adversarial memory poisoning tests, vector data handling |
-| Evidence data | Numeric allowlisted telemetry; offline `ServiceTopologySnapshot` binds tenant/project, source SHA, capture time and canonical content digest, and the deterministic correlator validates freshness/scope and returns the digest with its result | Actual collector, authenticated transport, signed provenance, and live-source freshness tests |
+| Evidence data | Numeric allowlisted telemetry; offline `ServiceTopologySnapshot` has a strict JSON-compatible schema-v1 record, canonical content digest, freshness/scope checks, and deterministic correlator provenance | Actual collector, authenticated transport, signed provenance, and live-source freshness tests |
 | RCA accuracy | Synthetic top-1/top-3 only, denominator surfaced | Human-labelled incidents (minimum 30 for first review; more needed by class), holdout/time-split, calibration, false-positive analysis |
 | Human control | Deterministic policy denies execution; proposal review only | Cryptographic approver identity + scope, SHA, parameters, expiration and one-time consumption; deny on ambiguity |
 | Audit | Existing SQLite hash-chained metadata; privileged actor can rewrite chain | Immutable external anchor, model/tool version, actor and approval evidence, retention proof |
@@ -70,7 +70,7 @@ Gartner's June 25, 2025 projection that over 40% of agentic projects **may be ca
 
 Telemetry adapter consumes a trusted **small numeric metric snapshot**, not the complete OTLP wire format or a public telemetry ingest listener. Evidence hashes are not signatures; the topology snapshot's source SHA and capture time are caller-supplied and do not authenticate its producer. Service topology is supplied explicitly, not discovered. Incident-memory lookup is deterministic, not semantic/vector retrieval. A stale topology snapshot or cross-tenant query is rejected by the offline contract; source authenticity requires a separate trusted connector. Model confidence is not calibrated. Do not send raw customer logs, prompts, credentials, traces, emails, ticket bodies or embeddings to this prototype. Offline incident benchmarks are not production accuracy.
 
-The offline topology snapshot and its local correlator integration are documented in [AI_INTELLIGENCE_TOPOLOGY_SNAPSHOT_V1.md](AI_INTELLIGENCE_TOPOLOGY_SNAPSHOT_V1.md). Source authenticity remains unproven; the contract is offline-only and does not enable hosted ingestion or execution.
+The offline topology snapshot, its strict schema-v1 record, and local correlator integration are documented in [AI_INTELLIGENCE_TOPOLOGY_SNAPSHOT_V1.md](AI_INTELLIGENCE_TOPOLOGY_SNAPSHOT_V1.md). Source authenticity remains unproven; the contract is offline-only and does not enable hosted ingestion or execution.
 
 **Review gates:** existing CI/security/CodeQL, versioned fixtures, negative tests and human review. No merging or production deployment as part of this change. GitLab mirroring, GCP, SaaS billing, private customer sources and infrastructure remain unchanged.
 

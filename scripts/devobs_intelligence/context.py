@@ -156,6 +156,47 @@ class ServiceTopologySnapshot:
         object.__setattr__(self, "snapshot_digest", digest)
         object.__setattr__(self, "_topology", topology)
 
+    def to_record(self) -> dict:
+        """Return a detached, JSON-compatible versioned snapshot record."""
+        return {
+            "schema_version": 1,
+            "tenant": self.tenant,
+            "project": self.project,
+            "services": list(self.services),
+            "edges": [list(edge) for edge in self.edges],
+            "source_sha": self.source_sha,
+            "captured_at": self.captured_at,
+            "snapshot_digest": self.snapshot_digest,
+        }
+
+    @classmethod
+    def from_record(cls, record: dict) -> ServiceTopologySnapshot:
+        """Parse one strict JSON-compatible record and verify its content digest."""
+        fields = {
+            "schema_version", "tenant", "project", "services", "edges",
+            "source_sha", "captured_at", "snapshot_digest",
+        }
+        if type(record) is not dict or set(record) != fields:
+            raise ContextError("invalid_snapshot_record")
+        if type(record["schema_version"]) is not int or record["schema_version"] != 1:
+            raise ContextError("unsupported_snapshot_schema")
+        if (type(record["services"]) is not list
+                or type(record["edges"]) is not list
+                or any(type(edge) is not list or len(edge) != 2 for edge in record["edges"])):
+            raise ContextError("invalid_snapshot_record")
+        try:
+            snapshot = cls(
+                record["tenant"], record["project"], record["services"],
+                [tuple(edge) for edge in record["edges"]],
+                record["source_sha"], record["captured_at"],
+            )
+        except (ContextError, TypeError, ValueError):
+            raise ContextError("invalid_snapshot_record") from None
+        if (type(record["snapshot_digest"]) is not str
+                or snapshot.snapshot_digest != record["snapshot_digest"]):
+            raise ContextError("snapshot_digest_mismatch")
+        return snapshot
+
     def validate(self, tenant: str, project: str, *, now: datetime,
                  max_age_seconds: int = 900) -> None:
         """Require an exact scope match and a fresh, timezone-aware snapshot."""
