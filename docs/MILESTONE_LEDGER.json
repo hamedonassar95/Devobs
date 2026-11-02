@@ -739,6 +739,17 @@
       "ci_run_id": 41466736255,
       "verification": "VERIFIED 2026-11-02: PR #391 merged at 230468f345f1426852a229565f9dde801cf0100f from head 6369846a872942d56731a68301747006e0956c73. Exact-head PR CI 41466736255 SUCCESS (Node skipped by path selection); exact-head push CI 41466709183 SUCCESS including Node; PR CodeQL 41466731548 SUCCESS. Exact-merge main CI 41470834569 and CodeQL 41470832717 SUCCESS. Main CI passed Python, PostgreSQL RLS, security, container/Trivy, Terraform, validate, static Pages publication and verify-production; Node, controlled incident drill and restoration/rollback checks were skipped under path/event conditions. PR Vercel preview succeeded.",
       "limitations": "PR #391 records evidence and readiness only. Static Pages publication does not prove an API/staging service; advisory workflow success does not establish model inference. No live service, customer data, migration or AI call was introduced. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex runtime remains OPEN."
+    },
+    {
+      "id": "readiness-sync-pr392",
+      "area": "DOCUMENTATION",
+      "title": "Record verified PR 392 merge and synchronize current readiness evidence",
+      "pr_number": 392,
+      "pr_head_sha": "7373feedd193e9aa498c3eb4d77bce8f19657a9b",
+      "merge_sha": "0688f3aad663d5a5be7bb5d72dce28966a2c781e",
+      "ci_run_id": 41474580125,
+      "verification": "VERIFIED 2026-11-02: PR #392 merged at 0688f3aad663d5a5be7bb5d72dce28966a2c781e from head 7373feedd193e9aa498c3eb4d77bce8f19657a9b. Exact-head PR CI 41474580125 SUCCESS (Node skipped by path selection); exact-head push CI 41474547278 SUCCESS including Node; PR CodeQL 41474575499 SUCCESS; PR Vercel preview succeeded. Exact-merge main CI 41475266103 and CodeQL 41475263029 SUCCESS. Main CI passed Python, PostgreSQL RLS, security, container/Trivy, Terraform, validate, static Pages publication and verify-production; Node, controlled incident drill and restoration/rollback checks were skipped by workflow conditions.",
+      "limitations": "PR #392 records evidence for PR #391 and synchronizes readiness only. The advisory Codex workflow succeeded with model inference skipped because the budget approval switch was not true; this is not a model call. Static Pages does not prove an API/staging deployment. No service, migration, customer data or AI call was introduced. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex runtime remains OPEN."
     }
   ],
   "gates": [
