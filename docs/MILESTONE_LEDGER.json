@@ -761,6 +761,17 @@
       "ci_run_id": 41480022731,
       "verification": "VERIFIED 2026-11-02: PR #393 merged at dda0d28c036e90af236596e377a8299762638a46 from head 1813e4645b179812c3f7be4c8f2f95f47e3cdc87. Exact-head PR CI 41480022731 SUCCESS (Node skipped by path selection); exact-head push CI 41479978302 SUCCESS including Node; PR CodeQL 41480018267 SUCCESS for Actions, Python and JavaScript/TypeScript; PR Vercel preview succeeded. Exact-merge main CI 41483738977 and CodeQL 41483734733 SUCCESS. Main CI passed Python validation, PostgreSQL RLS, security, container/Trivy, Terraform, validate, static Pages publication and verify-production; Node and controlled incident drill were skipped by path/event conditions.",
       "limitations": "PR #393 added a local redacted read-only report of an existing SQLite audit chain. It does not verify a signed checkpoint unless supplied in a follow-up, provide protected external retention, or establish hosted service readiness. The advisory Codex workflow skipped model inference; no AI call or live service was introduced. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex runtime remains OPEN."
+    },
+    {
+      "id": "readiness-sync-ruleset-consolidation-pr394",
+      "area": "DOCUMENTATION",
+      "title": "Record PR 394 merge evidence and consolidate main rulesets",
+      "pr_number": 394,
+      "pr_head_sha": "e8f058465f903448a1f4338372a5ea59313ec402",
+      "merge_sha": "f3dc921ed8ea8de150582567763405dbcfc34746",
+      "ci_run_id": 41485469354,
+      "verification": "VERIFIED 2026-11-02: PR #394 merged at f3dc921ed8ea8de150582567763405dbcfc34746 from head e8f058465f903448a1f4338372a5ea59313ec402. Exact-head CI 41485469354 SUCCESS (Node skipped by path selection); push CI 41485437158 SUCCESS including Node; PR CodeQL 41485462136 SUCCESS for Actions, Python and JavaScript/TypeScript; Vercel PR preview succeeded. Exact-merge main CI 41491251830 and CodeQL 41491251634 SUCCESS; main CI published static Pages. Owner-provided UI screenshots show only Protect main remains, with validate and CodeQL required and strict branch freshness enabled.",
+      "limitations": "PR #394 adds optional local Ed25519 checkpoint verification only. The Codex inference steps were skipped; no model call occurred. Ruleset state is verified by owner-provided UI screenshots because the integration returned HTTP 403 for API mutation; no independent API readback is available. Pages is a static-site release, not P01 staging. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex runtime remains OPEN."
     }
   ],
   "gates": [
