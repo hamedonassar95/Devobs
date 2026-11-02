@@ -93,6 +93,15 @@ class P01EvidenceTests(unittest.TestCase):
         obj["controls"]["owner_approval"]["evidence_url"] = "https://[::1"
         self.assert_invalid(obj, "invalid evidence reference")
 
+    def test_url_control_characters_are_rejected(self):
+        for control in ("\x7f", "\x85"):
+            with self.subTest(control=ord(control)):
+                obj = verified()
+                obj["controls"]["owner_approval"]["evidence_url"] = (
+                    "https://example.com/evidence" + control
+                )
+                self.assert_invalid(obj, "invalid evidence reference")
+
     def test_unverified_cannot_hide_unexpected_fields(self):
         obj = example()
         obj["controls"]["owner_approval"]["approved"] = True

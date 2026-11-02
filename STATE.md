@@ -1,5 +1,13 @@
 # حالة مستودع Devobs
 
+## دمج PR #397 وتحقق ما بعد الدمج — تحقق 2026-11-02
+
+- **VERIFIED من GitHub:** دُمج [PR #397](https://github.com/hamedonassar95/Devobs/pull/397)، رأسه `f869f2d525c8b5a79cf2eb28b79ea20977e045b7`، عند SHA `9ba9901d9b558bbc6bb45f7ebb661a03028a1c9c`؛ ويطابق `origin/main` عند التحقق.
+- **على رأس PR:** نجح CI `41495991816` وpush CI `41495950385`؛ تخطّى Node في CI الخاص بالـPR ونجح في push CI. نجح CodeQL `41495988647` للـActions وPython وJavaScript/TypeScript. فشل Vercel بسبب حد معدل البناء؛ وهو غير مطلوب وفق قواعد `main` المصورة.
+- **بعد الدمج:** نجح main CI `41496604409` وCodeQL `41496602621` على SHA الدمج. اجتاز CI التحقق وPython وRLS والأمان والحاوية/Trivy وTerraform وعقد الموقع ونشر Pages الثابت والتحقق منه؛ تخطّى Node وcontrolled-incident-drill وفحوص الاستعادة وفق شروط سير العمل.
+- أضاف PR #397 معالجة واضحة لأخطاء تحليل رابط الأدلة المشوّهة واختبار انحدار محليًا، وسجّل أدلة دمج #396. لا يثبت هذا التغيير صدق المراجع الخارجية أو اكتمال أدلة P01. حالة Pages الثابتة لا تثبت staging أو خدمة API.
+- AI-9 ما زالت FAIL/BLOCKED، وP01 ما زالت NO-GO/BLOCKED، وقبول Codex runtime ما زال OPEN.
+
 ## دمج PR #396 وتحقق ما بعد الدمج — تحقق 2026-11-02
 
 - **VERIFIED من GitHub:** دُمج [PR #396](https://github.com/hamedonassar95/Devobs/pull/396)، رأسه `3ce710dd1f4da014c26cd3a4d996fabb87b39f00`، عند SHA `5944b4ac44d42c507ace0b4a468b210636733033`؛ ويطابق `origin/main` عند التحقق.
