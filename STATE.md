@@ -1,11 +1,20 @@
 # حالة مستودع Devobs
 
+## دمج PR #394 وتوحيد حماية main — تحقق 2026-11-02
+
+- **VERIFIED من GitHub:** دُمج [PR #394](https://github.com/hamedonassar95/Devobs/pull/394)، رأسه `e8f058465f903448a1f4338372a5ea59313ec402`، عند SHA `f3dc921ed8ea8de150582567763405dbcfc34746`، وهو `main` الحالي.
+- **على رأس PR:** نجح CI `41485469354` (تخطّى Node باختيار المسارات)، ونجح push CI `41485437158` بما فيه Node، ونجح CodeQL `41485462136` للغات Actions وPython وJavaScript/TypeScript؛ نجحت معاينة Vercel. نجح سير مراجعة Codex الإرشادي لكن خطوات فحص المفتاح وcheckout والاستدلال تخطّت؛ لا يثبت استدعاء نموذج.
+- **بعد الدمج:** نجح main CI `41491251830` وCodeQL `41491251634` على SHA الدمج. اجتاز CI `validate` وPython وRLS والأمان والحاوية/Trivy وTerraform وعقد الموقع ونشر GitHub Pages الثابت؛ تخطّى Node لعدم انطباق المسارات. نجح Vercel على SHA الدمج. نشر Pages بدأه سير العمل تلقائيًا بعد الدمج، وهو للموقع الثابت وليس staging لـP01.
+- **VERIFIED من صور واجهة GitHub التي أرسلها المالك:** قائمة Rulesets تعرض `Protect main` وحدها بعد حذف `protect-main`. القاعدة المتبقية نشطة وتستهدف `main`، وقائمة التجاوز فارغة، وتتطلب `validate` و`CodeQL` (GitHub Advanced Security) مع تحديث الفرع قبل الدمج؛ ظل فحص CodeQL الأمني مفعّلًا. تحديث القواعد عبر التكامل رُفض سابقًا بـHTTP 403، لذا هذا إثبات واجهة المالك وليس قراءة API مستقلة.
+- أضاف PR #394 تحققًا اختياريًا من checkpoint موقّع Ed25519 في التقرير المحلي. لا يضيف إدارة مفاتيح أو إثبات حداثة أو احتفاظًا خارجيًا، ولا يشغّل استدلالًا.
+- AI-9 ما زالت FAIL/BLOCKED، وP01 ما زالت NO-GO/BLOCKED، وقبول Codex runtime ما زال OPEN.
+
 ## دمج PR #393 — تحقق 2026-11-02
 
-- **VERIFIED من GitHub:** دُمج [PR #393](https://github.com/hamedonassar95/Devobs/pull/393)، رأسه `1813e4645b179812c3f7be4c8f2f95f47e3cdc87`، عند SHA `dda0d28c036e90af236596e377a8299762638a46`، وهو `main` الحالي.
+- **VERIFIED من GitHub:** دُمج [PR #393](https://github.com/hamedonassar95/Devobs/pull/393)، رأسه `1813e4645b179812c3f7be4c8f2f95f47e3cdc87`، عند SHA `dda0d28c036e90af236596e377a8299762638a46`، وكان `main` وقت هذا التحقق.
 - نجح PR CI `41480022731` (تخطّى Node باختيار المسارات)، ونجح push CI `41479978302` بما فيه Node، ونجح PR CodeQL `41480018267`؛ نجحت معاينة Vercel. بعد الدمج نجح main CI `41483738977` وCodeQL `41483734733` على SHA الدمج. اجتاز CI التحقق والأمان وRLS والحاوية/Trivy وTerraform ونشر Pages الثابت و`verify-production`؛ تخطّى Node وcontrolled-incident-drill وفق شروط التشغيل.
 - أضاف PR #393 تقريرًا محليًا منقحًا للقراءة فقط لسلسلة تدقيق SQLite الموجودة. لم يشغّل خدمة أو يرحّل قاعدة أو يغيّر بوابة جاهزية. سير مراجعة Codex الإرشادي تخطّى الاستدلال؛ لا يثبت استدعاء نموذج.
-- **VERIFIED من GitHub Rulesets API:** توجد مجموعتان نشطتان متداخلتان على `main`، `Protect main` و`protect-main`، بلا صلاحيات تجاوز. الأولى تفرض `validate` الصارم وفحص CodeQL الأمني؛ الثانية تضيف فحص حالة `CodeQL`. محاولة توحيدهما عبر التكامل رُفضت بـHTTP 403 ولم تغيّر الإعدادات؛ لم تُحذف أي قاعدة.
+- **لقطة تاريخية قبل التوحيد:** أظهر GitHub Rulesets API مجموعتين نشطتين متداخلتين على `main`، `Protect main` و`protect-main`. محاولة التعديل عبر التكامل رُفضت بـHTTP 403؛ حذف المالك القاعدة المكررة لاحقًا من واجهة GitHub، كما يوثّق قسم PR #394 أعلاه.
 - AI-9 ما زالت FAIL/BLOCKED، وP01 ما زالت NO-GO/BLOCKED، وقبول Codex runtime ما زال OPEN.
 
 ## دمج PR #392 — تحقق 2026-11-02
