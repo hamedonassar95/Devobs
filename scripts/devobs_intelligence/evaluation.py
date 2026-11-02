@@ -21,11 +21,16 @@ _CATEGORIES = frozenset({"ci_failure", "high_error_rate", "capacity_pressure", "
 _CASE_ID = re.compile(r"[a-z0-9][a-z0-9_-]{0,39}\Z")
 
 
-def evaluate_cases(cases: list[dict], *, target_accuracy: float = 0.85) -> dict[str, object]:
-    """Score fixed synthetic cases; return aggregates without case details."""
-    if (type(target_accuracy) not in (float, int)
-            or not math.isfinite(target_accuracy)
-            or not 0 <= target_accuracy <= 1):
+def evaluate_cases(cases: list[dict], *, target_accuracy: float | None = None) -> dict[str, object]:
+    """Score fixed synthetic cases without inventing an acceptance target.
+
+    Compare against a target only when the caller supplies an explicitly chosen
+    value. The evaluator cannot establish that the target has owner approval.
+    """
+    if (target_accuracy is not None
+            and (type(target_accuracy) not in (float, int)
+                 or not math.isfinite(target_accuracy)
+                 or not 0 <= target_accuracy <= 1)):
         raise EvaluationError("invalid_target")
     if type(cases) is not list or not 1 <= len(cases) <= 100:
         raise EvaluationError("invalid_cases")
@@ -78,8 +83,8 @@ def evaluate_cases(cases: list[dict], *, target_accuracy: float = 0.85) -> dict[
         "abstentions": abstentions,
         "accuracy": accuracy,
         "selective_accuracy": non_abstained_correct / non_abstained if non_abstained else None,
-        "target_accuracy": float(target_accuracy),
-        "meets_target": accuracy >= target_accuracy,
+        "target_accuracy": float(target_accuracy) if target_accuracy is not None else None,
+        "meets_target": accuracy >= target_accuracy if target_accuracy is not None else None,
         "confidence_calibrated": False,
         "live_model_calls": 0,
     }

@@ -12,7 +12,7 @@ FIXTURES = json.loads((ROOT / "tests/fixtures/intelligence_eval_cases.json").rea
 
 
 class EvaluationTests(unittest.TestCase):
-    def test_baseline_metrics_and_unmet_accuracy_target(self):
+    def test_baseline_metrics_do_not_assume_an_unapproved_target(self):
         report = evaluate_cases(FIXTURES)
         self.assertEqual(report["schema_version"], 1)
         self.assertEqual(report["case_count"], 5)
@@ -20,13 +20,18 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(report["abstentions"], 1)
         self.assertEqual(report["accuracy"], 0.8)
         self.assertEqual(report["selective_accuracy"], 0.75)
-        self.assertFalse(report["meets_target"])
+        self.assertIsNone(report["target_accuracy"])
+        self.assertIsNone(report["meets_target"])
         self.assertFalse(report["confidence_calibrated"])
 
-    def test_lower_target_reports_truthfully(self):
+    def test_explicit_target_is_compared_truthfully(self):
         report = evaluate_cases(FIXTURES, target_accuracy=0.75)
         self.assertTrue(report["meets_target"])
+        self.assertEqual(report["target_accuracy"], 0.75)
         self.assertEqual(report["accuracy"], 0.8)
+        stricter = evaluate_cases(FIXTURES, target_accuracy=0.85)
+        self.assertFalse(stricter["meets_target"])
+        self.assertEqual(stricter["target_accuracy"], 0.85)
 
     def test_invalid_and_duplicate_cases_fail_closed(self):
         invalid = [FIXTURES[0], {**FIXTURES[0]}]
