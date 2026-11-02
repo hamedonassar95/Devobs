@@ -629,6 +629,17 @@
       "ci_run_id": 41443937104,
       "verification": "VERIFIED 2026-11-02: PR CI 41443937104 and exact-head push CI 41443912233 SUCCESS; push CI ran Node tests and PR CI skipped them by path selection. PR CodeQL 41443932175 SUCCESS. PR #381 merged at 3fd878eda52ef480764894a4ae82cd8af0570af2. Main CI 41444390758 and CodeQL 41444390296 SUCCESS on the exact merge SHA; main CI passed Python validation, RLS, security, container scan, Terraform, validate, static Pages publication and verify-production; Node tests and incident drill were skipped by path/event conditions. Vercel preview succeeded.",
       "limitations": "Offline JSON serialization only. The finding digest detects accidental changes but does not authenticate the producer or authorize consumers. No live endpoint, source authentication, storage, real incident data, model inference or readiness-gate change. Release gates remain BLOCKED or OPEN."
+    },
+    {
+      "id": "incident-finding-wire-contract-pr382",
+      "area": "QUALITY",
+      "title": "Add a tenant-scoped, versioned JSON contract for deterministic incident findings",
+      "pr_number": 382,
+      "pr_head_sha": "d6dff772de920ebbc944d93392f9ab42d9913abc",
+      "merge_sha": "ee1dd3e7f4ad1a828781c84843d2f47477e07d75",
+      "ci_run_id": 41445532516,
+      "verification": "VERIFIED 2026-11-02: PR #382 merged at ee1dd3e7f4ad1a828781c84843d2f47477e07d75 from head d6dff772de920ebbc944d93392f9ab42d9913abc. PR CI runs 41445185873 and 41445155551 and PR CodeQL 41445171196 succeeded. Exact-merge main CI 41445532516 and CodeQL 41445532358 both completed SUCCESS on ee1dd3e7f4ad1a828781c84843d2f47477e07d75.",
+      "limitations": "Offline strict JSON contract only. The content digest is not a signature, producer authentication, or authorization. It does not add live provider data, persistent incident storage, model inference or production execution. Readiness gates remain unchanged."
     }
   ],
   "gates": [
