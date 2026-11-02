@@ -4,7 +4,10 @@ import unittest
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"scripts"))
-from devobs_intelligence.context import ContextError,normalize_telemetry,ServiceTopology,Telemetry
+from devobs_intelligence.context import (
+    ContextError, normalize_telemetry, ServiceTopology, ServiceTopologySnapshot,
+    Telemetry,
+)
 from devobs_intelligence.incident_memory import IncidentRecord,IncidentMemory
 from devobs_intelligence.correlation import correlate
 
@@ -22,6 +25,19 @@ def data(service,metric,value,digest,tenant="alpha",sha="a"*40,age=0):
 def graph():
     return ServiceTopology("alpha","platform",["db","api","web"],
                            [("api","db"),("web","api")])
+
+
+def snapshot(**overrides):
+    values = {
+        "tenant": "alpha",
+        "project": "platform",
+        "services": ["db", "api", "web"],
+        "edges": [("api", "db"), ("web", "api")],
+        "source_sha": "a" * 40,
+        "captured_at": NOW.isoformat(),
+    }
+    values.update(overrides)
+    return ServiceTopologySnapshot(**values)
 
 
 def memory():
@@ -46,6 +62,42 @@ class IncidentCorrelationTests(unittest.TestCase):
         self.assertEqual(report.status,"PENDING_HUMAN_APPROVAL")
         self.assertFalse(report.model_used)
         self.assertFalse(report.calibrated)
+        self.assertIsNone(report.topology_snapshot_digest)
+
+    def test_fresh_snapshot_is_bound_to_correlation_result_provenance(self):
+        topology = snapshot()
+        report = correlate(topology, [data("db", "error_rate_pct", 9, "b")],
+                           memory(), NOW)
+        self.assertEqual(report.impacted_services, ("api", "db", "web"))
+        self.assertEqual(report.topology_snapshot_digest, topology.snapshot_digest)
+        self.assertEqual(report.topology_captured_at, topology.captured_at)
+
+    def test_snapshot_rejects_stale_cross_scope_and_mismatched_source(self):
+        stale = snapshot(captured_at=(NOW - timedelta(seconds=901)).isoformat())
+        with self.assertRaisesRegex(ContextError, "stale_topology"):
+            correlate(stale, [data("db", "error_rate_pct", 9, "b")], memory(), NOW)
+
+        with self.assertRaisesRegex(ContextError, "invalid_incident_scope"):
+            correlate(snapshot(tenant="beta"),
+                      [data("db", "error_rate_pct", 9, "b")], memory(), NOW)
+
+        with self.assertRaisesRegex(ContextError, "topology_source_sha_mismatch"):
+            correlate(snapshot(source_sha="c" * 40),
+                      [data("db", "error_rate_pct", 9, "b")], memory(), NOW)
+
+    def test_snapshot_instances_are_revalidated_before_use(self):
+        forged = snapshot()
+        object.__setattr__(forged, "source_sha", "not-a-sha")
+        with self.assertRaisesRegex(ContextError, "invalid_topology_snapshot"):
+            correlate(forged, [data("db", "error_rate_pct", 9, "b")], memory(), NOW)
+
+    def test_snapshot_provenance_is_returned_when_correlation_abstains(self):
+        topology = snapshot()
+        report = correlate(topology, [data("api", "capacity_pct", 15, "b")],
+                           memory(), NOW)
+        self.assertEqual(report.status, "INSUFFICIENT_EVIDENCE")
+        self.assertEqual(report.topology_snapshot_digest, topology.snapshot_digest)
+        self.assertEqual(report.topology_captured_at, topology.captured_at)
 
     def test_no_evidence_does_not_propose_false_root(self):
         report=correlate(graph(),[data("api","capacity_pct",15,"b")],memory(),NOW)

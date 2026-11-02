@@ -14,17 +14,21 @@
 
 `affected_by(tenant, project, service, now=..., max_age_seconds=900, depth=3)` requires the caller to provide the expected scope and an aware current time. It rejects scope mismatch, a future or stale snapshot, invalid freshness limits, and unknown services with fixed error codes. Graph size/depth limits and cycle-safe traversal are inherited from `ServiceTopology`.
 
+`scripts/devobs_intelligence/correlation.py` accepts either the existing in-memory `ServiceTopology` or a `ServiceTopologySnapshot`. For a snapshot, `correlate(...)` rebuilds and checks the canonical digest, validates tenant/project scope and freshness, and requires the snapshot source SHA to equal the telemetry source SHA. It uses the snapshot's bounded `affected_by` traversal and returns `topology_snapshot_digest` plus `topology_captured_at` with the finding, including an `INSUFFICIENT_EVIDENCE` result. Existing `ServiceTopology` callers remain supported and have no snapshot provenance fields.
+
 ## What the contract proves
 
 - In-memory snapshot fields have the accepted shape and bounds.
 - Equivalent service/edge ordering produces the same canonical digest.
 - A change to the source SHA or capture time changes the digest.
 - Queries cannot use the snapshot under another tenant/project scope or after its freshness window.
+- The offline incident correlator cannot mix telemetry with a stale, cross-scope, altered, or differently sourced topology snapshot.
+- Correlation output carries the snapshot digest and capture time so a reviewer can identify the exact topology context used.
 - No network, storage, model, or cloud operation is performed.
 
 ## Limits and next gate
 
-The digest detects accidental content changes; it is **not** a signature, identity assertion, collector attestation, or proof that the topology came from the named commit. The caller still supplies tenant, project, source SHA, capture time, and graph. P03 still needs an authenticated and owner-approved source, reviewed provenance, poisoned/stale-memory controls, retention/privacy decisions, integration with downstream context, and its required tests. P02 remains blocked on P01 live staging and privacy approval. No readiness gate changes from this implementation.
+The digest detects accidental content changes; it is **not** a signature, identity assertion, collector attestation, or proof that the topology came from the named commit. The caller still supplies tenant, project, source SHA, capture time, and graph. This change connects the snapshot to the local deterministic correlator, but does not authenticate its producer, ingest live topology, or prove operational quality. Further work still needs an approved source, reviewed provenance, poisoned/stale-memory controls, retention/privacy decisions, and hosted evidence. No readiness decision changes from this implementation.
 
 Focused contract checks:
 
