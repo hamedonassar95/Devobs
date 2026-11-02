@@ -783,6 +783,17 @@
       "ci_run_id": 41492474753,
       "verification": "VERIFIED 2026-11-02: PR #395 merged at bbadef10ab7f49f5136f50b331440dac4b3bc2d4 from head 8370ca19e49e567afa853013cfbee4f615394d87. Exact-head PR CI 41492474753 SUCCESS (Node skipped by path selection); push CI 41492448493 SUCCESS including Node; PR CodeQL 41492469681 SUCCESS for Actions, Python and JavaScript/TypeScript. Exact-merge main CI 41493063624 and CodeQL 41493062782 SUCCESS. Main CI passed Python, PostgreSQL RLS, security, container/Trivy, Terraform, validate, site contract, static Pages publication and verification; Node and controlled incident drill were skipped by workflow conditions.",
       "limitations": "PR #395 refreshed documentation and recorded PR #394 merge/ruleset evidence; it adds no runtime feature. Ruleset state is evidenced by owner-provided GitHub UI screenshots; independent API readback is unavailable. Static Pages is not P01 staging. CI/CodeQL do not prove an AI model call or live service. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex runtime remains OPEN."
+    },
+    {
+      "id": "readiness-sync-pr396-merge",
+      "area": "DOCUMENTATION",
+      "title": "Record PR 396 merge evidence and refresh current readiness",
+      "pr_number": 396,
+      "pr_head_sha": "3ce710dd1f4da014c26cd3a4d996fabb87b39f00",
+      "merge_sha": "5944b4ac44d42c507ace0b4a468b210636733033",
+      "ci_run_id": 41494074797,
+      "verification": "VERIFIED 2026-11-02: PR #396 merged at 5944b4ac44d42c507ace0b4a468b210636733033 from head 3ce710dd1f4da014c26cd3a4d996fabb87b39f00. Exact-head PR CI 41494074797 and push CI 41494031457 SUCCESS; Node skipped in PR CI but passed in push CI. PR CodeQL 41494069977 SUCCESS for Actions, Python and JavaScript/TypeScript. Vercel PR preview failed due to deployment rate limit. Exact-merge main CI 41495057209 and CodeQL 41495055337 SUCCESS. Main CI passed Python, PostgreSQL RLS, security, container/Trivy, Terraform, validate, site contract, static Pages publication and verification; Node, controlled incident drill and restoration checks were skipped by workflow conditions.",
+      "limitations": "PR #396 only refreshed merge evidence and readiness records. Static Pages is not P01 staging. The advisory Codex workflow status alone does not prove model inference or a live service. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex runtime remains OPEN."
     }
   ],
   "gates": [
