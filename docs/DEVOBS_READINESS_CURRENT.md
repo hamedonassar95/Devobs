@@ -1,6 +1,14 @@
 # Devobs production readiness — current evidence
 
-## Superseding snapshot — 2026-11-02 (after PR #405)
+## Superseding snapshot — 2026-11-02 (after PR #406)
+
+**VERIFIED from GitHub:** current `main` is merge SHA `f77fa477f7947e26ff8a8ab913c2a5e5827c7072`, from PR [#406](https://github.com/hamedonassar95/Devobs/pull/406), head `42d74b4794bb5657e9589e98a03f574b9941d993`.
+
+- **PR #406:** PR CI [41517982224](https://github.com/hamedonassar95/Devobs/actions/runs/41517982224), push CI [41517947412](https://github.com/hamedonassar95/Devobs/actions/runs/41517947412), and CodeQL [41517974684](https://github.com/hamedonassar95/Devobs/actions/runs/41517974684) passed on the exact head; Vercel preview succeeded. The advisory review workflow completed, but its Codex review step was skipped because explicit budget approval was absent.
+- Exact-merge main CI [41519008530](https://github.com/hamedonassar95/Devobs/actions/runs/41519008530) and CodeQL [41519007046](https://github.com/hamedonassar95/Devobs/actions/runs/41519007046) passed on the merge SHA. Main CI passed Python, Node, PostgreSQL RLS, security, container/Trivy, Terraform, site contract, `validate`, static Pages publication and verification; the controlled incident drill and restoration checks were skipped by workflow conditions. Pages is static-site evidence, not a hosted API runtime.
+- PR #406 adds per-category confusion counts, precision/recall denominators and a descriptive Wilson interval to the deterministic five-case synthetic scorecard. It does not establish representative data or real-world AI quality. The AI-9, P01 and Codex runtime dispositions are unchanged.
+
+## Prior snapshot — 2026-11-02 (after PR #405; superseded by PR #406)
 
 **VERIFIED from GitHub:** current `main` is merge SHA `b5041628a60e027858e1ec6941f1721950f5253d`, from PR [#405](https://github.com/hamedonassar95/Devobs/pull/405), head `5028a988caac8733d10d256dc87f3c46e4b6fffd`.
 

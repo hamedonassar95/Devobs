@@ -1,14 +1,18 @@
 """No real model/provider used; evaluate the deterministic baseline on synthetic fixtures."""
+import hashlib
 import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from devobs_intelligence.evaluation import EvaluationError, evaluate_cases
+from devobs_intelligence.evaluation import EvaluationError, evaluate_cases, evaluate_fixture
 
 FIXTURES = json.loads((ROOT / "tests/fixtures/intelligence_eval_cases.json").read_text())
+MANIFEST_PATH = ROOT / "docs/ai/intelligence-evaluation-policy-v1.json"
+DATASET_PATH = ROOT / "tests/fixtures/intelligence_eval_cases.json"
 
 
 class EvaluationTests(unittest.TestCase):
@@ -106,6 +110,67 @@ class EvaluationTests(unittest.TestCase):
         self.assertNotIn('"capacity_pct"', output)
         self.assertNotIn('"failed_checks"', output)
         self.assertIn("ci_failure", report["per_category"])
+
+    def test_fixture_runner_reports_versioned_digest_and_synthetic_scope(self):
+        report = evaluate_fixture(ROOT)
+        dataset = report["dataset"]
+        self.assertEqual(dataset["dataset_id"], "devobs-adviser-synthetic")
+        self.assertEqual(dataset["dataset_version"], "v1")
+        self.assertEqual(dataset["sha256"], hashlib.sha256(DATASET_PATH.read_bytes()).hexdigest())
+        self.assertEqual(dataset["case_count"], 5)
+        self.assertEqual(dataset["label_status"], "synthetic_unreviewed")
+        self.assertTrue(dataset["synthetic_only"])
+        self.assertFalse(dataset["production_gate"])
+        output = json.dumps(report, sort_keys=True)
+        for case in FIXTURES:
+            self.assertNotIn(f'"{case["case_id"]}"', output)
+        self.assertNotIn("error_rate_pct", output)
+
+    def test_fixture_runner_rejects_dataset_digest_drift(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / "docs/ai").mkdir(parents=True)
+            (root / "tests/fixtures").mkdir(parents=True)
+            (root / "docs/ai/intelligence-evaluation-policy-v1.json").write_bytes(
+                MANIFEST_PATH.read_bytes()
+            )
+            (root / "tests/fixtures/intelligence_eval_cases.json").write_bytes(
+                DATASET_PATH.read_bytes() + b" "
+            )
+            with self.assertRaisesRegex(EvaluationError, "^dataset_digest_mismatch$"):
+                evaluate_fixture(root)
+
+    def test_fixture_runner_rejects_manifest_outside_synthetic_offline_scope(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / "docs/ai").mkdir(parents=True)
+            (root / "tests/fixtures").mkdir(parents=True)
+            manifest = json.loads(MANIFEST_PATH.read_text())
+            manifest["production_gate"] = True
+            (root / "docs/ai/intelligence-evaluation-policy-v1.json").write_text(
+                json.dumps(manifest)
+            )
+            (root / "tests/fixtures/intelligence_eval_cases.json").write_bytes(
+                DATASET_PATH.read_bytes()
+            )
+            with self.assertRaisesRegex(EvaluationError, "^invalid_manifest$"):
+                evaluate_fixture(root)
+
+    def test_fixture_runner_rejects_duplicate_json_keys(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            (root / "docs/ai").mkdir(parents=True)
+            (root / "tests/fixtures").mkdir(parents=True)
+            raw = b'[{"case_id":"one","case_id":"two"}]'
+            manifest = json.loads(MANIFEST_PATH.read_text())
+            manifest["dataset_sha256"] = hashlib.sha256(raw).hexdigest()
+            manifest["case_count"] = 1
+            (root / "docs/ai/intelligence-evaluation-policy-v1.json").write_text(
+                json.dumps(manifest)
+            )
+            (root / "tests/fixtures/intelligence_eval_cases.json").write_bytes(raw)
+            with self.assertRaisesRegex(EvaluationError, "^invalid_fixture$"):
+                evaluate_fixture(root)
 
 
 if __name__ == "__main__":
