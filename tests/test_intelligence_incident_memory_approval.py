@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from devobs_intelligence.context import (
     ContextError, ServiceTopologySnapshot, normalize_telemetry,
 )
-from devobs_intelligence.correlation import correlate
+from devobs_intelligence.correlation import IncidentFinding, correlate
 from devobs_intelligence.incident_memory import IncidentMemory, IncidentRecord
 
 NOW = datetime(2026, 11, 2, 12, 0, tzinfo=timezone.utc)
@@ -96,6 +96,14 @@ class IncidentMemoryApprovalTests(unittest.TestCase):
         self.assertEqual(evidence.approval_id, approval.approval_id)
         self.assertEqual(evidence.approver_id, approval.approver_id)
         self.assertEqual(evidence.approval_digest, approval.approval_digest)
+
+        wire_finding = finding.to_record()
+        restored_finding = IncidentFinding.from_record(
+            json.loads(json.dumps(wire_finding)),
+        )
+        self.assertEqual(restored_finding, finding)
+        self.assertEqual(wire_finding["memory_provenance"][0]["approval_id"],
+                         approval.approval_id)
 
     def test_signature_binds_record_identity_approval_and_expiry(self):
         original = self.approval()

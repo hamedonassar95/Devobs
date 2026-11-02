@@ -1,5 +1,12 @@
 # حالة مستودع Devobs
 
+## دمج PR #381 — تحقق 2026-11-02
+
+- **VERIFIED من GitHub:** دُمج [PR #381](https://github.com/hamedonassar95/Devobs/pull/381)، رأسه `53b07327baea2b0c085ea8d41ee0af2f426aa217`، عند merge SHA `3fd878eda52ef480764894a4ae82cd8af0570af2`.
+- **CI على الرأس:** نجح PR CI `41443937104` وpush CI `41443912233`؛ شغّل push CI اختبارات Node، وتخطاها PR CI بشرط المسارات. نجح CodeQL `41443932175`، ومعاينة Vercel نجحت.
+- **بعد الدمج:** نجح main CI `41444390758` وCodeQL `41444390296` على SHA الدمج. نجحت Python وRLS والأمان والحاوية وTerraform و`validate` ونشر/تحقق Pages للموقع الثابت؛ تخطّى Node وcontrolled-incident-drill شروط المسارات/الحدث.
+- أضاف PR #381 عقد JSON بإصدار v1 لنتائج الحوادث، يشمل نطاق المستأجر والمشروع والأدلة وبصمة محتوى. البصمة ليست توقيعًا ولا تخوّل اتخاذ إجراء.
+
 ## دمج PR #380 — تحقق 2026-11-02
 
 - **VERIFIED من GitHub:** دُمج [PR #380](https://github.com/hamedonassar95/Devobs/pull/380)، رأسه `139b4ae89e745629e0e407393134d6195be5f43c`، عند merge SHA `c3180f5a5e945dbf16e32f50a25041233596035a`.
