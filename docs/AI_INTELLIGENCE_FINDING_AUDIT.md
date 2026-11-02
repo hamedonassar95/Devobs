@@ -14,7 +14,9 @@ The SQLite schema adds a `subject_digest` column with an empty-string default fo
 
 ## Synthetic offline pipeline
 
-The credential-free demo in `scripts/intelligence_demo.py` now builds its synthetic error-rate point through `from_trusted_metric_batch(...)` before correlation. The adapter-generated evidence digest is placed in the source event, and `append_finding(...)` checks that the finding carries the same evidence and source SHA before recording its finding digest. Malformed or stale batch evidence stops the demo before correlation or audit writes. Contract tests cover the matching evidence and the fail-closed stale path.
+The credential-free demo in `scripts/intelligence_demo.py` builds one synthetic API snapshot containing an elevated error rate and a failed-check count through `from_trusted_metric_batch(...)` before correlation. The adapter-generated evidence digests are placed in the source event, and `append_finding(...)` checks that the finding carries the same evidence and source SHA before recording its finding digest. Malformed or stale batch evidence stops the demo before correlation or audit writes.
+
+The demo uses a versioned, source-bound topology snapshot and enforces a 24-hour memory-age window. Correlation requires verified approval provenance before any matching incident-memory row can contribute a runbook. The command-line demo defaults to empty memory. Contract tests create a synthetic Ed25519 approval using a process-local ephemeral key; this does not represent a real curator identity or authorization.
 
 This is an offline synthetic integration only. The batch adapter receives tenant, project, source SHA, and clock values from its caller; it is not an authenticated collector, an independent telemetry source, or proof of live provenance. The demo still makes no provider calls and performs no production mutations.
 

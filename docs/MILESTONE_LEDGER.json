@@ -651,6 +651,17 @@
       "ci_run_id": 41448277637,
       "verification": "VERIFIED 2026-11-02: PR #383 merged at 47073379e27bba6a9009c39bd5799a3000e5280f from head 55688ec572c07e54a97677b19831311f0f2c3403. PR CI 41446395032 and exact-head push CI 41446366516 SUCCESS; PR CodeQL 41446390406 SUCCESS. Exact-merge main CI 41448277637 and CodeQL/Push on main 41448275676 SUCCESS. Main CI passed Python validation, RLS, security, container scan, Terraform, validate, static Pages publication and verify-production; Node tests and controlled incident drill were skipped by path/event. Vercel status on the merge SHA was rate-limited.",
       "limitations": "Local SQLite audit linkage only. Digests do not authenticate telemetry producers, and no live collector, hosted audit storage, customer data, model inference or production service was added. Vercel rate limiting does not change the successful required CI/CodeQL results. Readiness gates remain BLOCKED or OPEN."
+    },
+    {
+      "id": "trusted-metric-demo-pipeline-pr384",
+      "area": "QUALITY",
+      "title": "Route synthetic demo telemetry through the bounded trusted metric batch contract",
+      "pr_number": 384,
+      "pr_head_sha": "38d37eb6cce47f59959f39e5b333960bab6f8ac7",
+      "merge_sha": "1319797525567c3e3a2b4ffbea14a80bc651524e",
+      "ci_run_id": 41450789386,
+      "verification": "VERIFIED 2026-11-02: PR #384 merged at 1319797525567c3e3a2b4ffbea14a80bc651524e from head 38d37eb6cce47f59959f39e5b333960bab6f8ac7. PR CI 41450143587 and exact-head push CI 41450117574 SUCCESS; push CI ran Node tests, PR CI skipped them by path selection. PR CodeQL 41450140512 SUCCESS. Exact-merge main CI 41450789386 and CodeQL/Push on main 41450788131 SUCCESS. Main CI passed Python validation, RLS, security, container scan, Terraform, validate, static Pages publication and verify-production; Node tests and controlled incident drill were skipped by path/event. Vercel status on the merge SHA was rate-limited.",
+      "limitations": "Synthetic offline demonstration only; caller-supplied tenant/project/SHA/clock values do not authenticate an external source. No live collector, customer telemetry, model inference or hosted service was added. Readiness gates remain BLOCKED or OPEN."
     }
   ],
   "gates": [
