@@ -24,6 +24,50 @@ class EvaluationTests(unittest.TestCase):
         self.assertIsNone(report["meets_target"])
         self.assertFalse(report["confidence_calibrated"])
 
+    def test_accuracy_has_descriptive_wilson_interval_with_denominator(self):
+        report = evaluate_cases(FIXTURES)
+        interval = report["accuracy_interval_95"]
+        self.assertEqual(interval["method"], "wilson_score")
+        self.assertEqual(interval["confidence_level"], 0.95)
+        self.assertEqual(interval["successes"], 4)
+        self.assertEqual(interval["trials"], 5)
+        self.assertLess(interval["lower"], report["accuracy"])
+        self.assertGreater(interval["upper"], report["accuracy"])
+        self.assertAlmostEqual(interval["lower"], 0.3755, places=3)
+        self.assertAlmostEqual(interval["upper"], 0.9641, places=3)
+
+    def test_wilson_interval_stays_within_probability_bounds(self):
+        perfect = evaluate_cases([FIXTURES[0]])["accuracy_interval_95"]
+        zero = evaluate_cases([{**FIXTURES[0], "expected_category": "unknown"}])["accuracy_interval_95"]
+        self.assertEqual(perfect["upper"], 1.0)
+        self.assertGreaterEqual(perfect["lower"], 0.0)
+        self.assertEqual(zero["lower"], 0.0)
+        self.assertLessEqual(zero["upper"], 1.0)
+
+    def test_per_category_confusion_precision_and_recall_include_denominators(self):
+        metrics = evaluate_cases(FIXTURES)["per_category"]
+        ci = metrics["ci_failure"]
+        self.assertEqual(ci["support"], 1)
+        self.assertEqual(ci["predicted_count"], 2)
+        self.assertEqual(ci["confusion"], {"tp": 1, "fp": 1, "tn": 3, "fn": 0})
+        self.assertEqual(ci["precision"], {"value": 0.5, "numerator": 1, "denominator": 2})
+        self.assertEqual(ci["recall"], {"value": 1.0, "numerator": 1, "denominator": 1})
+        high_error = metrics["high_error_rate"]
+        self.assertEqual(high_error["support"], 2)
+        self.assertEqual(high_error["predicted_count"], 1)
+        self.assertEqual(high_error["precision"]["value"], 1.0)
+        self.assertEqual(high_error["recall"]["value"], 0.5)
+
+    def test_undefined_per_category_metrics_are_null_with_zero_denominators(self):
+        metrics = evaluate_cases([FIXTURES[0]])["per_category"]
+        high_error = metrics["high_error_rate"]
+        self.assertEqual(high_error["support"], 0)
+        self.assertEqual(high_error["predicted_count"], 0)
+        self.assertIsNone(high_error["precision"]["value"])
+        self.assertEqual(high_error["precision"]["denominator"], 0)
+        self.assertIsNone(high_error["recall"]["value"])
+        self.assertEqual(high_error["recall"]["denominator"], 0)
+
     def test_explicit_target_is_compared_truthfully(self):
         report = evaluate_cases(FIXTURES, target_accuracy=0.75)
         self.assertTrue(report["meets_target"])
@@ -56,9 +100,12 @@ class EvaluationTests(unittest.TestCase):
     def test_summary_has_no_raw_case_ids_or_payloads(self):
         report = evaluate_cases(FIXTURES)
         output = json.dumps(report, sort_keys=True)
-        self.assertNotIn("conflicting", output)
-        self.assertNotIn("ci_failure", output)
+        for case in FIXTURES:
+            self.assertNotIn(f'"{case["case_id"]}"', output)
         self.assertNotIn("error_rate_pct", output)
+        self.assertNotIn('"capacity_pct"', output)
+        self.assertNotIn('"failed_checks"', output)
+        self.assertIn("ci_failure", report["per_category"])
 
 
 if __name__ == "__main__":
