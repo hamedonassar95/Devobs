@@ -500,7 +500,7 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
         self.assertEqual(gates["codex-agent-runtime-acceptance"], "OPEN")
 
-    def test_pr365_to_403_merges_are_recorded_without_promoting_readiness_gates(self):
+    def test_pr365_to_404_merges_are_recorded_without_promoting_readiness_gates(self):
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         expected = {
             365: ("bf1d158dee28a9b8a00bfc0c29e847b7398867e6",
@@ -745,6 +745,14 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("41509946685", records[403]["verification"])
         self.assertIn("41509945914", records[403]["verification"])
         self.assertIn("process memory", records[403]["limitations"])
+        self.assertEqual(records[404]["pr_head_sha"], "d5e4c5f15d0ef109812b7ecdeeee82011c4db244")
+        self.assertEqual(records[404]["merge_sha"], "3c7caeeb9ce4262580a1ca9a17224a0cace3e370")
+        self.assertEqual(records[404]["ci_run_id"], 41512457878)
+        self.assertIn("41512495321", records[404]["verification"])
+        self.assertIn("41512490550", records[404]["verification"])
+        self.assertIn("41513967517", records[404]["verification"])
+        self.assertIn("41513966193", records[404]["verification"])
+        self.assertIn("owner approval", records[404]["limitations"])
         self.assertIn("41459163558 SUCCESS", records[389]["verification"])
         self.assertIn("41459181626 SUCCESS", records[389]["verification"])
         self.assertIn("41459888214", records[389]["verification"])

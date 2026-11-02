@@ -871,6 +871,17 @@
       "ci_run_id": 41509295468,
       "verification": "VERIFIED 2026-11-02: PR #403 merged at b2370a6dd31d91f228be3370c0c9fdb1a6cc5d3a from head 6c3fd25e0cf3d081ede701abfbf29bc45e1137a2. PR CI 41509295468 and push CI 41509245579 succeeded; PR CodeQL 41509288062 passed for Actions, JavaScript/TypeScript, and Python. The Vercel preview succeeded. Exact-merge main CI 41509946685 and CodeQL 41509945914 succeeded on the merge SHA, including static Pages publication and verification.",
       "limitations": "The replay registry is bounded process memory and does not survive restarts or coordinate across workers. This is not durable approval consumption or live curator, corpus, or runtime proof."
+    },
+    {
+      "id": "p04-explicit-evaluation-target-pr404",
+      "area": "QUALITY",
+      "title": "Remove the implicit accuracy threshold from the offline evaluation scorecard",
+      "pr_number": 404,
+      "pr_head_sha": "d5e4c5f15d0ef109812b7ecdeeee82011c4db244",
+      "merge_sha": "3c7caeeb9ce4262580a1ca9a17224a0cace3e370",
+      "ci_run_id": 41512457878,
+      "verification": "VERIFIED 2026-11-02: PR #404 merged at 3c7caeeb9ce4262580a1ca9a17224a0cace3e370 from head d5e4c5f15d0ef109812b7ecdeeee82011c4db244. PR CI 41512457878 and push CI 41512495321 succeeded; PR CodeQL 41512490550 passed for Actions, JavaScript/TypeScript, and Python. Vercel preview succeeded. Exact-merge main CI 41513967517 and CodeQL 41513966193 succeeded; main CI published and verified the static Pages site. Advisory model inference was skipped because explicit budget approval was absent.",
+      "limitations": "Offline synthetic evaluation only. Removing the default target does not establish model quality, a representative corpus, or owner approval of any caller-supplied target."
     }
   ],
   "gates": [

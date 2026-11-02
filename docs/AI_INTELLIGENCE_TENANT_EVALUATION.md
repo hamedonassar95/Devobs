@@ -15,7 +15,8 @@
 ### Synthetic AI quality evaluation
 
 - `scripts/devobs_intelligence/evaluation.py` evaluates the existing **offline, deterministic adviser** on a bounded set of synthetic labelled signal cases, not customer incidents.
-- Metrics: total cases, correct classifications, accuracy, number of abstentions, accuracy excluding abstentions, an explicit target comparison, and `confidence_calibrated=false`.
+- Metrics: total cases, correct classifications, accuracy, number of abstentions, accuracy excluding abstentions, and `confidence_calibrated=false`. An optional explicit `target_accuracy` produces a comparison; without one, both target fields are `null` rather than using an invented default.
+- Supplying a target is not evidence that the owner approved it. The evaluator reports the requested arithmetic comparison only; do not treat `meets_target` as a rollout decision without a separately reviewed target.
 - Current five-case illustrative fixture is intentionally imperfect: one conflicting symptom prioritizes CI failure over error-rate anomaly; its expected category differs. That test case must not be deleted to inflate accuracy.
 - No model provider is invoked. The local heuristic confidence 0.55 is **not calibrated**, and synthetic classification accuracy says nothing about real-world AI accuracy.
 - When production telemetry becomes available, curate anonymized, consented and separately reviewed ground truth, evaluate per incident class and time window, report class imbalance and false-positive rates, then set rollout gates from measured outcomes.
