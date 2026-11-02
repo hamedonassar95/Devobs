@@ -63,6 +63,10 @@ class OfflineDemoTests(unittest.TestCase):
         self.assertEqual(result['audit_records'], 2)
         self.assertEqual(result['memory_evidence_count'], 0)
         self.assertEqual(result['runbook_ids'], [])
+        self.assertEqual(result['topology_drift']['added_services'], ['web'])
+        self.assertEqual(result['topology_drift']['added_edges'], [['web', 'api']])
+        self.assertEqual(result['topology_drift']['introduced_cycles'], [])
+        self.assertEqual(result['topology_drift']['newly_isolated_services'], [])
         self.assertEqual(result['live_provider_calls'], 0)
         self.assertEqual(result['production_mutations'], 0)
         self.assertFalse(result['confidence_calibrated'])
@@ -132,6 +136,8 @@ class OfflineDemoTests(unittest.TestCase):
         self.assertEqual(data['mode'], 'synthetic_offline_demo')
         self.assertEqual(data['hypothesis'], 'ci_failure')
         self.assertEqual(data['memory_evidence_count'], 0)
+        self.assertEqual(data['topology_drift']['schema_version'], 1)
+        self.assertEqual(data['topology_drift']['added_services'], ['web'])
         self.assertNotIn('token', stream.getvalue())
 
 

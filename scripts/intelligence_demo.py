@@ -12,6 +12,7 @@ from devobs_intelligence.context import ServiceTopologySnapshot, Telemetry
 from devobs_intelligence.correlation import correlate
 from devobs_intelligence.incident_memory import IncidentMemory
 from devobs_intelligence.policy import evaluate_action
+from devobs_intelligence.topology_drift import compare_topology_snapshots
 from devobs_intelligence.trusted_metric_batch import from_trusted_metric_batch
 
 _DEMO_INSTANT = datetime(2026, 10, 25, 0, 0, tzinfo=timezone.utc)
@@ -70,9 +71,15 @@ def run_demo(
         },
         kill_switch=kill_switch,
     )
-    topology = ServiceTopologySnapshot(
-        'synthetic', 'demo', ['api'], [], _DEMO_SOURCE_SHA, _DEMO_OBSERVED_AT,
+    previous_topology = ServiceTopologySnapshot(
+        'synthetic', 'demo', ['api', 'db'], [('api', 'db')],
+        'b' * 40, '2026-10-24T23:59:00Z',
     )
+    topology = ServiceTopologySnapshot(
+        'synthetic', 'demo', ['api', 'db', 'web'],
+        [('api', 'db'), ('web', 'api')], _DEMO_SOURCE_SHA, _DEMO_OBSERVED_AT,
+    )
+    topology_drift = compare_topology_snapshots(previous_topology, topology)
     memory = incident_memory if incident_memory is not None else IncidentMemory([])
     finding = correlate(
         topology, list(telemetry), memory, _DEMO_INSTANT,
@@ -92,6 +99,7 @@ def run_demo(
             'finding_category': finding.category,
             'memory_evidence_count': len(finding.memory_provenance),
             'runbook_ids': list(finding.runbook_ids),
+            'topology_drift': topology_drift.to_record(),
             'hypothesis': suggestion.hypothesis,
             'confidence_calibrated': False,
             'audit_records': ledger.summary()['record_count'],

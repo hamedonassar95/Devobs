@@ -1,5 +1,12 @@
 # حالة مستودع Devobs
 
+## دمج PR #385 — تحقق 2026-11-02
+
+- **VERIFIED من GitHub:** دُمج [PR #385](https://github.com/hamedonassar95/Devobs/pull/385)، رأسه `3982e1bc7baefad5ab6c78d3e70abd4cdb53361d`، عند merge SHA `d5fa0a08f1d99ca074f4ee91c145121f8f5c0b59`.
+- **على رأس PR:** نجح CI `41451743622` وpush CI `41451717572`، وCodeQL `41451739116`. شغّل push CI اختبارات Node؛ تخطاها PR CI بشرط المسارات.
+- **بعد الدمج:** نجح main CI `41452380746` وCodeQL/Push `41452379582` على SHA الدمج نفسه. اجتاز CI تحقق Python وRLS والأمان والحاوية وTerraform و`validate` ونشر Pages والتحقق من الموقع الثابت؛ تخطّى Node وcontrolled-incident-drill شروط المسارات/الحدث. فشل Vercel preview بسبب حد معدل البناء.
+- ربط PR #385 ذاكرة الحوادث المعتمدة والحديثة بمخرجات العرض الاصطناعي المحلي. لا توجد بيانات حوادث حقيقية أو مصادقة مفاتيح curator حقيقية أو تخزين دائم أو خدمة مستضافة.
+
 ## دمج PR #384 — تحقق 2026-11-02
 
 - **VERIFIED من GitHub:** دُمج [PR #384](https://github.com/hamedonassar95/Devobs/pull/384)، رأسه `38d37eb6cce47f59959f39e5b333960bab6f8ac7`، عند merge SHA `1319797525567c3e3a2b4ffbea14a80bc651524e`.
