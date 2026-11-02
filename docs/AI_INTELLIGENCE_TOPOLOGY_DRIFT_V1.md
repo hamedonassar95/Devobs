@@ -8,7 +8,7 @@
 
 Cycle discovery uses strongly connected components and is bounded by the existing topology limits of 100 services and 500 edges. Isolated means a service has no incoming or outgoing edge. A dependency edge is still only a declared relationship; the current contract has no per-edge source or verification metadata.
 
-The synthetic CLI demo compares a fixed prior graph with its current synthetic graph and includes the report in its JSON output. The demo makes no network call and changes no production state.
+The synthetic CLI demo compares a fixed prior graph with its current synthetic graph, includes the report in its JSON output, and records only its digest in the existing local audit chain. The demo makes no network call and changes no production state.
 
 ## Verified behavior
 
@@ -20,7 +20,7 @@ The synthetic CLI demo compares a fixed prior graph with its current synthetic g
 
 ## Limits
 
-The report describes declared graph differences only. It cannot prove that an edge is real or complete, identify a trusted producer, establish source-to-runtime correspondence, or infer causality. A cycle or isolated service is a review signal, not proof of an incident. The report is not consumed as an input contract by another service. No collector, persistent topology store, hosted endpoint, model inference, or automated action is added.
+The report describes declared graph differences only. It cannot prove that an edge is real or complete, identify a trusted producer, establish source-to-runtime correspondence, or infer causality. A cycle or isolated service is a review signal, not proof of an incident. The audit chain records only the digest; it is local and can be rewritten by a privileged database writer. No collector, persistent topology store, hosted endpoint, model inference, or automated action is added.
 
 Focused checks:
 

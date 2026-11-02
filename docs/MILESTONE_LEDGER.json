@@ -673,6 +673,17 @@
       "ci_run_id": 41451743622,
       "verification": "VERIFIED 2026-11-02: PR #385 merged at d5fa0a08f1d99ca074f4ee91c145121f8f5c0b59 from head 3982e1bc7baefad5ab6c78d3e70abd4cdb53361d. PR CI 41451743622 and exact-head push CI 41451717572 SUCCESS; the push run executed Node tests while PR CI skipped them by path selection. PR CodeQL 41451739116 SUCCESS. Exact-merge main CI 41452380746 SUCCESS and main CodeQL/Push 41452379582 SUCCESS. Main CI passed Python validation, RLS, security, container scan, Terraform, validate, static Pages publication and verify-production; Node tests and controlled incident drill were skipped by path/event. PR Vercel preview was rate-limited.",
       "limitations": "Synthetic offline demo only. Approval signatures are made with an ephemeral test key; no real curator enrollment, no real incident data or corpus, customer data, persistent memory, live collector, model inference or hosted service was added. Readiness gates remain BLOCKED or OPEN."
+    },
+    {
+      "id": "topology-drift-audit-binding-pr386",
+      "area": "QUALITY",
+      "title": "Bind offline topology drift report digests to the local audit chain",
+      "pr_number": 386,
+      "pr_head_sha": "4c4b040ae4480fb7a8d64ddf9da88c429ac5df00",
+      "merge_sha": "e4a9d002b0fa21271db8f2ffa44e3f8d5854ae08",
+      "ci_run_id": 41453461558,
+      "verification": "VERIFIED 2026-11-02: PR #386 merged at e4a9d002b0fa21271db8f2ffa44e3f8d5854ae08 from head 4c4b040ae4480fb7a8d64ddf9da88c429ac5df00. PR CI 41453461558 and exact-head push CI 41453419441 SUCCESS; both ran the relevant tests. PR CodeQL 41453454978 SUCCESS. Exact-merge main CI 41453945952 SUCCESS and main CodeQL/Push 41453945090 SUCCESS on the merge SHA. Main CI passed Node, Python validation, RLS, security, container scan, Terraform, validate, static Pages publication and verify-production; controlled incident drill was skipped. PR Vercel preview was rate-limited.",
+      "limitations": "Synthetic offline topology data only. Audit linkage stores a digest and source SHA in the local SQLite hash chain; it does not authenticate the telemetry producer, make the database tamper-proof against a privileged writer, or verify a live topology source. No hosted service or production application was deployed. Readiness gates remain BLOCKED or OPEN."
     }
   ],
   "gates": [

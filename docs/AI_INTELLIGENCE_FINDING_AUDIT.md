@@ -8,6 +8,8 @@
 
 The audit entry remains a scoped `read_evidence` decision. It carries only the finding's `finding_digest` as `subject_digest`; service names and the full finding payload are not copied into the audit table. Repeated delivery of the same event and digest is idempotent. A different digest for the same event/action is rejected as a conflict.
 
+`AuditStore.record_topology_drift(event, before, after)` reconstructs the source incident and both topology snapshots, recomputes the same-scope drift report, and appends its digest as a second read-only audit reference. The row stores the report digest and source SHA, not the topology graph, service names, tenant name, or project name. Repeating the same report is idempotent. This is still a local hash-chain record; it does not authenticate a topology producer or create an external immutable anchor.
+
 Generic `AuditStore.append(...)` now verifies that the supplied policy evaluation is the exact result for the action being recorded. For example, an `ALLOW_READ` evaluation cannot be recorded as a `deploy` action.
 
 The SQLite schema adds a `subject_digest` column with an empty-string default for existing rows. Opening a legacy database adds the column without rewriting old entries; verification omits the digest field for those legacy hashes, preserving their original chain.
