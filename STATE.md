@@ -1,5 +1,12 @@
 # حالة مستودع Devobs
 
+## دمج PR #380 — تحقق 2026-11-02
+
+- **VERIFIED من GitHub:** دُمج [PR #380](https://github.com/hamedonassar95/Devobs/pull/380)، رأسه `139b4ae89e745629e0e407393134d6195be5f43c`، عند merge SHA `c3180f5a5e945dbf16e32f50a25041233596035a`.
+- **CI على الرأس:** نجح PR CI `41442989473` وpush CI `41442978965`؛ شغّل push CI اختبارات Node، وتخطاها PR CI بشرط المسارات. نجح CodeQL `41442982971`.
+- **بعد الدمج:** نجح main CI `41443266347` وCodeQL `41443266003` على SHA الدمج. نجحت Python وRLS والأمان والحاوية وTerraform و`validate` ونشر/تحقق Pages للموقع الثابت؛ تخطّى Node وcontrolled-incident-drill شروط المسارات/الحدث. فشل Vercel preview بسبب حد معدل البناء.
+- أضاف PR #380 موافقات Ed25519 لمراجعة سجلات الحوادث محليًا، مع ربط المفتاح بنطاق المستأجر/المشروع/المعتمد وانتهاء الموافقة. لا يثبت تسجيل المفاتيح أو حيازتها، ولا يضيف سجل replay دائمًا أو مصدر حوادث حيًا.
+
 ## دمج PR #379 — تحقق 2026-11-02
 
 - **VERIFIED من GitHub:** دُمج [PR #379](https://github.com/hamedonassar95/Devobs/pull/379)، رأسه `bb5c6cb3a1243720e952b8211cc4604a68896460`، عند merge SHA `b3a308accc23dec7b7da91c9e48e40fb8e7dc0ac`.

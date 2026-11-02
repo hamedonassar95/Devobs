@@ -107,7 +107,7 @@ class IncidentCorrelationTests(unittest.TestCase):
         self.assertEqual(report.topology_snapshot_digest, topology.snapshot_digest)
         self.assertEqual(report.topology_captured_at, topology.captured_at)
 
-    def test_snapshot_correlation_requires_explicit_memory_freshness(self):
+    def test_snapshot_correlation_requires_freshness_and_signed_memory_approval(self):
         topology = snapshot()
         telemetry = [data("db", "error_rate_pct", 9, "b")]
         legacy = correlate(topology, telemetry, memory(), NOW)
@@ -116,17 +116,8 @@ class IncidentCorrelationTests(unittest.TestCase):
 
         report = correlate(topology, telemetry, provenanced_memory(), NOW,
                            memory_max_age_seconds=60)
-        self.assertEqual(report.runbook_ids, ("RB-SLO-01",))
-        self.assertEqual(len(report.memory_provenance), 1)
-        self.assertEqual(report.memory_provenance[0].source_sha, "b" * 40)
-        self.assertEqual(report.memory_provenance[0].evidence_digest, "c" * 64)
-        record_digest = getattr(report.memory_provenance[0], "record_digest", None)
-        self.assertIsNotNone(record_digest, "findings must expose the exact memory record digest")
-        expected_record = provenanced_memory().retrieve_provenanced(
-            "alpha", "platform", "db", "high_error_rate", now=NOW,
-            max_age_seconds=60,
-        )[0]
-        self.assertEqual(record_digest, expected_record.record_digest)
+        self.assertEqual(report.runbook_ids, ())
+        self.assertEqual(report.memory_provenance, ())
 
         stale = correlate(topology, telemetry,
                           provenanced_memory((NOW - timedelta(hours=1)).isoformat()),

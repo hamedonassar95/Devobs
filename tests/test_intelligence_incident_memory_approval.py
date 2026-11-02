@@ -227,6 +227,24 @@ class IncidentMemoryApprovalTests(unittest.TestCase):
                     [self.approval(record=record)], self.keyring, now=NOW,
                 )
 
+    def test_provenanced_retrieval_requires_a_current_signature_when_requested(self):
+        record = self.record()
+        approved = IncidentMemory.from_approved_envelopes(
+            [self.approval(record=record)], self.keyring, now=NOW,
+        )
+        query = {
+            "tenant": "alpha", "project": "platform", "service": "db",
+            "category": "high_error_rate", "max_age_seconds": 86_400,
+            "require_approval": True,
+        }
+        self.assertEqual(approved.retrieve_provenanced(**query, now=NOW), (record,))
+        self.assertEqual(
+            approved.retrieve_provenanced(**query, now=NOW + timedelta(hours=2)), (),
+        )
+
+        unsigned = IncidentMemory([record])
+        self.assertEqual(unsigned.retrieve_provenanced(**query, now=NOW), ())
+
 
 if __name__ == "__main__":
     unittest.main()

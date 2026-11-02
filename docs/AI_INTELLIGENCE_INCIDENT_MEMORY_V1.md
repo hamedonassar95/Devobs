@@ -16,7 +16,7 @@ This curator signature approves use of incident metadata in the local memory lay
 
 `IncidentMemory` copies records on construction and returns detached copies. `retrieve_provenanced(...)` requires an explicit `now` and `max_age_seconds`, returns only exact tenant/project/service/category matches with `resolved` outcome and source/time provenance, and rejects future or stale records. The result remains bounded to five records. The maximum supported age is a code bound, not an approved data-retention period.
 
-When `correlate(...)` receives a `ServiceTopologySnapshot`, it does not use legacy memory by default. The caller must pass `memory_max_age_seconds`; returned findings then carry `memory_provenance` entries containing the record evidence digest, source SHA, and recorded time. A historical record's source SHA is attributed but is not required to equal the current telemetry SHA.
+When `correlate(...)` receives a `ServiceTopologySnapshot`, it does not use legacy memory by default. The caller must pass `memory_max_age_seconds`; records can contribute runbook IDs only when they have a verified curator signature whose approval is still active at retrieval time. Returned findings then carry `memory_provenance` entries containing the record evidence digest, source SHA, recorded time, approval ID, curator ID, and approval digest. A historical record's source SHA is attributed but is not required to equal the current telemetry SHA.
 
 ## Limits
 
