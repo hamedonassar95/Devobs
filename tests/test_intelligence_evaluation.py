@@ -28,6 +28,48 @@ class EvaluationTests(unittest.TestCase):
         self.assertIsNone(report["meets_target"])
         self.assertFalse(report["confidence_calibrated"])
 
+    def test_coverage_unknown_output_rate_and_selective_accuracy_show_denominators(self):
+        report = evaluate_cases(FIXTURES)
+        self.assertEqual(report["coverage"], {
+            "value": 0.8,
+            "numerator": 4,
+            "denominator": 5,
+        })
+        self.assertEqual(report["unknown_output_rate"], {
+            "value": 0.2,
+            "numerator": 1,
+            "denominator": 5,
+        })
+        self.assertEqual(report["selective_accuracy_counts"], {
+            "numerator": 3,
+            "denominator": 4,
+        })
+
+    def test_all_unknown_outputs_have_zero_coverage_and_undefined_selective_accuracy(self):
+        insufficient_evidence = [
+            {
+                **case,
+                "signals": {"failed_checks": 0, "error_rate_pct": 0, "capacity_pct": 30},
+            }
+            for case in FIXTURES
+        ]
+        report = evaluate_cases(insufficient_evidence)
+        self.assertEqual(report["coverage"], {
+            "value": 0.0,
+            "numerator": 0,
+            "denominator": 5,
+        })
+        self.assertEqual(report["unknown_output_rate"], {
+            "value": 1.0,
+            "numerator": 5,
+            "denominator": 5,
+        })
+        self.assertIsNone(report["selective_accuracy"])
+        self.assertEqual(report["selective_accuracy_counts"], {
+            "numerator": 0,
+            "denominator": 0,
+        })
+
     def test_accuracy_has_descriptive_wilson_interval_with_denominator(self):
         report = evaluate_cases(FIXTURES)
         interval = report["accuracy_interval_95"]

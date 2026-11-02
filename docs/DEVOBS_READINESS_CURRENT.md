@@ -1,6 +1,15 @@
 # Devobs production readiness — current evidence
 
-## Superseding snapshot — 2026-11-02 (after PR #406)
+## Superseding snapshot — 2026-11-02 (after PR #407)
+
+**VERIFIED from GitHub:** `main` is merge SHA `437200597912e5d6f92cf7f9e6aad679b40b0e33`, from PR [#407](https://github.com/hamedonassar95/Devobs/pull/407), head `ea5108c7855ebb2e4502d89c6b558dbed5aa9da5`.
+
+- Exact-head PR CI [41520175435](https://github.com/hamedonassar95/Devobs/actions/runs/41520175435) and push CI [41520203368](https://github.com/hamedonassar95/Devobs/actions/runs/41520203368) passed; CodeQL [41520195858](https://github.com/hamedonassar95/Devobs/actions/runs/41520195858) passed for Actions, Python and JavaScript/TypeScript. Vercel preview passed. The advisory Codex review workflow completed, but its inference step was skipped because explicit budget approval was absent.
+- Exact-merge main CI [41520608784](https://github.com/hamedonassar95/Devobs/actions/runs/41520608784) and CodeQL [41520607823](https://github.com/hamedonassar95/Devobs/actions/runs/41520607823) passed on the merge SHA. Main CI published the static Pages site and passed production verification. The controlled incident drill and restoration jobs were skipped by workflow conditions.
+- PR #407 binds the deterministic adviser evaluator to a manifest-pinned synthetic fixture. It does not establish independent reviewed labels, a real model call, live model quality, or a hosted API runtime. Pages is static-site evidence.
+- AI-9, P01 and Codex runtime dispositions are unchanged.
+
+## Prior snapshot — 2026-11-02 (after PR #406; superseded by PR #407)
 
 **VERIFIED from GitHub:** current `main` is merge SHA `f77fa477f7947e26ff8a8ab913c2a5e5827c7072`, from PR [#406](https://github.com/hamedonassar95/Devobs/pull/406), head `42d74b4794bb5657e9589e98a03f574b9941d993`.
 
