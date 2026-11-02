@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 import json
 from pathlib import Path
 import re
+import unicodedata
 from urllib.parse import urlsplit
 
 REQUIRED = (
@@ -49,7 +50,8 @@ def _utc_date(value, now):
 
 
 def _safe_reference(value):
-    if not isinstance(value, str) or len(value) > 1024 or any(ord(c) < 33 for c in value):
+    if (not isinstance(value, str) or len(value) > 1024 or
+            any(ord(c) < 33 or unicodedata.category(c) == "Cc" for c in value)):
         raise InvalidEvidence("invalid evidence reference")
     try:
         parsed = urlsplit(value)
