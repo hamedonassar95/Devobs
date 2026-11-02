@@ -51,12 +51,12 @@ def _utc_date(value, now):
 def _safe_reference(value):
     if not isinstance(value, str) or len(value) > 1024 or any(ord(c) < 33 for c in value):
         raise InvalidEvidence("invalid evidence reference")
-    parsed = urlsplit(value)
     try:
+        parsed = urlsplit(value)
         bad = (parsed.scheme != "https" or not parsed.hostname or parsed.username or
                parsed.password or parsed.query or parsed.fragment or parsed.port not in (None, 443))
     except ValueError as exc:
-        raise InvalidEvidence("invalid evidence reference port") from exc
+        raise InvalidEvidence("invalid evidence reference") from exc
     if bad:
         raise InvalidEvidence("evidence references must be clean HTTPS URLs")
     if not parsed.path or parsed.path == "/":

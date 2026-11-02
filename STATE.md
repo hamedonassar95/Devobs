@@ -1,5 +1,13 @@
 # حالة مستودع Devobs
 
+## دمج PR #396 وتحقق ما بعد الدمج — تحقق 2026-11-02
+
+- **VERIFIED من GitHub:** دُمج [PR #396](https://github.com/hamedonassar95/Devobs/pull/396)، رأسه `3ce710dd1f4da014c26cd3a4d996fabb87b39f00`، عند SHA `5944b4ac44d42c507ace0b4a468b210636733033`؛ ويطابق `origin/main` عند التحقق.
+- **على رأس PR:** نجح CI `41494074797`، ونجح push CI `41494031457` بما فيه Node، ونجح CodeQL `41494069977` للـActions وPython وJavaScript/TypeScript. فشل Vercel بسبب حد معدل البناء، ولم يكن فحصًا مطلوبًا في قواعد `main` المصورة.
+- **بعد الدمج:** نجح main CI `41495057209` وCodeQL `41495055337` على SHA الدمج. اجتاز CI التحقق وPython وRLS والأمان والحاوية/Trivy وTerraform وعقد الموقع ونشر Pages الثابت والتحقق منه؛ تخطّى Node وcontrolled-incident-drill وفحوص الاستعادة وفق شروط سير العمل. نشر Pages موقعًا ثابتًا ولا يثبت خدمة P01.
+- PR #396 حدّث سجل الأدلة وحالة الجاهزية فقط. نجاح سير مراجعة Codex الإرشادي لا يثبت تشغيل استدلال نموذج. لا تغيّر هذه النتائج حالات الجاهزية.
+- AI-9 ما زالت FAIL/BLOCKED، وP01 ما زالت NO-GO/BLOCKED، وقبول Codex runtime ما زال OPEN.
+
 ## دمج PR #395 وتحديث حالة الجاهزية — تحقق 2026-11-02
 
 - **VERIFIED من GitHub:** دُمج [PR #395](https://github.com/hamedonassar95/Devobs/pull/395)، رأسه `8370ca19e49e567afa853013cfbee4f615394d87`، عند SHA `bbadef10ab7f49f5136f50b331440dac4b3bc2d4`؛ ويطابق `origin/main` عند التحقق.
