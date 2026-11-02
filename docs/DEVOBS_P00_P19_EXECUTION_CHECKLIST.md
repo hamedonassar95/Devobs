@@ -111,6 +111,7 @@
 
 - [ ] **T33: Design append-only external audit retention.** Specify write-once privileges, schema, actor and tenant/time/event binding.
 - [ ] **T34: Anchor ledger hashes externally.** Signed checkpoints independent of app DB and test privileged rewrite detection.
+  Partial local capability: audit-checkpoint v1 can now sign a versioned checkpoint and verify it against a caller-supplied trusted public key, then detect a rewritten ledger prefix. T34 remains open until the checkpoint is actually retained independently and key trust/lifecycle controls are established; this code alone does not anchor evidence outside the local environment.
 - [ ] **T35: Capture per-action identity and provenance.** Record policy/model/tool version, request/parameters digest, approver, outcome and failure.
 - [ ] **T36: Create privacy-safe auditor export.** Tenant-scoped export, legal hold/retention and integrity verification; reject unauthorized reads.
 - [ ] **T37: Build crosswalk evidence report.** Map verified artifacts to SOC 2/ISO/NIST controls without claiming certification.

@@ -1,12 +1,19 @@
 """Locally verifiable, append-only logical audit ledger (not a tamper-proof service)."""
 from __future__ import annotations
 
+import base64
+import binascii
 import hashlib
 import json
 import re
 import sqlite3
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import (
+    Ed25519PrivateKey, Ed25519PublicKey,
+)
 
 from .context import ServiceTopologySnapshot
 from .contracts import EventEnvelopeV1, EvidenceError, parse_event
@@ -14,6 +21,11 @@ from .policy import EvaluationV1, evaluate_action
 from .topology_drift import TopologyDriftReport, compare_topology_snapshots
 
 _DIGEST = re.compile(r"[0-9a-f]{64}\Z")
+_SIGNED_CHECKPOINT_FIELDS = frozenset({
+    'schema_version', 'algorithm', 'key_id', 'checkpoint', 'signature',
+})
+_SIGNED_CHECKPOINT_DOMAIN = b'devobs-audit-checkpoint-v1\n'
+_SIGNED_CHECKPOINT_SIGNATURE = re.compile(r'[A-Za-z0-9_-]{86}\Z')
 
 if TYPE_CHECKING:
     from .correlation import IncidentFinding
@@ -72,6 +84,23 @@ class AuditCheckpointV1:
 def _digest(previous: str, item: dict) -> str:
     payload = json.dumps(item, sort_keys=True, separators=(',', ':'), ensure_ascii=True)
     return hashlib.sha256((previous + '\n' + payload).encode('utf-8')).hexdigest()
+
+
+def _canonical_json(item: dict) -> bytes:
+    return json.dumps(
+        item, sort_keys=True, separators=(',', ':'), ensure_ascii=True,
+    ).encode('ascii')
+
+
+def _raw_public_key(public_key: Ed25519PublicKey) -> bytes:
+    return public_key.public_bytes(
+        serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+    )
+
+
+def _signed_checkpoint_payload(envelope: dict) -> bytes:
+    unsigned = {key: value for key, value in envelope.items() if key != 'signature'}
+    return _SIGNED_CHECKPOINT_DOMAIN + _canonical_json(unsigned)
 
 
 class AuditStore:
@@ -157,6 +186,89 @@ class AuditStore:
         if actual_head != checkpoint.head_hash:
             raise AuditError('checkpoint_mismatch')
         return count
+
+    def create_signed_checkpoint(self, private_key: Ed25519PrivateKey) -> dict:
+        """Sign the current verified checkpoint with a caller-owned Ed25519 key.
+
+        Key generation, loading, storage, distribution, and authorization are
+        deliberately outside this local audit-store contract.
+        """
+        if not isinstance(private_key, Ed25519PrivateKey):
+            raise AuditError('invalid_signing_key')
+        public_key = _raw_public_key(private_key.public_key())
+        envelope = {
+            'schema_version': 1,
+            'algorithm': 'ed25519',
+            'key_id': hashlib.sha256(public_key).hexdigest(),
+            'checkpoint': self.create_checkpoint().to_record(),
+        }
+        signature = private_key.sign(_signed_checkpoint_payload(envelope))
+        envelope['signature'] = base64.urlsafe_b64encode(signature).decode('ascii').rstrip('=')
+        return envelope
+
+    def verify_signed_checkpoint(
+            self, record: object,
+            trusted_public_key: Ed25519PublicKey | bytes) -> int:
+        """Verify a signed checkpoint against a separately trusted public key.
+
+        The envelope key ID is only a key selector/fingerprint; trust comes
+        from the caller-supplied key, never from an embedded public key.
+        """
+        if (type(record) is not dict
+                or set(record) != _SIGNED_CHECKPOINT_FIELDS
+                or type(record.get('schema_version')) is not int
+                or record['schema_version'] != 1
+                or record.get('algorithm') != 'ed25519'
+                or type(record.get('key_id')) is not str
+                or _DIGEST.fullmatch(record['key_id']) is None
+                or type(record.get('signature')) is not str
+                or _SIGNED_CHECKPOINT_SIGNATURE.fullmatch(record['signature']) is None):
+            raise AuditError('invalid_signed_checkpoint')
+        try:
+            checkpoint = AuditCheckpointV1.from_record(record['checkpoint'])
+        except (KeyError, AuditError):
+            raise AuditError('invalid_signed_checkpoint') from None
+
+        if type(trusted_public_key) is bytes:
+            if len(trusted_public_key) != 32:
+                raise AuditError('invalid_verification_key')
+            try:
+                public_key = Ed25519PublicKey.from_public_bytes(trusted_public_key)
+            except ValueError:
+                raise AuditError('invalid_verification_key') from None
+        elif isinstance(trusted_public_key, Ed25519PublicKey):
+            public_key = trusted_public_key
+        else:
+            raise AuditError('invalid_verification_key')
+
+        public_key_bytes = _raw_public_key(public_key)
+        key_id = hashlib.sha256(public_key_bytes).hexdigest()
+        if record['key_id'] != key_id:
+            raise AuditError('checkpoint_key_mismatch')
+
+        try:
+            signature = base64.b64decode(
+                record['signature'] + '==', altchars=b'-_', validate=True,
+            )
+        except (ValueError, binascii.Error):
+            raise AuditError('invalid_signed_checkpoint') from None
+        if (len(signature) != 64
+                or base64.urlsafe_b64encode(signature).decode('ascii').rstrip('=')
+                != record['signature']):
+            raise AuditError('invalid_signed_checkpoint')
+
+        unsigned_envelope = {
+            'schema_version': 1,
+            'algorithm': 'ed25519',
+            'key_id': record['key_id'],
+            'checkpoint': checkpoint.to_record(),
+        }
+        signed_envelope = {**unsigned_envelope, 'signature': record['signature']}
+        try:
+            public_key.verify(signature, _signed_checkpoint_payload(signed_envelope))
+        except (InvalidSignature, ValueError):
+            raise AuditError('checkpoint_signature_invalid') from None
+        return self.verify_checkpoint(checkpoint.to_record())
 
     def append(self, event: EventEnvelopeV1, evaluation: EvaluationV1,
                action: str, *, subject_digest: str | None = None) -> AuditEntryV1:

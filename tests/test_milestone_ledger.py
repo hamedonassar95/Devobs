@@ -500,7 +500,7 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
         self.assertEqual(gates["codex-agent-runtime-acceptance"], "OPEN")
 
-    def test_pr365_to_387_merges_are_recorded_without_promoting_readiness_gates(self):
+    def test_pr365_to_388_merges_are_recorded_without_promoting_readiness_gates(self):
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         expected = {
             365: ("bf1d158dee28a9b8a00bfc0c29e847b7398867e6",
@@ -545,6 +545,8 @@ class MilestoneLedgerTests(unittest.TestCase):
                   "e4a9d002b0fa21271db8f2ffa44e3f8d5854ae08", 41453461558),
             387: ("82ad683072c981705cbe9fc3471c26ffea9afd0b",
                   "c82e4db2a9b82dbb01b0636d2b90ab836041e203", 41454746336),
+            388: ("732028acf4138b6c1d30805e9361fcd53f40ecb0",
+                  "7cb400b5d90c2935c98e76aad7c5335a77aa48b5", 41456679101),
         }
         for number, (head, merged, ci) in expected.items():
             with self.subTest(pr=number):
@@ -632,7 +634,13 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("41455742285 SUCCESS", records[387]["verification"])
         self.assertIn("failed due to its build-rate limit", records[387]["verification"])
         self.assertIn("unsigned", records[387]["limitations"])
-        self.assertEqual(validate(self.data)["latest_pr"], 387)
+        self.assertIn("41456657796 SUCCESS", records[388]["verification"])
+        self.assertIn("41456674077 SUCCESS", records[388]["verification"])
+        self.assertIn("41457678227", records[388]["verification"])
+        self.assertIn("41457676053 SUCCESS", records[388]["verification"])
+        self.assertIn("static Pages publication", records[388]["verification"])
+        self.assertIn("unsigned", records[388]["limitations"])
+        self.assertEqual(validate(self.data)["latest_pr"], 388)
         gates = {item["id"]: item["status"] for item in self.data["gates"]}
         self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")

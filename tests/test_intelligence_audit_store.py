@@ -8,6 +8,8 @@ from threading import Barrier
 import unittest
 from pathlib import Path
 from unittest.mock import patch
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 from devobs_intelligence.context import ServiceTopologySnapshot
 from devobs_intelligence.contracts import parse_event
@@ -40,6 +42,31 @@ def topology_pair():
         'evidence_digests': ['c' * 64],
     })
     return source, before, after
+
+
+def recompute_chain_hashes(store):
+    previous = '0' * 64
+    rows = store.connection.execute(
+        'SELECT seq,event_id,source_sha,policy_version,decision,action,subject_digest '
+        'FROM audit ORDER BY seq',
+    ).fetchall()
+    for seq, event_id, source_sha, policy_version, decision, action, subject_digest in rows:
+        item = {
+            'event_id': event_id,
+            'source_sha': source_sha,
+            'policy_version': policy_version,
+            'decision': decision,
+            'action': action,
+        }
+        if subject_digest:
+            item['subject_digest'] = subject_digest
+        payload = json.dumps(item, sort_keys=True, separators=(',', ':'), ensure_ascii=True)
+        record_hash = hashlib.sha256((previous + '\n' + payload).encode('utf-8')).hexdigest()
+        store.connection.execute(
+            'UPDATE audit SET previous_hash=?,record_hash=? WHERE seq=?',
+            (previous, record_hash, seq),
+        )
+        previous = record_hash
 
 
 class AuditStoreTests(unittest.TestCase):
@@ -126,28 +153,7 @@ class AuditStoreTests(unittest.TestCase):
             "UPDATE audit SET source_sha=? WHERE event_id=?",
             ('c' * 40, original.event_id),
         )
-        previous = '0' * 64
-        rows = self.store.connection.execute(
-            'SELECT seq,event_id,source_sha,policy_version,decision,action,subject_digest '
-            'FROM audit ORDER BY seq',
-        ).fetchall()
-        for seq, event_id, source_sha, policy_version, decision, action, subject_digest in rows:
-            item = {
-                'event_id': event_id,
-                'source_sha': source_sha,
-                'policy_version': policy_version,
-                'decision': decision,
-                'action': action,
-            }
-            if subject_digest:
-                item['subject_digest'] = subject_digest
-            payload = json.dumps(item, sort_keys=True, separators=(',', ':'), ensure_ascii=True)
-            record_hash = hashlib.sha256((previous + '\n' + payload).encode('utf-8')).hexdigest()
-            self.store.connection.execute(
-                'UPDATE audit SET previous_hash=?,record_hash=? WHERE seq=?',
-                (previous, record_hash, seq),
-            )
-            previous = record_hash
+        recompute_chain_hashes(self.store)
 
         self.assertEqual(self.store.verify(), 1)
         with self.assertRaisesRegex(AuditError, '^checkpoint_mismatch$'):
@@ -164,6 +170,90 @@ class AuditStoreTests(unittest.TestCase):
             with self.subTest(record=record), self.assertRaisesRegex(
                     AuditError, '^invalid_checkpoint$'):
                 self.store.verify_checkpoint(record)
+
+    def test_signed_checkpoint_round_trip_and_stable_signature(self):
+        current = event('signed-checkpoint-first')
+        self.store.append(current, evaluate_action(current, 'read_evidence'), 'read_evidence')
+        private_key = Ed25519PrivateKey.from_private_bytes(bytes(range(32)))
+        signed = self.store.create_signed_checkpoint(private_key)
+        self.assertEqual(signed, self.store.create_signed_checkpoint(private_key))
+        self.assertEqual(set(signed), {
+            'schema_version', 'algorithm', 'key_id', 'checkpoint', 'signature',
+        })
+        self.assertEqual(signed['algorithm'], 'ed25519')
+        public_bytes = private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        self.assertNotIn('private_key', signed)
+        self.assertEqual(self.store.verify_signed_checkpoint(
+            signed, private_key.public_key()), 1,
+        )
+
+        later = event('signed-checkpoint-later')
+        self.store.append(later, evaluate_action(later, 'read_evidence'), 'read_evidence')
+        self.assertEqual(self.store.verify_signed_checkpoint(signed, public_bytes), 2)
+
+    def test_signed_checkpoint_detects_validly_rehashed_prefix_rewrite(self):
+        original = event('signed-checkpoint-rewrite', sha='a' * 40)
+        self.store.append(original, evaluate_action(original, 'read_evidence'), 'read_evidence')
+        private_key = Ed25519PrivateKey.from_private_bytes(bytes(range(32)))
+        signed = self.store.create_signed_checkpoint(private_key)
+        public_bytes = private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        self.store.connection.execute(
+            'UPDATE audit SET source_sha=? WHERE event_id=?',
+            ('c' * 40, original.event_id),
+        )
+        recompute_chain_hashes(self.store)
+        self.assertEqual(self.store.verify(), 1)
+        with self.assertRaisesRegex(AuditError, '^checkpoint_mismatch$'):
+            self.store.verify_signed_checkpoint(signed, public_bytes)
+
+    def test_signed_checkpoint_rejects_wrong_key_tampering_and_malformed_envelopes(self):
+        current = event('signed-checkpoint-invalid')
+        self.store.append(current, evaluate_action(current, 'read_evidence'), 'read_evidence')
+        private_key = Ed25519PrivateKey.from_private_bytes(bytes(range(32)))
+        wrong_key = Ed25519PrivateKey.from_private_bytes(bytes(reversed(range(32))))
+        signed = self.store.create_signed_checkpoint(private_key)
+        public_bytes = private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        wrong_public_bytes = wrong_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        with self.assertRaisesRegex(AuditError, '^checkpoint_key_mismatch$'):
+            self.store.verify_signed_checkpoint(signed, wrong_public_bytes)
+
+        bad_signature = {**signed, 'signature': 'A' + signed['signature'][1:]}
+        with self.assertRaisesRegex(AuditError, '^checkpoint_signature_invalid$'):
+            self.store.verify_signed_checkpoint(bad_signature, public_bytes)
+
+        changed_checkpoint = {
+            **signed,
+            'checkpoint': {**signed['checkpoint'], 'head_hash': 'd' * 64},
+        }
+        with self.assertRaisesRegex(AuditError, '^checkpoint_signature_invalid$'):
+            self.store.verify_signed_checkpoint(changed_checkpoint, public_bytes)
+
+        for malformed in (
+            {**signed, 'algorithm': 'unknown'},
+            {**signed, 'schema_version': True},
+            {**signed, 'signature': signed['signature'] + '='},
+            {**signed, 'unexpected': 'field'},
+            {**signed, 'checkpoint': {**signed['checkpoint'], 'schema_version': True}},
+        ):
+            with self.subTest(malformed=malformed), self.assertRaisesRegex(
+                    AuditError, '^invalid_signed_checkpoint$'):
+                self.store.verify_signed_checkpoint(malformed, public_bytes)
+
+    def test_signed_checkpoint_rejects_invalid_key_types(self):
+        with self.assertRaisesRegex(AuditError, '^invalid_signing_key$'):
+            self.store.create_signed_checkpoint(b'not-a-key')
+        private_key = Ed25519PrivateKey.from_private_bytes(bytes(range(32)))
+        signed = self.store.create_signed_checkpoint(private_key)
+        with self.assertRaisesRegex(AuditError, '^invalid_verification_key$'):
+            self.store.verify_signed_checkpoint(signed, b'short')
 
     def test_append_reserves_write_transaction_before_reading_chain(self):
         statements=[]

@@ -28,7 +28,7 @@ flowchart LR
 | Evidence data | Numeric allowlisted telemetry; offline `ServiceTopologySnapshot` has a strict JSON-compatible schema-v1 record, canonical content digest, freshness/scope checks, deterministic correlator provenance, and a local two-snapshot drift report for service/edge changes, cycles and isolated nodes | Actual collector, authenticated transport, signed provenance, verified edge ownership, and live-source freshness tests |
 | RCA accuracy | Synthetic top-1/top-3 only, denominator surfaced | Human-labelled incidents (minimum 30 for first review; more needed by class), holdout/time-split, calibration, false-positive analysis |
 | Human control | Deterministic policy denies execution; proposal review only | Cryptographic approver identity + scope, SHA, parameters, expiration and one-time consumption; deny on ambiguity |
-| Audit | Existing SQLite hash-chained metadata links finding and offline topology-drift digests without storing graph names; it can export a versioned head checkpoint for separate retention | Protected external checkpoint archive or signature, model/tool version, actor and approval evidence, retention proof |
+| Audit | Existing SQLite hash-chained metadata links finding and offline topology-drift digests without storing graph names; it exports a versioned head checkpoint and supports an optional Ed25519 signature envelope verified against a caller-supplied trusted public key | Protected external checkpoint archive and trust-anchor lifecycle, model/tool version, authenticated actor/approval evidence, retention proof |
 | Tenant isolation | In-memory scope and signed-token API exist; merged PR #218 (`d9adfb0`) adds RLS tests against an ephemeral PostgreSQL service in CI | Live hosted DB isolation, verified identity provider, and negative tenant/queue/storage tests |
 | Quality / billing | No measured field ROI, cost/incident or customer billing in this change | Service SLOs, cost tagging, quotas, privacy and license review |
 
@@ -73,6 +73,8 @@ Telemetry adapter consumes a trusted **small numeric metric snapshot**, not the 
 The offline topology snapshot and local correlator are documented in [AI_INTELLIGENCE_TOPOLOGY_SNAPSHOT_V1.md](AI_INTELLIGENCE_TOPOLOGY_SNAPSHOT_V1.md). The incident-memory provenance boundary and wire digest are documented in [AI_INTELLIGENCE_INCIDENT_MEMORY_V1.md](AI_INTELLIGENCE_INCIDENT_MEMORY_V1.md). These contracts remain offline; source authenticity and hosted ingestion are unproven.
 
 The correlated finding's JSON interchange contract is documented in [AI_INTELLIGENCE_FINDING_V1.md](AI_INTELLIGENCE_FINDING_V1.md). Its digest detects content changes but does not authenticate the producer or authorize downstream actions.
+
+The audit checkpoint and optional Ed25519 envelope contract are documented in [AI_INTELLIGENCE_AUDIT_CHECKPOINT_V1.md](AI_INTELLIGENCE_AUDIT_CHECKPOINT_V1.md). Signing does not by itself provide trusted external retention, key enrollment, or operator identity.
 
 **Review gates:** existing CI/security/CodeQL, versioned fixtures, negative tests and human review. No merging or production deployment as part of this change. GitLab mirroring, GCP, SaaS billing, private customer sources and infrastructure remain unchanged.
 

@@ -695,6 +695,17 @@
       "ci_run_id": 41454746336,
       "verification": "VERIFIED 2026-11-02: PR #387 merged at c82e4db2a9b82dbb01b0636d2b90ab836041e203 from head 82ad683072c981705cbe9fc3471c26ffea9afd0b. PR CI 41454746336 and exact-head push CI 41454710164 SUCCESS; PR CodeQL 41454741109 SUCCESS. Exact-merge main CI 41455742840 and main CodeQL 41455742285 SUCCESS on the merge SHA. Main CI passed Node, Python validation, RLS, security, container scan, Terraform, validate, static Pages publication and verify-production; controlled incident drill was skipped. Vercel PR preview passed; Vercel status on the main merge SHA failed due to its build-rate limit.",
       "limitations": "The checkpoint is unsigned and is not automatically archived. It detects database rewrites only when a separately retained checkpoint remains trusted; no actor identity, trusted timestamp, hosted audit service, or production application was added. Readiness gates remain BLOCKED or OPEN."
+    },
+    {
+      "id": "audit-checkpoint-v1-pr388",
+      "area": "QUALITY",
+      "title": "Add a versioned local audit checkpoint with prefix verification",
+      "pr_number": 388,
+      "pr_head_sha": "732028acf4138b6c1d30805e9361fcd53f40ecb0",
+      "merge_sha": "7cb400b5d90c2935c98e76aad7c5335a77aa48b5",
+      "ci_run_id": 41456679101,
+      "verification": "VERIFIED 2026-11-02: PR #388 merged at 7cb400b5d90c2935c98e76aad7c5335a77aa48b5 from head 732028acf4138b6c1d30805e9361fcd53f40ecb0. Exact-head PR CI 41456679101 SUCCESS, push CI 41456657796 SUCCESS and CodeQL 41456674077 SUCCESS. Exact-merge main CI 41457678227 and CodeQL 41457676053 SUCCESS. Main CI passed Python, Node, RLS, security, container scan, Terraform, validate, static Pages publication and verify-production; controlled incident drill was skipped.",
+      "limitations": "The checkpoint is unsigned and not automatically archived; privileged actors able to replace both the database and retained checkpoint can forge a matching pair. No operator authentication, trusted timestamp, hosted audit service, or production application was added. Readiness gates remain BLOCKED or OPEN."
     }
   ],
   "gates": [
