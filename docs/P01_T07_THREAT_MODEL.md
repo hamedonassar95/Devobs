@@ -20,6 +20,8 @@ The model contains **12 synthetic abuse cases (AC01–AC12)** across **9 trust b
 
 `python3 -m unittest discover -s tests -p 'test_p01_threat_model.py' -v` provides mutation-based negative controls for removed/duplicated cases, RLS trust-edge drift, missing fixtures, false live status, unsupported provider spend, and unapproved staging/agent actions.
 
+The AC01 candidate now has focused WSGI coverage: `test_declared_request_body_is_rejected_before_readiness_probe` rejects a declared body before the readiness database probe, and `test_declared_request_body_is_rejected_before_auth_or_storage` plus `test_transfer_encoded_request_is_rejected_before_auth_or_storage` exercise the direct API boundary. These tests prove only the application response for the supplied WSGI environment; they do not prove proxy/network ingress byte limits or behavior when a body arrives without a declared length. AC01 remains `NOT_ACCEPTED` until reviewer confirmation and separately authorized live ingress evidence.
+
 ## Remaining acceptance before any gate promotion
 
 1. Review each AC case with an architecture/security reviewer and demonstrate that the **actual test's assertions** match its stated negative expectation; add dedicated tests where a candidate reference is insufficient.

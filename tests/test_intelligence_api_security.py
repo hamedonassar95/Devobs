@@ -7,6 +7,7 @@ import time
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from unittest.mock import patch
 from wsgiref.util import setup_testing_defaults
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"scripts"))
@@ -122,6 +123,31 @@ class AuthAndTenantAPITests(unittest.TestCase):
         ):
             with self.subTest(options=options), self.assertRaises(ValueError):
                 make_app(self.verifier, self.store, **options)
+
+    def test_declared_request_body_is_rejected_before_auth_or_storage(self):
+        app = make_app(self.verifier, self.store)
+        with patch.object(self.verifier, "verify", wraps=self.verifier.verify) as verify, \
+                patch.object(self.store, "read_status", wraps=self.store.read_status) as read_status:
+            status, headers, body = self.send(
+                token=self.token(), app=app,
+                extra={"CONTENT_LENGTH": "20000", "wsgi.input": io.BytesIO(b"x" * 20000)})
+        self.assertEqual(status, "400 Bad Request")
+        self.assertEqual(body, {"error": "request_body_not_allowed"})
+        self.assertEqual(headers["Cache-Control"], "no-store")
+        verify.assert_not_called()
+        read_status.assert_not_called()
+
+    def test_transfer_encoded_request_is_rejected_before_auth_or_storage(self):
+        app = make_app(self.verifier, self.store)
+        with patch.object(self.verifier, "verify", wraps=self.verifier.verify) as verify, \
+                patch.object(self.store, "read_status", wraps=self.store.read_status) as read_status:
+            status, headers, body = self.send(
+                token=self.token(), app=app, extra={"HTTP_TRANSFER_ENCODING": "chunked"})
+        self.assertEqual(status, "400 Bad Request")
+        self.assertEqual(body, {"error": "request_body_not_allowed"})
+        self.assertEqual(headers["Cache-Control"], "no-store")
+        verify.assert_not_called()
+        read_status.assert_not_called()
 
     def test_valid_signature_and_read_only_endpoint(self):
         principal=self.verifier.verify(self.token())

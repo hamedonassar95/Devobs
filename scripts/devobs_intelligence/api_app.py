@@ -20,6 +20,16 @@ _SHA = re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})\Z")
 _STATES = frozenset({"success","failed","pending","running","stale","missing","skipped","canceled","manual","scheduled"})
 
 
+def reject_request_body(environ, start_response):
+    """Reject request bodies at the WSGI boundary; this API accepts bodyless requests only."""
+    content_length = environ.get("CONTENT_LENGTH", "")
+    transfer_encoding = environ.get("HTTP_TRANSFER_ENCODING", "")
+    if content_length in ("", "0") and transfer_encoding in ("", None):
+        return None
+    return _reply(start_response, "400 Bad Request",
+                  {"error": "request_body_not_allowed"})
+
+
 @dataclass
 class _RateWindow:
     timestamps: deque[float] = field(default_factory=deque)
@@ -84,6 +94,9 @@ def make_app(verifier: AccessTokenVerifier, tenant_gate: object, *,
     in_flight = BoundedSemaphore(max_in_flight)
 
     def app(environ, start_response):
+        rejected = reject_request_body(environ, start_response)
+        if rejected is not None:
+            return rejected
         method = environ.get("REQUEST_METHOD")
         path = environ.get("PATH_INFO")
         route = None

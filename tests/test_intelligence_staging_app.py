@@ -1,5 +1,6 @@
 """Staging entrypoint: offline security tests without a real cloud account."""
 import importlib
+import io
 import json
 import os
 import sys
@@ -33,10 +34,14 @@ class StagingBootstrapTests(unittest.TestCase):
         with patch.dict(os.environ, cls.base, clear=True):
             cls.module = importlib.import_module("devobs_intelligence.staging_app")
 
-    def run_request(self, app, path, method="GET", auth=""):
+    def run_request(self, app, path, method="GET", auth="", environ_overrides=None):
+        environ = {"PATH_INFO": path, "REQUEST_METHOD": method,
+                   "HTTP_AUTHORIZATION": auth, "CONTENT_LENGTH": "",
+                   "wsgi.input": io.BytesIO(b"")}
+        if environ_overrides:
+            environ.update(environ_overrides)
         results = []
-        body = b"".join(app({"PATH_INFO": path, "REQUEST_METHOD": method,
-                             "HTTP_AUTHORIZATION": auth},
+        body = b"".join(app(environ,
                             lambda status, headers: results.append((status, dict(headers)))))
         return results[0][0], results[0][1], body
 
@@ -111,6 +116,25 @@ class StagingBootstrapTests(unittest.TestCase):
         self.assertEqual(unavailable[2], b"")
         self.assertNotIn("SECRET", str(unavailable))
         self.assertEqual(self.run_request(app, "/readyz", method="POST")[0][:3], "405")
+
+    def test_declared_request_body_is_rejected_before_readiness_probe(self):
+        class ProbeStore:
+            calls = 0
+
+            def probe_readiness(self):
+                self.calls += 1
+                return True
+
+        store = ProbeStore()
+        with patch.object(self.module, "PostgresTenantStore", return_value=store):
+            app = self.module.build_app(self.base)
+        status, headers, body = self.run_request(
+            app, "/readyz", environ_overrides={
+                "CONTENT_LENGTH": "20000", "wsgi.input": io.BytesIO(b"x" * 20000)})
+        self.assertEqual(status, "400 Bad Request")
+        self.assertEqual(json.loads(body), {"error": "request_body_not_allowed"})
+        self.assertEqual(store.calls, 0)
+        self.assertEqual(headers["Cache-Control"], "no-store")
 
     def test_render_health_check_requires_real_readiness(self):
         config = (Path(__file__).resolve().parents[1] / "render.yaml").read_text()

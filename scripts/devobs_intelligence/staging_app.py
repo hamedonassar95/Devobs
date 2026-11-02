@@ -14,7 +14,7 @@ from typing import Callable
 from psycopg import Error as PsycopgError
 from psycopg.conninfo import conninfo_to_dict
 
-from .api_app import make_app
+from .api_app import make_app, reject_request_body
 from .oidc_rotation import RotatingOIDCVerifier
 from .postgres_store import PostgresTenantStore
 
@@ -70,6 +70,9 @@ def build_app(settings: Mapping[str, str]) -> Callable:
         raise StagingConfigurationError("invalid_staging_config") from None
 
     def application(environ, start_response):
+        rejected = reject_request_body(environ, start_response)
+        if rejected is not None:
+            return rejected
         path = environ.get("PATH_INFO")
         if path == "/healthz":
             if environ.get("REQUEST_METHOD") != "GET":

@@ -1,6 +1,16 @@
 # Devobs production readiness — current evidence
 
-## Superseding snapshot — 2026-11-02 (after PR #397)
+## Superseding snapshot — 2026-11-02 (after PR #398)
+
+**VERIFIED from GitHub:** current `main` is merge SHA `be326c48dda67b8d918bf949933271c5a0e3282e`, from PR [#398](https://github.com/hamedonassar95/Devobs/pull/398), head `118cdcc9ababd083bcb97ead0371c15542117039`. Exact-head PR CI [41497085256](https://github.com/hamedonassar95/Devobs/actions/runs/41497085256) and push CI [41497038530](https://github.com/hamedonassar95/Devobs/actions/runs/41497038530) succeeded; Node was skipped by path selection in PR CI and passed in push CI. PR CodeQL [41497081182](https://github.com/hamedonassar95/Devobs/actions/runs/41497081182) succeeded for Actions, Python, and JavaScript/TypeScript. Vercel preview failed because of its deployment rate limit.
+
+- Exact-merge main CI [41499273400](https://github.com/hamedonassar95/Devobs/actions/runs/41499273400) and CodeQL [41499272034](https://github.com/hamedonassar95/Devobs/actions/runs/41499272034) succeeded on the merge SHA. Main CI passed `validate`, Python, PostgreSQL RLS, security, container build/smoke/Trivy, Terraform, site contract, and static GitHub Pages publication/verification; Node, the controlled incident drill, and restoration checks were skipped by workflow conditions. Pages is static-site evidence, not P01 staging or an API runtime.
+- PR #398 rejects DEL and C1 control characters in P01 evidence URLs and records PR #397 merge evidence. It does not verify the truth or provenance of referenced evidence. The advisory Codex workflow status does not prove a model call.
+- **AI-9: FAIL / BLOCKED.** Recorded results remain synthetic-only; independently sourced, approved incident labels and the corresponding evaluation remain missing.
+- **P01: NO-GO / BLOCKED.** No enforceable all-in spend cap, authorized staging scope, live identity/RLS, or restore proof is established; no P01 resource was created.
+- **Codex agent runtime: OPEN.** Configuration and registration evidence do not prove the trusted runtime's Docs MCP handshake or specialist discovery/execution.
+
+## Prior snapshot — 2026-11-02 (after PR #397; superseded by PR #398)
 
 **VERIFIED from GitHub:** current `main` is merge SHA `9ba9901d9b558bbc6bb45f7ebb661a03028a1c9c`, from PR [#397](https://github.com/hamedonassar95/Devobs/pull/397), head `f869f2d525c8b5a79cf2eb28b79ea20977e045b7`. Exact-head PR CI [41495991816](https://github.com/hamedonassar95/Devobs/actions/runs/41495991816) and push CI [41495950385](https://github.com/hamedonassar95/Devobs/actions/runs/41495950385) succeeded; Node was skipped by path selection in PR CI but passed in push CI. PR CodeQL [41495988647](https://github.com/hamedonassar95/Devobs/actions/runs/41495988647) succeeded for Actions, Python, and JavaScript/TypeScript. The Vercel preview failed because of its deployment rate limit.
 
