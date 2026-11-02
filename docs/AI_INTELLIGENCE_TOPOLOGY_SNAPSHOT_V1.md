@@ -31,7 +31,7 @@
 
 ## Limits and next gate
 
-The digest detects accidental content changes; it is **not** a signature, identity assertion, collector attestation, or proof that the topology came from the named commit. The caller still supplies tenant, project, source SHA, capture time, and graph. The schema-v1 record and correlator integration remain local contracts; they do not authenticate a producer, ingest live topology, or prove operational quality. Further work still needs an approved source, reviewed provenance, poisoned/stale-memory controls, retention/privacy decisions, and hosted evidence. No readiness decision changes from this implementation.
+The digest detects accidental content changes; it is **not** a signature, identity assertion, collector attestation, or proof that the topology came from the named commit. The caller still supplies tenant, project, source SHA, capture time, and graph. The schema-v1 record and correlator integration remain local contracts; they do not authenticate a producer, ingest live topology, or prove operational quality. The separate [topology drift report](AI_INTELLIGENCE_TOPOLOGY_DRIFT_V1.md) compares two offline snapshots but does not establish whether declared edges are true or complete. Further work still needs an approved source, reviewed provenance, poisoned/stale-memory controls, retention/privacy decisions, and hosted evidence. No readiness decision changes from this implementation.
 
 Focused contract checks:
 

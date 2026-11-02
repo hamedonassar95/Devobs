@@ -662,6 +662,17 @@
       "ci_run_id": 41450789386,
       "verification": "VERIFIED 2026-11-02: PR #384 merged at 1319797525567c3e3a2b4ffbea14a80bc651524e from head 38d37eb6cce47f59959f39e5b333960bab6f8ac7. PR CI 41450143587 and exact-head push CI 41450117574 SUCCESS; push CI ran Node tests, PR CI skipped them by path selection. PR CodeQL 41450140512 SUCCESS. Exact-merge main CI 41450789386 and CodeQL/Push on main 41450788131 SUCCESS. Main CI passed Python validation, RLS, security, container scan, Terraform, validate, static Pages publication and verify-production; Node tests and controlled incident drill were skipped by path/event. Vercel status on the merge SHA was rate-limited.",
       "limitations": "Synthetic offline demonstration only; caller-supplied tenant/project/SHA/clock values do not authenticate an external source. No live collector, customer telemetry, model inference or hosted service was added. Readiness gates remain BLOCKED or OPEN."
+    },
+    {
+      "id": "incident-memory-demo-bridge-pr385",
+      "area": "QUALITY",
+      "title": "Apply only approved, fresh incident memory in the offline intelligence demo",
+      "pr_number": 385,
+      "pr_head_sha": "3982e1bc7baefad5ab6c78d3e70abd4cdb53361d",
+      "merge_sha": "d5fa0a08f1d99ca074f4ee91c145121f8f5c0b59",
+      "ci_run_id": 41451743622,
+      "verification": "VERIFIED 2026-11-02: PR #385 merged at d5fa0a08f1d99ca074f4ee91c145121f8f5c0b59 from head 3982e1bc7baefad5ab6c78d3e70abd4cdb53361d. PR CI 41451743622 and exact-head push CI 41451717572 SUCCESS; the push run executed Node tests while PR CI skipped them by path selection. PR CodeQL 41451739116 SUCCESS. Exact-merge main CI 41452380746 SUCCESS and main CodeQL/Push 41452379582 SUCCESS. Main CI passed Python validation, RLS, security, container scan, Terraform, validate, static Pages publication and verify-production; Node tests and controlled incident drill were skipped by path/event. PR Vercel preview was rate-limited.",
+      "limitations": "Synthetic offline demo only. Approval signatures are made with an ephemeral test key; no real curator enrollment, no real incident data or corpus, customer data, persistent memory, live collector, model inference or hosted service was added. Readiness gates remain BLOCKED or OPEN."
     }
   ],
   "gates": [
