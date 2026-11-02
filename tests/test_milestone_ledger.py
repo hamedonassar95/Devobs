@@ -500,7 +500,7 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
         self.assertEqual(gates["codex-agent-runtime-acceptance"], "OPEN")
 
-    def test_pr365_to_389_merges_are_recorded_without_promoting_readiness_gates(self):
+    def test_pr365_to_390_merges_are_recorded_without_promoting_readiness_gates(self):
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         expected = {
             365: ("bf1d158dee28a9b8a00bfc0c29e847b7398867e6",
@@ -549,6 +549,8 @@ class MilestoneLedgerTests(unittest.TestCase):
                   "7cb400b5d90c2935c98e76aad7c5335a77aa48b5", 41456679101),
             389: ("b42a5f0b280491c3ef064b48ea6e3476f2d6191a",
                   "27349fcdb9f3753a7bc686dd2177795ef005014d", 41459188955),
+            390: ("08e03201d85ddeeccd10b00bcebede31da06dd69",
+                  "2346d5006d8f602f42d3e17e11e0cf296d8ece05", 41461221768),
         }
         for number, (head, merged, ci) in expected.items():
             with self.subTest(pr=number):
@@ -647,7 +649,15 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("41459888214", records[389]["verification"])
         self.assertIn("41459887605 SUCCESS", records[389]["verification"])
         self.assertIn("T34 is still open", records[389]["limitations"])
-        self.assertEqual(validate(self.data)["latest_pr"], 389)
+        self.assertIn("41461187596 SUCCESS", records[390]["verification"])
+        self.assertIn("41461214931 SUCCESS", records[390]["verification"])
+        self.assertIn("41463879043", records[390]["verification"])
+        self.assertIn("41463878344 SUCCESS", records[390]["verification"])
+        self.assertIn("static Pages publication", records[390]["verification"])
+        self.assertIn("Node tests and controlled incident drill were skipped", records[390]["verification"])
+        self.assertIn("does not prevent another process", records[390]["limitations"])
+        self.assertIn("AI-9 remains BLOCKED/FAIL", records[390]["limitations"])
+        self.assertEqual(validate(self.data)["latest_pr"], 390)
         gates = {item["id"]: item["status"] for item in self.data["gates"]}
         self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
