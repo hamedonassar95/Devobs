@@ -1,5 +1,12 @@
 # حالة مستودع Devobs
 
+## دمج PR #386 — تحقق 2026-11-02
+
+- **VERIFIED من GitHub:** دُمج [PR #386](https://github.com/hamedonassar95/Devobs/pull/386)، رأسه `4c4b040ae4480fb7a8d64ddf9da88c429ac5df00`، عند merge SHA `e4a9d002b0fa21271db8f2ffa44e3f8d5854ae08`.
+- **على رأس PR:** نجح CI `41453461558` وpush CI `41453419441`، وشغّلا الاختبارات ذات الصلة؛ نجح CodeQL `41453454978`. فشل Vercel preview بسبب حد معدل البناء.
+- **بعد الدمج:** نجح main CI `41453945952` وCodeQL/Push `41453945090` على SHA الدمج نفسه. اجتاز CI اختبارات Node وPython وRLS والأمان والحاوية وTerraform و`validate` ونشر Pages الثابت والتحقق منه؛ تخطّى controlled-incident-drill.
+- أضاف PR #386 مقارنةً اصطناعيةً دون اتصال لتغيرات طوبولوجيا الخدمات. يظل هذا الدليل مبنيًا على لقطات معلنة، ولا يصادق على مصدر حي أو اكتمال علاقات الاعتماد.
+
 ## دمج PR #385 — تحقق 2026-11-02
 
 - **VERIFIED من GitHub:** دُمج [PR #385](https://github.com/hamedonassar95/Devobs/pull/385)، رأسه `3982e1bc7baefad5ab6c78d3e70abd4cdb53361d`، عند merge SHA `d5fa0a08f1d99ca074f4ee91c145121f8f5c0b59`.

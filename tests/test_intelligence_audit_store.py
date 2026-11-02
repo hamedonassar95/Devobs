@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
+from devobs_intelligence.context import ServiceTopologySnapshot
 from devobs_intelligence.contracts import parse_event
 from devobs_intelligence.policy import evaluate_action
 from devobs_intelligence.audit_store import AuditStore, AuditError
@@ -17,6 +18,26 @@ def event(event_id='example-01', sha='a'*40):
                         'project_ref':'SENSITIVE_REPOSITORY','source_sha':sha,
                         'kind':'incident','observed_at':'2026-10-25T12:00:00Z',
                         'evidence_digests':['b'*64]})
+
+
+def topology_pair():
+    before = ServiceTopologySnapshot(
+        'alpha', 'platform', ['api', 'db'], [('api', 'db')],
+        'a' * 40, '2026-10-25T11:59:00Z',
+    )
+    after = ServiceTopologySnapshot(
+        'alpha', 'platform', ['api', 'db', 'web'],
+        [('api', 'db'), ('web', 'api')],
+        'b' * 40, '2026-10-25T12:00:00Z',
+    )
+    source = parse_event({
+        'schema_version': 1, 'event_id': 'source-incident-01',
+        'provider': 'github', 'project_ref': 'alpha/platform',
+        'source_sha': 'b' * 40, 'kind': 'incident',
+        'observed_at': '2026-10-25T12:00:00Z',
+        'evidence_digests': ['c' * 64],
+    })
+    return source, before, after
 
 
 class AuditStoreTests(unittest.TestCase):
@@ -132,6 +153,51 @@ class AuditStoreTests(unittest.TestCase):
     def test_invalid_database_uri_is_rejected(self):
         with self.assertRaisesRegex(AuditError,'invalid_path'):
             AuditStore('file:shared?mode=memory&cache=shared')
+
+    def test_topology_drift_digest_is_linked_idempotently_without_graph_data(self):
+        source, before, after = topology_pair()
+        report, entry = self.store.record_topology_drift(source, before, after)
+        self.assertEqual(entry.action, 'read_evidence')
+        self.assertEqual(entry.source_sha, 'b' * 40)
+        self.assertEqual(entry.subject_digest, report.to_record()['report_digest'])
+        self.assertEqual(self.store.verify(), 1)
+        persisted = self.store.connection.execute(
+            'SELECT event_id,source_sha,policy_version,decision,action,previous_hash,'
+            'record_hash,subject_digest FROM audit',
+        ).fetchone()
+        self.assertNotIn('api', repr(persisted))
+        self.assertNotIn('platform', repr(persisted))
+        self.assertNotIn('alpha', repr(persisted))
+        self.assertNotIn('platform', str(self.store.summary()))
+
+        repeated_report, repeated_entry = self.store.record_topology_drift(
+            source, before, after,
+        )
+        self.assertEqual(repeated_report, report)
+        self.assertEqual(repeated_entry, entry)
+        self.assertEqual(self.store.verify(), 1)
+
+    def test_topology_drift_audit_rejects_scope_or_source_mismatch_before_write(self):
+        source, before, after = topology_pair()
+        mismatched_scope = parse_event({
+            'schema_version': 1, 'event_id': 'wrong-scope',
+            'provider': 'github', 'project_ref': 'other/platform',
+            'source_sha': 'b' * 40, 'kind': 'incident',
+            'observed_at': '2026-10-25T12:00:00Z',
+            'evidence_digests': ['c' * 64],
+        })
+        mismatched_sha = parse_event({
+            'schema_version': 1, 'event_id': 'wrong-sha',
+            'provider': 'github', 'project_ref': 'alpha/platform',
+            'source_sha': 'a' * 40, 'kind': 'incident',
+            'observed_at': '2026-10-25T12:00:00Z',
+            'evidence_digests': ['c' * 64],
+        })
+        for candidate in (mismatched_scope, mismatched_sha):
+            with self.subTest(event_id=candidate.event_id), self.assertRaisesRegex(
+                    AuditError, 'invalid_topology_binding'):
+                self.store.record_topology_drift(candidate, before, after)
+        self.assertEqual(self.store.verify(), 0)
 
 
 if __name__=='__main__': unittest.main()

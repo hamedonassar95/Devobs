@@ -8,8 +8,10 @@ import sqlite3
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from .context import ServiceTopologySnapshot
 from .contracts import EventEnvelopeV1, EvidenceError, parse_event
 from .policy import EvaluationV1, evaluate_action
+from .topology_drift import TopologyDriftReport, compare_topology_snapshots
 
 _DIGEST = re.compile(r"[0-9a-f]{64}\Z")
 
@@ -196,6 +198,56 @@ class AuditStore:
             raise AuditError('invalid_finding_binding')
         return self.append(event, evaluate_action(event, 'read_evidence'),
                            'read_evidence', subject_digest=record['finding_digest'])
+
+    def record_topology_drift(
+        self, event: EventEnvelopeV1,
+        before: ServiceTopologySnapshot,
+        after: ServiceTopologySnapshot,
+    ) -> tuple[TopologyDriftReport, AuditEntryV1]:
+        """Bind a validated topology-drift digest to the existing read-only chain.
+
+        The chain stores only the digest and source SHA, not service names or graph
+        contents. The caller's event and both snapshots are reconstructed before use.
+        """
+        if (type(event) is not EventEnvelopeV1
+                or type(before) is not ServiceTopologySnapshot
+                or type(after) is not ServiceTopologySnapshot):
+            raise AuditError('invalid_topology_binding')
+        try:
+            report = compare_topology_snapshots(before, after)
+            source_event = parse_event({
+                'schema_version': event.schema_version,
+                'event_id': event.event_id,
+                'provider': event.provider,
+                'project_ref': f'{report.tenant}/{report.project}',
+                'source_sha': event.source_sha,
+                'kind': event.kind,
+                'observed_at': event.observed_at,
+                'evidence_digests': list(event.evidence_digests),
+            })
+            record = report.to_record()
+            report_digest = record['report_digest']
+            audit_event = parse_event({
+                'schema_version': 1,
+                'event_id': f'topology-drift-{report_digest[:32]}',
+                'provider': source_event.provider,
+                'project_ref': f'{report.tenant}/{report.project}',
+                'source_sha': report.after_source_sha,
+                'kind': source_event.kind,
+                'observed_at': report.after_captured_at,
+                'evidence_digests': [report_digest],
+            })
+        except (AttributeError, TypeError, ValueError, EvidenceError):
+            raise AuditError('invalid_topology_binding') from None
+        if (source_event != event or source_event.kind != 'incident'
+                or source_event.source_sha != report.after_source_sha
+                or not _DIGEST.fullmatch(report_digest)):
+            raise AuditError('invalid_topology_binding')
+        entry = self.append(
+            audit_event, evaluate_action(audit_event, 'read_evidence'),
+            'read_evidence', subject_digest=report_digest,
+        )
+        return report, entry
 
     def _rollback_append(self) -> None:
         """Roll back only this append transaction, preserving fixed errors."""
