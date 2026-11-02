@@ -1,5 +1,12 @@
 # حالة مستودع Devobs
 
+## دمج PR #373 — تحقق 2026-11-02
+
+- **VERIFIED من GitHub:** دُمج [PR #373](https://github.com/hamedonassar95/Devobs/pull/373)، رأسه `16bfde9401d8e074db47a5e99964486468d684a0`، عند merge SHA `4d61ff2e49f1d8b28d0bd11267ff425b861639e0`، ويطابق `origin/main`.
+- **CI على الرأس:** نجح [PR CI run 41428670992](https://github.com/hamedonassar95/Devobs/actions/runs/41428670992) و[push CI run 41428664308](https://github.com/hamedonassar95/Devobs/actions/runs/41428664308)، وشغّل push CI اختبارات Node بينما تخطاها PR CI بشرط المسارات. نجح [CodeQL run 41428665832](https://github.com/hamedonassar95/Devobs/actions/runs/41428665832) ومراجعة Codex الإرشادية 41428670968. اجتازت Python validation وRLS والأمان والحاوية وTerraform و`validate`. فشل فحص Vercel على PR بسبب حد معدل البناء.
+- **بعد الدمج:** نجح [main CI run 41429076464](https://github.com/hamedonassar95/Devobs/actions/runs/41429076464) و[CodeQL run 41429076168](https://github.com/hamedonassar95/Devobs/actions/runs/41429076168) على SHA الدمج. اجتازت Python validation وRLS والأمان والحاوية وTerraform و`validate` ونشر Pages و`verify-production` للموقع الثابت؛ تخطّى Node وcontrolled-incident-drill شروط المسارات/الحدث.
+- PR #373 حدّث سجل الإنجازات وحالة المستودع واختبار السجل فقط؛ لا يغيّر سلوك التطبيق. Pages تحقق الموقع الثابت فقط، ومعاينة Vercel لم تتوفر بسبب حد معدل البناء.
+
 ## دمج PR #372 — تحقق 2026-11-02
 
 - **VERIFIED من GitHub:** دُمج [PR #372](https://github.com/hamedonassar95/Devobs/pull/372)، رأسه `6b0e4a6c4754685aaccab821fdd8c7171e68d35d`، عند merge SHA `e3526ffb934216af5301e16c5e7f1bcf60355042`، ويطابق `origin/main`.
@@ -16,8 +23,8 @@
 
 ## آخر تحقق من main — 2026-11-02
 
-- **VERIFIED:** `origin/main` عند `e3526ffb934216af5301e16c5e7f1bcf60355042`. نجح main CI `41428246481` وCodeQL `41428244774` على هذا SHA. اجتازت Python validation وRLS والأمان والحاوية وTerraform و`validate` ونشر Pages و`verify-production` للموقع الثابت؛ تخطّى Node وcontrolled-incident-drill شروط المسارات/الحدث.
-- يسجل دفتر الإنجازات الآن PR #372 إضافةً إلى السجل السابق؛ كان PR #372 تحديثًا توثيقيًا واختبارًا للسجل فقط، ولم تتغير أي بوابة جاهزية.
+- **VERIFIED:** `origin/main` عند `4d61ff2e49f1d8b28d0bd11267ff425b861639e0`. نجح main CI `41429076464` وCodeQL `41429076168` على هذا SHA. اجتازت Python validation وRLS والأمان والحاوية وTerraform و`validate` ونشر Pages و`verify-production` للموقع الثابت؛ تخطّى Node وcontrolled-incident-drill شروط المسارات/الحدث.
+- يسجل دفتر الإنجازات الآن PR #373 إضافةً إلى السجل السابق؛ كان PR #373 تحديثًا توثيقيًا واختبارًا للسجل فقط، ولم تتغير أي بوابة جاهزية.
 
 ## دمج PR #366 — تحقق 2026-11-02
 
