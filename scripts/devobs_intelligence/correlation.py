@@ -138,12 +138,18 @@ def correlate(topology: ServiceTopology | ServiceTopologySnapshot,
         safe_memory=memory.retrieve_provenanced(
             topology.tenant,topology.project,root,recommendation.hypothesis,
             now=now,max_age_seconds=memory_max_age_seconds)
-    memory_provenance=tuple(
-        IncidentMemoryEvidence(row.evidence_digest,row.record_digest,
-                              row.source_sha,row.recorded_at)
-        for row in safe_memory
-        if snapshot is not None and memory_max_age_seconds is not None
-    )
+    memory_provenance = []
+    if snapshot is not None and memory_max_age_seconds is not None:
+        for row in safe_memory:
+            approval = memory.approval_provenance_for(row)
+            memory_provenance.append(IncidentMemoryEvidence(
+                row.evidence_digest, row.record_digest, row.source_sha,
+                row.recorded_at,
+                approval.approval_id if approval is not None else None,
+                approval.approver_id if approval is not None else None,
+                approval.approval_digest if approval is not None else None,
+            ))
+    memory_provenance = tuple(memory_provenance)
     impacted=(snapshot.affected_by(topology.tenant, topology.project, root, now=now)
               if snapshot is not None else topology.affected_by(root))
     return IncidentFinding("PENDING_HUMAN_APPROVAL",recommendation.hypothesis,

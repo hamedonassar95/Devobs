@@ -596,6 +596,17 @@
       "ci_run_id": 41440593177,
       "verification": "VERIFIED 2026-11-02: PR CI 41440593177 and exact-head push CI 41440575417 SUCCESS; push CI ran Node tests, PR CI skipped them by path condition. PR CodeQL 41440590899 SUCCESS. PR #378 merged by hamedonassar95 at 0c6f143faffdbee7b66d9661ee3534b513051f5c. Main CI 41441026324 and CodeQL 41441024464 SUCCESS on the exact merge SHA. Main CI passed Python validation, RLS, security, container scan, Terraform, validate, Pages publication and static-site verify-production; Node tests and incident drill were skipped by path/event conditions.",
       "limitations": "Offline schema and provenance contract only. Record digests are not signatures or writer authentication; no trusted curator, persistent store, live corpus, or hosted ingestion was added. No customer data or model inference was used. No readiness gate changed; release gates remain BLOCKED or OPEN."
+    },
+    {
+      "id": "incident-memory-bundle-wire-contract-pr379",
+      "area": "QUALITY",
+      "title": "Add deterministic versioned bundles for offline incident-memory records",
+      "pr_number": 379,
+      "pr_head_sha": "bb5c6cb3a1243720e952b8211cc4604a68896460",
+      "merge_sha": "b3a308accc23dec7b7da91c9e48e40fb8e7dc0ac",
+      "ci_run_id": 41441685660,
+      "verification": "VERIFIED 2026-11-02: PR CI 41441685660 and exact-head push CI 41441676086 SUCCESS; push CI ran Node tests, PR CI skipped them by path condition. PR CodeQL 41441680468 SUCCESS. PR #379 merged by hamedonassar95 at b3a308accc23dec7b7da91c9e48e40fb8e7dc0ac. Main CI 41442122329 and CodeQL 41442121820 SUCCESS on the exact merge SHA. Main CI passed Python validation, RLS, security, container scan, Terraform, validate, Pages publication and static-site verify-production; Node tests and incident drill were skipped by path/event conditions. Vercel preview passed.",
+      "limitations": "Offline collection interchange only; digests do not authenticate writers or provide replay prevention. No persistent store, live corpus, or hosted ingestion was added. No readiness gate changed; release gates remain BLOCKED or OPEN."
     }
   ],
   "gates": [
