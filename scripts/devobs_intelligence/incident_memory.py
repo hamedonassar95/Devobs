@@ -5,7 +5,11 @@ import json
 import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 from .context import ContextError, _id
+
+if TYPE_CHECKING:
+    from .incident_memory_approval import VerifiedIncidentMemoryApproval
 
 _DIGEST=re.compile(r"[0-9a-f]{64}\Z")
 _SHA=re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})\Z")
@@ -120,6 +124,9 @@ class IncidentMemoryEvidence:
     record_digest: str
     source_sha: str
     recorded_at: str
+    approval_id: str | None = None
+    approver_id: str | None = None
+    approval_digest: str | None = None
 
 
 class IncidentMemory:
@@ -133,6 +140,36 @@ class IncidentMemory:
         if len(ids)!=len(records):
             raise ContextError("duplicate_memory")
         self._rows=rows
+        self._approval_provenance = {}
+
+    @classmethod
+    def from_approved_envelopes(
+            cls, envelopes: list[dict],
+            trusted_public_keys: dict[tuple[str, str, str], bytes], *,
+            now: datetime) -> "IncidentMemory":
+        """Build memory only after every provenance-bound envelope verifies."""
+        from .incident_memory_approval import verify_incident_memory_approvals
+
+        approvals = verify_incident_memory_approvals(
+            envelopes, trusted_public_keys, now=now,
+        )
+        memory = cls([item.record for item in approvals])
+        memory._approval_provenance = {
+            (item.record.tenant, item.record.project, item.record.evidence_digest): item
+            for item in approvals
+        }
+        return memory
+
+    def approval_provenance_for(
+            self, record: IncidentRecord) -> VerifiedIncidentMemoryApproval | None:
+        """Return verified approval metadata for this exact memory row, if present."""
+        if type(record) is not IncidentRecord:
+            raise ContextError("invalid_memory")
+        key = (record.tenant, record.project, record.evidence_digest)
+        approval = self._approval_provenance.get(key)
+        if approval is None or approval.record.record_digest != record.record_digest:
+            return None
+        return approval
 
     def to_bundle(self) -> dict:
         """Return a deterministic, detached versioned bundle of incident records."""
