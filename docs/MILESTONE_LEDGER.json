@@ -453,6 +453,50 @@
       "ci_run_id": 41362939397,
       "verification": "VERIFIED 2026-11-01: PR #364 CI run 41362939397 SUCCESS and CodeQL run 41362935643 SUCCESS on exact head; advisory review run 41362939317 SUCCESS. Push CI run 41362934702 SUCCESS on the same head. Node tests and production-release were skipped in PR/push workflows by path/event conditions. Main CI run 41363048571 SUCCESS and CodeQL run 41363048181 SUCCESS on exact merge SHA; Python validation, PostgreSQL RLS, security, Trivy/container smoke, Terraform, validate and site-contract passed. GitHub Pages publish and verify-production for the static site passed; Node tests and incident drill were skipped by path/event conditions. Vercel PR check failed with `Deployment rate limited — retry in 24 hours`; the merge-SHA commit status also failed with the build-rate-limit URL. `git ls-remote origin refs/heads/main` matched the merge SHA.",
       "limitations": "Documentation/source assessment and ledger regression only. Node tests were skipped in hosted CI for this change. Pages verifies the static site only, not a SaaS service or live AI deployment. Vercel rate limiting remains unresolved; settings were not inspected or changed. No external dataset was downloaded or evaluated, no AWS support request was sent, and no cloud resource, paid inference, customer data or production action was used. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
+    },
+    {
+      "id": "verified-readiness-ledger-pr365",
+      "area": "DOCUMENTATION",
+      "title": "Record PR #364 merge evidence and synchronize current readiness state",
+      "pr_number": 365,
+      "pr_head_sha": "bf1d158dee28a9b8a00bfc0c29e847b7398867e6",
+      "merge_sha": "28a633d391311b36cb64fcb3ec528e7363f07ad9",
+      "ci_run_id": 41363442004,
+      "verification": "VERIFIED 2026-11-02: PR #365 CI 41363442004 SUCCESS and push CI 41363437930 SUCCESS on the exact PR head; Python validation passed and Node tests were skipped by path selection. PR CodeQL 41363438700 SUCCESS. Merge confirmed at 28a633d391311b36cb64fcb3ec528e7363f07ad9; main CI 41363777671 and CodeQL 41363776904 SUCCESS on that merge SHA. Main CI published and verified the static Pages site; Node tests were skipped by path selection. Vercel failed on PR and merge SHA due to its build-rate limit.",
+      "limitations": "Documentation and milestone-ledger regression only. No application service or AI behavior changed; Pages verifies the static site only. Vercel rate limiting remains unresolved. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
+    },
+    {
+      "id": "claude-code-action-update-pr366",
+      "area": "CI_SECURITY",
+      "title": "Update the Claude Code GitHub Action release pin",
+      "pr_number": 366,
+      "pr_head_sha": "394420e38c95fcc2f24562fe6c6158dcc3275e6f",
+      "merge_sha": "c56c7f60315f9ce6c2d400ef51f6045e1b8260a3",
+      "ci_run_id": 41423657947,
+      "verification": "VERIFIED 2026-11-02: PR CI 41423657947 and push CI 41423654083 SUCCESS on the exact head; Python validation passed and Node tests were skipped by path selection. PR CodeQL 41423660835 SUCCESS. PR #366 merged at c56c7f60315f9ce6c2d400ef51f6045e1b8260a3; main CI 41423837392 and CodeQL 41423836826 SUCCESS on that SHA. Main CI published and verified static Pages; Node tests were skipped by path selection. Vercel failed on the PR and merge SHA due to its build-rate limit.",
+      "limitations": "Dependency-version update only. Hosted Node tests were skipped for this change, and no Codex agent runtime acceptance was established. No service or AI inference was activated. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
+    },
+    {
+      "id": "gh-aw-setup-action-update-pr367",
+      "area": "CI_SECURITY",
+      "title": "Update pinned GitHub Agentic Workflows setup actions",
+      "pr_number": 367,
+      "pr_head_sha": "a54f0afdcba16e3613ec28f96e8dc7e81230cd90",
+      "merge_sha": "cdd8cdc8c8dca7d36a660af41f00b175b694dfce",
+      "ci_run_id": 41404954163,
+      "verification": "VERIFIED 2026-11-02: PR CI 41404954163 and push CI 41404945618 SUCCESS on the exact head, including Node and Python validation. Main merge SHA cdd8cdc8c8dca7d36a660af41f00b175b694dfce passed CI 41421369957 and CodeQL 41421369015; Node tests, static Pages publish and verify-production passed. Vercel status succeeded on the PR and merge SHA.",
+      "limitations": "Dependency pin updates only; no application or AI behavior changed and no live service was activated. Successful static Pages verification is not SaaS runtime evidence. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
+    },
+    {
+      "id": "claude-action-contract-test-pr368",
+      "area": "QUALITY",
+      "title": "Decouple the Claude action workflow contract test from the release pin",
+      "pr_number": 368,
+      "pr_head_sha": "01a0babf679c24cfcdffb428ec0b2ee52deb2fc3",
+      "merge_sha": "520b77fdfc07ffcb1d8ac3c2776333abc485b852",
+      "ci_run_id": 41422995159,
+      "verification": "VERIFIED 2026-11-02: PR CI 41422995159 SUCCESS; push CI 41422966993 SUCCESS on the exact same head and ran Node tests successfully. PR CodeQL 41422990849 SUCCESS. Merge confirmed at 520b77fdfc07ffcb1d8ac3c2776333abc485b852; main CI 41423602328 and CodeQL 41423601628 SUCCESS on the exact merge SHA. Main CI published and verified static Pages; Node tests were skipped by path selection. Vercel failed on the PR and merge SHA due to its build-rate limit.",
+      "limitations": "Test-contract change only; the push CI on the PR head ran Node tests, but main CI skipped them by path selection. No agent runtime acceptance, live service, or AI behavior was established. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
     }
   ],
   "gates": [
