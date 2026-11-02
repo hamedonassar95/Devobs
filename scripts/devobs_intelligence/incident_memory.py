@@ -247,13 +247,15 @@ class IncidentMemory:
 
     def retrieve_provenanced(self, tenant: str, project: str, service: str,
                              category: str, *, now: datetime,
-                             max_age_seconds: int, limit: int=3
+                             max_age_seconds: int, limit: int=3,
+                             require_approval: bool=False
                              ) -> tuple[IncidentRecord,...]:
-        """Retrieve only scoped records with source/time provenance within an explicit age."""
+        """Retrieve scoped records; optionally require an active verified approval."""
         self._validate_query(tenant, project, service, category, limit)
         if (type(now) is not datetime or now.tzinfo is None or now.utcoffset() is None
                 or type(max_age_seconds) is not int
-                or not 1<=max_age_seconds<=31_536_000):
+                or not 1<=max_age_seconds<=31_536_000
+                or type(require_approval) is not bool):
             raise ContextError("invalid_query")
         instant=now.astimezone(timezone.utc)
         matches=[]
@@ -266,5 +268,22 @@ class IncidentMemory:
             recorded=datetime.fromisoformat(record.recorded_at.replace("Z", "+00:00"))
             age=(instant-recorded).total_seconds()
             if 0<=age<=max_age_seconds:
+                if require_approval:
+                    approval = self.approval_provenance_for(record)
+                    if approval is None:
+                        continue
+                    try:
+                        approved_at = datetime.fromisoformat(
+                            approval.approved_at.replace("Z", "+00:00"),
+                        )
+                        expires_at = datetime.fromisoformat(
+                            approval.expires_at.replace("Z", "+00:00"),
+                        )
+                        if (approved_at.tzinfo is None or approved_at.utcoffset() is None
+                                or expires_at.tzinfo is None or expires_at.utcoffset() is None
+                                or not approved_at <= instant < expires_at):
+                            continue
+                    except (AttributeError, TypeError, ValueError, OverflowError):
+                        continue
                 matches.append(record)
         return tuple(sorted(matches,key=lambda r:r.evidence_digest)[:limit])

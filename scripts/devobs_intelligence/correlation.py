@@ -137,7 +137,8 @@ def correlate(topology: ServiceTopology | ServiceTopologySnapshot,
     else:
         safe_memory=memory.retrieve_provenanced(
             topology.tenant,topology.project,root,recommendation.hypothesis,
-            now=now,max_age_seconds=memory_max_age_seconds)
+            now=now,max_age_seconds=memory_max_age_seconds,
+            require_approval=True)
     memory_provenance = []
     if snapshot is not None and memory_max_age_seconds is not None:
         for row in safe_memory:

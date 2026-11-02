@@ -607,6 +607,17 @@
       "ci_run_id": 41441685660,
       "verification": "VERIFIED 2026-11-02: PR CI 41441685660 and exact-head push CI 41441676086 SUCCESS; push CI ran Node tests, PR CI skipped them by path condition. PR CodeQL 41441680468 SUCCESS. PR #379 merged by hamedonassar95 at b3a308accc23dec7b7da91c9e48e40fb8e7dc0ac. Main CI 41442122329 and CodeQL 41442121820 SUCCESS on the exact merge SHA. Main CI passed Python validation, RLS, security, container scan, Terraform, validate, Pages publication and static-site verify-production; Node tests and incident drill were skipped by path/event conditions. Vercel preview passed.",
       "limitations": "Offline collection interchange only; digests do not authenticate writers or provide replay prevention. No persistent store, live corpus, or hosted ingestion was added. No readiness gate changed; release gates remain BLOCKED or OPEN."
+    },
+    {
+      "id": "incident-memory-approved-correlation-pr380",
+      "area": "QUALITY",
+      "title": "Require active signed curator approval for provenance-bound incident-memory correlation",
+      "pr_number": 380,
+      "pr_head_sha": "139b4ae89e745629e0e407393134d6195be5f43c",
+      "merge_sha": "c3180f5a5e945dbf16e32f50a25041233596035a",
+      "ci_run_id": 41442978965,
+      "verification": "VERIFIED 2026-11-02: PR CI 41442989473 and exact-head push CI 41442978965 SUCCESS; push CI ran Node tests while PR CI skipped them by path selection. PR CodeQL 41442982971 SUCCESS. PR #380 merged at c3180f5a5e945dbf16e32f50a25041233596035a. Main CI 41443266347 and CodeQL 41443266003 SUCCESS on the exact merge SHA; main CI passed Python validation, RLS, security, container scan, Terraform, validate, static Pages publication and verify-production; Node tests and incident drill were skipped by path/event conditions. Vercel preview failed due to its build-rate limit.",
+      "limitations": "Offline curator-signature verification only. The verifier trusts a caller-supplied public-key map and does not authenticate key enrollment or private-key custody; duplicate approval detection is batch-scoped, with no persistent replay registry or stored incident corpus. No live source, customer incident data, model inference or readiness-gate change. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
     }
   ],
   "gates": [

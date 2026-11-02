@@ -500,7 +500,7 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
         self.assertEqual(gates["codex-agent-runtime-acceptance"], "OPEN")
 
-    def test_pr365_to_379_merges_are_recorded_without_promoting_readiness_gates(self):
+    def test_pr365_to_380_merges_are_recorded_without_promoting_readiness_gates(self):
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         expected = {
             365: ("bf1d158dee28a9b8a00bfc0c29e847b7398867e6",
@@ -531,6 +531,8 @@ class MilestoneLedgerTests(unittest.TestCase):
                   "0c6f143faffdbee7b66d9661ee3534b513051f5c", 41440593177),
             379: ("bb5c6cb3a1243720e952b8211cc4604a68896460",
                   "b3a308accc23dec7b7da91c9e48e40fb8e7dc0ac", 41441685660),
+            380: ("139b4ae89e745629e0e407393134d6195be5f43c",
+                  "c3180f5a5e945dbf16e32f50a25041233596035a", 41442978965),
         }
         for number, (head, merged, ci) in expected.items():
             with self.subTest(pr=number):
@@ -577,6 +579,14 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("41442121820 SUCCESS", records[379]["verification"])
         self.assertIn("41441676086 SUCCESS", records[379]["verification"])
         self.assertIn("do not authenticate writers", records[379]["limitations"])
+        self.assertIn(
+            "PR CI 41442989473 and exact-head push CI 41442978965 SUCCESS",
+            records[380]["verification"],
+        )
+        self.assertIn("41442982971 SUCCESS", records[380]["verification"])
+        self.assertIn("41443266347", records[380]["verification"])
+        self.assertIn("41443266003 SUCCESS", records[380]["verification"])
+        self.assertIn("not authenticate key enrollment", records[380]["limitations"])
         gates = {item["id"]: item["status"] for item in self.data["gates"]}
         self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
