@@ -221,6 +221,20 @@ class AuthAndTenantAPITests(unittest.TestCase):
             AccessTokenVerifier(ISS, "devobs-api", "devobs-cli",
                                 {"keys": [private_jwk]})
 
+    def test_public_jwk_key_operations_are_limited_to_verification(self):
+        for key_ops in (["sign"], ["encrypt"], ["verify", "sign"], [],
+                        ["verify", "verify"], "verify"):
+            bad_jwk = dict(self.jwk, key_ops=key_ops)
+            with self.subTest(key_ops=key_ops), self.assertRaisesRegex(
+                    ValueError, "^invalid_auth_config$"):
+                AccessTokenVerifier(ISS, "devobs-api", "devobs-cli",
+                                    {"keys": [bad_jwk]})
+
+        verifier = AccessTokenVerifier(
+            ISS, "devobs-api", "devobs-cli",
+            {"keys": [dict(self.jwk, key_ops=["verify"])]})
+        self.assertEqual(verifier.verify(self.token()).subject, "alice")
+
     def test_missing_database_membership_denied(self):
         for tenant,project in (("alpha","other"),("beta","shared"),("unknown","shared")):
             with self.assertRaises(TenantDenied):
