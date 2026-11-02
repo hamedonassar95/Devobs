@@ -214,6 +214,13 @@ class AuthAndTenantAPITests(unittest.TestCase):
         with self.assertRaises(ValueError):
             AccessTokenVerifier("http://insecure.test","devobs-api","devobs-cli",{"keys":[self.jwk]})
 
+    def test_private_rsa_key_material_is_rejected_in_public_jwks(self):
+        private_jwk = json.loads(jwt.algorithms.RSAAlgorithm.to_jwk(self.private))
+        private_jwk.update(kid="rsa-private", alg="RS256", use="sig")
+        with self.assertRaisesRegex(ValueError, "invalid_auth_config"):
+            AccessTokenVerifier(ISS, "devobs-api", "devobs-cli",
+                                {"keys": [private_jwk]})
+
     def test_missing_database_membership_denied(self):
         for tenant,project in (("alpha","other"),("beta","shared"),("unknown","shared")):
             with self.assertRaises(TenantDenied):
