@@ -24,7 +24,9 @@ def reject_request_body(environ, start_response):
     """Reject request bodies at the WSGI boundary; this API accepts bodyless requests only."""
     content_length = environ.get("CONTENT_LENGTH", "")
     transfer_encoding = environ.get("HTTP_TRANSFER_ENCODING", "")
-    if content_length in ("", "0") and transfer_encoding in ("", None):
+    input_terminated = environ.get("wsgi.input_terminated")
+    if (content_length in ("", "0") and transfer_encoding in ("", None)
+            and not input_terminated):
         return None
     return _reply(start_response, "400 Bad Request",
                   {"error": "request_body_not_allowed"})

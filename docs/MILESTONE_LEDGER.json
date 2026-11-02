@@ -816,6 +816,17 @@
       "ci_run_id": 41497085256,
       "verification": "VERIFIED 2026-11-02: PR #398 merged at be326c48dda67b8d918bf949933271c5a0e3282e from head 118cdcc9ababd083bcb97ead0371c15542117039. Exact-head PR CI 41497085256 and push CI 41497038530 SUCCESS; Node skipped in PR CI but passed in push CI. PR CodeQL 41497081182 SUCCESS for Actions, Python and JavaScript/TypeScript. Vercel PR preview failed due to deployment rate limit. Exact-merge main CI 41499273400 and CodeQL 41499272034 SUCCESS. Main CI passed validate, Python, PostgreSQL RLS, security, container/Trivy, Terraform, site contract, static Pages publication and verification; Node, controlled incident drill and restoration checks were skipped by workflow conditions.",
       "limitations": "PR #398 hardens local URL control-character parsing and records PR #397 evidence. It does not independently verify referenced URL content or provenance, cost controls, or staging acceptance. Static Pages is not P01 staging; the advisory Codex workflow does not prove model inference. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex runtime remains OPEN."
+    },
+    {
+      "id": "p01-request-body-wsgi-boundary-pr399",
+      "area": "QUALITY",
+      "title": "Reject declared P01 request bodies at the WSGI boundary and record PR 398 merge",
+      "pr_number": 399,
+      "pr_head_sha": "5336966db4eae9696993539de6ea8ae6d378a643",
+      "merge_sha": "766c590746736c5698648f67d8d90d00b17b7e6f",
+      "ci_run_id": 41501346453,
+      "verification": "VERIFIED 2026-11-02: PR #399 merged at 766c590746736c5698648f67d8d90d00b17b7e6f from head 5336966db4eae9696993539de6ea8ae6d378a643. Exact-head PR CI 41501346453 and push CI 41501299721 SUCCESS; Node skipped in PR CI but passed in push CI. PR CodeQL 41501363549 SUCCESS for Actions, Python and JavaScript/TypeScript. Vercel PR preview failed due to deployment rate limit. Advisory review run 41501346237 completed but does not prove model inference. Exact-merge main CI 41501791942 and CodeQL 41501792008 SUCCESS. Main CI passed Python, PostgreSQL RLS, security, container/Trivy, Terraform, site contract, validate, and static Pages publication/verification; Node, controlled incident drill and restoration checks were skipped by workflow conditions.",
+      "limitations": "PR #399 rejects declared and transfer-encoded request bodies at the application WSGI boundary and records PR #398 evidence. It does not prove upstream ingress byte limits, a live API runtime or full P01 acceptance. Static Pages is not P01 staging; CI/advisory status does not prove model inference."
     }
   ],
   "gates": [
