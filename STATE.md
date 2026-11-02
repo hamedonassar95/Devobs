@@ -1,16 +1,16 @@
 # حالة مستودع Devobs
 
-## دمج PR #369 — تحقق 2026-11-02
+## دمج PR #371 — تحقق 2026-11-02
 
-- **VERIFIED من GitHub:** دُمج [PR #369](https://github.com/hamedonassar95/Devobs/pull/369)، رأسه `0e08c376f872fd664b8c3807a4ea0a66d4d26fbc`، عند merge SHA `2eaa12511e45056a4bac4e26c454871d7b43b001`.
-- **CI على الرأس:** نجح [PR CI run 41424695607](https://github.com/hamedonassar95/Devobs/actions/runs/41424695607) و[push CI run 41424668235](https://github.com/hamedonassar95/Devobs/actions/runs/41424668235)، و[CodeQL run 41424691631](https://github.com/hamedonassar95/Devobs/actions/runs/41424691631). شغّل push CI اختبارات Node؛ تخطّاها PR CI بشرط المسارات. نجحت Python validation وRLS والأمان والحاوية وTerraform و`validate`. معاينة Vercel نجحت.
-- **بعد الدمج:** نجح [main CI run 41425006983](https://github.com/hamedonassar95/Devobs/actions/runs/41425006983) و[CodeQL run 41425006913](https://github.com/hamedonassar95/Devobs/actions/runs/41425006913) على SHA الدمج. نُشر GitHub Pages واجتاز `verify-production` للموقع الثابت؛ تخطّى Node شرط المسارات. فشل Vercel على SHA الدمج بسبب حد معدل البناء.
-- PR #369 سجّل دمج #365–#368 في الدفتر وحدّث `STATE.md` واختباراته. لم يغيّر الكاشف أو بوابات الجاهزية. AI-9 **FAIL / BLOCKED**، وP01 **NO-GO / BLOCKED**، وقبول Codex agent runtime **OPEN**.
+- **VERIFIED من GitHub:** دُمج [PR #371](https://github.com/hamedonassar95/Devobs/pull/371)، رأسه `7b07a42017ec3a53e2b6d48fee220f4af464918c`، عند merge SHA `323413a36f0446dc4013eec302bef189c5061bf2`، ويطابق `origin/main`.
+- **CI على الرأس:** نجح [PR CI run 41426781794](https://github.com/hamedonassar95/Devobs/actions/runs/41426781794) و[push CI run 41426754445](https://github.com/hamedonassar95/Devobs/actions/runs/41426754445)، و[CodeQL run 41426775609](https://github.com/hamedonassar95/Devobs/actions/runs/41426775609). شغّل push CI اختبارات Node؛ تخطّاها PR CI بشرط المسارات. نجحت Python validation وRLS والأمان والحاوية وTerraform و`validate`، كما نجحت مراجعة Codex الإرشادية ومعاينة Vercel.
+- **بعد الدمج:** نجح [main CI run 41427215538](https://github.com/hamedonassar95/Devobs/actions/runs/41427215538) و[CodeQL run 41427213176](https://github.com/hamedonassar95/Devobs/actions/runs/41427213176) على SHA الدمج. نجحت Python validation وRLS والأمان والحاوية وTerraform و`validate` ونشر Pages و`verify-production` للموقع الثابت. تخطّى Node وcontrolled-incident-drill شروط المسارات/الحدث.
+- أضاف PR #371 عقد لقطة طوبولوجيا محليًا يربط المستأجر/المشروع وSHA ووقت الالتقاط، مع بصمة محتوى ورفض اللقطات القديمة أو استعلام النطاق المخالف. لا يثبت مصدرًا موثقًا أو خدمة حية؛ لا تغيير في بوابات الجاهزية.
 
 ## آخر تحقق من main — 2026-11-02
 
-- **VERIFIED:** `origin/main` عند `2eaa12511e45056a4bac4e26c454871d7b43b001`. نجح main CI `41425006983` وCodeQL `41425006913` على هذا SHA. اجتازت Python validation وRLS والأمان والحاوية وTerraform و`validate` ونشر Pages و`verify-production` للموقع الثابت؛ تخطّى Node شرط المسارات. Vercel فشل بسبب حد معدل البناء، ولم تتغير إعدادات الحساب.
-- يسجل دفتر الإنجازات الآن PRs #365–#369. لم تتغير البوابات: AI-9 **FAIL / BLOCKED**، وP01 **NO-GO / BLOCKED**، وقبول Codex agent runtime **OPEN**.
+- **VERIFIED:** `origin/main` عند `323413a36f0446dc4013eec302bef189c5061bf2`. نجح main CI `41427215538` وCodeQL `41427213176` على هذا SHA. اجتازت Python validation وRLS والأمان والحاوية وTerraform و`validate` ونشر Pages و`verify-production` للموقع الثابت؛ تخطّى Node وcontrolled-incident-drill شروط المسارات/الحدث.
+- يسجل دفتر الإنجازات الآن PR #371 إضافةً إلى السجل السابق؛ تغيّر تنفيذ المكوّن المحلي فقط ولم تتغير أي بوابة جاهزية.
 
 ## دمج PR #366 — تحقق 2026-11-02
 

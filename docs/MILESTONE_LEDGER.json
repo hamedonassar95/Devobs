@@ -508,6 +508,17 @@
       "ci_run_id": 41424695607,
       "verification": "VERIFIED 2026-11-02: PR CI 41424695607 and push CI 41424668235 SUCCESS on the exact head; push CI ran Node tests, PR CI skipped them by path selection. Python validation, PostgreSQL RLS, security, container scan, Terraform and validate passed. CodeQL 41424691631 SUCCESS. PR #369 merged at 2eaa12511e45056a4bac4e26c454871d7b43b001; main CI 41425006983 and CodeQL 41425006913 SUCCESS on the exact merge SHA. Main CI published and verified static Pages; Node tests were skipped by path selection. PR Vercel preview succeeded; Vercel status failed on the merge SHA with the build-rate-limit URL.",
       "limitations": "Documentation, ledger and regression-test update only. Main CI skipped Node tests by path selection, while the exact PR head push CI ran them. Pages verifies the static site only. Vercel on main remains rate-limited; no account settings were inspected or changed. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
+    },
+    {
+      "id": "offline-topology-snapshot-pr371",
+      "area": "QUALITY",
+      "title": "Bind offline service-topology snapshots to tenant scope, source SHA, and freshness",
+      "pr_number": 371,
+      "pr_head_sha": "7b07a42017ec3a53e2b6d48fee220f4af464918c",
+      "merge_sha": "323413a36f0446dc4013eec302bef189c5061bf2",
+      "ci_run_id": 41426781794,
+      "verification": "VERIFIED 2026-11-02: PR CI 41426781794 and push CI 41426754445 SUCCESS on exact head; push CI ran Node tests, PR CI skipped Node by path condition. CodeQL 41426775609, advisory review 41426781521, and Vercel preview SUCCESS. PR #371 merged at 323413a36f0446dc4013eec302bef189c5061bf2. Main CI 41427215538 and CodeQL 41427213176 SUCCESS on the merge SHA. Main CI passed Python validation, PostgreSQL RLS, security, container scan, Terraform, validate, Pages publication and static-site verify-production; main Node tests and controlled incident drill were skipped by path/event conditions.",
+      "limitations": "Offline schema and behavioral tests only. Snapshot source SHA and capture time are caller-supplied; the digest is not a signature or collector authentication. No live graph source, deployment, external dataset, or paid inference was used. No operational readiness gate changed; all release gates remain BLOCKED or OPEN."
     }
   ],
   "gates": [
