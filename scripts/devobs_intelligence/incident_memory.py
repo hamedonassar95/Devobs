@@ -2,9 +2,11 @@
 from __future__ import annotations
 import re
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from .context import ContextError, _id
 
 _DIGEST=re.compile(r"[0-9a-f]{64}\Z")
+_SHA=re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})\Z")
 _RUNBOOK=re.compile(r"RB-[A-Z]{2,8}-[0-9]{2}\Z")
 _CATEGORIES=frozenset({"ci_failure","high_error_rate","capacity_pressure"})
 
@@ -18,6 +20,8 @@ class IncidentRecord:
     runbook_id: str
     outcome: str
     evidence_digest: str
+    source_sha: str | None = None
+    recorded_at: str | None = None
 
     def __post_init__(self):
         if (not all(_id(v) for v in (self.tenant,self.project,self.service))
@@ -27,6 +31,30 @@ class IncidentRecord:
                 or type(self.evidence_digest) is not str
                 or _DIGEST.fullmatch(self.evidence_digest) is None):
             raise ContextError("invalid_memory")
+        if self.source_sha is None and self.recorded_at is None:
+            return
+        if type(self.source_sha) is not str or _SHA.fullmatch(self.source_sha) is None:
+            raise ContextError("invalid_memory")
+        try:
+            if type(self.recorded_at) is not str or len(self.recorded_at) > 35:
+                raise ValueError
+            instant = datetime.fromisoformat(self.recorded_at.replace("Z", "+00:00"))
+            if instant.tzinfo is None or instant.utcoffset() is None:
+                raise ValueError
+            normalized = instant.astimezone(timezone.utc).isoformat(
+                timespec="microseconds").replace("+00:00", "Z")
+        except ValueError:
+            raise ContextError("invalid_memory") from None
+        object.__setattr__(self, "recorded_at", normalized)
+
+
+@dataclass(frozen=True)
+class IncidentMemoryEvidence:
+    """Minimal provenance returned when a fresh memory item informs a finding."""
+
+    evidence_digest: str
+    source_sha: str
+    recorded_at: str
 
 
 class IncidentMemory:
@@ -35,17 +63,61 @@ class IncidentMemory:
         if (type(records) is not list or len(records)>1000
                 or any(type(item) is not IncidentRecord for item in records)):
             raise ContextError("invalid_memory")
-        ids={(r.tenant,r.project,r.evidence_digest) for r in records}
+        rows=tuple(self._copy_record(item) for item in records)
+        ids={(r.tenant,r.project,r.evidence_digest) for r in rows}
         if len(ids)!=len(records):
             raise ContextError("duplicate_memory")
-        self._rows=tuple(records)
+        self._rows=rows
 
-    def retrieve(self, tenant: str, project: str, service: str,
-                 category: str, limit: int=3) -> tuple[IncidentRecord,...]:
+    @staticmethod
+    def _copy_record(record: IncidentRecord) -> IncidentRecord:
+        try:
+            return IncidentRecord(
+                record.tenant, record.project, record.service, record.category,
+                record.runbook_id, record.outcome, record.evidence_digest,
+                record.source_sha, record.recorded_at,
+            )
+        except (AttributeError, TypeError, ContextError):
+            raise ContextError("invalid_memory") from None
+
+    @staticmethod
+    def _validate_query(tenant: str, project: str, service: str,
+                        category: str, limit: int) -> None:
         if (not all(_id(v) for v in (tenant,project,service))
                 or type(category) is not str or category not in _CATEGORIES
                 or type(limit) is not int or not 1<=limit<=5):
             raise ContextError("invalid_query")
-        rows=(r for r in self._rows if (r.tenant,r.project,r.service,r.category)==
+
+    def _validated_rows(self) -> tuple[IncidentRecord, ...]:
+        return tuple(self._copy_record(row) for row in self._rows)
+
+    def retrieve(self, tenant: str, project: str, service: str,
+                 category: str, limit: int=3) -> tuple[IncidentRecord,...]:
+        self._validate_query(tenant, project, service, category, limit)
+        rows=(r for r in self._validated_rows() if (r.tenant,r.project,r.service,r.category)==
               (tenant,project,service,category) and r.outcome=="resolved")
         return tuple(sorted(rows,key=lambda r:r.evidence_digest)[:limit])
+
+    def retrieve_provenanced(self, tenant: str, project: str, service: str,
+                             category: str, *, now: datetime,
+                             max_age_seconds: int, limit: int=3
+                             ) -> tuple[IncidentRecord,...]:
+        """Retrieve only scoped records with source/time provenance within an explicit age."""
+        self._validate_query(tenant, project, service, category, limit)
+        if (type(now) is not datetime or now.tzinfo is None or now.utcoffset() is None
+                or type(max_age_seconds) is not int
+                or not 1<=max_age_seconds<=31_536_000):
+            raise ContextError("invalid_query")
+        instant=now.astimezone(timezone.utc)
+        matches=[]
+        for record in self._validated_rows():
+            if ((record.tenant,record.project,record.service,record.category)!=
+                    (tenant,project,service,category)
+                    or record.outcome!="resolved"
+                    or record.source_sha is None or record.recorded_at is None):
+                continue
+            recorded=datetime.fromisoformat(record.recorded_at.replace("Z", "+00:00"))
+            age=(instant-recorded).total_seconds()
+            if 0<=age<=max_age_seconds:
+                matches.append(record)
+        return tuple(sorted(matches,key=lambda r:r.evidence_digest)[:limit])
