@@ -149,6 +149,20 @@ class AuthAndTenantAPITests(unittest.TestCase):
         verify.assert_not_called()
         read_status.assert_not_called()
 
+    def test_wsgi_terminated_request_body_is_rejected_before_auth_or_storage(self):
+        app = make_app(self.verifier, self.store)
+        with patch.object(self.verifier, "verify", wraps=self.verifier.verify) as verify, \
+                patch.object(self.store, "read_status", wraps=self.store.read_status) as read_status:
+            status, headers, body = self.send(
+                token=self.token(), app=app,
+                extra={"CONTENT_LENGTH": "", "wsgi.input_terminated": True,
+                       "wsgi.input": io.BytesIO(b"x")})
+        self.assertEqual(status, "400 Bad Request")
+        self.assertEqual(body, {"error": "request_body_not_allowed"})
+        self.assertEqual(headers["Cache-Control"], "no-store")
+        verify.assert_not_called()
+        read_status.assert_not_called()
+
     def test_valid_signature_and_read_only_endpoint(self):
         principal=self.verifier.verify(self.token())
         self.assertEqual(principal.subject,"alice")

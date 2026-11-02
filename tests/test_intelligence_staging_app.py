@@ -136,6 +136,26 @@ class StagingBootstrapTests(unittest.TestCase):
         self.assertEqual(store.calls, 0)
         self.assertEqual(headers["Cache-Control"], "no-store")
 
+    def test_wsgi_terminated_request_body_is_rejected_before_readiness_probe(self):
+        class ProbeStore:
+            calls = 0
+
+            def probe_readiness(self):
+                self.calls += 1
+                return True
+
+        store = ProbeStore()
+        with patch.object(self.module, "PostgresTenantStore", return_value=store):
+            app = self.module.build_app(self.base)
+        status, headers, body = self.run_request(
+            app, "/readyz", environ_overrides={
+                "CONTENT_LENGTH": "", "wsgi.input_terminated": True,
+                "wsgi.input": io.BytesIO(b"x")})
+        self.assertEqual(status, "400 Bad Request")
+        self.assertEqual(json.loads(body), {"error": "request_body_not_allowed"})
+        self.assertEqual(store.calls, 0)
+        self.assertEqual(headers["Cache-Control"], "no-store")
+
     def test_render_health_check_requires_real_readiness(self):
         config = (Path(__file__).resolve().parents[1] / "render.yaml").read_text()
         checks = [line.strip() for line in config.splitlines()
