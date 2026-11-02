@@ -483,7 +483,7 @@ class MilestoneLedgerTests(unittest.TestCase):
 
     def test_pr364_merge_record_matches_ci_and_preserves_readiness_gates(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 364)
+        self.assertEqual(result["latest_pr"], self.data["milestones"][-1]["pr_number"])
         entry = next(item for item in self.data["milestones"] if item["pr_number"] == 364)
         self.assertEqual(entry["pr_head_sha"], "87d289e1ee5134734a157a51b0302907b40f2400")
         self.assertEqual(entry["merge_sha"], "baa4db24dc4bebf364410cd6790dba6d4e0b1fea")
@@ -495,6 +495,31 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("verify-production", entry["verification"])
         self.assertIn("Vercel PR check failed", entry["verification"])
         self.assertIn("No external dataset", entry["limitations"])
+        gates = {item["id"]: item["status"] for item in self.data["gates"]}
+        self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
+        self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
+        self.assertEqual(gates["codex-agent-runtime-acceptance"], "OPEN")
+
+    def test_pr365_to_368_merges_are_recorded_without_promoting_readiness_gates(self):
+        records = {item["pr_number"]: item for item in self.data["milestones"]}
+        expected = {
+            365: ("bf1d158dee28a9b8a00bfc0c29e847b7398867e6",
+                  "28a633d391311b36cb64fcb3ec528e7363f07ad9", 41363442004),
+            366: ("394420e38c95fcc2f24562fe6c6158dcc3275e6f",
+                  "c56c7f60315f9ce6c2d400ef51f6045e1b8260a3", 41423657947),
+            367: ("a54f0afdcba16e3613ec28f96e8dc7e81230cd90",
+                  "cdd8cdc8c8dca7d36a660af41f00b175b694dfce", 41404954163),
+            368: ("01a0babf679c24cfcdffb428ec0b2ee52deb2fc3",
+                  "520b77fdfc07ffcb1d8ac3c2776333abc485b852", 41422995159),
+        }
+        for number, (head, merged, ci) in expected.items():
+            with self.subTest(pr=number):
+                self.assertEqual(records[number]["pr_head_sha"], head)
+                self.assertEqual(records[number]["merge_sha"], merged)
+                self.assertEqual(records[number]["ci_run_id"], ci)
+                self.assertIn("SUCCESS", records[number]["verification"])
+                self.assertIn("BLOCKED", records[number]["limitations"])
+        self.assertEqual(validate(self.data)["latest_pr"], 368)
         gates = {item["id"]: item["status"] for item in self.data["gates"]}
         self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
