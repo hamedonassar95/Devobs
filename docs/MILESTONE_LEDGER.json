@@ -497,6 +497,17 @@
       "ci_run_id": 41422995159,
       "verification": "VERIFIED 2026-11-02: PR CI 41422995159 SUCCESS; push CI 41422966993 SUCCESS on the exact same head and ran Node tests successfully. PR CodeQL 41422990849 SUCCESS. Merge confirmed at 520b77fdfc07ffcb1d8ac3c2776333abc485b852; main CI 41423602328 and CodeQL 41423601628 SUCCESS on the exact merge SHA. Main CI published and verified static Pages; Node tests were skipped by path selection. Vercel failed on the PR and merge SHA due to its build-rate limit.",
       "limitations": "Test-contract change only; the push CI on the PR head ran Node tests, but main CI skipped them by path selection. No agent runtime acceptance, live service, or AI behavior was established. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
+    },
+    {
+      "id": "verified-readiness-ledger-pr369",
+      "area": "DOCUMENTATION",
+      "title": "Record PR #369 merge evidence and synchronize current readiness state",
+      "pr_number": 369,
+      "pr_head_sha": "0e08c376f872fd664b8c3807a4ea0a66d4d26fbc",
+      "merge_sha": "2eaa12511e45056a4bac4e26c454871d7b43b001",
+      "ci_run_id": 41424695607,
+      "verification": "VERIFIED 2026-11-02: PR CI 41424695607 and push CI 41424668235 SUCCESS on the exact head; push CI ran Node tests, PR CI skipped them by path selection. Python validation, PostgreSQL RLS, security, container scan, Terraform and validate passed. CodeQL 41424691631 SUCCESS. PR #369 merged at 2eaa12511e45056a4bac4e26c454871d7b43b001; main CI 41425006983 and CodeQL 41425006913 SUCCESS on the exact merge SHA. Main CI published and verified static Pages; Node tests were skipped by path selection. PR Vercel preview succeeded; Vercel status failed on the merge SHA with the build-rate-limit URL.",
+      "limitations": "Documentation, ledger and regression-test update only. Main CI skipped Node tests by path selection, while the exact PR head push CI ran them. Pages verifies the static site only. Vercel on main remains rate-limited; no account settings were inspected or changed. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex agent runtime remains OPEN."
     }
   ],
   "gates": [

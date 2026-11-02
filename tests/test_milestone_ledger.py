@@ -500,7 +500,7 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
         self.assertEqual(gates["codex-agent-runtime-acceptance"], "OPEN")
 
-    def test_pr365_to_368_merges_are_recorded_without_promoting_readiness_gates(self):
+    def test_pr365_to_369_merges_are_recorded_without_promoting_readiness_gates(self):
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         expected = {
             365: ("bf1d158dee28a9b8a00bfc0c29e847b7398867e6",
@@ -511,6 +511,8 @@ class MilestoneLedgerTests(unittest.TestCase):
                   "cdd8cdc8c8dca7d36a660af41f00b175b694dfce", 41404954163),
             368: ("01a0babf679c24cfcdffb428ec0b2ee52deb2fc3",
                   "520b77fdfc07ffcb1d8ac3c2776333abc485b852", 41422995159),
+            369: ("0e08c376f872fd664b8c3807a4ea0a66d4d26fbc",
+                  "2eaa12511e45056a4bac4e26c454871d7b43b001", 41424695607),
         }
         for number, (head, merged, ci) in expected.items():
             with self.subTest(pr=number):
@@ -519,7 +521,13 @@ class MilestoneLedgerTests(unittest.TestCase):
                 self.assertEqual(records[number]["ci_run_id"], ci)
                 self.assertIn("SUCCESS", records[number]["verification"])
                 self.assertIn("BLOCKED", records[number]["limitations"])
-        self.assertEqual(validate(self.data)["latest_pr"], 368)
+        self.assertEqual(
+            validate(self.data)["latest_pr"],
+            self.data["milestones"][-1]["pr_number"],
+        )
+        self.assertIn("main CI 41425006983", records[369]["verification"])
+        self.assertIn("41425006913 SUCCESS", records[369]["verification"])
+        self.assertIn("Vercel status failed", records[369]["verification"])
         gates = {item["id"]: item["status"] for item in self.data["gates"]}
         self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
