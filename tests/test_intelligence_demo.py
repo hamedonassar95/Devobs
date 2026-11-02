@@ -12,6 +12,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 from devobs_intelligence.context import ContextError
 from devobs_intelligence.incident_memory import IncidentMemory, IncidentRecord
+from devobs_intelligence.incident_memory_approval import IncidentMemoryApprovalRegistry
 from intelligence_demo import main, run_demo, _synthetic_incident_evidence
 from devobs_intelligence.adviser import AdvisoryError
 
@@ -49,7 +50,7 @@ def _approved_demo_memory(*, recorded_at=None):
     return IncidentMemory.from_approved_envelopes(
         [{**payload, 'signature': signature}],
         {('synthetic', 'demo', 'curator-1'): public_key},
-        now=DEMO_NOW,
+        now=DEMO_NOW, consumption_registry=IncidentMemoryApprovalRegistry(),
     )
 
 
