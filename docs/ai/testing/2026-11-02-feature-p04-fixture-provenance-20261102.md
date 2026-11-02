@@ -30,6 +30,6 @@ The new tests initially failed to import `evaluate_fixture`, which did not exist
 - `/tmp/devobs-p01-ac02-validation/bin/python scripts/milestone_ledger.py --summary` — latest PR #406, 82 merged milestones, 3 unchanged gate records.
 - `PYTHONPATH=scripts /tmp/devobs-p01-ac02-validation/bin/python -m devobs_intelligence.evaluation` — passed; report identifies dataset `devobs-adviser-synthetic` v1 with SHA-256 `0a9c73c281834de399952222ac28ff1580cd5fcbb61b760a4f0557109b00b0ad` and no raw rows.
 - `git diff --check` — passed.
-- Hosted checks on this feature branch — not run yet.
+- Hosted checks are reported by [PR #407](https://github.com/hamedonassar95/Devobs/pull/407) on its exact current head. Re-check after each commit; an earlier green run does not validate a later SHA.
 
 All input data is the checked-in synthetic fixture. Passing tests show hash/schema behavior only; they do not establish independent labels or model quality.
