@@ -500,7 +500,7 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
         self.assertEqual(gates["codex-agent-runtime-acceptance"], "OPEN")
 
-    def test_pr365_to_377_merges_are_recorded_without_promoting_readiness_gates(self):
+    def test_pr365_to_378_merges_are_recorded_without_promoting_readiness_gates(self):
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         expected = {
             365: ("bf1d158dee28a9b8a00bfc0c29e847b7398867e6",
@@ -527,6 +527,8 @@ class MilestoneLedgerTests(unittest.TestCase):
                   "bfd40df4f3ae9ceb0c539c3ed6861c24c88e6aee", 41431843697),
             377: ("9e32035d5bf7b94c8cfd7b15384db8e4c3559024",
                   "34b47f1352e489d9a92b2e202441a8469d66fabb", 41432899091),
+            378: ("288ccde0a977d809ab6df4324d4e399fb126ece0",
+                  "0c6f143faffdbee7b66d9661ee3534b513051f5c", 41440593177),
         }
         for number, (head, merged, ci) in expected.items():
             with self.subTest(pr=number):
@@ -565,6 +567,10 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("41432872907 SUCCESS", records[377]["verification"])
         self.assertIn("PR Vercel preview", records[377]["limitations"])
         self.assertIn("budget approval was absent", records[377]["limitations"])
+        self.assertIn("Main CI 41441026324", records[378]["verification"])
+        self.assertIn("41441024464 SUCCESS", records[378]["verification"])
+        self.assertIn("41440575417 SUCCESS", records[378]["verification"])
+        self.assertIn("not signatures", records[378]["limitations"])
         gates = {item["id"]: item["status"] for item in self.data["gates"]}
         self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")

@@ -16,9 +16,12 @@ _RECORD_FIELDS=frozenset({
     "evidence_digest", "source_sha", "recorded_at",
 })
 _RECORD_SCHEMA_VERSION=1
+_BUNDLE_SCHEMA_VERSION=1
+_MAX_MEMORY_RECORDS=1000
+_BUNDLE_FIELDS=frozenset({"schema_version", "records", "bundle_digest"})
 
 
-def _canonical_json(value: dict) -> bytes:
+def _canonical_json(value) -> bytes:
     return json.dumps(value,sort_keys=True,separators=(",", ":"),
                       ensure_ascii=False,allow_nan=False).encode("utf-8")
 
@@ -122,7 +125,7 @@ class IncidentMemoryEvidence:
 class IncidentMemory:
     """Only pre-reviewed resolved records; reject duplicate scoped evidence."""
     def __init__(self, records: list[IncidentRecord]):
-        if (type(records) is not list or len(records)>1000
+        if (type(records) is not list or len(records)>_MAX_MEMORY_RECORDS
                 or any(type(item) is not IncidentRecord for item in records)):
             raise ContextError("invalid_memory")
         rows=tuple(self._copy_record(item) for item in records)
@@ -130,6 +133,51 @@ class IncidentMemory:
         if len(ids)!=len(records):
             raise ContextError("duplicate_memory")
         self._rows=rows
+
+    def to_bundle(self) -> dict:
+        """Return a deterministic, detached versioned bundle of incident records."""
+        rows = sorted(self._validated_rows(), key=lambda row: (
+            row.tenant, row.project, row.service, row.category, row.evidence_digest,
+        ))
+        payload = {
+            "schema_version": _BUNDLE_SCHEMA_VERSION,
+            "records": [row.to_record() for row in rows],
+        }
+        return {
+            **payload,
+            "bundle_digest": hashlib.sha256(_canonical_json(payload)).hexdigest(),
+        }
+
+    @classmethod
+    def from_bundle(cls, value: dict) -> "IncidentMemory":
+        """Load one strict, bounded memory bundle atomically; reject partial imports."""
+        if type(value) is not dict or set(value) != _BUNDLE_FIELDS:
+            raise ContextError("invalid_memory_bundle")
+        if type(value["schema_version"]) is not int:
+            raise ContextError("unsupported_memory_bundle")
+        if value["schema_version"] != _BUNDLE_SCHEMA_VERSION:
+            raise ContextError("unsupported_memory_bundle")
+        records = value["records"]
+        if type(records) is not list or len(records) > _MAX_MEMORY_RECORDS:
+            raise ContextError("invalid_memory_bundle")
+        digest = value["bundle_digest"]
+        if type(digest) is not str or _DIGEST.fullmatch(digest) is None:
+            raise ContextError("invalid_memory_bundle")
+        parsed = [IncidentRecord.from_record(record) for record in records]
+        canonical_records = [row.to_record() for row in sorted(parsed, key=lambda row: (
+            row.tenant, row.project, row.service, row.category, row.evidence_digest,
+        ))]
+        if canonical_records != records:
+            raise ContextError("noncanonical_memory_bundle")
+        try:
+            payload = {"schema_version": value["schema_version"],
+                       "records": canonical_records}
+            expected_digest = hashlib.sha256(_canonical_json(payload)).hexdigest()
+        except (TypeError, ValueError, OverflowError):
+            raise ContextError("invalid_memory_bundle") from None
+        if digest != expected_digest:
+            raise ContextError("memory_bundle_digest_mismatch")
+        return cls(parsed)
 
     @staticmethod
     def _copy_record(record: IncidentRecord) -> IncidentRecord:
