@@ -5,12 +5,17 @@ import hashlib
 import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from threading import Lock
+from typing import TYPE_CHECKING
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
 from .context import ContextError, _id
 from .incident_memory import IncidentRecord, _canonical_json
+
+if TYPE_CHECKING:
+    from .incident_memory import IncidentMemory
 
 _APPROVAL_ID = re.compile(r"[0-9a-f]{32}\Z")
 _SIGNATURE = re.compile(r"[0-9a-f]{128}\Z")
@@ -22,6 +27,7 @@ _SCHEMA_VERSION = 1
 _MAX_APPROVAL_TTL_SECONDS = 7 * 24 * 60 * 60
 _MAX_KEYRING_ENTRIES = 100
 _MAX_BATCH_SIZE = 1000
+_MAX_APPROVAL_REGISTRY_ENTRIES = 10_000
 
 
 @dataclass(frozen=True)
@@ -171,3 +177,39 @@ def verify_incident_memory_approvals(
     if len(set(record_ids)) != len(record_ids):
         raise ContextError("duplicate_memory")
     return verified
+
+
+class IncidentMemoryApprovalRegistry:
+    """Bounded process-local replay guard; state is lost when this object exits."""
+
+    def __init__(self, *, max_entries: int = _MAX_APPROVAL_REGISTRY_ENTRIES):
+        if (type(max_entries) is not int or not 1 <= max_entries
+                <= _MAX_APPROVAL_REGISTRY_ENTRIES):
+            raise ContextError("invalid_memory_approval_registry")
+        self._max_entries = max_entries
+        self._consumed_ids: set[str] = set()
+        self._lock = Lock()
+
+    def load_memory(
+            self, values: object,
+            trusted_public_keys: dict[tuple[str, str, str], bytes], *,
+            now: datetime) -> "IncidentMemory":
+        """Verify, build, and atomically claim a whole batch for this instance."""
+        verified = verify_incident_memory_approvals(
+            values, trusted_public_keys, now=now,
+        )
+        incoming = {item.approval_id for item in verified}
+        from .incident_memory import IncidentMemory
+
+        memory = IncidentMemory([item.record for item in verified])
+        memory._approval_provenance = {
+            (item.record.tenant, item.record.project, item.record.evidence_digest): item
+            for item in verified
+        }
+        with self._lock:
+            if self._consumed_ids.intersection(incoming):
+                raise ContextError("replayed_memory_approval")
+            if len(self._consumed_ids) + len(incoming) > self._max_entries:
+                raise ContextError("memory_approval_registry_full")
+            self._consumed_ids.update(incoming)
+        return memory

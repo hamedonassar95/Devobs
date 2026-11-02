@@ -9,7 +9,9 @@ from typing import TYPE_CHECKING
 from .context import ContextError, _id
 
 if TYPE_CHECKING:
-    from .incident_memory_approval import VerifiedIncidentMemoryApproval
+    from .incident_memory_approval import (
+        IncidentMemoryApprovalRegistry, VerifiedIncidentMemoryApproval,
+    )
 
 _DIGEST=re.compile(r"[0-9a-f]{64}\Z")
 _SHA=re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})\Z")
@@ -146,19 +148,16 @@ class IncidentMemory:
     def from_approved_envelopes(
             cls, envelopes: list[dict],
             trusted_public_keys: dict[tuple[str, str, str], bytes], *,
-            now: datetime) -> "IncidentMemory":
-        """Build memory only after every provenance-bound envelope verifies."""
-        from .incident_memory_approval import verify_incident_memory_approvals
+            now: datetime,
+            consumption_registry: IncidentMemoryApprovalRegistry) -> "IncidentMemory":
+        """Build memory through a required, shared process-lifetime registry."""
+        from .incident_memory_approval import IncidentMemoryApprovalRegistry
 
-        approvals = verify_incident_memory_approvals(
+        if type(consumption_registry) is not IncidentMemoryApprovalRegistry:
+            raise ContextError("invalid_memory_approval_registry")
+        return consumption_registry.load_memory(
             envelopes, trusted_public_keys, now=now,
         )
-        memory = cls([item.record for item in approvals])
-        memory._approval_provenance = {
-            (item.record.tenant, item.record.project, item.record.evidence_digest): item
-            for item in approvals
-        }
-        return memory
 
     def approval_provenance_for(
             self, record: IncidentRecord) -> VerifiedIncidentMemoryApproval | None:

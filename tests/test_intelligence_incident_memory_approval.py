@@ -3,8 +3,10 @@ import hashlib
 import json
 import sys
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from threading import Barrier
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
@@ -15,6 +17,7 @@ from devobs_intelligence.context import (
 )
 from devobs_intelligence.correlation import IncidentFinding, correlate
 from devobs_intelligence.incident_memory import IncidentMemory, IncidentRecord
+from devobs_intelligence.incident_memory_approval import IncidentMemoryApprovalRegistry
 
 NOW = datetime(2026, 11, 2, 12, 0, tzinfo=timezone.utc)
 
@@ -38,6 +41,73 @@ class IncidentMemoryApprovalTests(unittest.TestCase):
             serialization.Encoding.Raw, serialization.PublicFormat.Raw,
         )
         self.keyring = {("alpha", "platform", "curator-1"): self.public_key}
+        self.registry = IncidentMemoryApprovalRegistry()
+
+    def test_signed_import_requires_explicit_replay_registry(self):
+        with self.assertRaisesRegex(ContextError,
+                                    "invalid_memory_approval_registry"):
+            IncidentMemory.from_approved_envelopes(
+                [self.approval()], self.keyring, now=NOW,
+                consumption_registry=None,
+            )
+
+    def test_approval_id_cannot_be_consumed_twice_by_one_registry(self):
+        envelope = self.approval()
+        self.load_memory([envelope])
+        with self.assertRaisesRegex(ContextError, "replayed_memory_approval"):
+            self.load_memory([envelope])
+
+    def test_reissued_payload_cannot_reuse_a_consumed_approval_id(self):
+        self.load_memory([self.approval()])
+        reissued = self.approval(
+            record=self.record(evidence_digest="d" * 64),
+        )
+        with self.assertRaisesRegex(ContextError, "replayed_memory_approval"):
+            self.load_memory([reissued])
+
+    def test_failed_batch_does_not_partially_consume_valid_approvals(self):
+        first = self.approval(approval_id="1" * 32)
+        second = self.approval(
+            record=self.record(evidence_digest="d" * 64),
+            approval_id="2" * 32,
+        )
+        malformed = {**second, "signature": "00" * 64}
+        with self.assertRaises(ContextError):
+            self.load_memory([first, malformed])
+        self.load_memory([first])
+
+    def test_registry_capacity_fails_closed_without_evicting_claims(self):
+        registry = IncidentMemoryApprovalRegistry(max_entries=1)
+        first = self.approval(approval_id="1" * 32)
+        second = self.approval(
+            record=self.record(evidence_digest="d" * 64),
+            approval_id="2" * 32,
+        )
+        with self.assertRaisesRegex(ContextError, "memory_approval_registry_full"):
+            self.load_memory([first, second], consumption_registry=registry)
+        self.load_memory([first], consumption_registry=registry)
+        with self.assertRaisesRegex(ContextError, "memory_approval_registry_full"):
+            self.load_memory([second], consumption_registry=registry)
+        with self.assertRaisesRegex(ContextError,
+                                    "invalid_memory_approval_registry"):
+            IncidentMemoryApprovalRegistry(max_entries=True)
+
+    def test_concurrent_replay_has_exactly_one_successful_consumer(self):
+        envelope = self.approval()
+        barrier = Barrier(8)
+
+        def consume_once(_):
+            barrier.wait(timeout=5)
+            try:
+                self.load_memory([envelope])
+                return "accepted"
+            except ContextError as exc:
+                return str(exc)
+
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            outcomes = list(executor.map(consume_once, range(8)))
+        self.assertEqual(outcomes.count("accepted"), 1)
+        self.assertEqual(outcomes.count("replayed_memory_approval"), 7)
 
     def record(self, **overrides):
         fields = {
@@ -65,9 +135,20 @@ class IncidentMemoryApprovalTests(unittest.TestCase):
             "signature": self.private_key.sign(canonical_bytes(payload)).hex(),
         }
 
+    def load_memory(self, envelopes, keyring=None, *, now=NOW,
+                    consumption_registry=None):
+        if keyring is None:
+            keyring = self.keyring
+        if consumption_registry is None:
+            consumption_registry = self.registry
+        return IncidentMemory.from_approved_envelopes(
+            envelopes, keyring, now=now,
+            consumption_registry=consumption_registry,
+        )
+
     def test_signed_records_load_atomically_and_keep_curator_provenance(self):
         envelope = self.approval()
-        store = IncidentMemory.from_approved_envelopes(
+        store = self.load_memory(
             [envelope], self.keyring, now=NOW,
         )
         row = store.retrieve_provenanced(
@@ -124,13 +205,13 @@ class IncidentMemoryApprovalTests(unittest.TestCase):
         for changed in changes:
             with self.subTest(changed=changed), self.assertRaisesRegex(
                     ContextError, "invalid_memory_approval_signature"):
-                IncidentMemory.from_approved_envelopes(
+                self.load_memory(
                     [changed], self.keyring, now=NOW,
                 )
 
     def test_untrusted_signer_malformed_keys_and_unknown_envelope_fields_fail_closed(self):
         with self.assertRaisesRegex(ContextError, "untrusted_memory_approver"):
-            IncidentMemory.from_approved_envelopes(
+            self.load_memory(
                 [self.approval()],
                 {("alpha", "platform", "different-curator"): self.public_key},
                 now=NOW,
@@ -139,32 +220,32 @@ class IncidentMemoryApprovalTests(unittest.TestCase):
             serialization.Encoding.Raw, serialization.PublicFormat.Raw,
         )
         with self.assertRaisesRegex(ContextError, "invalid_memory_approval_signature"):
-            IncidentMemory.from_approved_envelopes(
+            self.load_memory(
                 [self.approval()], {("alpha", "platform", "curator-1"): other_key},
                 now=NOW,
             )
         with self.assertRaisesRegex(ContextError, "invalid_memory_keyring"):
-            IncidentMemory.from_approved_envelopes(
+            self.load_memory(
                 [self.approval()], {("alpha", "platform", "curator-1"): b"short"},
                 now=NOW,
             )
         malformed_signature = self.approval()
         malformed_signature["signature"] = "00"
         with self.assertRaisesRegex(ContextError, "invalid_memory_approval_signature"):
-            IncidentMemory.from_approved_envelopes(
+            self.load_memory(
                 [malformed_signature], self.keyring, now=NOW,
             )
         for scope in (("beta", "platform", "curator-1"),
                       ("alpha", "different-project", "curator-1")):
             with self.subTest(scope=scope), self.assertRaisesRegex(
                     ContextError, "untrusted_memory_approver"):
-                IncidentMemory.from_approved_envelopes(
+                self.load_memory(
                     [self.approval()], {scope: self.public_key}, now=NOW,
                 )
         changed = self.approval()
         changed["unexpected"] = True
         with self.assertRaisesRegex(ContextError, "invalid_memory_approval"):
-            IncidentMemory.from_approved_envelopes(
+            self.load_memory(
                 [changed], self.keyring, now=NOW,
             )
 
@@ -179,7 +260,7 @@ class IncidentMemoryApprovalTests(unittest.TestCase):
         )
         for envelope in cases:
             with self.subTest(envelope=envelope), self.assertRaises(ContextError):
-                IncidentMemory.from_approved_envelopes(
+                self.load_memory(
                     [envelope], self.keyring, now=NOW,
                 )
 
@@ -187,19 +268,19 @@ class IncidentMemoryApprovalTests(unittest.TestCase):
         unsupported = self.approval()
         unsupported["schema_version"] = 2
         with self.assertRaisesRegex(ContextError, "unsupported_memory_approval"):
-            IncidentMemory.from_approved_envelopes(
+            self.load_memory(
                 [unsupported], self.keyring, now=NOW,
             )
         boolean_version = self.approval()
         boolean_version["schema_version"] = True
         with self.assertRaisesRegex(ContextError, "unsupported_memory_approval"):
-            IncidentMemory.from_approved_envelopes(
+            self.load_memory(
                 [boolean_version], self.keyring, now=NOW,
             )
         noncanonical_time = self.approval()
         noncanonical_time["approved_at"] = (NOW - timedelta(minutes=1)).isoformat()
         with self.assertRaisesRegex(ContextError, "invalid_memory_approval_time"):
-            IncidentMemory.from_approved_envelopes(
+            self.load_memory(
                 [noncanonical_time], self.keyring, now=NOW,
             )
 
@@ -207,17 +288,17 @@ class IncidentMemoryApprovalTests(unittest.TestCase):
         first = self.approval(approval_id="1" * 32)
         second_id = self.approval(approval_id="2" * 32)
         with self.assertRaisesRegex(ContextError, "duplicate_memory_approval"):
-            IncidentMemory.from_approved_envelopes(
+            self.load_memory(
                 [first, first], self.keyring, now=NOW,
             )
         with self.assertRaisesRegex(ContextError, "duplicate_memory"):
-            IncidentMemory.from_approved_envelopes(
+            self.load_memory(
                 [first, second_id], self.keyring, now=NOW,
             )
         malformed = json.loads(json.dumps(second_id))
         malformed["signature"] = "00" * 64
         with self.assertRaises(ContextError):
-            IncidentMemory.from_approved_envelopes(
+            self.load_memory(
                 [first, malformed], self.keyring, now=NOW,
             )
 
@@ -231,13 +312,13 @@ class IncidentMemoryApprovalTests(unittest.TestCase):
         )
         for record in cases:
             with self.subTest(record=record), self.assertRaises(ContextError):
-                IncidentMemory.from_approved_envelopes(
+                self.load_memory(
                     [self.approval(record=record)], self.keyring, now=NOW,
                 )
 
     def test_provenanced_retrieval_requires_a_current_signature_when_requested(self):
         record = self.record()
-        approved = IncidentMemory.from_approved_envelopes(
+        approved = self.load_memory(
             [self.approval(record=record)], self.keyring, now=NOW,
         )
         query = {
