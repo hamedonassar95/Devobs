@@ -772,6 +772,17 @@
       "ci_run_id": 41485469354,
       "verification": "VERIFIED 2026-11-02: PR #394 merged at f3dc921ed8ea8de150582567763405dbcfc34746 from head e8f058465f903448a1f4338372a5ea59313ec402. Exact-head CI 41485469354 SUCCESS (Node skipped by path selection); push CI 41485437158 SUCCESS including Node; PR CodeQL 41485462136 SUCCESS for Actions, Python and JavaScript/TypeScript; Vercel PR preview succeeded. Exact-merge main CI 41491251830 and CodeQL 41491251634 SUCCESS; main CI published static Pages. Owner-provided UI screenshots show only Protect main remains, with validate and CodeQL required and strict branch freshness enabled.",
       "limitations": "PR #394 adds optional local Ed25519 checkpoint verification only. The Codex inference steps were skipped; no model call occurred. Ruleset state is verified by owner-provided UI screenshots because the integration returned HTTP 403 for API mutation; no independent API readback is available. Pages is a static-site release, not P01 staging. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex runtime remains OPEN."
+    },
+    {
+      "id": "readiness-sync-pr395-merge",
+      "area": "DOCUMENTATION",
+      "title": "Record PR 395 merge evidence and refresh current readiness",
+      "pr_number": 395,
+      "pr_head_sha": "8370ca19e49e567afa853013cfbee4f615394d87",
+      "merge_sha": "bbadef10ab7f49f5136f50b331440dac4b3bc2d4",
+      "ci_run_id": 41492474753,
+      "verification": "VERIFIED 2026-11-02: PR #395 merged at bbadef10ab7f49f5136f50b331440dac4b3bc2d4 from head 8370ca19e49e567afa853013cfbee4f615394d87. Exact-head PR CI 41492474753 SUCCESS (Node skipped by path selection); push CI 41492448493 SUCCESS including Node; PR CodeQL 41492469681 SUCCESS for Actions, Python and JavaScript/TypeScript. Exact-merge main CI 41493063624 and CodeQL 41493062782 SUCCESS. Main CI passed Python, PostgreSQL RLS, security, container/Trivy, Terraform, validate, site contract, static Pages publication and verification; Node and controlled incident drill were skipped by workflow conditions.",
+      "limitations": "PR #395 refreshed documentation and recorded PR #394 merge/ruleset evidence; it adds no runtime feature. Ruleset state is evidenced by owner-provided GitHub UI screenshots; independent API readback is unavailable. Static Pages is not P01 staging. CI/CodeQL do not prove an AI model call or live service. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex runtime remains OPEN."
     }
   ],
   "gates": [

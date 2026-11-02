@@ -1,8 +1,16 @@
 # حالة مستودع Devobs
 
+## دمج PR #395 وتحديث حالة الجاهزية — تحقق 2026-11-02
+
+- **VERIFIED من GitHub:** دُمج [PR #395](https://github.com/hamedonassar95/Devobs/pull/395)، رأسه `8370ca19e49e567afa853013cfbee4f615394d87`، عند SHA `bbadef10ab7f49f5136f50b331440dac4b3bc2d4`؛ ويطابق `origin/main` عند التحقق.
+- **على رأس PR:** نجح CI `41492474753` (تخطّى Node باختيار المسارات)، ونجح push CI `41492448493` بما فيه Node، ونجح CodeQL `41492469681` للـActions وPython وJavaScript/TypeScript.
+- **بعد الدمج:** نجح main CI `41493063624` وCodeQL `41493062782` على SHA الدمج. اجتاز CI التحقق وPython وRLS والأمان والحاوية/Trivy وTerraform وعقد الموقع ونشر GitHub Pages الثابت والتحقق منه؛ تخطّى Node لعدم انطباق المسارات، كما تخطّى controlled-incident-drill. نشر Pages موقع ثابت تلقائيًا، ولا يثبت staging أو خدمة API لـP01.
+- حدّث PR #395 سجل الأدلة وحالة الجاهزية فقط، وأبقى حالة قواعد `Protect main` مستندة إلى صور واجهة GitHub التي أرسلها المالك؛ لا توجد قراءة API مستقلة لهذه الإعدادات. نجاح CI أو CodeQL لا يثبت استدعاء نموذج أو تشغيل AI.
+- AI-9 ما زالت FAIL/BLOCKED، وP01 ما زالت NO-GO/BLOCKED، وقبول Codex runtime ما زال OPEN.
+
 ## دمج PR #394 وتوحيد حماية main — تحقق 2026-11-02
 
-- **VERIFIED من GitHub:** دُمج [PR #394](https://github.com/hamedonassar95/Devobs/pull/394)، رأسه `e8f058465f903448a1f4338372a5ea59313ec402`، عند SHA `f3dc921ed8ea8de150582567763405dbcfc34746`، وهو `main` الحالي.
+- **VERIFIED من GitHub:** دُمج [PR #394](https://github.com/hamedonassar95/Devobs/pull/394)، رأسه `e8f058465f903448a1f4338372a5ea59313ec402`، عند SHA `f3dc921ed8ea8de150582567763405dbcfc34746`، وكان `main` عند توثيق دمجه قبل PR #395.
 - **على رأس PR:** نجح CI `41485469354` (تخطّى Node باختيار المسارات)، ونجح push CI `41485437158` بما فيه Node، ونجح CodeQL `41485462136` للغات Actions وPython وJavaScript/TypeScript؛ نجحت معاينة Vercel. نجح سير مراجعة Codex الإرشادي لكن خطوات فحص المفتاح وcheckout والاستدلال تخطّت؛ لا يثبت استدعاء نموذج.
 - **بعد الدمج:** نجح main CI `41491251830` وCodeQL `41491251634` على SHA الدمج. اجتاز CI `validate` وPython وRLS والأمان والحاوية/Trivy وTerraform وعقد الموقع ونشر GitHub Pages الثابت؛ تخطّى Node لعدم انطباق المسارات. نجح Vercel على SHA الدمج. نشر Pages بدأه سير العمل تلقائيًا بعد الدمج، وهو للموقع الثابت وليس staging لـP01.
 - **VERIFIED من صور واجهة GitHub التي أرسلها المالك:** قائمة Rulesets تعرض `Protect main` وحدها بعد حذف `protect-main`. القاعدة المتبقية نشطة وتستهدف `main`، وقائمة التجاوز فارغة، وتتطلب `validate` و`CodeQL` (GitHub Advanced Security) مع تحديث الفرع قبل الدمج؛ ظل فحص CodeQL الأمني مفعّلًا. تحديث القواعد عبر التكامل رُفض سابقًا بـHTTP 403، لذا هذا إثبات واجهة المالك وليس قراءة API مستقلة.
