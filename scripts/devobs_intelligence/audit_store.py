@@ -8,6 +8,7 @@ import json
 import re
 import sqlite3
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import serialization
@@ -115,6 +116,7 @@ class AuditStore:
             raise AuditError('invalid_path')
         try:
             self.connection = sqlite3.connect(path, isolation_level=None)
+            self._read_only = False
             self.connection.execute('PRAGMA busy_timeout=2000')
             self.connection.execute('CREATE TABLE IF NOT EXISTS audit ('
                 'seq INTEGER PRIMARY KEY AUTOINCREMENT, event_id TEXT NOT NULL,'
@@ -129,6 +131,48 @@ class AuditStore:
                 self.connection.execute(
                     "ALTER TABLE audit ADD COLUMN subject_digest TEXT NOT NULL DEFAULT ''")
         except sqlite3.Error:
+            raise AuditError('storage_unavailable') from None
+
+    @classmethod
+    def open_readonly(cls, path: str) -> AuditStore:
+        """Open an existing audit database without creating or migrating it."""
+        if (type(path) is not str or not path or path.startswith('file:')
+                or '\x00' in path):
+            raise AuditError('invalid_path')
+
+        connection: sqlite3.Connection | None = None
+        try:
+            requested_path = Path(path)
+            if requested_path.is_symlink():
+                raise AuditError('invalid_path')
+            resolved_path = requested_path.resolve(strict=True)
+            if not resolved_path.is_file():
+                raise AuditError('storage_unavailable')
+
+            connection = sqlite3.connect(
+                f'{resolved_path.as_uri()}?mode=ro', uri=True, isolation_level=None,
+            )
+            connection.execute('PRAGMA query_only=ON')
+            columns = {row[1] for row in connection.execute(
+                'PRAGMA table_info(audit)').fetchall()}
+            required_columns = {
+                'seq', 'event_id', 'source_sha', 'policy_version', 'decision',
+                'action', 'previous_hash', 'record_hash', 'subject_digest',
+            }
+            if not required_columns.issubset(columns):
+                raise AuditError('unsupported_schema')
+
+            store = cls.__new__(cls)
+            store.connection = connection
+            store._read_only = True
+            return store
+        except AuditError:
+            if connection is not None:
+                connection.close()
+            raise
+        except (OSError, RuntimeError, sqlite3.Error, ValueError):
+            if connection is not None:
+                connection.close()
             raise AuditError('storage_unavailable') from None
 
     def close(self) -> None:
@@ -272,6 +316,8 @@ class AuditStore:
 
     def append(self, event: EventEnvelopeV1, evaluation: EvaluationV1,
                action: str, *, subject_digest: str | None = None) -> AuditEntryV1:
+        if getattr(self, '_read_only', False):
+            raise AuditError('read_only_store')
         if (type(event) is not EventEnvelopeV1 or type(evaluation) is not EvaluationV1
             or evaluation.event_id != event.event_id or type(action) is not str
             or action not in {'read_evidence', 'propose_patch', 'open_draft_pr',
