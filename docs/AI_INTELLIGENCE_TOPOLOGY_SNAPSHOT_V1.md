@@ -16,6 +16,8 @@
 
 `scripts/devobs_intelligence/correlation.py` accepts either the existing in-memory `ServiceTopology` or a `ServiceTopologySnapshot`. For a snapshot, `correlate(...)` rebuilds and checks the canonical digest, validates tenant/project scope and freshness, and requires the snapshot source SHA to equal the telemetry source SHA. It uses the snapshot's bounded `affected_by` traversal and returns `topology_snapshot_digest` plus `topology_captured_at` with the finding, including an `INSUFFICIENT_EVIDENCE` result. Existing `ServiceTopology` callers remain supported and have no snapshot provenance fields.
 
+`ServiceTopologySnapshot.to_record()` emits a detached, JSON-compatible schema-v1 record. `from_record(...)` accepts only the exact v1 fields, reconstructs the bounded graph, and verifies the supplied digest before returning a snapshot. Unknown schema versions, extra or missing fields, malformed graph arrays, and content/digest mismatches fail closed with fixed error codes. This defines a local interchange contract only; it does not add a file loader, network endpoint, persistence, or trusted producer.
+
 ## What the contract proves
 
 - In-memory snapshot fields have the accepted shape and bounds.
@@ -24,11 +26,12 @@
 - Queries cannot use the snapshot under another tenant/project scope or after its freshness window.
 - The offline incident correlator cannot mix telemetry with a stale, cross-scope, altered, or differently sourced topology snapshot.
 - Correlation output carries the snapshot digest and capture time so a reviewer can identify the exact topology context used.
+- A JSON encode/decode round trip preserves the canonical snapshot, while unsupported versions and altered records are rejected.
 - No network, storage, model, or cloud operation is performed.
 
 ## Limits and next gate
 
-The digest detects accidental content changes; it is **not** a signature, identity assertion, collector attestation, or proof that the topology came from the named commit. The caller still supplies tenant, project, source SHA, capture time, and graph. This change connects the snapshot to the local deterministic correlator, but does not authenticate its producer, ingest live topology, or prove operational quality. Further work still needs an approved source, reviewed provenance, poisoned/stale-memory controls, retention/privacy decisions, and hosted evidence. No readiness decision changes from this implementation.
+The digest detects accidental content changes; it is **not** a signature, identity assertion, collector attestation, or proof that the topology came from the named commit. The caller still supplies tenant, project, source SHA, capture time, and graph. The schema-v1 record and correlator integration remain local contracts; they do not authenticate a producer, ingest live topology, or prove operational quality. Further work still needs an approved source, reviewed provenance, poisoned/stale-memory controls, retention/privacy decisions, and hosted evidence. No readiness decision changes from this implementation.
 
 Focused contract checks:
 

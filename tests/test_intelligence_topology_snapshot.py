@@ -1,4 +1,5 @@
 """Offline contract tests for tenant- and source-bound topology snapshots."""
+import json
 import sys
 import unittest
 from datetime import datetime, timezone
@@ -69,6 +70,43 @@ class ServiceTopologySnapshotTests(unittest.TestCase):
         ):
             with self.subTest(override=override), self.assertRaises(ContextError):
                 snapshot(**override)
+
+    def test_json_record_round_trip_preserves_canonical_snapshot(self):
+        original = snapshot()
+        record = json.loads(json.dumps(original.to_record()))
+
+        self.assertEqual(record["schema_version"], 1)
+        self.assertEqual(record["services"], ["api", "db", "web"])
+        self.assertEqual(record["edges"], [["api", "db"], ["web", "api"]])
+        restored = ServiceTopologySnapshot.from_record(record)
+        self.assertEqual(restored, original)
+        self.assertEqual(restored.snapshot_digest, original.snapshot_digest)
+
+        record["services"].append("mutated")
+        record["edges"][0].append("mutated")
+        self.assertEqual(original.services, ("api", "db", "web"))
+        self.assertEqual(original.edges, (("api", "db"), ("web", "api")))
+
+    def test_json_record_rejects_unknown_schema_and_unexpected_fields(self):
+        record = snapshot().to_record()
+        for invalid in (
+            {**record, "schema_version": True},
+            {**record, "schema_version": 2},
+            {**record, "unknown": "field"},
+            {key: value for key, value in record.items() if key != "tenant"},
+            {**record, "edges": [["api"], ["web", "api"]]},
+            {**record, "services": "api,db,web"},
+        ):
+            with self.subTest(invalid=invalid), self.assertRaises(ContextError):
+                ServiceTopologySnapshot.from_record(invalid)
+
+    def test_json_record_rejects_tampered_digest_and_content(self):
+        record = snapshot().to_record()
+        with self.assertRaisesRegex(ContextError, "snapshot_digest_mismatch"):
+            ServiceTopologySnapshot.from_record({**record, "snapshot_digest": "0" * 64})
+
+        with self.assertRaisesRegex(ContextError, "snapshot_digest_mismatch"):
+            ServiceTopologySnapshot.from_record({**record, "source_sha": "b" * 40})
 
     def test_query_depth_and_service_bounds_remain_enforced(self):
         graph = snapshot()

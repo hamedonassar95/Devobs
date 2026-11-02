@@ -552,6 +552,17 @@
       "ci_run_id": 41429418945,
       "verification": "VERIFIED 2026-11-02: PR CI 41429418945 and push CI 41429413732 SUCCESS on exact head; push CI ran Node tests, PR CI skipped Node by path selection. Python validation, PostgreSQL RLS, security, container scan, Terraform, validate, CodeQL 41429415677 and advisory Codex review 41429418907 SUCCESS. PR #374 merged at 0988a5e58f7b8dba7066eb0b9079539e6d0b58a5. Main CI 41429682676 and CodeQL 41429681653 SUCCESS on exact merge SHA. Main CI passed Python validation, RLS, security, container scan, Terraform, validate, Pages publication and static-site verify-production; Node tests and controlled incident drill were skipped by path/event conditions. Vercel check failed due to its build-rate limit.",
       "limitations": "Documentation, ledger and regression-test update only; no application behavior changed. Main CI skipped Node tests by path selection; Pages verifies the static site only. Vercel preview remains unavailable due to its build-rate limit. No readiness gate changed and no live service or AI inference was activated; recorded release gates remain BLOCKED or OPEN."
+    },
+    {
+      "id": "intelligence-topology-correlation-pr375",
+      "area": "QUALITY",
+      "title": "Integrate provenance-validated topology snapshots with incident correlation",
+      "pr_number": 375,
+      "pr_head_sha": "a86510564f01c9b4ef10a180cea063f3df6782c8",
+      "merge_sha": "c5e25db806500429ac7d5b83b663eb2a566151e1",
+      "ci_run_id": 41430830200,
+      "verification": "VERIFIED 2026-11-02: PR CI 41430830200 and push CI 41430806878 SUCCESS on exact head; push CI ran Node tests, PR CI skipped Node by path condition. Python validation, RLS, security, container scan, Terraform, validate and CodeQL 41430826736 SUCCESS; advisory Codex review 41430830132 SUCCESS. PR #375 merged at c5e25db806500429ac7d5b83b663eb2a566151e1. Main CI 41431148732 and CodeQL 41431147710 SUCCESS on exact merge SHA; main CI passed Pages publication and static verify-production. Vercel PR status failed due to its build-rate limit.",
+      "limitations": "Local deterministic contract only: no trusted graph producer, live ingestion, persistence, or hosted correlation. Main CI skipped Node tests by path selection; the exact PR head push CI ran them. Pages verifies the static site only. No readiness gate changed and no live service, model inference, or production action was enabled; release gates remain BLOCKED or OPEN."
     }
   ],
   "gates": [
