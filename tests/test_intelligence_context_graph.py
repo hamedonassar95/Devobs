@@ -1,4 +1,5 @@
 """Offline behavioral tests: numeric telemetry, graph, isolation, bounded retrieval."""
+import hashlib
 import json
 import sys
 import unittest
@@ -164,6 +165,69 @@ class ContextTests(unittest.TestCase):
         ):
             with self.subTest(record=changed), self.assertRaises(ContextError):
                 IncidentRecord.from_record(changed)
+
+    def test_incident_memory_bundle_roundtrips_deterministically(self):
+        records = [memory(digest="d" * 64), provenanced_memory(),
+                   memory(tenant="beta", digest="e" * 64)]
+        first = IncidentMemory(records).to_bundle()
+        second = IncidentMemory(list(reversed(records))).to_bundle()
+        self.assertEqual(first, second)
+        self.assertEqual(first["schema_version"], 1)
+        self.assertEqual(len(first["records"]), 3)
+        restored = IncidentMemory.from_bundle(json.loads(json.dumps(first)))
+        self.assertEqual(restored.to_bundle(), first)
+        self.assertEqual(
+            [row.evidence_digest for row in restored.retrieve(
+                "alpha", "platform", "api", "high_error_rate")],
+            ["c" * 64, "d" * 64],
+        )
+        noncanonical = json.loads(json.dumps(first))
+        noncanonical["records"].reverse()
+        payload = {"schema_version": noncanonical["schema_version"],
+                   "records": noncanonical["records"]}
+        noncanonical["bundle_digest"] = hashlib.sha256(json.dumps(
+            payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
+            allow_nan=False,
+        ).encode("utf-8")).hexdigest()
+        with self.assertRaisesRegex(ContextError, "noncanonical_memory_bundle"):
+            IncidentMemory.from_bundle(noncanonical)
+
+    def test_incident_memory_bundle_rejects_corruption_and_unknown_shapes(self):
+        bundle = IncidentMemory([provenanced_memory()]).to_bundle()
+        tampered = json.loads(json.dumps(bundle))
+        tampered["records"][0]["outcome"] = "false_positive"
+        with self.assertRaisesRegex(ContextError, "memory_record_digest_mismatch"):
+            IncidentMemory.from_bundle(tampered)
+
+        tampered = json.loads(json.dumps(bundle))
+        tampered["bundle_digest"] = "0" * 64
+        with self.assertRaisesRegex(ContextError, "memory_bundle_digest_mismatch"):
+            IncidentMemory.from_bundle(tampered)
+
+        for changed in (
+                {**bundle, "unexpected": True},
+                {**bundle, "schema_version": 2},
+                {**bundle, "schema_version": True},
+                {**bundle, "records": "not-a-list"},
+        ):
+            with self.subTest(bundle=changed), self.assertRaises(ContextError):
+                IncidentMemory.from_bundle(changed)
+
+    def test_incident_memory_bundle_rejects_invalid_or_duplicate_members_atomically(self):
+        record = memory().to_record()
+        for records in ([record, {"invalid": True}], [record, record]):
+            payload = {"schema_version": 1, "records": records}
+            bundle = {**payload, "bundle_digest": hashlib.sha256(json.dumps(
+                payload, sort_keys=True, separators=(",", ":"),
+                ensure_ascii=False, allow_nan=False,
+            ).encode("utf-8")).hexdigest()}
+            with self.subTest(records=records), self.assertRaises(ContextError):
+                IncidentMemory.from_bundle(bundle)
+
+        too_many = {"schema_version": 1, "records": [record] * 1001,
+                    "bundle_digest": "0" * 64}
+        with self.assertRaisesRegex(ContextError, "invalid_memory_bundle"):
+            IncidentMemory.from_bundle(too_many)
 
 
 if __name__=="__main__": unittest.main()
