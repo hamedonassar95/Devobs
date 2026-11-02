@@ -500,7 +500,7 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
         self.assertEqual(gates["codex-agent-runtime-acceptance"], "OPEN")
 
-    def test_pr365_to_381_merges_are_recorded_without_promoting_readiness_gates(self):
+    def test_pr365_to_383_merges_are_recorded_without_promoting_readiness_gates(self):
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         expected = {
             365: ("bf1d158dee28a9b8a00bfc0c29e847b7398867e6",
@@ -535,6 +535,8 @@ class MilestoneLedgerTests(unittest.TestCase):
                   "c3180f5a5e945dbf16e32f50a25041233596035a", 41442978965),
             381: ("53b07327baea2b0c085ea8d41ee0af2f426aa217",
                   "3fd878eda52ef480764894a4ae82cd8af0570af2", 41443937104),
+            383: ("55688ec572c07e54a97677b19831311f0f2c3403",
+                  "47073379e27bba6a9009c39bd5799a3000e5280f", 41448277637),
         }
         for number, (head, merged, ci) in expected.items():
             with self.subTest(pr=number):
@@ -594,6 +596,12 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("41444390758", records[381]["verification"])
         self.assertIn("41444390296 SUCCESS", records[381]["verification"])
         self.assertIn("does not authenticate the producer", records[381]["limitations"])
+        self.assertIn("41446366516 SUCCESS", records[383]["verification"])
+        self.assertIn("41446390406 SUCCESS", records[383]["verification"])
+        self.assertIn("41448275676 SUCCESS", records[383]["verification"])
+        self.assertIn("rate-limited", records[383]["verification"])
+        self.assertIn("do not authenticate telemetry producers", records[383]["limitations"])
+        self.assertEqual(validate(self.data)["latest_pr"], 383)
         gates = {item["id"]: item["status"] for item in self.data["gates"]}
         self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")

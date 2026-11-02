@@ -12,6 +12,12 @@ Generic `AuditStore.append(...)` now verifies that the supplied policy evaluatio
 
 The SQLite schema adds a `subject_digest` column with an empty-string default for existing rows. Opening a legacy database adds the column without rewriting old entries; verification omits the digest field for those legacy hashes, preserving their original chain.
 
+## Synthetic offline pipeline
+
+The credential-free demo in `scripts/intelligence_demo.py` now builds its synthetic error-rate point through `from_trusted_metric_batch(...)` before correlation. The adapter-generated evidence digest is placed in the source event, and `append_finding(...)` checks that the finding carries the same evidence and source SHA before recording its finding digest. Malformed or stale batch evidence stops the demo before correlation or audit writes. Contract tests cover the matching evidence and the fail-closed stale path.
+
+This is an offline synthetic integration only. The batch adapter receives tenant, project, source SHA, and clock values from its caller; it is not an authenticated collector, an independent telemetry source, or proof of live provenance. The demo still makes no provider calls and performs no production mutations.
+
 ## Limits
 
 - This is local logical audit evidence, not a tamper-proof hosted service. A privileged writer can still rewrite the whole database and recompute the chain.
