@@ -1,6 +1,7 @@
 """Synthetic tampering/idempotency/metadata-only audit tests."""
 import hashlib
 import json
+import sqlite3
 import sys
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
@@ -254,6 +255,73 @@ class AuditStoreTests(unittest.TestCase):
         signed = self.store.create_signed_checkpoint(private_key)
         with self.assertRaisesRegex(AuditError, '^invalid_verification_key$'):
             self.store.verify_signed_checkpoint(signed, b'short')
+
+    def test_readonly_open_verifies_signed_checkpoint_without_mutating_file(self):
+        current = event('readonly-checkpoint')
+        self.store.append(current, evaluate_action(current, 'read_evidence'), 'read_evidence')
+        private_key = Ed25519PrivateKey.from_private_bytes(bytes(range(32)))
+        signed = self.store.create_signed_checkpoint(private_key)
+        public_bytes = private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        self.store.close()
+        before = Path(self.path).read_bytes()
+
+        readonly = AuditStore.open_readonly(self.path)
+        self.addCleanup(readonly.close)
+        self.assertEqual(readonly.connection.execute('PRAGMA query_only').fetchone()[0], 1)
+        self.assertEqual(readonly.verify_signed_checkpoint(signed, public_bytes), 1)
+        self.assertEqual(Path(self.path).read_bytes(), before)
+        with self.assertRaisesRegex(AuditError, '^read_only_store$'):
+            readonly.append(
+                event('readonly-write'),
+                evaluate_action(event('readonly-write'), 'read_evidence'),
+                'read_evidence',
+            )
+        for sql in (
+            "INSERT INTO audit (event_id,source_sha,policy_version,decision,action,"
+            "previous_hash,record_hash,subject_digest) VALUES ('x','x','x','x','x','x','x','x')",
+            "UPDATE audit SET decision='DENY' WHERE seq=1",
+            'DELETE FROM audit WHERE seq=1',
+        ):
+            with self.subTest(sql=sql), self.assertRaises(sqlite3.OperationalError):
+                readonly.connection.execute(sql)
+        self.assertEqual(Path(self.path).read_bytes(), before)
+
+    def test_readonly_open_does_not_create_missing_database(self):
+        missing = str(Path(self.temp.name) / 'missing.sqlite3')
+        with self.assertRaisesRegex(AuditError, '^storage_unavailable$'):
+            AuditStore.open_readonly(missing)
+        self.assertFalse(Path(missing).exists())
+
+    def test_readonly_open_rejects_incompatible_schema_without_migration(self):
+        legacy = Path(self.temp.name) / 'legacy.sqlite3'
+        connection = sqlite3.connect(legacy)
+        try:
+            connection.execute('CREATE TABLE audit (seq INTEGER PRIMARY KEY, event_id TEXT)')
+        finally:
+            connection.close()
+        before = legacy.read_bytes()
+        with self.assertRaisesRegex(AuditError, '^unsupported_schema$'):
+            AuditStore.open_readonly(str(legacy))
+        self.assertEqual(legacy.read_bytes(), before)
+        with sqlite3.connect(legacy) as connection:
+            self.assertEqual(
+                {row[1] for row in connection.execute('PRAGMA table_info(audit)')},
+                {'seq', 'event_id'},
+            )
+
+    def test_readonly_open_rejects_unsafe_paths_and_non_files(self):
+        for path in (None, '', 'file:shared?mode=memory&cache=shared', 'bad\x00path'):
+            with self.subTest(path=path), self.assertRaisesRegex(AuditError, '^invalid_path$'):
+                AuditStore.open_readonly(path)
+
+        symlink = Path(self.temp.name) / 'audit-link.sqlite3'
+        symlink.symlink_to(Path(self.path))
+        with self.assertRaisesRegex(AuditError, '^invalid_path$'):
+            AuditStore.open_readonly(str(symlink))
+        with self.assertRaisesRegex(AuditError, '^storage_unavailable$'):
+            AuditStore.open_readonly(self.temp.name)
 
     def test_append_reserves_write_transaction_before_reading_chain(self):
         statements=[]

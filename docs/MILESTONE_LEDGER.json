@@ -706,6 +706,17 @@
       "ci_run_id": 41456679101,
       "verification": "VERIFIED 2026-11-02: PR #388 merged at 7cb400b5d90c2935c98e76aad7c5335a77aa48b5 from head 732028acf4138b6c1d30805e9361fcd53f40ecb0. Exact-head PR CI 41456679101 SUCCESS, push CI 41456657796 SUCCESS and CodeQL 41456674077 SUCCESS. Exact-merge main CI 41457678227 and CodeQL 41457676053 SUCCESS. Main CI passed Python, Node, RLS, security, container scan, Terraform, validate, static Pages publication and verify-production; controlled incident drill was skipped.",
       "limitations": "The checkpoint is unsigned and not automatically archived; privileged actors able to replace both the database and retained checkpoint can forge a matching pair. No operator authentication, trusted timestamp, hosted audit service, or production application was added. Readiness gates remain BLOCKED or OPEN."
+    },
+    {
+      "id": "audit-signed-checkpoint-v1-pr389",
+      "area": "QUALITY",
+      "title": "Sign locally verifiable audit checkpoints with a caller-owned Ed25519 key",
+      "pr_number": 389,
+      "pr_head_sha": "b42a5f0b280491c3ef064b48ea6e3476f2d6191a",
+      "merge_sha": "27349fcdb9f3753a7bc686dd2177795ef005014d",
+      "ci_run_id": 41459188955,
+      "verification": "VERIFIED 2026-11-02: PR #389 merged at 27349fcdb9f3753a7bc686dd2177795ef005014d from head b42a5f0b280491c3ef064b48ea6e3476f2d6191a. Exact-head PR CI 41459188955 SUCCESS, push CI 41459163558 SUCCESS, and CodeQL 41459181626 SUCCESS. Exact-merge main CI 41459888214 and CodeQL 41459887605 SUCCESS on the merge SHA. Main CI passed Python validation, PostgreSQL RLS, security, container scan, Terraform, validate, static Pages publication, and verify-production; Node tests and the controlled incident drill were skipped by path/event conditions.",
+      "limitations": "The optional Ed25519 envelope uses a caller-owned key and requires a separately trusted public key. Key enrollment, rotation/revocation, trusted timestamps, protected external retention, hosted audit storage, and operator identity remain unimplemented; T34 is still open. No hosted service or production application was added. Readiness gates remain BLOCKED or OPEN."
     }
   ],
   "gates": [
