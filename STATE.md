@@ -1,5 +1,12 @@
 # حالة مستودع Devobs
 
+## دمج PR #391 — تحقق 2026-11-02
+
+- **VERIFIED من GitHub:** دُمج [PR #391](https://github.com/hamedonassar95/Devobs/pull/391)، رأسه `6369846a872942d56731a68301747006e0956c73`، عند merge SHA `230468f345f1426852a229565f9dde801cf0100f`.
+- **على رأس PR:** نجح PR CI `41466736255`؛ تخطّى Node باختيار المسارات، بينما نجح push CI `41466709183` وشغّل Node. نجح CodeQL `41466731548` لـActions وPython وJavaScript/TypeScript. نجحت معاينة Vercel للـPR.
+- **بعد الدمج:** نجح main CI `41470834569` وCodeQL `41470832717` على SHA الدمج. اجتاز CI تحقق Python وPostgreSQL RLS والأمان والحاوية/Trivy وTerraform و`validate` ونشر GitHub Pages الثابت والتحقق `verify-production`. تخطّى Node باختيار المسارات، كما تخطّى تدريب الحوادث المضبوط وخطوات الاستعادة/التراجع التي تتطلب شروطًا مستقلة.
+- PR #391 سجّل أدلة دمج PR #390 وحدّث حالة الجاهزية فقط. نجاح سير عمل مراجعة Codex إرشادي ولا يثبت استدلال نموذج. نشر Pages يخص الموقع الثابت، ولا يثبت خدمة API أو staging. لم تتغير حالات AI-9 أو P01 أو Codex runtime.
+
 ## دمج PR #390 — تحقق 2026-11-02
 
 - **VERIFIED من GitHub:** دُمج [PR #390](https://github.com/hamedonassar95/Devobs/pull/390)، رأسه `08e03201d85ddeeccd10b00bcebede31da06dd69`، عند merge SHA `2346d5006d8f602f42d3e17e11e0cf296d8ece05`.
