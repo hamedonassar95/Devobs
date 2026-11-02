@@ -10,6 +10,8 @@ The record carries tenant and project scope, status, category, ranked and impact
 
 The `finding_digest` is SHA-256 over the canonical JSON payload without the digest field (sorted keys, compact separators, UTF-8, non-finite numbers rejected). It detects accidental or unsynchronized edits only; anyone can recompute it. It does not authenticate a producer, preserve a signature, authorize an action, or prove that supplied evidence is true.
 
+The offline `AuditStore.append_finding(...)` consumer can bind this digest to a tenant-qualified source event and the existing local audit hash chain. See [incident finding audit binding](AI_INTELLIGENCE_FINDING_AUDIT.md) for the required `tenant/project` source scope and its limits.
+
 When the record contains memory provenance, it includes the incident-record digest, source SHA and timestamp, plus the curator approval ID, approver ID and approval digest. Snapshot-based correlation includes only records with a verified, currently active approval. This wire contract does not re-verify the original Ed25519 signature or key trust map; downstream callers must preserve the verified result and must not treat this record digest as a signature.
 
 ## Limits

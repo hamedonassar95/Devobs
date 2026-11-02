@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 
 from devobs_intelligence.adviser import propose
 from devobs_intelligence.audit_store import AuditStore
 from devobs_intelligence.contracts import parse_event
+from devobs_intelligence.context import ServiceTopology, normalize_telemetry
+from devobs_intelligence.correlation import correlate
+from devobs_intelligence.incident_memory import IncidentMemory
 from devobs_intelligence.policy import evaluate_action
 
 
@@ -24,8 +28,17 @@ def run_demo(*, kill_switch: bool = False) -> dict[str, object]:
         event, {'failed_checks': 1, 'error_rate_pct': 0.0, 'capacity_pct': 20.0},
         kill_switch=kill_switch,
     )
+    topology = ServiceTopology('synthetic', 'demo', ['api'], [])
+    telemetry = normalize_telemetry({
+        'tenant': 'synthetic', 'project': 'demo', 'service': 'api',
+        'source_sha': 'a' * 40, 'observed_at': '2026-10-25T00:00:00Z',
+        'metric': 'error_rate_pct', 'value': 8.0, 'evidence_digest': 'b' * 64,
+    })
+    finding = correlate(topology, [telemetry], IncidentMemory([]),
+                        datetime(2026, 10, 25, 0, 0, tzinfo=timezone.utc))
     ledger = AuditStore(':memory:')
     try:
+        ledger.append_finding(event, finding)
         ledger.append(event, decision, 'propose_patch')
         result = {
             'mode': 'synthetic_offline_demo',
@@ -33,6 +46,7 @@ def run_demo(*, kill_switch: bool = False) -> dict[str, object]:
             'production_mutations': 0,
             'policy_decision': decision.decision,
             'proposal_status': suggestion.status,
+            'finding_status': finding.status,
             'hypothesis': suggestion.hypothesis,
             'confidence_calibrated': False,
             'audit_records': ledger.summary()['record_count'],
