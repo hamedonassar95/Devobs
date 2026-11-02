@@ -805,6 +805,17 @@
       "ci_run_id": 41495991816,
       "verification": "VERIFIED 2026-11-02: PR #397 merged at 9ba9901d9b558bbc6bb45f7ebb661a03028a1c9c from head f869f2d525c8b5a79cf2eb28b79ea20977e045b7. Exact-head PR CI 41495991816 and push CI 41495950385 SUCCESS; Node skipped in PR CI but passed in push CI. PR CodeQL 41495988647 SUCCESS for Actions, Python and JavaScript/TypeScript. Vercel PR preview failed due to deployment rate limit. Exact-merge main CI 41496604409 and CodeQL 41496602621 SUCCESS. Main CI passed Python, PostgreSQL RLS, security, container/Trivy, Terraform, validate, site contract, static Pages publication and verification; Node, controlled incident drill and restoration checks were skipped by workflow conditions.",
       "limitations": "PR #397 hardens local parsing of malformed evidence URLs and records PR #396; it does not independently verify referenced evidence or complete P01 acceptance. Static Pages is not P01 staging. The advisory Codex workflow status alone does not prove model inference or a live service. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex runtime remains OPEN."
+    },
+    {
+      "id": "p01-evidence-url-control-character-pr398",
+      "area": "QUALITY",
+      "title": "Reject P01 evidence URL control characters and record PR 397 merge",
+      "pr_number": 398,
+      "pr_head_sha": "118cdcc9ababd083bcb97ead0371c15542117039",
+      "merge_sha": "be326c48dda67b8d918bf949933271c5a0e3282e",
+      "ci_run_id": 41497085256,
+      "verification": "VERIFIED 2026-11-02: PR #398 merged at be326c48dda67b8d918bf949933271c5a0e3282e from head 118cdcc9ababd083bcb97ead0371c15542117039. Exact-head PR CI 41497085256 and push CI 41497038530 SUCCESS; Node skipped in PR CI but passed in push CI. PR CodeQL 41497081182 SUCCESS for Actions, Python and JavaScript/TypeScript. Vercel PR preview failed due to deployment rate limit. Exact-merge main CI 41499273400 and CodeQL 41499272034 SUCCESS. Main CI passed validate, Python, PostgreSQL RLS, security, container/Trivy, Terraform, site contract, static Pages publication and verification; Node, controlled incident drill and restoration checks were skipped by workflow conditions.",
+      "limitations": "PR #398 hardens local URL control-character parsing and records PR #397 evidence. It does not independently verify referenced URL content or provenance, cost controls, or staging acceptance. Static Pages is not P01 staging; the advisory Codex workflow does not prove model inference. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex runtime remains OPEN."
     }
   ],
   "gates": [
