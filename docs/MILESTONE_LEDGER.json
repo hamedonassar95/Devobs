@@ -618,6 +618,17 @@
       "ci_run_id": 41442978965,
       "verification": "VERIFIED 2026-11-02: PR CI 41442989473 and exact-head push CI 41442978965 SUCCESS; push CI ran Node tests while PR CI skipped them by path selection. PR CodeQL 41442982971 SUCCESS. PR #380 merged at c3180f5a5e945dbf16e32f50a25041233596035a. Main CI 41443266347 and CodeQL 41443266003 SUCCESS on the exact merge SHA; main CI passed Python validation, RLS, security, container scan, Terraform, validate, static Pages publication and verify-production; Node tests and incident drill were skipped by path/event conditions. Vercel preview failed due to its build-rate limit.",
       "limitations": "Offline curator-signature verification only. The verifier trusts a caller-supplied public-key map and does not authenticate key enrollment or private-key custody; duplicate approval detection is batch-scoped, with no persistent replay registry or stored incident corpus. No live source, customer incident data, model inference or readiness-gate change. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
+    },
+    {
+      "id": "incident-finding-wire-contract-pr381",
+      "area": "QUALITY",
+      "title": "Add a versioned, tenant-scoped wire contract for deterministic incident findings",
+      "pr_number": 381,
+      "pr_head_sha": "53b07327baea2b0c085ea8d41ee0af2f426aa217",
+      "merge_sha": "3fd878eda52ef480764894a4ae82cd8af0570af2",
+      "ci_run_id": 41443937104,
+      "verification": "VERIFIED 2026-11-02: PR CI 41443937104 and exact-head push CI 41443912233 SUCCESS; push CI ran Node tests and PR CI skipped them by path selection. PR CodeQL 41443932175 SUCCESS. PR #381 merged at 3fd878eda52ef480764894a4ae82cd8af0570af2. Main CI 41444390758 and CodeQL 41444390296 SUCCESS on the exact merge SHA; main CI passed Python validation, RLS, security, container scan, Terraform, validate, static Pages publication and verify-production; Node tests and incident drill were skipped by path/event conditions. Vercel preview succeeded.",
+      "limitations": "Offline JSON serialization only. The finding digest detects accidental changes but does not authenticate the producer or authorize consumers. No live endpoint, source authentication, storage, real incident data, model inference or readiness-gate change. Release gates remain BLOCKED or OPEN."
     }
   ],
   "gates": [

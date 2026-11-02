@@ -72,6 +72,8 @@ Telemetry adapter consumes a trusted **small numeric metric snapshot**, not the 
 
 The offline topology snapshot and local correlator are documented in [AI_INTELLIGENCE_TOPOLOGY_SNAPSHOT_V1.md](AI_INTELLIGENCE_TOPOLOGY_SNAPSHOT_V1.md). The incident-memory provenance boundary and wire digest are documented in [AI_INTELLIGENCE_INCIDENT_MEMORY_V1.md](AI_INTELLIGENCE_INCIDENT_MEMORY_V1.md). These contracts remain offline; source authenticity and hosted ingestion are unproven.
 
+The correlated finding's JSON interchange contract is documented in [AI_INTELLIGENCE_FINDING_V1.md](AI_INTELLIGENCE_FINDING_V1.md). Its digest detects content changes but does not authenticate the producer or authorize downstream actions.
+
 **Review gates:** existing CI/security/CodeQL, versioned fixtures, negative tests and human review. No merging or production deployment as part of this change. GitLab mirroring, GCP, SaaS billing, private customer sources and infrastructure remain unchanged.
 
 ## Primary official references
