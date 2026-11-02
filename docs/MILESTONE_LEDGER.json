@@ -640,6 +640,17 @@
       "ci_run_id": 41445532516,
       "verification": "VERIFIED 2026-11-02: PR #382 merged at ee1dd3e7f4ad1a828781c84843d2f47477e07d75 from head d6dff772de920ebbc944d93392f9ab42d9913abc. PR CI runs 41445185873 and 41445155551 and PR CodeQL 41445171196 succeeded. Exact-merge main CI 41445532516 and CodeQL 41445532358 both completed SUCCESS on ee1dd3e7f4ad1a828781c84843d2f47477e07d75.",
       "limitations": "Offline strict JSON contract only. The content digest is not a signature, producer authentication, or authorization. It does not add live provider data, persistent incident storage, model inference or production execution. Readiness gates remain unchanged."
+    },
+    {
+      "id": "incident-finding-audit-binding-pr383",
+      "area": "QUALITY",
+      "title": "Bind tenant-scoped incident findings to the local audit ledger",
+      "pr_number": 383,
+      "pr_head_sha": "55688ec572c07e54a97677b19831311f0f2c3403",
+      "merge_sha": "47073379e27bba6a9009c39bd5799a3000e5280f",
+      "ci_run_id": 41448277637,
+      "verification": "VERIFIED 2026-11-02: PR #383 merged at 47073379e27bba6a9009c39bd5799a3000e5280f from head 55688ec572c07e54a97677b19831311f0f2c3403. PR CI 41446395032 and exact-head push CI 41446366516 SUCCESS; PR CodeQL 41446390406 SUCCESS. Exact-merge main CI 41448277637 and CodeQL/Push on main 41448275676 SUCCESS. Main CI passed Python validation, RLS, security, container scan, Terraform, validate, static Pages publication and verify-production; Node tests and controlled incident drill were skipped by path/event. Vercel status on the merge SHA was rate-limited.",
+      "limitations": "Local SQLite audit linkage only. Digests do not authenticate telemetry producers, and no live collector, hosted audit storage, customer data, model inference or production service was added. Vercel rate limiting does not change the successful required CI/CodeQL results. Readiness gates remain BLOCKED or OPEN."
     }
   ],
   "gates": [
