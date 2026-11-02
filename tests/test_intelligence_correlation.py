@@ -49,6 +49,14 @@ def memory():
     ])
 
 
+def provenanced_memory(recorded_at=NOW.isoformat()):
+    return IncidentMemory([
+        IncidentRecord("alpha", "platform", "db", "high_error_rate",
+                       "RB-SLO-01", "resolved", "c" * 64,
+                       "b" * 40, recorded_at),
+    ])
+
+
 class IncidentCorrelationTests(unittest.TestCase):
     def test_rank_and_topology_are_evidence_bound(self):
         report=correlate(graph(),[
@@ -98,6 +106,28 @@ class IncidentCorrelationTests(unittest.TestCase):
         self.assertEqual(report.status, "INSUFFICIENT_EVIDENCE")
         self.assertEqual(report.topology_snapshot_digest, topology.snapshot_digest)
         self.assertEqual(report.topology_captured_at, topology.captured_at)
+
+    def test_snapshot_correlation_requires_explicit_memory_freshness(self):
+        topology = snapshot()
+        telemetry = [data("db", "error_rate_pct", 9, "b")]
+        legacy = correlate(topology, telemetry, memory(), NOW)
+        self.assertEqual(legacy.runbook_ids, ())
+        self.assertEqual(legacy.memory_provenance, ())
+
+        report = correlate(topology, telemetry, provenanced_memory(), NOW,
+                           memory_max_age_seconds=60)
+        self.assertEqual(report.runbook_ids, ("RB-SLO-01",))
+        self.assertEqual(len(report.memory_provenance), 1)
+        self.assertEqual(report.memory_provenance[0].source_sha, "b" * 40)
+        self.assertEqual(report.memory_provenance[0].evidence_digest, "c" * 64)
+
+        stale = correlate(topology, telemetry,
+                          provenanced_memory((NOW - timedelta(hours=1)).isoformat()),
+                          NOW, memory_max_age_seconds=60)
+        self.assertEqual(stale.runbook_ids, ())
+        with self.assertRaisesRegex(ContextError, "invalid_query"):
+            correlate(topology, telemetry, provenanced_memory(), NOW,
+                      memory_max_age_seconds=0)
 
     def test_no_evidence_does_not_propose_false_root(self):
         report=correlate(graph(),[data("api","capacity_pct",15,"b")],memory(),NOW)

@@ -1,6 +1,7 @@
 """Offline behavioral tests: numeric telemetry, graph, isolation, bounded retrieval."""
 import sys
 import unittest
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"scripts"))
 from devobs_intelligence.context import ContextError,normalize_telemetry,ServiceTopology
@@ -18,6 +19,12 @@ def sample(**overrides):
 def memory(tenant="alpha",service="api",digest="c"*64,outcome="resolved"):
     return IncidentRecord(tenant,"platform",service,"high_error_rate",
                           "RB-SLO-01",outcome,digest)
+
+
+def provenanced_memory(*, tenant="alpha", digest="c"*64, source_sha="a"*40,
+                       recorded_at="2026-10-25T00:00:00Z"):
+    return IncidentRecord(tenant, "platform", "api", "high_error_rate",
+                          "RB-SLO-01", "resolved", digest, source_sha, recorded_at)
 
 
 class ContextTests(unittest.TestCase):
@@ -94,6 +101,43 @@ class ContextTests(unittest.TestCase):
         self.assertEqual(len(m.retrieve("alpha","platform","api","high_error_rate",2)),2)
         with self.assertRaises(ContextError):
             m.retrieve("alpha","platform","api","high_error_rate",99)
+
+    def test_memory_defensively_copies_input_and_returned_records(self):
+        original = memory()
+        store = IncidentMemory([original])
+        object.__setattr__(original, "tenant", "beta")
+        found = store.retrieve("alpha", "platform", "api", "high_error_rate")
+        self.assertEqual(found[0].tenant, "alpha")
+        object.__setattr__(found[0], "runbook_id", "RB-SEC-99")
+        again = store.retrieve("alpha", "platform", "api", "high_error_rate")
+        self.assertEqual(again[0].runbook_id, "RB-SLO-01")
+
+    def test_provenanced_memory_requires_source_and_freshness_and_is_tenant_scoped(self):
+        now = datetime(2026, 10, 25, 0, 5, tzinfo=timezone.utc)
+        store = IncidentMemory([
+            provenanced_memory(digest="c" * 64),
+            provenanced_memory(digest="d" * 64, tenant="beta"),
+            memory(digest="e" * 64),
+            provenanced_memory(digest="f" * 64,
+                               recorded_at=(now - timedelta(hours=2)).isoformat()),
+            provenanced_memory(digest="1" * 64,
+                               recorded_at=(now + timedelta(seconds=1)).isoformat()),
+        ])
+        fresh = store.retrieve_provenanced(
+            "alpha", "platform", "api", "high_error_rate", now=now,
+            max_age_seconds=600,
+        )
+        self.assertEqual([row.evidence_digest for row in fresh], ["c" * 64])
+        self.assertEqual(fresh[0].source_sha, "a" * 40)
+        self.assertEqual(fresh[0].recorded_at, "2026-10-25T00:00:00.000000Z")
+
+    def test_memory_provenance_fields_are_an_all_or_nothing_valid_pair(self):
+        for source_sha, recorded_at in (("a" * 40, None), (None, "2026-10-25T00:00:00Z"),
+                                         ("short", "2026-10-25T00:00:00Z"),
+                                         ("a" * 40, "2026-10-25T00:00:00")):
+            with self.subTest(source_sha=source_sha, recorded_at=recorded_at):
+                with self.assertRaises(ContextError):
+                    provenanced_memory(source_sha=source_sha, recorded_at=recorded_at)
 
 
 if __name__=="__main__": unittest.main()

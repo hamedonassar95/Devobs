@@ -563,6 +563,17 @@
       "ci_run_id": 41430830200,
       "verification": "VERIFIED 2026-11-02: PR CI 41430830200 and push CI 41430806878 SUCCESS on exact head; push CI ran Node tests, PR CI skipped Node by path condition. Python validation, RLS, security, container scan, Terraform, validate and CodeQL 41430826736 SUCCESS; advisory Codex review 41430830132 SUCCESS. PR #375 merged at c5e25db806500429ac7d5b83b663eb2a566151e1. Main CI 41431148732 and CodeQL 41431147710 SUCCESS on exact merge SHA; main CI passed Pages publication and static verify-production. Vercel PR status failed due to its build-rate limit.",
       "limitations": "Local deterministic contract only: no trusted graph producer, live ingestion, persistence, or hosted correlation. Main CI skipped Node tests by path selection; the exact PR head push CI ran them. Pages verifies the static site only. No readiness gate changed and no live service, model inference, or production action was enabled; release gates remain BLOCKED or OPEN."
+    },
+    {
+      "id": "topology-snapshot-wire-contract-pr376",
+      "area": "QUALITY",
+      "title": "Add versioned JSON-compatible records for offline topology snapshots",
+      "pr_number": 376,
+      "pr_head_sha": "cc4f4d64c686cd8198ae3509c57defea3427f60e",
+      "merge_sha": "bfd40df4f3ae9ceb0c539c3ed6861c24c88e6aee",
+      "ci_run_id": 41431843697,
+      "verification": "VERIFIED 2026-11-02: PR CI 41431843697 and push CI 41431820624 SUCCESS on exact head; push CI ran Node tests, PR CI skipped them by path selection. Python validation, RLS, security, container scan, Terraform, validate, CodeQL 41431840914 and advisory review 41431843504 SUCCESS. PR #376 merged at bfd40df4f3ae9ceb0c539c3ed6861c24c88e6aee. Main CI 41431998816 and CodeQL 41431997968 SUCCESS on exact merge SHA; main CI passed Pages publication and verify-production, while Node tests and incident drill were skipped by path/event. Vercel PR status failed due to its build-rate limit.",
+      "limitations": "Offline topology interchange only; digest is not a signature or collector authentication. No live source, persistence, or hosted ingestion. Main CI skipped Node by path selection; push CI on the exact PR head ran it. Pages verifies the static site only. No readiness gate changed; release gates remain BLOCKED or OPEN."
     }
   ],
   "gates": [

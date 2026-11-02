@@ -11,7 +11,7 @@ from .context import (
     normalize_telemetry,
 )
 from .contracts import parse_event
-from .incident_memory import IncidentMemory
+from .incident_memory import IncidentMemory, IncidentMemoryEvidence
 
 
 @dataclass(frozen=True)
@@ -27,6 +27,7 @@ class IncidentFinding:
     calibrated: bool
     topology_snapshot_digest: str | None = None
     topology_captured_at: str | None = None
+    memory_provenance: tuple[IncidentMemoryEvidence, ...] = ()
 
 
 def _revalidate_snapshot(value: ServiceTopologySnapshot) -> ServiceTopologySnapshot:
@@ -46,7 +47,8 @@ def _revalidate_snapshot(value: ServiceTopologySnapshot) -> ServiceTopologySnaps
 
 def correlate(topology: ServiceTopology | ServiceTopologySnapshot,
               telemetry: list[Telemetry],
-              memory: IncidentMemory, now_utc: datetime) -> IncidentFinding:
+              memory: IncidentMemory, now_utc: datetime, *,
+              memory_max_age_seconds: int | None = None) -> IncidentFinding:
     """Fail closed on stale, mismatched or ambiguous evidence.
 
     Rank is a deterministic heuristic; not a causal proof or model confidence.
@@ -61,6 +63,10 @@ def correlate(topology: ServiceTopology | ServiceTopologySnapshot,
             or type(now_utc) is not datetime or now_utc.tzinfo is None
             or now_utc.utcoffset() is None):
         raise ContextError("invalid_incident")
+    if (memory_max_age_seconds is not None
+            and (type(memory_max_age_seconds) is not int
+                 or not 1<=memory_max_age_seconds<=31_536_000)):
+        raise ContextError("invalid_query")
     now=now_utc.astimezone(timezone.utc)
     if snapshot is not None:
         snapshot.validate(snapshot.tenant, snapshot.project, now=now)
@@ -121,8 +127,22 @@ def correlate(topology: ServiceTopology | ServiceTopologySnapshot,
                        "observed_at":now.isoformat(timespec="seconds").replace("+00:00","Z"),
                        "evidence_digests":sorted(evidence)})
     recommendation=propose(event,data,model_enabled=False)
-    safe_memory=memory.retrieve(topology.tenant,topology.project,root,
-                                recommendation.hypothesis)
+    if snapshot is None:
+        safe_memory=memory.retrieve(topology.tenant,topology.project,root,
+                                    recommendation.hypothesis)
+    elif memory_max_age_seconds is None:
+        # Legacy memory records have no source/time provenance; do not use them
+        # with provenance-bound topology unless the caller supplies an age policy.
+        safe_memory=()
+    else:
+        safe_memory=memory.retrieve_provenanced(
+            topology.tenant,topology.project,root,recommendation.hypothesis,
+            now=now,max_age_seconds=memory_max_age_seconds)
+    memory_provenance=tuple(
+        IncidentMemoryEvidence(row.evidence_digest,row.source_sha,row.recorded_at)
+        for row in safe_memory
+        if snapshot is not None and memory_max_age_seconds is not None
+    )
     impacted=(snapshot.affected_by(topology.tenant, topology.project, root, now=now)
               if snapshot is not None else topology.affected_by(root))
     return IncidentFinding("PENDING_HUMAN_APPROVAL",recommendation.hypothesis,
@@ -131,4 +151,5 @@ def correlate(topology: ServiceTopology | ServiceTopologySnapshot,
                            tuple(sorted({r.runbook_id for r in safe_memory})),
                            sha,False,False,
                            snapshot.snapshot_digest if snapshot is not None else None,
-                           snapshot.captured_at if snapshot is not None else None)
+                           snapshot.captured_at if snapshot is not None else None,
+                           memory_provenance)

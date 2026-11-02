@@ -1,5 +1,12 @@
 # حالة مستودع Devobs
 
+## دمج PR #376 — تحقق 2026-11-02
+
+- **VERIFIED من GitHub:** دُمج [PR #376](https://github.com/hamedonassar95/Devobs/pull/376)، رأسه `cc4f4d64c686cd8198ae3509c57defea3427f60e`، عند merge SHA `bfd40df4f3ae9ceb0c539c3ed6861c24c88e6aee`، وهو `main` الحالي.
+- **CI على الرأس:** نجح PR CI `41431843697` وpush CI `41431820624`؛ تخطّى PR CI اختبارات Node بشرط المسارات وشغّلها push CI. نجحت Python وRLS والأمان والحاوية وTerraform و`validate`، وCodeQL `41431840914` ومراجعة Codex الإرشادية `41431843504`. فشل Vercel بسبب حد معدل البناء.
+- **بعد الدمج:** نجح [main CI run 41431998816](https://github.com/hamedonassar95/Devobs/actions/runs/41431998816) و[CodeQL run 41431997968](https://github.com/hamedonassar95/Devobs/actions/runs/41431997968) على SHA الدمج. اجتاز CI فحوص Python وRLS والأمان والحاوية وTerraform و`validate` ونشر Pages و`verify-production` للموقع الثابت؛ تخطّى Node وcontrolled-incident-drill شروط المسارات/الحدث.
+- أضاف PR #376 عقد سجل طوبولوجيا محليًا بإصدار صريح والتحقق من البصمة، دون إدخال حي أو تغيير بوابة جاهزية. Pages تخص الموقع الثابت؛ Vercel لم ينشئ معاينة بسبب حد المعدل.
+
 ## دمج PR #375 — تحقق 2026-11-02
 
 - **VERIFIED من GitHub:** دُمج [PR #375](https://github.com/hamedonassar95/Devobs/pull/375)، رأسه `a86510564f01c9b4ef10a180cea063f3df6782c8`، عند merge SHA `c5e25db806500429ac7d5b83b663eb2a566151e1`، وهو `main` الحالي.
@@ -37,8 +44,8 @@
 
 ## آخر تحقق من main — 2026-11-02
 
-- **VERIFIED:** `origin/main` عند `c5e25db806500429ac7d5b83b663eb2a566151e1`. نجح main CI `41431148732` وCodeQL `41431147710` على هذا SHA. اجتازت Python validation وRLS والأمان والحاوية وTerraform و`validate` ونشر Pages و`verify-production` للموقع الثابت؛ تخطّى Node وcontrolled-incident-drill شروط المسارات/الحدث.
-- يسجل دفتر الإنجازات الآن PR #375 إضافةً إلى السجل السابق؛ أضاف PR #375 ربط الطوبولوجيا والتوثيق واختبارًا للسجل. تظل البوابات كما هي ولا توجد أدلة على مصدر طوبولوجيا حي.
+- **VERIFIED:** `origin/main` عند `bfd40df4f3ae9ceb0c539c3ed6861c24c88e6aee`. نجح main CI `41431998816` وCodeQL `41431997968` على هذا SHA. اجتازت Python validation وRLS والأمان والحاوية وTerraform و`validate` ونشر Pages و`verify-production` للموقع الثابت؛ تخطّى Node وcontrolled-incident-drill شروط المسارات/الحدث.
+- يسجل دفتر الإنجازات الآن PR #376 إضافةً إلى السجل السابق؛ أضاف PR #376 عقد السجل ذي الإصدار والبصمة. تظل البوابات كما هي ولا توجد أدلة على مصدر طوبولوجيا حي.
 
 ## دمج PR #366 — تحقق 2026-11-02
 
