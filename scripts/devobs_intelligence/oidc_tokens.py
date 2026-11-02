@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 import jwt
 
 _ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}\Z")
+_PRIVATE_RSA_PARAMETERS = frozenset({"d", "p", "q", "dp", "dq", "qi", "oth"})
 
 
 class AuthenticationError(ValueError):
@@ -40,6 +41,7 @@ class AccessTokenVerifier:
         keys = {}
         for candidate in jwks["keys"]:
             if (type(candidate) is not dict or candidate.get("kty") != "RSA"
+                    or _PRIVATE_RSA_PARAMETERS.intersection(candidate)
                     or candidate.get("alg") != "RS256" or candidate.get("use") != "sig"
                     or type(candidate.get("kid")) is not str or not _ID.fullmatch(candidate["kid"])
                     or type(candidate.get("n")) is not str or type(candidate.get("e")) is not str

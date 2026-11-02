@@ -5,7 +5,7 @@
 ## Architecture and trust decisions
 
 - **Network → service (B01):** public traffic must pass TLS, authentication, rate, payload and concurrency bounds. Existing WSGI tests are **candidate references**, not live ingress proof.
-- **Identity → service (B02):** verify token signature, issuer, audience, token kind and bounded lifetime; fail closed on JWKS errors, unknown keys and rotation.
+- **Identity → service (B02):** verify token signature, issuer, audience, token kind and bounded lifetime; accept only operator-pinned public RSA keys and reject private-key material in JWKS configuration; fail closed on JWKS errors, unknown keys and rotation.
 - **Service → tenant → database (B03–B04):** source tenant and subject from a verified principal; database reads use non-owner restricted identity, forced RLS, exact permissive-policy inventory, and context isolation across pooled connections.
 - **Telemetry → service (B05):** any later OTLP or change event must be allowlisted, time-bounded, source-SHA-bound and tenant-scoped; the present project has no verified live collector.
 - **Connector → AI → approval (B06–B07):** remote connector text, PR metadata and model output are **untrusted evidence**, never action credentials. Agents may propose, but do not execute, merge, change IAM, access secrets, deploy or approve themselves.
@@ -21,6 +21,8 @@ The model contains **12 synthetic abuse cases (AC01–AC12)** across **9 trust b
 `python3 -m unittest discover -s tests -p 'test_p01_threat_model.py' -v` provides mutation-based negative controls for removed/duplicated cases, RLS trust-edge drift, missing fixtures, false live status, unsupported provider spend, and unapproved staging/agent actions.
 
 The AC01 candidate now has focused WSGI coverage: declared bodies, transfer-encoded requests, and a server-marked `wsgi.input_terminated` stream are rejected before readiness probes, authentication, or storage. Werkzeug documents that this WSGI environment flag indicates that the server handles stream termination and that the application can safely read the stream ([official WSGI utilities documentation](https://werkzeug.palletsprojects.com/en/stable/wsgi/)). The application rejects the flag without reading the stream. These tests prove only the application response for the supplied WSGI environment; they do not prove the server sets the flag, proxy/network ingress byte limits, or behavior when a body arrives without any body indication. AC01 remains `NOT_ACCEPTED` until reviewer confirmation and separately authorized live ingress evidence.
+
+The AC02 verifier configuration now rejects RSA JWKS entries containing private-key parameters; `test_private_rsa_key_material_is_rejected_in_public_jwks` uses an ephemeral test key to cover this local configuration boundary. It does not validate a live identity provider's JWKS or establish live token issuance/rotation evidence. AC02 remains `NOT_ACCEPTED` pending review of the full issuer/audience/type/signature matrix and separately authorized runtime evidence.
 
 ## Remaining acceptance before any gate promotion
 
