@@ -1,5 +1,12 @@
 # حالة مستودع Devobs
 
+## دمج PR #387 — تحقق 2026-11-02
+
+- **VERIFIED من GitHub:** دُمج [PR #387](https://github.com/hamedonassar95/Devobs/pull/387)، رأسه `82ad683072c981705cbe9fc3471c26ffea9afd0b`، عند merge SHA `c82e4db2a9b82dbb01b0636d2b90ab836041e203`.
+- **على رأس PR:** نجح CI `41454746336` وpush CI `41454710164` وCodeQL `41454741109`. نجحت معاينة Vercel.
+- **بعد الدمج:** نجح main CI `41455742840` وCodeQL `41455742285` على SHA الدمج نفسه. اجتاز CI اختبارات Node وPython وRLS والأمان والحاوية وTerraform و`validate` ونشر Pages الثابت والتحقق منه؛ تخطّى controlled-incident-drill. حالة Vercel على SHA الدمج تعثرت بسبب حد معدل البناء.
+- أضاف PR #387 نقطة تحقق محمولة لبصمة ورقم سجل التدقيق المحلي؛ يمكن للمشغل حفظها بشكل منفصل ثم كشف إعادة كتابة السجل السابق. النقطة غير موقعة ولا تُحفظ تلقائيًا خارج قاعدة البيانات.
+
 ## دمج PR #386 — تحقق 2026-11-02
 
 - **VERIFIED من GitHub:** دُمج [PR #386](https://github.com/hamedonassar95/Devobs/pull/386)، رأسه `4c4b040ae4480fb7a8d64ddf9da88c429ac5df00`، عند merge SHA `e4a9d002b0fa21271db8f2ffa44e3f8d5854ae08`.

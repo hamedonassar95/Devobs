@@ -1,4 +1,6 @@
 """Synthetic tampering/idempotency/metadata-only audit tests."""
+import hashlib
+import json
 import sys
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
@@ -100,6 +102,68 @@ class AuditStoreTests(unittest.TestCase):
         second=AuditStore(self.path)
         self.addCleanup(second.close)
         self.assertEqual(second.verify(),1)
+
+    def test_checkpoint_verifies_an_independently_retained_prefix_after_appends(self):
+        first = event('checkpoint-first')
+        self.store.append(first, evaluate_action(first, 'read_evidence'), 'read_evidence')
+        checkpoint = self.store.create_checkpoint()
+        self.assertEqual(checkpoint.to_record(), {
+            'schema_version': 1,
+            'record_count': 1,
+            'head_hash': self.store.summary()['last_record_hash'],
+        })
+
+        later = event('checkpoint-later')
+        self.store.append(later, evaluate_action(later, 'read_evidence'), 'read_evidence')
+        self.assertEqual(self.store.verify_checkpoint(checkpoint.to_record()), 2)
+
+    def test_checkpoint_detects_a_validly_rehashed_rewrite(self):
+        original = event('checkpoint-rewrite', sha='a' * 40)
+        self.store.append(original, evaluate_action(original, 'read_evidence'), 'read_evidence')
+        checkpoint = self.store.create_checkpoint().to_record()
+
+        self.store.connection.execute(
+            "UPDATE audit SET source_sha=? WHERE event_id=?",
+            ('c' * 40, original.event_id),
+        )
+        previous = '0' * 64
+        rows = self.store.connection.execute(
+            'SELECT seq,event_id,source_sha,policy_version,decision,action,subject_digest '
+            'FROM audit ORDER BY seq',
+        ).fetchall()
+        for seq, event_id, source_sha, policy_version, decision, action, subject_digest in rows:
+            item = {
+                'event_id': event_id,
+                'source_sha': source_sha,
+                'policy_version': policy_version,
+                'decision': decision,
+                'action': action,
+            }
+            if subject_digest:
+                item['subject_digest'] = subject_digest
+            payload = json.dumps(item, sort_keys=True, separators=(',', ':'), ensure_ascii=True)
+            record_hash = hashlib.sha256((previous + '\n' + payload).encode('utf-8')).hexdigest()
+            self.store.connection.execute(
+                'UPDATE audit SET previous_hash=?,record_hash=? WHERE seq=?',
+                (previous, record_hash, seq),
+            )
+            previous = record_hash
+
+        self.assertEqual(self.store.verify(), 1)
+        with self.assertRaisesRegex(AuditError, '^checkpoint_mismatch$'):
+            self.store.verify_checkpoint(checkpoint)
+
+    def test_checkpoint_parser_rejects_noncanonical_or_malformed_records(self):
+        for record in (
+            {'schema_version': True, 'record_count': 0, 'head_hash': '0' * 64},
+            {'schema_version': 1, 'record_count': True, 'head_hash': '0' * 64},
+            {'schema_version': 1, 'record_count': 0, 'head_hash': 'a' * 64},
+            {'schema_version': 1, 'record_count': 1, 'head_hash': '0' * 64},
+            {'schema_version': 1, 'record_count': 0, 'head_hash': '0' * 64, 'extra': 1},
+        ):
+            with self.subTest(record=record), self.assertRaisesRegex(
+                    AuditError, '^invalid_checkpoint$'):
+                self.store.verify_checkpoint(record)
 
     def test_append_reserves_write_transaction_before_reading_chain(self):
         statements=[]

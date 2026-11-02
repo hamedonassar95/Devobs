@@ -61,6 +61,9 @@ class OfflineDemoTests(unittest.TestCase):
         self.assertEqual(result['finding_status'], 'PENDING_HUMAN_APPROVAL')
         self.assertEqual(result['finding_category'], 'ci_failure')
         self.assertEqual(result['audit_records'], 3)
+        self.assertEqual(result['audit_checkpoint']['schema_version'], 1)
+        self.assertEqual(result['audit_checkpoint']['record_count'], 3)
+        self.assertEqual(len(result['audit_checkpoint']['head_hash']), 64)
         self.assertEqual(result['memory_evidence_count'], 0)
         self.assertEqual(result['runbook_ids'], [])
         self.assertEqual(result['topology_drift']['added_services'], ['web'])
@@ -142,6 +145,7 @@ class OfflineDemoTests(unittest.TestCase):
         self.assertEqual(data['topology_drift']['added_services'], ['web'])
         self.assertEqual(data['topology_drift_audit_digest'],
                          data['topology_drift']['report_digest'])
+        self.assertEqual(data['audit_checkpoint']['record_count'], 3)
         self.assertNotIn('token', stream.getvalue())
 
 
