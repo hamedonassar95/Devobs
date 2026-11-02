@@ -98,6 +98,47 @@ class ContextTests(unittest.TestCase):
         with self.assertRaises(ContextError):
             IncidentMemory([{"sample":"not-schema"}])
 
+    def test_incident_records_require_the_catalog_runbook_for_their_category(self):
+        cases = (
+            ("ci_failure", "RB-CI-01"),
+            ("high_error_rate", "RB-SLO-01"),
+            ("capacity_pressure", "RB-CAP-01"),
+        )
+        for category, runbook_id in cases:
+            with self.subTest(category=category):
+                row = IncidentRecord(
+                    "alpha", "platform", "api", category, runbook_id,
+                    "resolved", "c" * 64,
+                )
+                self.assertEqual(row.runbook_id, runbook_id)
+        for category, runbook_id in (
+                ("high_error_rate", "RB-CI-01"),
+                ("ci_failure", "RB-SEC-99")):
+            with self.subTest(category=category, runbook_id=runbook_id):
+                with self.assertRaisesRegex(ContextError, "invalid_memory"):
+                    IncidentRecord(
+                        "alpha", "platform", "api", category, runbook_id,
+                        "resolved", "d" * 64,
+                    )
+
+    def test_wire_record_rejects_rehashed_category_runbook_mismatch(self):
+        original = provenanced_memory().to_record()
+        for category, runbook_id in (
+                ("high_error_rate", "RB-CI-01"),
+                ("ci_failure", "RB-SEC-99")):
+            changed = json.loads(json.dumps(original))
+            changed["category"] = category
+            changed["runbook_id"] = runbook_id
+            unsigned = dict(changed)
+            unsigned.pop("record_digest")
+            changed["record_digest"] = hashlib.sha256(json.dumps(
+                unsigned, sort_keys=True, separators=(",", ":"),
+                ensure_ascii=False, allow_nan=False,
+            ).encode("utf-8")).hexdigest()
+            with self.subTest(category=category, runbook_id=runbook_id):
+                with self.assertRaisesRegex(ContextError, "invalid_memory_record"):
+                    IncidentRecord.from_record(changed)
+
     def test_memory_results_are_bounded(self):
         m=IncidentMemory([memory(digest=chr(97+i)*64) for i in range(5)])
         self.assertEqual(len(m.retrieve("alpha","platform","api","high_error_rate",2)),2)

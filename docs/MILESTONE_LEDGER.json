@@ -838,6 +838,39 @@
       "ci_run_id": 41502955578,
       "verification": "VERIFIED 2026-11-02: PR #400 merged at 38a061a611382758af2eaebe900e572890989fc9 from head 7d971f8e096d99ba8e9954d82e898941b9ce3eb5. Exact-head PR CI 41502955578 and push CI 41502910321 SUCCESS; Node skipped in PR CI but passed in push CI. PR CodeQL 41502951679 SUCCESS for Actions, Python and JavaScript/TypeScript. Vercel PR preview failed due to deployment rate limit. Advisory review run 41502955028 completed but does not prove model inference. Exact-merge main CI 41503251534 and CodeQL 41503250514 SUCCESS. Main CI passed Python, PostgreSQL RLS, security, container/Trivy, Terraform, site contract, validate, and static Pages publication/verification; Node, incident drill and restoration checks were skipped by workflow conditions.",
       "limitations": "PR #400 rejects requests marked with the WSGI wsgi.input_terminated extension and records PR #399 evidence. It does not prove upstream ingress byte limits or that every server sets the flag, establish a live API runtime or complete P01 acceptance. Static Pages and advisory review are not runtime or model-inference proof."
+    },
+    {
+      "id": "oidc-public-jwks-pr401",
+      "area": "TENANT_ISOLATION",
+      "title": "Reject private key material in public JWKS configuration",
+      "pr_number": 401,
+      "pr_head_sha": "f6ac6b24b06f090d89ea5d4878a6c7b6b9928152",
+      "merge_sha": "d252a97956ccc006e85fc365f081ed85962cb1b4",
+      "ci_run_id": 41504278801,
+      "verification": "VERIFIED 2026-11-02: PR #401 merged at d252a97956ccc006e85fc365f081ed85962cb1b4 from head f6ac6b24b06f090d89ea5d4878a6c7b6b9928152. PR CI 41504278801 and push CI 41504315999 succeeded; PR CodeQL 41504309819 passed for Actions, JavaScript/TypeScript, and Python. The Vercel preview succeeded. Exact-merge main CI 41504487437 and CodeQL 41504484442 succeeded on the merge SHA.",
+      "limitations": "Configuration and offline validation only. This does not prove a live issuer, key enrollment, JWKS rotation, or hosted identity verification."
+    },
+    {
+      "id": "oidc-jwk-verify-operations-pr402",
+      "area": "TENANT_ISOLATION",
+      "title": "Restrict public JWK operations to signature verification",
+      "pr_number": 402,
+      "pr_head_sha": "413ea70419ee6b1e032f0f313d7db1f61fb52c24",
+      "merge_sha": "8587d266dcb51bd2c4fe48930f61378c22e3156c",
+      "ci_run_id": 41506046290,
+      "verification": "VERIFIED 2026-11-02: PR #402 merged at 8587d266dcb51bd2c4fe48930f61378c22e3156c from head 413ea70419ee6b1e032f0f313d7db1f61fb52c24. PR CI 41506046290 and push CI 41506089460 succeeded; PR CodeQL 41506084748 passed for Actions, JavaScript/TypeScript, and Python. The Vercel preview was rate-limited; required CodeQL and validate checks passed. Exact-merge main CI 41506588415 and CodeQL 41506586886 succeeded on the merge SHA.",
+      "limitations": "Offline JWK policy validation only. The preview rate limit did not affect required checks; no live OIDC issuer, JWKS rotation, or runtime trust was exercised."
+    },
+    {
+      "id": "incident-memory-process-replay-guard-pr403",
+      "area": "QUALITY",
+      "title": "Prevent process-local replay of signed incident-memory approvals",
+      "pr_number": 403,
+      "pr_head_sha": "6c3fd25e0cf3d081ede701abfbf29bc45e1137a2",
+      "merge_sha": "b2370a6dd31d91f228be3370c0c9fdb1a6cc5d3a",
+      "ci_run_id": 41509295468,
+      "verification": "VERIFIED 2026-11-02: PR #403 merged at b2370a6dd31d91f228be3370c0c9fdb1a6cc5d3a from head 6c3fd25e0cf3d081ede701abfbf29bc45e1137a2. PR CI 41509295468 and push CI 41509245579 succeeded; PR CodeQL 41509288062 passed for Actions, JavaScript/TypeScript, and Python. The Vercel preview succeeded. Exact-merge main CI 41509946685 and CodeQL 41509945914 succeeded on the merge SHA, including static Pages publication and verification.",
+      "limitations": "The replay registry is bounded process memory and does not survive restarts or coordinate across workers. This is not durable approval consumption or live curator, corpus, or runtime proof."
     }
   ],
   "gates": [

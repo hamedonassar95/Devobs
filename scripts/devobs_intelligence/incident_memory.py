@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 from .context import ContextError, _id
+from .runbook_catalog import RUNBOOK_CATALOG
 
 if TYPE_CHECKING:
     from .incident_memory_approval import (
@@ -16,7 +17,7 @@ if TYPE_CHECKING:
 _DIGEST=re.compile(r"[0-9a-f]{64}\Z")
 _SHA=re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})\Z")
 _RUNBOOK=re.compile(r"RB-[A-Z]{2,8}-[0-9]{2}\Z")
-_CATEGORIES=frozenset({"ci_failure","high_error_rate","capacity_pressure"})
+_CATEGORIES=frozenset(RUNBOOK_CATALOG)
 _RECORD_FIELDS=frozenset({
     "tenant", "project", "service", "category", "runbook_id", "outcome",
     "evidence_digest", "source_sha", "recorded_at",
@@ -48,6 +49,7 @@ class IncidentRecord:
         if (not all(_id(v) for v in (self.tenant,self.project,self.service))
                 or type(self.category) is not str or self.category not in _CATEGORIES
                 or type(self.runbook_id) is not str or _RUNBOOK.fullmatch(self.runbook_id) is None
+                or RUNBOOK_CATALOG[self.category][0] != self.runbook_id
                 or type(self.outcome) is not str or self.outcome not in {"resolved","unresolved","false_positive"}
                 or type(self.evidence_digest) is not str
                 or _DIGEST.fullmatch(self.evidence_digest) is None):

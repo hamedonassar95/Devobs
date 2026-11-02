@@ -500,7 +500,7 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
         self.assertEqual(gates["codex-agent-runtime-acceptance"], "OPEN")
 
-    def test_pr365_to_393_merges_are_recorded_without_promoting_readiness_gates(self):
+    def test_pr365_to_403_merges_are_recorded_without_promoting_readiness_gates(self):
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         expected = {
             365: ("bf1d158dee28a9b8a00bfc0c29e847b7398867e6",
@@ -722,6 +722,29 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("41503251534", records[400]["verification"])
         self.assertIn("41503250514 SUCCESS", records[400]["verification"])
         self.assertIn("does not prove upstream ingress byte limits", records[400]["limitations"])
+        self.assertEqual(records[401]["pr_head_sha"], "f6ac6b24b06f090d89ea5d4878a6c7b6b9928152")
+        self.assertEqual(records[401]["merge_sha"], "d252a97956ccc006e85fc365f081ed85962cb1b4")
+        self.assertEqual(records[401]["ci_run_id"], 41504278801)
+        self.assertIn("41504315999", records[401]["verification"])
+        self.assertIn("41504309819", records[401]["verification"])
+        self.assertIn("41504487437", records[401]["verification"])
+        self.assertIn("41504484442", records[401]["verification"])
+        self.assertEqual(records[402]["pr_head_sha"], "413ea70419ee6b1e032f0f313d7db1f61fb52c24")
+        self.assertEqual(records[402]["merge_sha"], "8587d266dcb51bd2c4fe48930f61378c22e3156c")
+        self.assertEqual(records[402]["ci_run_id"], 41506046290)
+        self.assertIn("41506089460", records[402]["verification"])
+        self.assertIn("41506084748", records[402]["verification"])
+        self.assertIn("41506588415", records[402]["verification"])
+        self.assertIn("41506586886", records[402]["verification"])
+        self.assertIn("preview rate limit did not affect required checks", records[402]["limitations"])
+        self.assertEqual(records[403]["pr_head_sha"], "6c3fd25e0cf3d081ede701abfbf29bc45e1137a2")
+        self.assertEqual(records[403]["merge_sha"], "b2370a6dd31d91f228be3370c0c9fdb1a6cc5d3a")
+        self.assertEqual(records[403]["ci_run_id"], 41509295468)
+        self.assertIn("41509245579", records[403]["verification"])
+        self.assertIn("41509288062", records[403]["verification"])
+        self.assertIn("41509946685", records[403]["verification"])
+        self.assertIn("41509945914", records[403]["verification"])
+        self.assertIn("process memory", records[403]["limitations"])
         self.assertIn("41459163558 SUCCESS", records[389]["verification"])
         self.assertIn("41459181626 SUCCESS", records[389]["verification"])
         self.assertIn("41459888214", records[389]["verification"])
@@ -735,7 +758,7 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("Node tests and controlled incident drill were skipped", records[390]["verification"])
         self.assertIn("does not prevent another process", records[390]["limitations"])
         self.assertIn("AI-9 remains BLOCKED/FAIL", records[390]["limitations"])
-        self.assertEqual(validate(self.data)["latest_pr"], 400)
+        self.assertEqual(validate(self.data)["latest_pr"], self.data["milestones"][-1]["pr_number"])
         gates = {item["id"]: item["status"] for item in self.data["gates"]}
         self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")

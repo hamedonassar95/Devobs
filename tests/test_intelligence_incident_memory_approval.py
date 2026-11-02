@@ -190,7 +190,8 @@ class IncidentMemoryApprovalTests(unittest.TestCase):
         original = self.approval()
         changes = []
         changed_record = json.loads(json.dumps(original))
-        changed_record["record"]["runbook_id"] = "RB-SEC-01"
+        changed_record["record"]["category"] = "ci_failure"
+        changed_record["record"]["runbook_id"] = "RB-CI-01"
         unsigned = dict(changed_record["record"])
         unsigned.pop("record_digest")
         changed_record["record"]["record_digest"] = hashlib.sha256(
@@ -208,6 +209,24 @@ class IncidentMemoryApprovalTests(unittest.TestCase):
                 self.load_memory(
                     [changed], self.keyring, now=NOW,
                 )
+
+    def test_even_trusted_signature_cannot_approve_mismatched_runbook(self):
+        envelope = self.approval()
+        envelope["record"]["runbook_id"] = "RB-CI-01"
+        record_payload = dict(envelope["record"])
+        record_payload.pop("record_digest")
+        envelope["record"]["record_digest"] = hashlib.sha256(
+            canonical_bytes(record_payload)).hexdigest()
+        signed_payload = {key: value for key, value in envelope.items()
+                          if key != "signature"}
+        envelope["signature"] = self.private_key.sign(
+            canonical_bytes(signed_payload),
+        ).hex()
+
+        with self.assertRaisesRegex(
+                ContextError, "invalid_memory_approval_record"):
+            self.load_memory([envelope])
+        self.load_memory([self.approval()])
 
     def test_untrusted_signer_malformed_keys_and_unknown_envelope_fields_fail_closed(self):
         with self.assertRaisesRegex(ContextError, "untrusted_memory_approver"):

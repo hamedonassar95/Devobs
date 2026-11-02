@@ -45,7 +45,7 @@ def memory():
         IncidentRecord("alpha","platform","db","high_error_rate",
                        "RB-SLO-01","resolved","f"*64),
         IncidentRecord("beta","platform","db","high_error_rate",
-                       "RB-CAP-01","resolved","e"*64),
+                       "RB-SLO-01","resolved","e"*64),
     ])
 
 
