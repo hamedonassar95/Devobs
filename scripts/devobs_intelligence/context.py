@@ -2,7 +2,9 @@
 from __future__ import annotations
 import math
 import re
-from dataclasses import dataclass
+import hashlib
+import json
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
 _ID=re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}\Z")
@@ -96,3 +98,76 @@ class ServiceTopology:
             affected|=new
             frontier=new
         return tuple(sorted(affected))
+
+
+@dataclass(frozen=True)
+class ServiceTopologySnapshot:
+    """Offline topology bound to a tenant, project, source revision and capture time.
+
+    ``snapshot_digest`` detects content changes; it is not a signature and does not
+    authenticate the collector or prove that the graph came from the named source.
+    """
+
+    tenant: str
+    project: str
+    services: tuple[str, ...]
+    edges: tuple[tuple[str, str], ...]
+    source_sha: str
+    captured_at: str
+    snapshot_digest: str
+    _topology: ServiceTopology = field(repr=False, compare=False)
+
+    def __init__(self, tenant: str, project: str, services: list[str],
+                 edges: list[tuple[str, str]], source_sha: str, captured_at: str):
+        if (type(source_sha) is not str or _SHA.fullmatch(source_sha) is None):
+            raise ContextError("invalid_evidence")
+        try:
+            if type(captured_at) is not str or len(captured_at) > 35:
+                raise ValueError
+            instant = datetime.fromisoformat(captured_at.replace("Z", "+00:00"))
+            if instant.tzinfo is None or instant.utcoffset() is None:
+                raise ValueError
+            normalized_time = instant.astimezone(timezone.utc).isoformat(
+                timespec="microseconds").replace("+00:00", "Z")
+        except ValueError:
+            raise ContextError("invalid_timestamp") from None
+
+        topology = ServiceTopology(tenant, project, services, edges)
+        normalized_services = tuple(sorted(topology.services))
+        normalized_edges = tuple(sorted(topology.edges))
+        canonical = {
+            "schema_version": 1,
+            "tenant": tenant,
+            "project": project,
+            "source_sha": source_sha,
+            "captured_at": normalized_time,
+            "services": list(normalized_services),
+            "edges": [list(edge) for edge in normalized_edges],
+        }
+        digest = hashlib.sha256(json.dumps(
+            canonical, sort_keys=True, separators=(",", ":"), ensure_ascii=True
+        ).encode("ascii")).hexdigest()
+        object.__setattr__(self, "tenant", tenant)
+        object.__setattr__(self, "project", project)
+        object.__setattr__(self, "services", normalized_services)
+        object.__setattr__(self, "edges", normalized_edges)
+        object.__setattr__(self, "source_sha", source_sha)
+        object.__setattr__(self, "captured_at", normalized_time)
+        object.__setattr__(self, "snapshot_digest", digest)
+        object.__setattr__(self, "_topology", topology)
+
+    def affected_by(self, tenant: str, project: str, service: str, *,
+                    now: datetime, max_age_seconds: int = 900,
+                    depth: int = 3) -> tuple[str, ...]:
+        if (not _id(tenant) or not _id(project) or not _id(service)
+                or type(now) is not datetime or now.tzinfo is None
+                or now.utcoffset() is None or type(max_age_seconds) is not int
+                or not 1 <= max_age_seconds <= 86_400):
+            raise ContextError("invalid_query")
+        if (tenant, project) != (self.tenant, self.project):
+            raise ContextError("scope_mismatch")
+        age_seconds = (now.astimezone(timezone.utc)
+                       - datetime.fromisoformat(self.captured_at.replace("Z", "+00:00")))
+        if age_seconds.total_seconds() < 0 or age_seconds.total_seconds() > max_age_seconds:
+            raise ContextError("stale_topology")
+        return self._topology.affected_by(service, depth)
