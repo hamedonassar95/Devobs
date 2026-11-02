@@ -156,10 +156,10 @@ class ServiceTopologySnapshot:
         object.__setattr__(self, "snapshot_digest", digest)
         object.__setattr__(self, "_topology", topology)
 
-    def affected_by(self, tenant: str, project: str, service: str, *,
-                    now: datetime, max_age_seconds: int = 900,
-                    depth: int = 3) -> tuple[str, ...]:
-        if (not _id(tenant) or not _id(project) or not _id(service)
+    def validate(self, tenant: str, project: str, *, now: datetime,
+                 max_age_seconds: int = 900) -> None:
+        """Require an exact scope match and a fresh, timezone-aware snapshot."""
+        if (not _id(tenant) or not _id(project)
                 or type(now) is not datetime or now.tzinfo is None
                 or now.utcoffset() is None or type(max_age_seconds) is not int
                 or not 1 <= max_age_seconds <= 86_400):
@@ -170,4 +170,11 @@ class ServiceTopologySnapshot:
                        - datetime.fromisoformat(self.captured_at.replace("Z", "+00:00")))
         if age_seconds.total_seconds() < 0 or age_seconds.total_seconds() > max_age_seconds:
             raise ContextError("stale_topology")
+
+    def affected_by(self, tenant: str, project: str, service: str, *,
+                    now: datetime, max_age_seconds: int = 900,
+                    depth: int = 3) -> tuple[str, ...]:
+        self.validate(tenant, project, now=now, max_age_seconds=max_age_seconds)
+        if not _id(service) or type(depth) is not int or not 0 <= depth <= 5:
+            raise ContextError("invalid_query")
         return self._topology.affected_by(service, depth)

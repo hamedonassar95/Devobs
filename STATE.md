@@ -1,5 +1,12 @@
 # حالة مستودع Devobs
 
+## دمج PR #374 — تحقق 2026-11-02
+
+- **VERIFIED من GitHub:** دُمج [PR #374](https://github.com/hamedonassar95/Devobs/pull/374)، رأسه `cd96da7bf5ba4d529bfff6bc37aa54cf2a3bc746`، عند merge SHA `0988a5e58f7b8dba7066eb0b9079539e6d0b58a5`، وهو `main` الحالي.
+- **CI على الرأس:** نجح PR CI run `41429418945` وpush CI run `41429413732`؛ شغّل push CI اختبارات Node بينما تخطاها PR CI بشرط المسارات. نجح CodeQL `41429415677` ومراجع Codex الإرشادي `41429418907`، وكذلك فحوص Python وRLS والأمان والحاوية وTerraform و`validate`. فشل Vercel بسبب حد معدل البناء.
+- **بعد الدمج:** نجح [main CI run 41429682676](https://github.com/hamedonassar95/Devobs/actions/runs/41429682676) و[CodeQL run 41429681653](https://github.com/hamedonassar95/Devobs/actions/runs/41429681653) على SHA الدمج. نجحت فحوص Python وRLS والأمان والحاوية وTerraform و`validate` ونشر Pages والتحقق من الموقع الثابت؛ تخطّى Node وcontrolled-incident-drill شروط المسارات/الحدث.
+- PR #374 سجّل أدلة #373 في الدفتر والحالة واختبار السجل فقط. Pages تحقق الموقع الثابت فقط، ومعاينة Vercel بقيت محدودة بمعدل البناء؛ لم تتغير أي بوابة جاهزية.
+
 ## دمج PR #373 — تحقق 2026-11-02
 
 - **VERIFIED من GitHub:** دُمج [PR #373](https://github.com/hamedonassar95/Devobs/pull/373)، رأسه `16bfde9401d8e074db47a5e99964486468d684a0`، عند merge SHA `4d61ff2e49f1d8b28d0bd11267ff425b861639e0`، ويطابق `origin/main`.
@@ -23,8 +30,8 @@
 
 ## آخر تحقق من main — 2026-11-02
 
-- **VERIFIED:** `origin/main` عند `4d61ff2e49f1d8b28d0bd11267ff425b861639e0`. نجح main CI `41429076464` وCodeQL `41429076168` على هذا SHA. اجتازت Python validation وRLS والأمان والحاوية وTerraform و`validate` ونشر Pages و`verify-production` للموقع الثابت؛ تخطّى Node وcontrolled-incident-drill شروط المسارات/الحدث.
-- يسجل دفتر الإنجازات الآن PR #373 إضافةً إلى السجل السابق؛ كان PR #373 تحديثًا توثيقيًا واختبارًا للسجل فقط، ولم تتغير أي بوابة جاهزية.
+- **VERIFIED:** `origin/main` عند `0988a5e58f7b8dba7066eb0b9079539e6d0b58a5`. نجح main CI `41429682676` وCodeQL `41429681653` على هذا SHA. اجتازت Python validation وRLS والأمان والحاوية وTerraform و`validate` ونشر Pages و`verify-production` للموقع الثابت؛ تخطّى Node وcontrolled-incident-drill شروط المسارات/الحدث.
+- يسجل دفتر الإنجازات الآن PR #374 إضافةً إلى السجل السابق؛ كان PR #374 تحديثًا توثيقيًا واختبارًا للسجل فقط، ولم تتغير أي بوابة جاهزية.
 
 ## دمج PR #366 — تحقق 2026-11-02
 

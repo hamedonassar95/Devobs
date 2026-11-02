@@ -6,7 +6,10 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 
 from .adviser import propose
-from .context import ContextError, ServiceTopology, Telemetry, normalize_telemetry
+from .context import (
+    ContextError, ServiceTopology, ServiceTopologySnapshot, Telemetry,
+    normalize_telemetry,
+)
 from .contracts import parse_event
 from .incident_memory import IncidentMemory
 
@@ -22,19 +25,45 @@ class IncidentFinding:
     source_sha: str
     model_used: bool
     calibrated: bool
+    topology_snapshot_digest: str | None = None
+    topology_captured_at: str | None = None
 
 
-def correlate(topology: ServiceTopology, telemetry: list[Telemetry],
+def _revalidate_snapshot(value: ServiceTopologySnapshot) -> ServiceTopologySnapshot:
+    """Rebuild from public fields; never trust a dataclass instance's cached graph."""
+    try:
+        snapshot = ServiceTopologySnapshot(
+            value.tenant, value.project, list(value.services), list(value.edges),
+            value.source_sha, value.captured_at,
+        )
+        if (type(value.snapshot_digest) is not str
+                or snapshot.snapshot_digest != value.snapshot_digest):
+            raise ContextError("invalid_topology_snapshot")
+        return snapshot
+    except (AttributeError, TypeError, ContextError):
+        raise ContextError("invalid_topology_snapshot") from None
+
+
+def correlate(topology: ServiceTopology | ServiceTopologySnapshot,
+              telemetry: list[Telemetry],
               memory: IncidentMemory, now_utc: datetime) -> IncidentFinding:
     """Fail closed on stale, mismatched or ambiguous evidence.
 
     Rank is a deterministic heuristic; not a causal proof or model confidence.
     """
-    if (type(topology) is not ServiceTopology or type(memory) is not IncidentMemory
+    snapshot = None
+    if type(topology) is ServiceTopologySnapshot:
+        snapshot = _revalidate_snapshot(topology)
+        topology = snapshot
+    if (type(topology) not in (ServiceTopology, ServiceTopologySnapshot)
+            or type(memory) is not IncidentMemory
             or type(telemetry) is not list or not 1<=len(telemetry)<=32
-            or type(now_utc) is not datetime or now_utc.tzinfo is None):
+            or type(now_utc) is not datetime or now_utc.tzinfo is None
+            or now_utc.utcoffset() is None):
         raise ContextError("invalid_incident")
     now=now_utc.astimezone(timezone.utc)
+    if snapshot is not None:
+        snapshot.validate(snapshot.tenant, snapshot.project, now=now)
     sha=None
     seen=set()
     scores={}
@@ -67,6 +96,8 @@ def correlate(topology: ServiceTopology, telemetry: list[Telemetry],
         seen.add(key)
         evidence.add(point.evidence_digest)
         per_service.setdefault(point.service,{})[point.metric]=point.value
+    if snapshot is not None and sha != snapshot.source_sha:
+        raise ContextError("topology_source_sha_mismatch")
     for service,values in per_service.items():
         scores[service]=(3 if values.get("failed_checks",0)>0 else 0)+(
             2 if values.get("error_rate_pct",0)>=5 else 0)+(
@@ -74,7 +105,9 @@ def correlate(topology: ServiceTopology, telemetry: list[Telemetry],
     eligible=sorted((s for s in scores if scores[s]>0),key=lambda s:(-scores[s],s))
     if not eligible:
         return IncidentFinding("INSUFFICIENT_EVIDENCE","unknown",(),(),
-                               tuple(sorted(evidence)),(),sha,False,False)
+                               tuple(sorted(evidence)),(),sha,False,False,
+                               snapshot.snapshot_digest if snapshot is not None else None,
+                               snapshot.captured_at if snapshot is not None else None)
     root=eligible[0]
     values=per_service[root]
     data={"failed_checks":int(values.get("failed_checks",0)),
@@ -90,8 +123,12 @@ def correlate(topology: ServiceTopology, telemetry: list[Telemetry],
     recommendation=propose(event,data,model_enabled=False)
     safe_memory=memory.retrieve(topology.tenant,topology.project,root,
                                 recommendation.hypothesis)
+    impacted=(snapshot.affected_by(topology.tenant, topology.project, root, now=now)
+              if snapshot is not None else topology.affected_by(root))
     return IncidentFinding("PENDING_HUMAN_APPROVAL",recommendation.hypothesis,
-                           tuple(eligible[:3]),topology.affected_by(root),
+                           tuple(eligible[:3]),impacted,
                            tuple(sorted(evidence)),
                            tuple(sorted({r.runbook_id for r in safe_memory})),
-                           sha,False,False)
+                           sha,False,False,
+                           snapshot.snapshot_digest if snapshot is not None else None,
+                           snapshot.captured_at if snapshot is not None else None)

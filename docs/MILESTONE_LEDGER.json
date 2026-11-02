@@ -541,6 +541,17 @@
       "ci_run_id": 41428670992,
       "verification": "VERIFIED 2026-11-02: PR CI 41428670992 and push CI 41428664308 SUCCESS on exact head; push CI ran Node tests, PR CI skipped Node by path selection. Python validation, PostgreSQL RLS, security, container scan, Terraform, validate and PR CodeQL 41428665832 SUCCESS; advisory Codex review 41428670968 SUCCESS. PR #373 merged at 4d61ff2e49f1d8b28d0bd11267ff425b861639e0. Main CI 41429076464 and CodeQL 41429076168 SUCCESS on exact merge SHA. Main CI passed Python validation, RLS, security, container scan, Terraform, validate, Pages publication and static-site verify-production; Node tests and controlled incident drill were skipped by path/event conditions. Vercel check on the PR failed due to its build-rate limit.",
       "limitations": "Documentation, ledger and regression-test update only; no application behavior changed. Main CI skipped Node tests by path selection; Pages verifies the static site only. Vercel preview remains unavailable due to its build-rate limit. No readiness gate changed and no live service or AI inference was activated; recorded release gates remain BLOCKED or OPEN."
+    },
+    {
+      "id": "verified-readiness-ledger-pr374",
+      "area": "DOCUMENTATION",
+      "title": "Record PR #374 merge evidence and synchronize current readiness state",
+      "pr_number": 374,
+      "pr_head_sha": "cd96da7bf5ba4d529bfff6bc37aa54cf2a3bc746",
+      "merge_sha": "0988a5e58f7b8dba7066eb0b9079539e6d0b58a5",
+      "ci_run_id": 41429418945,
+      "verification": "VERIFIED 2026-11-02: PR CI 41429418945 and push CI 41429413732 SUCCESS on exact head; push CI ran Node tests, PR CI skipped Node by path selection. Python validation, PostgreSQL RLS, security, container scan, Terraform, validate, CodeQL 41429415677 and advisory Codex review 41429418907 SUCCESS. PR #374 merged at 0988a5e58f7b8dba7066eb0b9079539e6d0b58a5. Main CI 41429682676 and CodeQL 41429681653 SUCCESS on exact merge SHA. Main CI passed Python validation, RLS, security, container scan, Terraform, validate, Pages publication and static-site verify-production; Node tests and controlled incident drill were skipped by path/event conditions. Vercel check failed due to its build-rate limit.",
+      "limitations": "Documentation, ledger and regression-test update only; no application behavior changed. Main CI skipped Node tests by path selection; Pages verifies the static site only. Vercel preview remains unavailable due to its build-rate limit. No readiness gate changed and no live service or AI inference was activated; recorded release gates remain BLOCKED or OPEN."
     }
   ],
   "gates": [
