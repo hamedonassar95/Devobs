@@ -1,5 +1,11 @@
 # حالة مستودع Devobs
 
+## أحدث دمج موثّق: PR #403 — تحقق 2026-11-02
+
+- **VERIFIED من GitHub:** `main` عند merge SHA `b2370a6dd31d91f228be3370c0c9fdb1a6cc5d3a` بعد دمج PR [#403](https://github.com/hamedonassar95/Devobs/pull/403)، من الرأس `6c3fd25e0cf3d081ede701abfbf29bc45e1137a2`. نجح CI بعد الدمج `41509946685` وCodeQL `41509945914` على SHA الدمج؛ نشر CI موقع Pages الثابت وتحقق منه.
+- PR #403 أضاف منع إعادة استخدام موافقات ذاكرة الحوادث داخل سجل محدود في العملية الحالية فقط. لا يستمر السجل بعد إعادة التشغيل ولا ينسق بين العمال.
+- سُجلت أدلة دمج PRs #401–#403 في [`docs/MILESTONE_LEDGER.json`](docs/MILESTONE_LEDGER.json) وتقرير [`docs/DEVOBS_READINESS_CURRENT.md`](docs/DEVOBS_READINESS_CURRENT.md). لا يغيّر هذا التحديث أي حالة جاهزية أو يثبت استدلال نموذج أو تشغيل API مستضاف.
+
 ## دمج PR #400 والتحقق بعد الدمج — تحقق 2026-11-02
 
 - **VERIFIED من GitHub:** دُمج [PR #400](https://github.com/hamedonassar95/Devobs/pull/400)، رأسه `7d971f8e096d99ba8e9954d82e898941b9ce3eb5`، عند SHA `38a061a611382758af2eaebe900e572890989fc9`.

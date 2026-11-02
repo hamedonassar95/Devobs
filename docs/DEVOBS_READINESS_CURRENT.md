@@ -1,6 +1,16 @@
 # Devobs production readiness — current evidence
 
-## Superseding snapshot — 2026-11-02 (after PR #400)
+## Superseding snapshot — 2026-11-02 (after PR #403)
+
+**VERIFIED from GitHub:** current `main` is merge SHA `b2370a6dd31d91f228be3370c0c9fdb1a6cc5d3a`, from PR [#403](https://github.com/hamedonassar95/Devobs/pull/403), head `6c3fd25e0cf3d081ede701abfbf29bc45e1137a2`.
+
+- **PR #401:** merged at `d252a97956ccc006e85fc365f081ed85962cb1b4` from head `f6ac6b24b06f090d89ea5d4878a6c7b6b9928152`. Required PR CI `41504278801`, push CI `41504315999`, and CodeQL `41504309819` passed; exact-merge main CI `41504487437` and CodeQL `41504484442` passed.
+- **PR #402:** merged at `8587d266dcb51bd2c4fe48930f61378c22e3156c` from head `413ea70419ee6b1e032f0f313d7db1f61fb52c24`. Required PR CI `41506046290`, push CI `41506089460`, and CodeQL `41506084748` passed; exact-merge main CI `41506588415` and CodeQL `41506586886` passed. The Vercel preview was rate-limited; `validate` and CodeQL were the required checks and passed.
+- **PR #403:** merged at `b2370a6dd31d91f228be3370c0c9fdb1a6cc5d3a` from head `6c3fd25e0cf3d081ede701abfbf29bc45e1137a2`. Required PR CI `41509295468`, push CI `41509245579`, and CodeQL `41509288062` passed; exact-merge main CI `41509946685` and CodeQL `41509945914` passed. Main CI also published and verified the static Pages site on this SHA.
+- PR #401 rejects private key material in public JWKS configuration. PR #402 restricts public JWK operations to verification. PR #403 adds bounded, atomic, process-local replay rejection for signed incident-memory approvals. Its registry state does not persist across restart or coordinate workers. Workflow and Pages success do not prove live OIDC, model calls, or a hosted API runtime.
+- The durable milestone index now records PRs #401–#403. **The readiness gates retain their previous dispositions:** AI-9 remains **FAIL / BLOCKED**, P01 remains **NO-GO / BLOCKED**, and Codex agent runtime remains **OPEN**.
+
+## Prior snapshot — 2026-11-02 (after PR #400; superseded by PR #403)
 
 **VERIFIED from GitHub:** current `main` is merge SHA `38a061a611382758af2eaebe900e572890989fc9`, from PR [#400](https://github.com/hamedonassar95/Devobs/pull/400), head `7d971f8e096d99ba8e9954d82e898941b9ce3eb5`. Exact-head PR CI [41502955578](https://github.com/hamedonassar95/Devobs/actions/runs/41502955578) and push CI [41502910321](https://github.com/hamedonassar95/Devobs/actions/runs/41502910321) succeeded; Node was skipped by path selection in PR CI and passed in push CI. PR CodeQL [41502951679](https://github.com/hamedonassar95/Devobs/actions/runs/41502951679) succeeded for Actions, Python, and JavaScript/TypeScript. Vercel preview failed because of its deployment rate limit.
 
