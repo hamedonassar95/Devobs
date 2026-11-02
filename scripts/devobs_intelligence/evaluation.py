@@ -6,8 +6,12 @@ No model provider, token, network or tool execution is used here.
 from __future__ import annotations
 
 import hashlib
+import json
 import math
 import re
+import sys
+from pathlib import Path
+from typing import Any
 
 from .adviser import AdvisoryError, propose
 from .contracts import EvidenceError, parse_event
@@ -19,7 +23,59 @@ class EvaluationError(ValueError):
 
 _CATEGORIES = frozenset({"ci_failure", "high_error_rate", "capacity_pressure", "unknown"})
 _CASE_ID = re.compile(r"[a-z0-9][a-z0-9_-]{0,39}\Z")
+_SHA256 = re.compile(r"[a-f0-9]{64}\Z")
 _WILSON_95_Z = 1.959963984540054
+_REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+_MANIFEST_RELATIVE_PATH = Path("docs/ai/intelligence-evaluation-policy-v1.json")
+_FIXTURE_RELATIVE_PATH = Path("tests/fixtures/intelligence_eval_cases.json")
+_MAX_FIXTURE_BYTES = 64_000
+
+
+def _reject_duplicate_json_keys(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise EvaluationError("duplicate_json_key")
+        result[key] = value
+    return result
+
+
+def _load_json(raw: bytes, error_code: str) -> Any:
+    try:
+        return json.loads(raw.decode("utf-8"), object_pairs_hook=_reject_duplicate_json_keys)
+    except (UnicodeError, json.JSONDecodeError, EvaluationError, RecursionError):
+        raise EvaluationError(error_code) from None
+
+
+def _validate_fixture_manifest(value: Any) -> dict[str, Any]:
+    keys = {
+        "schema_version", "dataset_id", "dataset_version", "dataset_path", "dataset_sha256",
+        "source_kind", "label_status", "label_method", "categories", "case_count", "max_bytes",
+        "production_gate", "scope",
+    }
+    if type(value) is not dict or set(value) != keys:
+        raise EvaluationError("invalid_manifest")
+    if (
+        type(value["schema_version"]) is not int
+        or value["schema_version"] != 1
+        or value["dataset_id"] != "devobs-adviser-synthetic"
+        or value["dataset_version"] != "v1"
+        or value["dataset_path"] != _FIXTURE_RELATIVE_PATH.as_posix()
+        or not isinstance(value["dataset_sha256"], str)
+        or not _SHA256.fullmatch(value["dataset_sha256"])
+        or value["source_kind"] != "synthetic"
+        or value["label_status"] != "synthetic_unreviewed"
+        or value["label_method"] != "synthetic_expected_category"
+        or value["categories"] != sorted(_CATEGORIES)
+        or type(value["case_count"]) is not int
+        or not 1 <= value["case_count"] <= 100
+        or type(value["max_bytes"]) is not int
+        or value["max_bytes"] != _MAX_FIXTURE_BYTES
+        or value["production_gate"] is not False
+        or value["scope"] != "synthetic deterministic adviser fixture only"
+    ):
+        raise EvaluationError("invalid_manifest")
+    return value
 
 
 def _wilson_interval(successes: int, trials: int) -> dict[str, float]:
@@ -144,3 +200,58 @@ def evaluate_cases(cases: list[dict], *, target_accuracy: float | None = None) -
         "confidence_calibrated": False,
         "live_model_calls": 0,
     }
+
+
+def evaluate_fixture(
+    root: Path | None = None,
+    *,
+    target_accuracy: float | None = None,
+) -> dict[str, object]:
+    """Evaluate the repository's manifest-pinned synthetic fixture offline."""
+    repository_root = Path(root) if root is not None else _REPOSITORY_ROOT
+    manifest_path = repository_root / _MANIFEST_RELATIVE_PATH
+    fixture_path = repository_root / _FIXTURE_RELATIVE_PATH
+    if (
+        manifest_path.is_symlink() or not manifest_path.is_file()
+        or fixture_path.is_symlink() or not fixture_path.is_file()
+    ):
+        raise EvaluationError("fixture_unavailable")
+    if manifest_path.stat().st_size > 8_192:
+        raise EvaluationError("invalid_manifest")
+    if fixture_path.stat().st_size > _MAX_FIXTURE_BYTES:
+        raise EvaluationError("fixture_too_large")
+
+    manifest = _validate_fixture_manifest(_load_json(manifest_path.read_bytes(), "invalid_manifest"))
+    raw = fixture_path.read_bytes()
+    digest = hashlib.sha256(raw).hexdigest()
+    if digest != manifest["dataset_sha256"]:
+        raise EvaluationError("dataset_digest_mismatch")
+    cases = _load_json(raw, "invalid_fixture")
+    if type(cases) is not list or len(cases) != manifest["case_count"]:
+        raise EvaluationError("dataset_case_count_mismatch")
+
+    report = evaluate_cases(cases, target_accuracy=target_accuracy)
+    report["dataset"] = {
+        "dataset_id": manifest["dataset_id"],
+        "dataset_version": manifest["dataset_version"],
+        "sha256": digest,
+        "case_count": len(cases),
+        "label_status": manifest["label_status"],
+        "synthetic_only": True,
+        "production_gate": False,
+    }
+    return report
+
+
+def main() -> int:
+    try:
+        print(json.dumps(evaluate_fixture(), sort_keys=True))
+    except (EvaluationError, OSError) as error:
+        code = error.args[0] if isinstance(error, EvaluationError) else "fixture_io_error"
+        print(json.dumps({"error": code}, sort_keys=True), file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

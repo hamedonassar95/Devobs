@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "dataset_id": "devobs-adviser-synthetic",
+  "dataset_version": "v1",
+  "dataset_path": "tests/fixtures/intelligence_eval_cases.json",
+  "dataset_sha256": "0a9c73c281834de399952222ac28ff1580cd5fcbb61b760a4f0557109b00b0ad",
+  "source_kind": "synthetic",
+  "label_status": "synthetic_unreviewed",
+  "label_method": "synthetic_expected_category",
+  "categories": [
+    "capacity_pressure",
+    "ci_failure",
+    "high_error_rate",
+    "unknown"
+  ],
+  "case_count": 5,
+  "max_bytes": 64000,
+  "production_gate": false,
+  "scope": "synthetic deterministic adviser fixture only"
+}
