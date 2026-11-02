@@ -36,6 +36,39 @@ class AuditEntryV1:
     subject_digest: str | None = None
 
 
+@dataclass(frozen=True)
+class AuditCheckpointV1:
+    """Portable hash-chain prefix checkpoint for independent retention."""
+
+    schema_version: int
+    record_count: int
+    head_hash: str
+
+    def to_record(self) -> dict:
+        return {
+            'schema_version': self.schema_version,
+            'record_count': self.record_count,
+            'head_hash': self.head_hash,
+        }
+
+    @classmethod
+    def from_record(cls, record: object) -> AuditCheckpointV1:
+        if (type(record) is not dict
+                or set(record) != {'schema_version', 'record_count', 'head_hash'}
+                or type(record['schema_version']) is not int
+                or record['schema_version'] != 1
+                or type(record['record_count']) is not int
+                or record['record_count'] < 0
+                or type(record['head_hash']) is not str
+                or _DIGEST.fullmatch(record['head_hash']) is None
+                or (record['record_count'] == 0
+                    and record['head_hash'] != '0' * 64)
+                or (record['record_count'] > 0
+                    and record['head_hash'] == '0' * 64)):
+            raise AuditError('invalid_checkpoint')
+        return cls(1, record['record_count'], record['head_hash'])
+
+
 def _digest(previous: str, item: dict) -> str:
     payload = json.dumps(item, sort_keys=True, separators=(',', ':'), ensure_ascii=True)
     return hashlib.sha256((previous + '\n' + payload).encode('utf-8')).hexdigest()
@@ -100,6 +133,30 @@ class AuditStore:
 
     def verify(self) -> int:
         return self._verify_entries(self._entries())
+
+    def create_checkpoint(self) -> AuditCheckpointV1:
+        """Return a verified chain head for the caller to retain independently."""
+        entries = self._entries()
+        count = self._verify_entries(entries)
+        head_hash = entries[-1].record_hash if count else '0' * 64
+        return AuditCheckpointV1(1, count, head_hash)
+
+    def verify_checkpoint(self, record: object) -> int:
+        """Verify the chain still contains the independently retained prefix.
+
+        Later valid appends are allowed. The caller must protect the checkpoint
+        separately; this method does not sign it or store an external copy.
+        """
+        checkpoint = AuditCheckpointV1.from_record(record)
+        entries = self._entries()
+        count = self._verify_entries(entries)
+        if checkpoint.record_count > count:
+            raise AuditError('checkpoint_mismatch')
+        actual_head = (entries[checkpoint.record_count - 1].record_hash
+                       if checkpoint.record_count else '0' * 64)
+        if actual_head != checkpoint.head_hash:
+            raise AuditError('checkpoint_mismatch')
+        return count
 
     def append(self, event: EventEnvelopeV1, evaluation: EvaluationV1,
                action: str, *, subject_digest: str | None = None) -> AuditEntryV1:

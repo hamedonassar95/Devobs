@@ -684,6 +684,17 @@
       "ci_run_id": 41453461558,
       "verification": "VERIFIED 2026-11-02: PR #386 merged at e4a9d002b0fa21271db8f2ffa44e3f8d5854ae08 from head 4c4b040ae4480fb7a8d64ddf9da88c429ac5df00. PR CI 41453461558 and exact-head push CI 41453419441 SUCCESS; both ran the relevant tests. PR CodeQL 41453454978 SUCCESS. Exact-merge main CI 41453945952 SUCCESS and main CodeQL/Push 41453945090 SUCCESS on the merge SHA. Main CI passed Node, Python validation, RLS, security, container scan, Terraform, validate, static Pages publication and verify-production; controlled incident drill was skipped. PR Vercel preview was rate-limited.",
       "limitations": "Synthetic offline topology data only. Audit linkage stores a digest and source SHA in the local SQLite hash chain; it does not authenticate the telemetry producer, make the database tamper-proof against a privileged writer, or verify a live topology source. No hosted service or production application was deployed. Readiness gates remain BLOCKED or OPEN."
+    },
+    {
+      "id": "audit-chain-checkpoint-v1-pr387",
+      "area": "QUALITY",
+      "title": "Export and verify independently retained local audit-chain checkpoints",
+      "pr_number": 387,
+      "pr_head_sha": "82ad683072c981705cbe9fc3471c26ffea9afd0b",
+      "merge_sha": "c82e4db2a9b82dbb01b0636d2b90ab836041e203",
+      "ci_run_id": 41454746336,
+      "verification": "VERIFIED 2026-11-02: PR #387 merged at c82e4db2a9b82dbb01b0636d2b90ab836041e203 from head 82ad683072c981705cbe9fc3471c26ffea9afd0b. PR CI 41454746336 and exact-head push CI 41454710164 SUCCESS; PR CodeQL 41454741109 SUCCESS. Exact-merge main CI 41455742840 and main CodeQL 41455742285 SUCCESS on the merge SHA. Main CI passed Node, Python validation, RLS, security, container scan, Terraform, validate, static Pages publication and verify-production; controlled incident drill was skipped. Vercel PR preview passed; Vercel status on the main merge SHA failed due to its build-rate limit.",
+      "limitations": "The checkpoint is unsigned and is not automatically archived. It detects database rewrites only when a separately retained checkpoint remains trusted; no actor identity, trusted timestamp, hosted audit service, or production application was added. Readiness gates remain BLOCKED or OPEN."
     }
   ],
   "gates": [

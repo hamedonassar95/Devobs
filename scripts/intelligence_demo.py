@@ -90,6 +90,7 @@ def run_demo(
         topology_drift, topology_drift_audit = ledger.record_topology_drift(
             event, previous_topology, topology,
         )
+        audit_checkpoint = ledger.create_checkpoint()
         result = {
             'mode': 'synthetic_offline_demo',
             'live_provider_calls': 0,
@@ -102,6 +103,7 @@ def run_demo(
             'runbook_ids': list(finding.runbook_ids),
             'topology_drift': topology_drift.to_record(),
             'topology_drift_audit_digest': topology_drift_audit.subject_digest,
+            'audit_checkpoint': audit_checkpoint.to_record(),
             'hypothesis': suggestion.hypothesis,
             'confidence_calibrated': False,
             'audit_records': ledger.summary()['record_count'],
