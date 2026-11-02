@@ -1,15 +1,22 @@
 # حالة مستودع Devobs
 
+## دمج PR #377 — تحقق 2026-11-02
+
+- **VERIFIED من GitHub:** دُمج [PR #377](https://github.com/hamedonassar95/Devobs/pull/377) بواسطة المالك `hamedonassar95`، رأسه `9e32035d5bf7b94c8cfd7b15384db8e4c3559024`، عند merge SHA `34b47f1352e489d9a92b2e202441a8469d66fabb`.
+- **CI على الرأس:** نجح PR CI `41432899091` وpush CI `41432872907` على الرأس نفسه؛ push CI شغّل Node، وPR CI تخطاه بشرط المسارات. نجحت Python وRLS والأمان والحاوية وTerraform و`validate`؛ نجح CodeQL `41432894758`. فشل Vercel preview على PR بسبب حد المعدل. لم ينتج AI Code Review استدلالًا: بوابة الميزانية تخطته، ومحاولة مراجعة Codex منفصلة تعثرت عند حد الاستخدام.
+- **بعد الدمج:** نجح main CI `41433070130` وCodeQL `41433069213` على merge SHA. اجتاز CI Python وRLS والأمان والحاوية وTerraform و`validate` ونشر/تحقق Pages للموقع الثابت؛ تخطّى Node وincident drill شروط المسارات/الحدث. حالة Vercel على SHA الدمج نجحت.
+- أضاف PR #377 استرجاع ذاكرة حوادث محلية محدودًا بالمصدر والحداثة، مع نسخ دفاعي للسجلات. لم يضف تخزينًا أو مصدر حوادث حيًا أو تغييرًا في بوابة الجاهزية.
+
 ## دمج PR #376 — تحقق 2026-11-02
 
-- **VERIFIED من GitHub:** دُمج [PR #376](https://github.com/hamedonassar95/Devobs/pull/376)، رأسه `cc4f4d64c686cd8198ae3509c57defea3427f60e`، عند merge SHA `bfd40df4f3ae9ceb0c539c3ed6861c24c88e6aee`، وهو `main` الحالي.
+- **VERIFIED من GitHub:** دُمج [PR #376](https://github.com/hamedonassar95/Devobs/pull/376)، رأسه `cc4f4d64c686cd8198ae3509c57defea3427f60e`، عند merge SHA `bfd40df4f3ae9ceb0c539c3ed6861c24c88e6aee`؛ كان رأس `main` قبل دمج #377.
 - **CI على الرأس:** نجح PR CI `41431843697` وpush CI `41431820624`؛ تخطّى PR CI اختبارات Node بشرط المسارات وشغّلها push CI. نجحت Python وRLS والأمان والحاوية وTerraform و`validate`، وCodeQL `41431840914` ومراجعة Codex الإرشادية `41431843504`. فشل Vercel بسبب حد معدل البناء.
 - **بعد الدمج:** نجح [main CI run 41431998816](https://github.com/hamedonassar95/Devobs/actions/runs/41431998816) و[CodeQL run 41431997968](https://github.com/hamedonassar95/Devobs/actions/runs/41431997968) على SHA الدمج. اجتاز CI فحوص Python وRLS والأمان والحاوية وTerraform و`validate` ونشر Pages و`verify-production` للموقع الثابت؛ تخطّى Node وcontrolled-incident-drill شروط المسارات/الحدث.
 - أضاف PR #376 عقد سجل طوبولوجيا محليًا بإصدار صريح والتحقق من البصمة، دون إدخال حي أو تغيير بوابة جاهزية. Pages تخص الموقع الثابت؛ Vercel لم ينشئ معاينة بسبب حد المعدل.
 
 ## دمج PR #375 — تحقق 2026-11-02
 
-- **VERIFIED من GitHub:** دُمج [PR #375](https://github.com/hamedonassar95/Devobs/pull/375)، رأسه `a86510564f01c9b4ef10a180cea063f3df6782c8`، عند merge SHA `c5e25db806500429ac7d5b83b663eb2a566151e1`، وهو `main` الحالي.
+- **VERIFIED من GitHub:** دُمج [PR #375](https://github.com/hamedonassar95/Devobs/pull/375)، رأسه `a86510564f01c9b4ef10a180cea063f3df6782c8`، عند merge SHA `c5e25db806500429ac7d5b83b663eb2a566151e1`؛ كان رأس `main` قبل دمج #376.
 - **CI على الرأس:** نجح PR CI `41430830200` وpush CI `41430806878`؛ تخطّى PR CI اختبارات Node بشرط المسارات، وشغّلها push CI على الرأس نفسه. نجحت Python وRLS والأمان والحاوية وTerraform و`validate`، وCodeQL `41430826736` ومراجعة Codex الإرشادية `41430830132`. فشل Vercel بسبب حد معدل البناء.
 - **بعد الدمج:** نجح [main CI run 41431148732](https://github.com/hamedonassar95/Devobs/actions/runs/41431148732) و[CodeQL run 41431147710](https://github.com/hamedonassar95/Devobs/actions/runs/41431147710) على SHA الدمج. اجتاز CI فحوص Python وRLS والأمان والحاوية وTerraform و`validate` ونشر Pages والتحقق من الموقع الثابت؛ تخطّى Node شرط المسارات.
 - ربط PR #375 اللقطة المحلية بمكوّن الربط الحتمي وأضاف بصمة/وقت المصدر للنتيجة. هذا لا يثبت مصدرًا موثوقًا أو تشغيلًا حيًا ولا يغيّر أي بوابة جاهزية؛ Vercel لم ينشئ معاينة بسبب حد المعدل.
@@ -44,8 +51,8 @@
 
 ## آخر تحقق من main — 2026-11-02
 
-- **VERIFIED:** `origin/main` عند `bfd40df4f3ae9ceb0c539c3ed6861c24c88e6aee`. نجح main CI `41431998816` وCodeQL `41431997968` على هذا SHA. اجتازت Python validation وRLS والأمان والحاوية وTerraform و`validate` ونشر Pages و`verify-production` للموقع الثابت؛ تخطّى Node وcontrolled-incident-drill شروط المسارات/الحدث.
-- يسجل دفتر الإنجازات الآن PR #376 إضافةً إلى السجل السابق؛ أضاف PR #376 عقد السجل ذي الإصدار والبصمة. تظل البوابات كما هي ولا توجد أدلة على مصدر طوبولوجيا حي.
+- **VERIFIED:** `origin/main` عند `34b47f1352e489d9a92b2e202441a8469d66fabb`. نجح main CI `41433070130` وCodeQL `41433069213` على هذا SHA. اجتازت Python validation وRLS والأمان والحاوية وTerraform و`validate` ونشر Pages والتحقق من الموقع الثابت؛ تخطّى Node وcontrolled-incident-drill شروط المسارات/الحدث.
+- يسجل دفتر الإنجازات في هذا الفرع PR #377 بعد تحقق دمجه؛ أضاف PR #377 provenance وحداثة لذاكرة الحوادث offline. لا توجد أدلة على سجل حوادث حي أو على مصدر موثّق.
 
 ## دمج PR #366 — تحقق 2026-11-02
 

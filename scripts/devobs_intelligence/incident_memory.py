@@ -1,5 +1,7 @@
 """Tenant/project exact-match, metadata-only incident memory; no embeddings."""
 from __future__ import annotations
+import hashlib
+import json
 import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -9,6 +11,16 @@ _DIGEST=re.compile(r"[0-9a-f]{64}\Z")
 _SHA=re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})\Z")
 _RUNBOOK=re.compile(r"RB-[A-Z]{2,8}-[0-9]{2}\Z")
 _CATEGORIES=frozenset({"ci_failure","high_error_rate","capacity_pressure"})
+_RECORD_FIELDS=frozenset({
+    "tenant", "project", "service", "category", "runbook_id", "outcome",
+    "evidence_digest", "source_sha", "recorded_at",
+})
+_RECORD_SCHEMA_VERSION=1
+
+
+def _canonical_json(value: dict) -> bytes:
+    return json.dumps(value,sort_keys=True,separators=(",", ":"),
+                      ensure_ascii=False,allow_nan=False).encode("utf-8")
 
 
 @dataclass(frozen=True)
@@ -47,12 +59,62 @@ class IncidentRecord:
             raise ContextError("invalid_memory") from None
         object.__setattr__(self, "recorded_at", normalized)
 
+    def to_record(self) -> dict:
+        """Return a detached v1 JSON object with a content-integrity digest."""
+        validated = IncidentRecord(
+            self.tenant, self.project, self.service, self.category,
+            self.runbook_id, self.outcome, self.evidence_digest,
+            self.source_sha, self.recorded_at,
+        )
+        payload = {
+            "schema_version": _RECORD_SCHEMA_VERSION,
+            "tenant": validated.tenant,
+            "project": validated.project,
+            "service": validated.service,
+            "category": validated.category,
+            "runbook_id": validated.runbook_id,
+            "outcome": validated.outcome,
+            "evidence_digest": validated.evidence_digest,
+            "source_sha": validated.source_sha,
+            "recorded_at": validated.recorded_at,
+        }
+        payload["record_digest"] = hashlib.sha256(_canonical_json(payload)).hexdigest()
+        return payload
+
+    @property
+    def record_digest(self) -> str:
+        return self.to_record()["record_digest"]
+
+    @classmethod
+    def from_record(cls, value: dict) -> "IncidentRecord":
+        """Parse only the exact v1 wire shape and verify its canonical digest."""
+        if type(value) is not dict or set(value) != _RECORD_FIELDS | {
+                "schema_version", "record_digest"}:
+            raise ContextError("invalid_memory_record")
+        if (type(value["schema_version"]) is not int
+                or value["schema_version"] != _RECORD_SCHEMA_VERSION):
+            raise ContextError("unsupported_memory_record")
+        try:
+            record = cls(
+                value["tenant"], value["project"], value["service"],
+                value["category"], value["runbook_id"], value["outcome"],
+                value["evidence_digest"], value["source_sha"], value["recorded_at"],
+            )
+        except (TypeError, ContextError):
+            raise ContextError("invalid_memory_record") from None
+        expected = record.to_record()
+        if (type(value["record_digest"]) is not str
+                or value["record_digest"] != expected["record_digest"]):
+            raise ContextError("memory_record_digest_mismatch")
+        return record
+
 
 @dataclass(frozen=True)
 class IncidentMemoryEvidence:
     """Minimal provenance returned when a fresh memory item informs a finding."""
 
     evidence_digest: str
+    record_digest: str
     source_sha: str
     recorded_at: str
 

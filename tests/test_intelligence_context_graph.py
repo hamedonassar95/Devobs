@@ -1,4 +1,5 @@
 """Offline behavioral tests: numeric telemetry, graph, isolation, bounded retrieval."""
+import json
 import sys
 import unittest
 from datetime import datetime, timezone, timedelta
@@ -138,6 +139,31 @@ class ContextTests(unittest.TestCase):
             with self.subTest(source_sha=source_sha, recorded_at=recorded_at):
                 with self.assertRaises(ContextError):
                     provenanced_memory(source_sha=source_sha, recorded_at=recorded_at)
+
+    def test_incident_record_wire_contract_roundtrips_legacy_and_provenanced_records(self):
+        for original in (memory(), provenanced_memory()):
+            with self.subTest(provenanced=original.source_sha is not None):
+                to_record = getattr(original, "to_record", None)
+                if not callable(to_record):
+                    self.fail("IncidentRecord must expose a JSON-compatible record contract")
+                wire_record = to_record()
+                self.assertEqual(wire_record["schema_version"], 1)
+                self.assertEqual(wire_record["record_digest"], original.record_digest)
+                restored = IncidentRecord.from_record(json.loads(json.dumps(wire_record)))
+                self.assertEqual(restored, original)
+
+    def test_incident_record_wire_contract_rejects_tampering_and_unknown_shapes(self):
+        original = provenanced_memory()
+        record = original.to_record()
+        for changed in (
+                {**record, "runbook_id": "RB-SEC-01"},
+                {**record, "schema_version": True},
+                {**record, "unknown": "value"},
+                {key: value for key, value in record.items() if key != "record_digest"},
+                {**record, "schema_version": 2},
+        ):
+            with self.subTest(record=changed), self.assertRaises(ContextError):
+                IncidentRecord.from_record(changed)
 
 
 if __name__=="__main__": unittest.main()

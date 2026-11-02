@@ -139,7 +139,8 @@ def correlate(topology: ServiceTopology | ServiceTopologySnapshot,
             topology.tenant,topology.project,root,recommendation.hypothesis,
             now=now,max_age_seconds=memory_max_age_seconds)
     memory_provenance=tuple(
-        IncidentMemoryEvidence(row.evidence_digest,row.source_sha,row.recorded_at)
+        IncidentMemoryEvidence(row.evidence_digest,row.record_digest,
+                              row.source_sha,row.recorded_at)
         for row in safe_memory
         if snapshot is not None and memory_max_age_seconds is not None
     )
