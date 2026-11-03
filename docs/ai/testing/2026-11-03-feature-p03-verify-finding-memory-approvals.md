@@ -6,7 +6,7 @@ description: Check signed provenance binding, scope isolation and fail-closed ca
 
 # Testing
 
-- Attested finding suite: 9 passed, including composed topology and memory verification.
+- Attested finding suite: 9 passed, including encrypted archive restore, correlation, signed-topology validation and curator approval verification end to end.
 - Finding-memory provenance suite: 4 passed, including cross-tenant, missing, extra and invalid signatures.
 - Incident-memory approval suite: 15 passed.
 - Full Python suite — 890 passed, 22 skipped.

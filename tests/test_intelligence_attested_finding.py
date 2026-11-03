@@ -24,6 +24,10 @@ from devobs_intelligence.incident_memory import (  # noqa: E402
 from devobs_intelligence.incident_memory_approval import (  # noqa: E402
     IncidentMemoryApprovalRegistry,
 )
+from devobs_intelligence.incident_memory_encryption import (  # noqa: E402
+    decrypt_approved_incident_memory_bundle,
+    encrypt_incident_memory_bundle,
+)
 from devobs_intelligence.topology_attestation import (  # noqa: E402
     RotatingTopologyKeyring,
 )
@@ -246,8 +250,19 @@ class AttestedImpactFindingTests(unittest.TestCase):
                 canonical_json(approval_payload),
             ).hex(),
         }
-        memory = IncidentMemory.from_approved_envelopes(
+        source_memory = IncidentMemory.from_approved_envelopes(
             [approval], memory_keys, now=NOW,
+            consumption_registry=IncidentMemoryApprovalRegistry(),
+        )
+        archive_key = bytes(range(32))
+        encrypted_archive = encrypt_incident_memory_bundle(
+            source_memory, archive_key, tenant="alpha", project="platform",
+            now=NOW, retention_seconds=3600,
+        )
+        memory = decrypt_approved_incident_memory_bundle(
+            encrypted_archive, archive_key,
+            expected_tenant="alpha", expected_project="platform", now=NOW,
+            approval_envelopes=[approval], trusted_public_keys=memory_keys,
             consumption_registry=IncidentMemoryApprovalRegistry(),
         )
         telemetry = normalize_telemetry({
