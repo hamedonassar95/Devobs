@@ -904,6 +904,17 @@
       "ci_run_id": 41517947412,
       "verification": "VERIFIED 2026-11-02: PR #406 merged at f77fa477f7947e26ff8a8ab913c2a5e5827c7072 from head 42d74b4794bb5657e9589e98a03f574b9941d993. PR CI 41517982224 and push CI 41517947412 succeeded; CodeQL 41517974684 passed for Actions, JavaScript/TypeScript, and Python; Vercel preview succeeded. Advisory review workflow 41517982141 completed but skipped the Codex review step because explicit budget approval was absent. Exact-merge main CI 41519008530 and CodeQL 41519007046 succeeded; main CI published and verified static Pages.",
       "limitations": "Per-category rates and the Wilson interval summarize only five deterministic synthetic cases. They are not calibrated model confidence or real-world quality and do not establish safe-refusal, latency, or inference cost. No model inference occurred; static Pages is not a hosted API runtime. Gate dispositions did not change."
+    },
+    {
+      "id": "p04-fixture-provenance-pr407",
+      "area": "QUALITY",
+      "title": "Bind the offline adviser scorecard to a manifest-pinned synthetic fixture",
+      "pr_number": 407,
+      "pr_head_sha": "ea5108c7855ebb2e4502d89c6b558dbed5aa9da5",
+      "merge_sha": "437200597912e5d6f92cf7f9e6aad679b40b0e33",
+      "ci_run_id": 41520175435,
+      "verification": "VERIFIED 2026-11-02: PR #407 merged at 437200597912e5d6f92cf7f9e6aad679b40b0e33 from head ea5108c7855ebb2e4502d89c6b558dbed5aa9da5. PR CI 41520175435 and push CI 41520203368 SUCCESS; CodeQL 41520195858 SUCCESS for Actions, Python and JavaScript/TypeScript; Vercel preview SUCCESS. Advisory workflow 41520203275 completed but skipped Codex inference because explicit budget approval was absent. Exact-merge main CI 41520608784 and CodeQL 41520607823 SUCCESS. Main CI published and verified static Pages; controlled incident drill and restoration jobs were skipped by workflow conditions.",
+      "limitations": "The manifest binds only the deterministic synthetic, unreviewed fixture. It does not establish independent labels, real-world quality, model inference, latency/cost, or a hosted API runtime. Pages is static-site evidence. Gate dispositions did not change."
     }
   ],
   "gates": [

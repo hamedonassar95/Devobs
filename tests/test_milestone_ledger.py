@@ -772,6 +772,24 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
         self.assertEqual(gates["codex-agent-runtime-acceptance"], "OPEN")
 
+    def test_pr407_merge_is_recorded_with_post_merge_evidence_and_unchanged_gates(self):
+        records = {item["pr_number"]: item for item in self.data["milestones"]}
+        entry = records[407]
+        self.assertEqual(entry["pr_head_sha"], "ea5108c7855ebb2e4502d89c6b558dbed5aa9da5")
+        self.assertEqual(entry["merge_sha"], "437200597912e5d6f92cf7f9e6aad679b40b0e33")
+        self.assertEqual(entry["ci_run_id"], 41520175435)
+        self.assertIn("41520203368 SUCCESS", entry["verification"])
+        self.assertIn("41520195858 SUCCESS", entry["verification"])
+        self.assertIn("41520608784", entry["verification"])
+        self.assertIn("41520607823 SUCCESS", entry["verification"])
+        self.assertIn("skipped Codex inference", entry["verification"])
+        self.assertIn("synthetic, unreviewed fixture", entry["limitations"])
+        self.assertIn("Gate dispositions did not change", entry["limitations"])
+        gates = {item["id"]: item["status"] for item in self.data["gates"]}
+        self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
+        self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
+        self.assertEqual(gates["codex-agent-runtime-acceptance"], "OPEN")
+
     def test_duplicate_achievement_rejected(self):
         self.data["milestones"].append(copy.deepcopy(self.data["milestones"][-1]))
         with self.assertRaisesRegex(InvalidLedger, "duplicate|not increasing"):

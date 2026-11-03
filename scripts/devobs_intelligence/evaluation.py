@@ -149,6 +149,8 @@ def evaluate_cases(cases: list[dict], *, target_accuracy: float | None = None) -
 
     non_abstained = len(cases) - abstentions
     accuracy = correct / len(cases)
+    coverage = non_abstained / len(cases)
+    unknown_output_rate = abstentions / len(cases)
     per_category = {}
     for category in sorted(_CATEGORIES):
         support = sum(actual == category for actual in expected_categories)
@@ -193,8 +195,22 @@ def evaluate_cases(cases: list[dict], *, target_accuracy: float | None = None) -
             "successes": correct,
             "trials": len(cases),
         },
+        "coverage": {
+            "value": coverage,
+            "numerator": non_abstained,
+            "denominator": len(cases),
+        },
+        "unknown_output_rate": {
+            "value": unknown_output_rate,
+            "numerator": abstentions,
+            "denominator": len(cases),
+        },
         "per_category": per_category,
         "selective_accuracy": non_abstained_correct / non_abstained if non_abstained else None,
+        "selective_accuracy_counts": {
+            "numerator": non_abstained_correct,
+            "denominator": non_abstained,
+        },
         "target_accuracy": float(target_accuracy) if target_accuracy is not None else None,
         "meets_target": accuracy >= target_accuracy if target_accuracy is not None else None,
         "confidence_calibrated": False,
