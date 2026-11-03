@@ -948,6 +948,17 @@
       "ci_run_id": 41619952990,
       "verification": "VERIFIED 2026-11-03: PR #410 merged at 138fa5423e5aef705c8f8be99fbae51bf5e546bb from head 470f02f5d9d1c5a08e806d598ec1179f6b34f8a9. PR CI 41619952990 and push CI 41619914219 SUCCESS; CodeQL 41619947629 SUCCESS for Actions, JavaScript/TypeScript and Python; Vercel preview SUCCESS. Advisory review workflow completed but its Codex model-review step was skipped. Exact-merge main CI 41620390423 and CodeQL 41620389693 SUCCESS; main CI published and verified static Pages. Controlled incident drill and restoration checks were skipped by workflow conditions.",
       "limitations": "The insufficient-evidence abstention rate uses one explicitly labeled insufficient case in a five-case synthetic, unreviewed fixture. It is not a general safe-refusal rate or evidence of real-world model quality; no model inference or hosted API runtime occurred. Gate dispositions did not change."
+    },
+    {
+      "id": "p04-sufficient-evidence-abstention-pr411",
+      "area": "QUALITY",
+      "title": "Add sufficient-evidence abstention rate to offline synthetic scorecard",
+      "pr_number": 411,
+      "pr_head_sha": "db7592d93b674f12d56b338c80494790ba965020",
+      "merge_sha": "5c8cb05d12560d9771769fbf7a157df056e91934",
+      "ci_run_id": 41626407724,
+      "verification": "VERIFIED 2026-11-03: PR #411 merged at 5c8cb05d12560d9771769fbf7a157df056e91934 from head db7592d93b674f12d56b338c80494790ba965020. PR CI 41626407724 and push CI 41626384456 SUCCESS; CodeQL 41626404076 SUCCESS for Actions, JavaScript/TypeScript and Python; Vercel preview SUCCESS. The Codex model-review step was skipped because explicit budget approval was absent. Exact-merge main CI 41626783764 and CodeQL 41626782537 SUCCESS; main CI published and verified static Pages. Node was skipped by path selection on main. Controlled incident drill and restoration checks were skipped by workflow conditions.",
+      "limitations": "The sufficient-evidence abstention rate is descriptive over four synthetic, unreviewed labels in a five-case fixture. It does not establish label accuracy, a general safe-refusal rate, or real-world model quality. No model inference or hosted API runtime occurred. Gate dispositions did not change."
     }
   ],
   "gates": [

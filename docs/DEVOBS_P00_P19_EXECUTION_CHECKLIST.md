@@ -101,6 +101,7 @@
 
 - [ ] **T28: Curate consented human-labeled incidents.** Record inclusion policy, anonymization, label provenance and review split.
 - [ ] **T29: Create versioned golden benchmark.** At least 30 labeled cases for initial review; segment classes; no synthetic-to-production claim.
+  Partial local capability: `evaluation_splits.summarize_review_splits` rejects incident-group leakage across development, calibration and holdout assignments and emits aggregate counts only. Tests use synthetic metadata. No reviewed benchmark or human-labeled incidents are present; T29 remains open.
 - [ ] **T30: Gate top-1/top-3 and abstention in CI.** Measure denominators, prevent regressions against approved baseline; no spurious score.
 - [ ] **T31: Evaluate false positives, confidence and drift.** Publish calibration, class errors, fresh data comparisons and human escalation triggers.
 - [ ] **T32: Measure operational value.** Define and collect MTTD/MTTR, noise, override and cost/incident only when actual observations exist.
