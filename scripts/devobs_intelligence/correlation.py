@@ -13,6 +13,9 @@ from .context import (
 )
 from .contracts import parse_event
 from .incident_memory import IncidentMemory, IncidentMemoryEvidence
+from .incident_memory_approval import (
+    VerifiedIncidentMemoryApproval, verify_incident_memory_approvals,
+)
 from .topology_attestation import (
     RotatingTopologyKeyring, verify_topology_attestation,
 )
@@ -391,6 +394,7 @@ class AttestedImpactFinding:
     topology_key_id: str
     topology_attestation_digest: str
     topology_snapshot_digest: str
+    memory_approvals: tuple[VerifiedIncidentMemoryApproval, ...] = ()
 
 
 def _revalidate_snapshot(value: ServiceTopologySnapshot) -> ServiceTopologySnapshot:
@@ -487,7 +491,10 @@ def validate_attested_impact_finding(
         | RotatingTopologyKeyring, *,
         expected_tenant: str, expected_project: str,
         expected_source_sha: str, now_utc: datetime,
-        max_age_seconds: int = 900) -> AttestedImpactFinding:
+        max_age_seconds: int = 900,
+        memory_approval_envelopes: object | None = None,
+        trusted_memory_public_keys: dict[tuple[str, str, str], bytes]
+        | None = None) -> AttestedImpactFinding:
     """Verify a signed topology envelope, then validate a finding against it.
 
     Expected scope and source SHA must come from the caller's independently
@@ -496,6 +503,12 @@ def validate_attested_impact_finding(
     updates; this helper does not establish key enrollment.
     """
     finding = IncidentFinding.from_record(finding_record)
+    if ((memory_approval_envelopes is None)
+            != (trusted_memory_public_keys is None)):
+        raise ContextError("invalid_memory_approval_query")
+    if (finding.memory_provenance
+            and memory_approval_envelopes is None):
+        raise ContextError("incident_finding_memory_approval_required")
     attestation = verify_topology_attestation(
         attestation_record, trusted_public_keys,
         expected_tenant=expected_tenant,
@@ -506,12 +519,73 @@ def validate_attested_impact_finding(
     validated = validate_impact_paths_against_snapshot(
         finding.to_record(), attestation.snapshot, now_utc=now_utc,
     )
+    memory_approvals = ()
+    if memory_approval_envelopes is not None:
+        memory_approvals = verify_incident_finding_memory_provenance(
+            validated.to_record(), memory_approval_envelopes,
+            trusted_memory_public_keys, now_utc=now_utc,
+        )
     return AttestedImpactFinding(
         finding=validated,
         topology_key_id=attestation.key_id,
         topology_attestation_digest=attestation.attestation_digest,
         topology_snapshot_digest=attestation.snapshot.snapshot_digest,
+        memory_approvals=memory_approvals,
     )
+
+
+def verify_incident_finding_memory_provenance(
+        finding_record: dict, approval_envelopes: object,
+        trusted_public_keys: dict[tuple[str, str, str], bytes], *,
+        now_utc: datetime,
+        ) -> tuple[VerifiedIncidentMemoryApproval, ...]:
+    """Re-verify active curator approvals referenced by a serialized finding.
+
+    The finding digest is unkeyed, so it is not proof of curator approval.
+    This helper verifies the original signed envelopes and binds their exact
+    records, scope, approval metadata and runbooks to the finding.
+    """
+    finding = IncidentFinding.from_record(finding_record)
+    if (type(now_utc) is not datetime or now_utc.tzinfo is None
+            or now_utc.utcoffset() is None):
+        raise ContextError("invalid_query")
+    if type(approval_envelopes) is not list:
+        raise ContextError("invalid_memory_approval_batch")
+    if not finding.memory_provenance:
+        if approval_envelopes:
+            raise ContextError("incident_finding_memory_mismatch")
+        return ()
+
+    verified = verify_incident_memory_approvals(
+        approval_envelopes, trusted_public_keys,
+        now=now_utc.astimezone(timezone.utc),
+    )
+    evidence_by_id = {
+        item.approval_id: item for item in finding.memory_provenance
+    }
+    approvals_by_id = {item.approval_id: item for item in verified}
+    if (len(evidence_by_id) != len(finding.memory_provenance)
+            or evidence_by_id.keys() != approvals_by_id.keys()):
+        raise ContextError("incident_finding_memory_mismatch")
+
+    runbook_ids = set()
+    for approval_id, approval in approvals_by_id.items():
+        evidence = evidence_by_id[approval_id]
+        record = approval.record
+        runbook_ids.add(record.runbook_id)
+        if (
+            (record.tenant, record.project) != (finding.tenant, finding.project)
+            or evidence.evidence_digest != record.evidence_digest
+            or evidence.record_digest != record.record_digest
+            or evidence.source_sha != record.source_sha
+            or evidence.recorded_at != record.recorded_at
+            or evidence.approver_id != approval.approver_id
+            or evidence.approval_digest != approval.approval_digest
+        ):
+            raise ContextError("incident_finding_memory_mismatch")
+    if runbook_ids != set(finding.runbook_ids):
+        raise ContextError("incident_finding_memory_mismatch")
+    return tuple(sorted(verified, key=lambda item: item.approval_id))
 
 
 def correlate(topology: ServiceTopology | ServiceTopologySnapshot,

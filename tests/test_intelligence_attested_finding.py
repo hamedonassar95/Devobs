@@ -18,7 +18,12 @@ from devobs_intelligence.correlation import (  # noqa: E402
     AttestedImpactFinding, IncidentFinding, correlate,
     validate_attested_impact_finding,
 )
-from devobs_intelligence.incident_memory import IncidentMemory  # noqa: E402
+from devobs_intelligence.incident_memory import (  # noqa: E402
+    IncidentMemory, IncidentRecord,
+)
+from devobs_intelligence.incident_memory_approval import (  # noqa: E402
+    IncidentMemoryApprovalRegistry,
+)
 from devobs_intelligence.topology_attestation import (  # noqa: E402
     RotatingTopologyKeyring,
 )
@@ -212,6 +217,65 @@ class AttestedImpactFindingTests(unittest.TestCase):
 
         self.assertEqual(result.finding.status, "INSUFFICIENT_EVIDENCE")
         self.assertEqual(result.finding.impact_paths, ())
+
+    def test_attested_finding_reverifies_memory_approval_envelope(self):
+        curator_private_key = Ed25519PrivateKey.generate()
+        curator_public_key = curator_private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        memory_keys = {("alpha", "platform", "curator-1"): curator_public_key}
+        record = IncidentRecord(
+            "alpha", "platform", "db", "high_error_rate", "RB-SLO-01",
+            "resolved", "d" * 64, SOURCE_SHA,
+            (NOW - timedelta(seconds=20)).isoformat(
+                timespec="microseconds").replace("+00:00", "Z"),
+        )
+        approval_payload = {
+            "schema_version": 1,
+            "approval_id": "1" * 32,
+            "approver_id": "curator-1",
+            "approved_at": (NOW - timedelta(seconds=10)).isoformat(
+                timespec="microseconds").replace("+00:00", "Z"),
+            "expires_at": (NOW + timedelta(minutes=20)).isoformat(
+                timespec="microseconds").replace("+00:00", "Z"),
+            "record": record.to_record(),
+        }
+        approval = {
+            **approval_payload,
+            "signature": curator_private_key.sign(
+                canonical_json(approval_payload),
+            ).hex(),
+        }
+        memory = IncidentMemory.from_approved_envelopes(
+            [approval], memory_keys, now=NOW,
+            consumption_registry=IncidentMemoryApprovalRegistry(),
+        )
+        telemetry = normalize_telemetry({
+            "tenant": "alpha", "project": "platform", "service": "db",
+            "source_sha": SOURCE_SHA, "observed_at": NOW.isoformat(),
+            "metric": "error_rate_pct", "value": 8,
+            "evidence_digest": "e" * 64,
+        })
+        finding = correlate(
+            self.snapshot, [telemetry], memory, NOW,
+            memory_max_age_seconds=60,
+        )
+
+        with self.assertRaisesRegex(
+                ContextError, "incident_finding_memory_approval_required"):
+            self.validate(finding=finding)
+        result = validate_attested_impact_finding(
+            finding.to_record(), self.envelope(), self.keyring,
+            expected_tenant="alpha", expected_project="platform",
+            expected_source_sha=SOURCE_SHA, now_utc=NOW,
+            max_age_seconds=60,
+            memory_approval_envelopes=[approval],
+            trusted_memory_public_keys=memory_keys,
+        )
+
+        self.assertEqual(len(result.memory_approvals), 1)
+        self.assertEqual(result.memory_approvals[0].approval_id, "1" * 32)
+        self.assertEqual(result.memory_approvals[0].record, record)
 
 
 if __name__ == "__main__":
