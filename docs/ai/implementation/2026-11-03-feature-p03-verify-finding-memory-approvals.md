@@ -10,7 +10,8 @@ Added `verify_incident_finding_memory_provenance` in
 `scripts/devobs_intelligence/correlation.py`. It validates active Ed25519
 approval envelopes, requires one-to-one agreement with the finding's provenance
 items, checks each signed record against the finding scope and source fields,
-and checks the exact runbook set. The caller must also provide a bounded
+checks the root service and finding category, and checks the exact runbook set.
+The caller must also provide a bounded
 `memory_max_age_seconds`; signed records that are future-dated or older than
 that policy are rejected as stale.
 

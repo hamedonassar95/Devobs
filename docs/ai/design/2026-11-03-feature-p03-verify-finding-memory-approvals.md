@@ -12,8 +12,9 @@ signed approval envelopes and a separate trusted memory public-key map.
 
 The verifier checks that the complete approval set matches the finding's
 tenant/project, evidence and record digests, source SHA, recorded time, approver,
-approval digest and runbook set. It rejects missing, extra, invalid, expired,
-or cross-scope approvals. The verifier also requires a caller-supplied memory
+approval digest, runbook set, root service and finding category. It rejects
+missing, extra, invalid, expired, cross-scope or unrelated approvals. The
+verifier also requires a caller-supplied memory
 age bound and rejects signed records whose recorded time is in the future or
 outside that bound. Findings without memory provenance require no approval
 envelopes or memory age bound.

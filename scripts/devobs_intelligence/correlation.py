@@ -588,6 +588,7 @@ def verify_incident_finding_memory_provenance(
         raise ContextError("incident_finding_memory_mismatch")
 
     runbook_ids = set()
+    root_service = finding.ranked_services[0] if finding.ranked_services else None
     for approval_id, approval in approvals_by_id.items():
         evidence = evidence_by_id[approval_id]
         record = approval.record
@@ -602,6 +603,8 @@ def verify_incident_finding_memory_provenance(
         runbook_ids.add(record.runbook_id)
         if (
             (record.tenant, record.project) != (finding.tenant, finding.project)
+            or record.service != root_service
+            or record.category != finding.category
             or evidence.evidence_digest != record.evidence_digest
             or evidence.record_digest != record.record_digest
             or evidence.source_sha != record.source_sha

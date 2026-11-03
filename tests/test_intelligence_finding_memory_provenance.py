@@ -152,6 +152,37 @@ class FindingMemoryProvenanceTests(unittest.TestCase):
                         ContextError, "stale_incident_memory"):
                     self.validate(finding=finding, envelopes=[approval])
 
+    def test_approval_must_match_finding_root_service_and_category(self):
+        unrelated_records = (
+            replace(self.record, service="api"),
+            replace(
+                self.record, category="capacity_pressure",
+                runbook_id="RB-CAP-01",
+            ),
+        )
+        for index, record in enumerate(unrelated_records, start=2):
+            with self.subTest(service=record.service, category=record.category):
+                approval = self.sign(record, approval_id=f"{index:032x}")
+                verified = verify_incident_memory_approval(
+                    approval, self.trusted_keys, now=_NOW,
+                )
+                evidence = IncidentMemoryEvidence(
+                    evidence_digest=record.evidence_digest,
+                    record_digest=record.record_digest,
+                    source_sha=record.source_sha,
+                    recorded_at=record.recorded_at,
+                    approval_id=approval["approval_id"],
+                    approver_id=approval["approver_id"],
+                    approval_digest=verified.approval_digest,
+                )
+                finding = replace(
+                    self.finding, runbook_ids=(record.runbook_id,),
+                    memory_provenance=(evidence,),
+                )
+                with self.assertRaisesRegex(
+                        ContextError, "incident_finding_memory_mismatch"):
+                    self.validate(finding=finding, envelopes=[approval])
+
     def test_memory_age_policy_is_required_and_bounded(self):
         with self.assertRaisesRegex(
                 ContextError, "incident_finding_memory_age_required"):

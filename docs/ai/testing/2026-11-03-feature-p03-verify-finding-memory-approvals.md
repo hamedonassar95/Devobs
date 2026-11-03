@@ -7,9 +7,9 @@ description: Check signed provenance binding, scope isolation and fail-closed ca
 # Testing
 
 - Attested finding suite: 9 passed, including encrypted archive restore, correlation, signed-topology validation and curator approval verification end to end.
-- Finding-memory provenance suite: 6 passed, including cross-tenant, missing, extra and invalid signatures, plus stale/future records and required/bounded age policy.
+- Finding-memory provenance suite: 7 passed, including cross-tenant, missing, extra and invalid signatures, stale/future records, required/bounded age policy, and wrong-service/category approvals.
 - Incident-memory approval suite: 15 passed.
-- Full Python suite — 892 passed, 22 skipped.
+- Full Python suite — 893 passed, 22 skipped.
 - `python3 -m compileall -q scripts/devobs_intelligence tests` and `git diff --check` — passed.
 
 The full suite used locked `psycopg[binary]==3.3.6` in a temporary target
