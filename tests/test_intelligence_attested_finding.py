@@ -26,6 +26,7 @@ from devobs_intelligence.topology_attestation import (  # noqa: E402
 NOW = datetime(2026, 11, 3, 12, 0, tzinfo=timezone.utc)
 SOURCE_SHA = "a" * 40
 _DOMAIN = b"devobs-topology-attestation-v1\n"
+_ROTATION_DOMAIN = b"devobs-topology-keyring-update-v1\n"
 
 
 def canonical_json(value):
@@ -50,13 +51,17 @@ def make_snapshot(*, edges=None, captured_at=None):
 class AttestedImpactFindingTests(unittest.TestCase):
     def setUp(self):
         self.private_key = Ed25519PrivateKey.generate()
+        self.operator_private_key = Ed25519PrivateKey.generate()
         public_key = self.private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        operator_public_key = self.operator_private_key.public_key().public_bytes(
             serialization.Encoding.Raw, serialization.PublicFormat.Raw,
         )
         self.public_key = public_key
         self.keyring = RotatingTopologyKeyring({
             ("alpha", "platform", "collector-1"): public_key,
-        })
+        }, operator_public_keys={"operator-1": operator_public_key})
         topology = make_snapshot()
         telemetry = normalize_telemetry({
             "tenant": "alpha", "project": "platform", "service": "db",
@@ -82,6 +87,27 @@ class AttestedImpactFindingTests(unittest.TestCase):
                 _DOMAIN + canonical_json(payload),
             ).hex(),
         }
+
+    def keyring_update(self, keys, revision):
+        entries = [
+            {
+                "tenant": scope[0],
+                "project": scope[1],
+                "key_id": scope[2],
+                "public_key": key.hex(),
+            }
+            for scope, key in sorted(keys.items())
+        ]
+        payload = {
+            "schema_version": 1,
+            "revision": revision,
+            "operator_key_id": "operator-1",
+            "keys": entries,
+        }
+        signature = self.operator_private_key.sign(
+            _ROTATION_DOMAIN + canonical_json(payload),
+        ).hex()
+        return {**payload, "signature": signature}
 
     def validate(self, finding=None, attestation=None, **overrides):
         options = {
@@ -115,10 +141,10 @@ class AttestedImpactFindingTests(unittest.TestCase):
         )
         old_scope = ("alpha", "platform", "collector-1")
         new_scope = ("alpha", "platform", "collector-2")
-        self.keyring.install_operator_verified({
+        self.keyring.install_signed_update(self.keyring_update({
             old_scope: self.public_key,
             new_scope: new_public_key,
-        }, revision=2)
+        }, revision=2))
 
         new_envelope = self.envelope(
             key_id="collector-2", private_key=new_private_key,
@@ -126,9 +152,9 @@ class AttestedImpactFindingTests(unittest.TestCase):
         result = self.validate(attestation=new_envelope)
         self.assertEqual(result.topology_key_id, "collector-2")
 
-        self.keyring.install_operator_verified({
+        self.keyring.install_signed_update(self.keyring_update({
             new_scope: new_public_key,
-        }, revision=3)
+        }, revision=3))
         with self.assertRaisesRegex(ContextError, "^untrusted_topology_signer$"):
             self.validate()
 

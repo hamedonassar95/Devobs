@@ -16,10 +16,19 @@ from .context import ContextError, ServiceTopologySnapshot
 _ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}\Z")
 _SHA = re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})\Z")
 _SIGNATURE = re.compile(r"[0-9a-f]{128}\Z")
+_PUBLIC_KEY_HEX = re.compile(r"[0-9a-f]{64}\Z")
 _FIELDS = frozenset({"schema_version", "key_id", "snapshot", "signature"})
+_KEYRING_UPDATE_FIELDS = frozenset({
+    "schema_version", "revision", "operator_key_id", "keys", "signature",
+})
+_KEYRING_UPDATE_ENTRY_FIELDS = frozenset({
+    "tenant", "project", "key_id", "public_key",
+})
 _VERSION = 1
 _DOMAIN = b"devobs-topology-attestation-v1\n"
+_ROTATION_DOMAIN = b"devobs-topology-keyring-update-v1\n"
 _MAX_KEYRING_ENTRIES = 100
+_MAX_OPERATOR_KEYS = 100
 _MAX_REVOKED_KEY_IDS = 10_000
 
 
@@ -60,21 +69,36 @@ class TopologyKeyringRotationRejected(ValueError):
     """Fixed, non-sensitive error for an invalid local trust-set update."""
 
 
+def _validated_operator_keys(value: object) -> dict[str, bytes]:
+    if (type(value) is not dict
+            or not 1 <= len(value) <= _MAX_OPERATOR_KEYS):
+        raise TopologyKeyringRotationRejected("invalid_topology_update_trust")
+    keys = {}
+    for key_id, public_key in value.items():
+        if (type(key_id) is not str or _ID.fullmatch(key_id) is None
+                or type(public_key) is not bytes or len(public_key) != 32):
+            raise TopologyKeyringRotationRejected("invalid_topology_update_trust")
+        keys[key_id] = public_key
+    return keys
+
+
 class RotatingTopologyKeyring:
     """Process-local atomic rotation for operator-verified public keys.
 
-    The caller must authenticate the source, operator, and revision before
-    installing an update. The revision and removed-key tombstones are held in
-    memory only; they do not prevent rollback after a process restart or
-    synchronize updates across workers. The tombstone set is bounded to avoid
+    Operator public keys are trust anchors supplied at construction and must
+    come from protected configuration. Each update must carry an Ed25519
+    signature from one of those anchors. The revision and removed-key
+    tombstones are memory-only; they do not prevent rollback after restart or
+    synchronize updates across workers. Tombstones are bounded to avoid
     unbounded process memory growth; rotation fails closed at that bound.
     """
 
     def __init__(self, trusted_public_keys: dict[tuple[str, str, str], bytes],
-                 *, revision: int = 1):
+                 *, operator_public_keys: dict[str, bytes], revision: int = 1):
         if type(revision) is not int or not 1 <= revision <= 2**31 - 1:
             raise TopologyKeyringRotationRejected("invalid_key_revision")
         self._current = _validated_keyring(trusted_public_keys)
+        self._operator_keys = _validated_operator_keys(operator_public_keys)
         self._revoked: set[tuple[str, str, str]] = set()
         self._revision = revision
         self._lock = Lock()
@@ -89,18 +113,69 @@ class RotatingTopologyKeyring:
         with self._lock:
             return self._revision
 
-    def install_operator_verified(
-            self, trusted_public_keys: dict[tuple[str, str, str], bytes], *,
-            revision: int) -> None:
-        """Atomically install an authenticated update with a newer revision.
+    def install_signed_update(self, update: object) -> None:
+        """Verify an operator-signed update, then atomically replace the set.
 
-        Keys may overlap during planned rotation. Removing a key immediately
-        revokes it for later verification calls, and its scoped key ID is
-        tombstoned so it cannot be reintroduced or rebound to different bytes.
+        The operator public-key map is a trust anchor supplied at construction
+        and must itself come from protected configuration. The signed update
+        binds the revision and complete, sorted scoped-key set.
         """
-        if type(revision) is not int or not 1 <= revision <= 2**31 - 1:
-            raise TopologyKeyringRotationRejected("invalid_key_revision")
-        candidate = _validated_keyring(trusted_public_keys, allow_empty=True)
+        if (type(update) is not dict
+                or set(update) != _KEYRING_UPDATE_FIELDS):
+            raise TopologyKeyringRotationRejected(
+                "invalid_topology_keyring_update")
+        if (type(update["schema_version"]) is not int
+                or update["schema_version"] != _VERSION):
+            raise TopologyKeyringRotationRejected(
+                "unsupported_topology_keyring_update")
+        revision = update["revision"]
+        operator_key_id = update["operator_key_id"]
+        entries = update["keys"]
+        signature_hex = update["signature"]
+        if (type(revision) is not int or not 1 <= revision <= 2**31 - 1
+                or type(operator_key_id) is not str
+                or _ID.fullmatch(operator_key_id) is None
+                or type(entries) is not list
+                or len(entries) > _MAX_KEYRING_ENTRIES
+                or type(signature_hex) is not str
+                or _SIGNATURE.fullmatch(signature_hex) is None):
+            raise TopologyKeyringRotationRejected(
+                "invalid_topology_keyring_update")
+
+        candidate = {}
+        previous_scope = None
+        for entry in entries:
+            if (type(entry) is not dict
+                    or set(entry) != _KEYRING_UPDATE_ENTRY_FIELDS):
+                raise TopologyKeyringRotationRejected(
+                    "invalid_topology_keyring_update")
+            scope = (entry["tenant"], entry["project"], entry["key_id"])
+            public_key_hex = entry["public_key"]
+            if (any(type(part) is not str or _ID.fullmatch(part) is None
+                    for part in scope)
+                    or type(public_key_hex) is not str
+                    or _PUBLIC_KEY_HEX.fullmatch(public_key_hex) is None
+                    or (previous_scope is not None and scope <= previous_scope)):
+                raise TopologyKeyringRotationRejected(
+                    "invalid_topology_keyring_update")
+            candidate[scope] = bytes.fromhex(public_key_hex)
+            previous_scope = scope
+
+        operator_public_key = self._operator_keys.get(operator_key_id)
+        if operator_public_key is None:
+            raise TopologyKeyringRotationRejected(
+                "untrusted_topology_update_signer")
+        payload = {key: update[key] for key in _KEYRING_UPDATE_FIELDS
+                   if key != "signature"}
+        try:
+            Ed25519PublicKey.from_public_bytes(operator_public_key).verify(
+                bytes.fromhex(signature_hex),
+                _ROTATION_DOMAIN + _canonical_json(payload),
+            )
+        except (InvalidSignature, ValueError):
+            raise TopologyKeyringRotationRejected(
+                "invalid_topology_keyring_update_signature") from None
+
         with self._lock:
             if revision <= self._revision:
                 raise TopologyKeyringRotationRejected("stale_key_revision")
