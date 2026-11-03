@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1220">
+  <meta name="description" content="مخطط محلي لأفكار وجدول نشر قناة يوتيوب، مع بحث Google Trends.">
+  <title>مخطط محتوى القناة | Devobs</title>
+  <link rel="stylesheet" href="planner.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <a class="back" href="../../">← العودة إلى Devobs</a>
+      <span class="privacy">يحفظ بياناتك في هذا المتصفح فقط</span>
+    </header>
+    <section class="intro" aria-labelledby="page-title">
+      <p class="eyebrow">YOUTUBE CONTENT WORKSPACE</p>
+      <h1 id="page-title">مخطط محتوى قناتك</h1>
+      <p>رتّب أفكار Shorts والفيديوهات الطويلة، سجّل موضوع Google Trends، وتابع كل فكرة حتى النشر.</p>
+    </section>
+
+    <section class="trend-panel" aria-labelledby="trend-title">
+      <div>
+        <p class="eyebrow">اكتشاف الموضوعات</p>
+        <h2 id="trend-title">تحقق من الاهتمام عبر Google Trends</h2>
+        <p>اختر موضوعًا مناسبًا للقناة، ثم راجع الاهتمام وعمليات البحث ذات الصلة في بحث YouTube.</p>
+      </div>
+      <form id="trends-form" class="trend-form">
+        <label>عبارة البحث<input id="trend-query" type="search" placeholder="مثال: قصة من القرآن" required></label>
+        <label>رمز البلد<input id="trend-country" type="text" inputmode="text" maxlength="2" pattern="[A-Za-z]{2}" title="أدخل رمز البلد بحرفين، مثل JO" placeholder="مثل JO"></label>
+        <button class="button accent" type="submit">افتح Google Trends ↗</button>
+      </form>
+      <small class="hint">بيانات Trends نسبية وليست عددًا دقيقًا للمشاهدات. اختر بلد جمهورك من Analytics.</small>
+    </section>
+
+    <section class="stats" aria-label="ملخص الخطة" aria-live="polite">
+      <article><span>كل الأفكار</span><strong id="stat-total">0</strong></article>
+      <article><span>Shorts</span><strong id="stat-shorts">0</strong></article>
+      <article><span>فيديوهات طويلة</span><strong id="stat-long">0</strong></article>
+      <article><span>منشور</span><strong id="stat-published">0</strong></article>
+    </section>
+
+    <section class="workspace">
+      <form id="idea-form" class="panel editor">
+        <div class="panel-head"><div><p class="eyebrow">مساحة العمل</p><h2 id="form-title">أضف فكرة فيديو</h2></div><span class="step-mark">01</span></div>
+        <label>عنوان الفكرة<input id="idea-title" name="title" maxlength="120" placeholder="اكتب عنوانًا واضحًا ومحددًا" required></label>
+        <div class="form-row">
+          <label>الصيغة<select id="idea-type" name="type"><option value="short">Shorts</option><option value="long">فيديو طويل</option></select></label>
+          <label>الحالة<select id="idea-status" name="status"><option value="idea">فكرة</option><option value="script">كتابة النص</option><option value="production">تصوير أو مونتاج</option><option value="scheduled">مجدول</option><option value="published">منشور</option></select></label>
+        </div>
+        <label>موعد النشر المتوقع<input id="idea-date" name="date" type="date"></label>
+        <label>موضوع البحث أو رابط Google Trends<input id="idea-trend" name="trend" maxlength="500" placeholder="موضوع صاعد، عبارة بحث، أو رابط Trends"></label>
+        <label>النص والملاحظات<textarea id="idea-notes" name="notes" rows="5" maxlength="3000" placeholder="الخطاف، النقاط، المصادر، ودعوة المشاهد للتفاعل"></textarea></label>
+        <div class="form-actions"><button class="button primary" type="submit" id="save-button">حفظ الفكرة</button><button class="button quiet" type="reset" id="cancel-edit" hidden>إلغاء التعديل</button></div>
+        <p class="form-message" id="form-message" role="status"></p>
+      </form>
+
+      <section class="panel ideas" aria-labelledby="ideas-title">
+        <div class="panel-head"><div><p class="eyebrow">خطة النشر</p><h2 id="ideas-title">أفكارك</h2></div><div class="backup-actions"><button class="button quiet compact" id="export-button" type="button">تصدير نسخة</button><label class="button quiet compact import-label" for="import-file">استيراد</label><input id="import-file" type="file" accept="application/json,.json" hidden></div></div>
+        <div class="filters">
+          <label class="search-label">بحث<input id="filter-search" type="search" placeholder="ابحث في العناوين والملاحظات"></label>
+          <label>الصيغة<select id="filter-type"><option value="all">الكل</option><option value="short">Shorts</option><option value="long">فيديو طويل</option></select></label>
+          <label>الحالة<select id="filter-status"><option value="all">كل الحالات</option><option value="idea">فكرة</option><option value="script">كتابة النص</option><option value="production">تصوير أو مونتاج</option><option value="scheduled">مجدول</option><option value="published">منشور</option></select></label>
+        </div>
+        <p class="storage-note">التغييرات تُحفظ محليًا. الاستيراد يستبدل الخطة الحالية؛ صدّر نسخة احتياطية قبل النقل إلى جهاز آخر.</p>
+        <div id="idea-list" class="idea-list" aria-live="polite"></div>
+      </section>
+    </section>
+    <footer>لا يتم رفع أفكارك أو إرسالها إلى YouTube من هذه الصفحة.</footer>
+  </main>
+  <script src="planner.js" defer></script>
+</body>
+</html>
