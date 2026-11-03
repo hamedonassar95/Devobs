@@ -4,6 +4,7 @@ import json
 import sqlite3
 import sys
 import tempfile
+from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
 import unittest
@@ -16,6 +17,9 @@ from devobs_intelligence.context import ServiceTopologySnapshot
 from devobs_intelligence.contracts import parse_event
 from devobs_intelligence.policy import evaluate_action
 from devobs_intelligence.audit_store import AuditStore, AuditError
+
+_TOPOLOGY_ATTESTATION_DOMAIN = b'devobs-topology-attestation-v1\n'
+_AUDIT_TEST_NOW = datetime(2026, 10, 25, 12, 1, tzinfo=timezone.utc)
 
 
 def event(event_id='example-01', sha='a'*40):
@@ -43,6 +47,24 @@ def topology_pair():
         'evidence_digests': ['c' * 64],
     })
     return source, before, after
+
+
+def sign_topology(topology, private_key):
+    payload = {
+        'schema_version': 1,
+        'key_id': 'collector-1',
+        'snapshot': topology.to_record(),
+    }
+    signed_bytes = json.dumps(
+        payload, sort_keys=True, separators=(',', ':'), ensure_ascii=False,
+        allow_nan=False,
+    ).encode('utf-8')
+    return {
+        **payload,
+        'signature': private_key.sign(
+            _TOPOLOGY_ATTESTATION_DOMAIN + signed_bytes,
+        ).hex(),
+    }
 
 
 def recompute_chain_hashes(store):
@@ -419,6 +441,86 @@ class AuditStoreTests(unittest.TestCase):
             with self.subTest(event_id=candidate.event_id), self.assertRaisesRegex(
                     AuditError, 'invalid_topology_binding'):
                 self.store.record_topology_drift(candidate, before, after)
+        self.assertEqual(self.store.verify(), 0)
+
+    def test_attested_topology_drift_is_bound_idempotently_without_graph_or_key_data(self):
+        source, before, after = topology_pair()
+        private_key = Ed25519PrivateKey.generate()
+        public_key = private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        keyring = {('alpha', 'platform', 'collector-1'): public_key}
+        before_attestation = sign_topology(before, private_key)
+        after_attestation = sign_topology(after, private_key)
+
+        report, entry = self.store.record_attested_topology_drift(
+            source, before_attestation, after_attestation, keyring,
+            expected_tenant='alpha', expected_project='platform',
+            expected_before_source_sha='a' * 40,
+            expected_after_source_sha='b' * 40,
+            now=_AUDIT_TEST_NOW, max_age_seconds=300,
+        )
+        record = report.to_record()
+        self.assertEqual(entry.action, 'read_evidence')
+        self.assertEqual(entry.source_sha, 'b' * 40)
+        self.assertEqual(entry.subject_digest, record['attested_report_digest'])
+        self.assertEqual(self.store.verify(), 1)
+
+        persisted = self.store.connection.execute(
+            'SELECT event_id,source_sha,policy_version,decision,action,previous_hash,'
+            'record_hash,subject_digest FROM audit',
+        ).fetchone()
+        for private_value in ('api', 'platform', 'alpha', 'collector-1',
+                              public_key.hex(),
+                              before_attestation['signature'],
+                              after_attestation['signature']):
+            self.assertNotIn(private_value, repr(persisted))
+
+        repeated_report, repeated_entry = self.store.record_attested_topology_drift(
+            source, before_attestation, after_attestation, keyring,
+            expected_tenant='alpha', expected_project='platform',
+            expected_before_source_sha='a' * 40,
+            expected_after_source_sha='b' * 40,
+            now=_AUDIT_TEST_NOW, max_age_seconds=300,
+        )
+        self.assertEqual(repeated_report, report)
+        self.assertEqual(repeated_entry, entry)
+        self.assertEqual(self.store.verify(), 1)
+
+    def test_attested_drift_rejects_bad_signature_scope_or_source_before_write(self):
+        source, before, after = topology_pair()
+        private_key = Ed25519PrivateKey.generate()
+        public_key = private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        keyring = {('alpha', 'platform', 'collector-1'): public_key}
+        before_attestation = sign_topology(before, private_key)
+        after_attestation = sign_topology(after, private_key)
+        bad_signature = {**after_attestation, 'signature': '0' * 128}
+        wrong_scope = parse_event({
+            'schema_version': 1, 'event_id': 'wrong-attested-scope',
+            'provider': 'github', 'project_ref': 'other/platform',
+            'source_sha': 'b' * 40, 'kind': 'incident',
+            'observed_at': '2026-10-25T12:00:00Z',
+            'evidence_digests': ['c' * 64],
+        })
+
+        cases = (
+            (source, before_attestation, bad_signature, 'a' * 40, 'b' * 40),
+            (source, before_attestation, after_attestation, 'c' * 40, 'b' * 40),
+            (source, before_attestation, after_attestation, 'a' * 40, 'c' * 40),
+            (wrong_scope, before_attestation, after_attestation, 'a' * 40, 'b' * 40),
+        )
+        for candidate, first, second, before_sha, after_sha in cases:
+            with self.subTest(event_id=candidate.event_id), self.assertRaisesRegex(
+                    AuditError, 'invalid_topology_binding'):
+                self.store.record_attested_topology_drift(
+                    candidate, first, second, keyring,
+                    expected_tenant='alpha', expected_project='platform',
+                    expected_before_source_sha=before_sha,
+                    expected_after_source_sha=after_sha,
+                    now=_AUDIT_TEST_NOW, max_age_seconds=300,
+                )
         self.assertEqual(self.store.verify(), 0)
 
 

@@ -16,6 +16,12 @@ window, then calls the existing deterministic drift comparator. The returned
 `AttestedTopologyDriftReport` includes the two key IDs and signed-envelope
 digests without copying signatures or public keys into the report.
 
+Added `AuditStore.record_attested_topology_drift` as a separate opt-in path.
+It rejects an invalid envelope, either expected source SHA, scope, freshness,
+or mismatched incident event before appending. The existing audit chain stores
+only the attested report digest and after-source SHA; repeated delivery is
+idempotent.
+
 The canonical P00–P19 checklist now records the partial local T23 capability;
 its acceptance item remains unchecked.
 
@@ -26,5 +32,7 @@ without those original envelopes and the applicable trust configuration. The
 caller still supplies trust keys and expected source SHAs. A valid signature
 does not show that the signer observed a complete or truthful graph; every
 after-snapshot edge remains `UNVERIFIABLE` when per-edge source attribution is
-absent. No live collector, database, service, telemetry, AI model or cloud
-resource is used. T22/T23 remain open and P03 remains waiting for P02.
+absent. The audit store is local SQLite and is not externally anchored; it
+does not retain the original envelopes for signature replay. No live collector,
+database, service, telemetry, AI model or cloud resource is used. T22/T23 remain
+open and P03 remains waiting for P02.

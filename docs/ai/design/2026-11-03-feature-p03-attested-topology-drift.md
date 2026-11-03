@@ -22,6 +22,8 @@ live collector or changing readiness gates.
   the existing strictly increasing capture-time rule.
 - Return the existing drift report plus each verified key ID and signed
   envelope digest. Do not include signatures or key bytes in the result.
+- Allow the local audit store to append only the attested report digest and the
+  after-source SHA after the two-envelope verification succeeds.
 - Keep all after-snapshot edges `UNVERIFIABLE` when edge-level source
   attribution is absent.
 
@@ -30,7 +32,8 @@ live collector or changing readiness gates.
 This binds a report to bytes signed by keys in the caller's configured trust
 view. It does not establish key enrollment/custody, signer observation or
 completeness, live source access, edge truth, durable trust history, or
-cross-worker key synchronization. Retain the original envelopes and protected
-trust configuration if later signature replay is required. Tests use generated
-keys and synthetic topology only. T22/T23 remain open and P03 still waits for
-P02 acceptance.
+cross-worker key synchronization. The local audit store retains only a digest,
+not the signed envelopes, so replay requires retaining the original envelopes
+and protected trust configuration separately. Tests use generated keys and
+synthetic topology only. T22/T23 remain open and P03 still waits for P02
+acceptance.

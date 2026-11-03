@@ -19,7 +19,8 @@ description: Verify both signed inputs and fail closed on trust, source, scope, 
 ## Verification
 
 - `python3 -m unittest discover -s tests -p 'test_intelligence_topology_drift.py' -v` — 10 tests pass.
-- `PYTHONPATH=/tmp/devobs-topology-drift-deps-20261103 python3 -m unittest discover -s tests -v` — 873 tests pass, 22 skipped.
+- `python3 -m unittest discover -s tests -p 'test_intelligence_audit_store.py' -v` — 26 tests pass, including no-write rejection and idempotent digest linkage.
+- `PYTHONPATH=/tmp/devobs-topology-audit-deps-20261103 python3 -m unittest discover -s tests -v` — 875 tests pass, 22 skipped.
 - The temporary test target supplied the exact locked `psycopg==3.3.6` and
   `psycopg-binary==3.3.6` distributions only; no hosted PostgreSQL service was
   configured, so the 22 conditional skips remain expected.
