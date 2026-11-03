@@ -1026,6 +1026,47 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
+    def test_pr420_and_pr421_merge_evidence_is_recorded_without_gate_promotion(self):
+        result = validate(self.data)
+        self.assertEqual(result["latest_pr"], 421)
+        records = {item["pr_number"]: item for item in self.data["milestones"]}
+        implementation = records[420]
+        self.assertEqual(
+            implementation["pr_head_sha"],
+            "fc83e67277a05d47a7eaeaecc857864a62cda162",
+        )
+        self.assertEqual(
+            implementation["merge_sha"],
+            "bcaa246bc0d4a670b8f49f0d20edfc9939bbd772",
+        )
+        self.assertEqual(implementation["ci_run_id"], 41705566648)
+        self.assertIn("41706381759", implementation["verification"])
+        self.assertIn("41706380276", implementation["verification"])
+        self.assertIn("893 passed, 22 skipped", implementation["verification"])
+        self.assertIn("T22-T25 remain partial", implementation["limitations"])
+
+        documentation = records[421]
+        self.assertEqual(
+            documentation["pr_head_sha"],
+            "0516a5c64bb91fbd596707b2d201deca8eb97dfc",
+        )
+        self.assertEqual(
+            documentation["merge_sha"],
+            "7ca86444efc3529ba5da0ca934939578f52d6d4e",
+        )
+        self.assertEqual(documentation["ci_run_id"], 41707347161)
+        self.assertIn("41709068995", documentation["verification"])
+        self.assertIn("41709067466", documentation["verification"])
+        self.assertIn("Documentation only", documentation["limitations"])
+        self.assertEqual(
+            {gate["id"]: gate["status"] for gate in self.data["gates"]},
+            {
+                "ai9-detection-quality": "BLOCKED",
+                "p01-managed-saas": "BLOCKED",
+                "codex-agent-runtime-acceptance": "OPEN",
+            },
+        )
+
     def test_duplicate_achievement_rejected(self):
         self.data["milestones"].append(copy.deepcopy(self.data["milestones"][-1]))
         with self.assertRaisesRegex(InvalidLedger, "duplicate|not increasing"):
