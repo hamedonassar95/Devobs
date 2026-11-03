@@ -279,6 +279,16 @@ class AttestedImpactFindingTests(unittest.TestCase):
         with self.assertRaisesRegex(
                 ContextError, "incident_finding_memory_approval_required"):
             self.validate(finding=finding)
+        with self.assertRaisesRegex(
+                ContextError, "incident_finding_memory_age_required"):
+            validate_attested_impact_finding(
+                finding.to_record(), self.envelope(), self.keyring,
+                expected_tenant="alpha", expected_project="platform",
+                expected_source_sha=SOURCE_SHA, now_utc=NOW,
+                max_age_seconds=60,
+                memory_approval_envelopes=[approval],
+                trusted_memory_public_keys=memory_keys,
+            )
         result = validate_attested_impact_finding(
             finding.to_record(), self.envelope(), self.keyring,
             expected_tenant="alpha", expected_project="platform",
@@ -286,6 +296,7 @@ class AttestedImpactFindingTests(unittest.TestCase):
             max_age_seconds=60,
             memory_approval_envelopes=[approval],
             trusted_memory_public_keys=memory_keys,
+            memory_max_age_seconds=60,
         )
 
         self.assertEqual(len(result.memory_approvals), 1)

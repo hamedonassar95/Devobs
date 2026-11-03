@@ -494,13 +494,16 @@ def validate_attested_impact_finding(
         max_age_seconds: int = 900,
         memory_approval_envelopes: object | None = None,
         trusted_memory_public_keys: dict[tuple[str, str, str], bytes]
-        | None = None) -> AttestedImpactFinding:
+        | None = None,
+        memory_max_age_seconds: int | None = None) -> AttestedImpactFinding:
     """Verify a signed topology envelope, then validate a finding against it.
 
     Expected scope and source SHA must come from the caller's independently
     trusted request context. Trust may be a protected public-key map or a
     process-local rotating keyring. The caller must authenticate keyring
-    updates; this helper does not establish key enrollment.
+    updates; this helper does not establish key enrollment. Memory-bearing
+    findings also require the original approval envelopes, a separate trusted
+    key map and an explicit maximum age for signed incident records.
     """
     finding = IncidentFinding.from_record(finding_record)
     if ((memory_approval_envelopes is None)
@@ -509,6 +512,13 @@ def validate_attested_impact_finding(
     if (finding.memory_provenance
             and memory_approval_envelopes is None):
         raise ContextError("incident_finding_memory_approval_required")
+    if (finding.memory_provenance
+            and memory_max_age_seconds is None):
+        raise ContextError("incident_finding_memory_age_required")
+    if (memory_max_age_seconds is not None
+            and (type(memory_max_age_seconds) is not int
+                 or not 1 <= memory_max_age_seconds <= 31_536_000)):
+        raise ContextError("invalid_query")
     attestation = verify_topology_attestation(
         attestation_record, trusted_public_keys,
         expected_tenant=expected_tenant,
@@ -524,6 +534,7 @@ def validate_attested_impact_finding(
         memory_approvals = verify_incident_finding_memory_provenance(
             validated.to_record(), memory_approval_envelopes,
             trusted_memory_public_keys, now_utc=now_utc,
+            memory_max_age_seconds=memory_max_age_seconds,
         )
     return AttestedImpactFinding(
         finding=validated,
@@ -538,16 +549,22 @@ def verify_incident_finding_memory_provenance(
         finding_record: dict, approval_envelopes: object,
         trusted_public_keys: dict[tuple[str, str, str], bytes], *,
         now_utc: datetime,
+        memory_max_age_seconds: int | None = None,
         ) -> tuple[VerifiedIncidentMemoryApproval, ...]:
     """Re-verify active curator approvals referenced by a serialized finding.
 
     The finding digest is unkeyed, so it is not proof of curator approval.
     This helper verifies the original signed envelopes and binds their exact
-    records, scope, approval metadata and runbooks to the finding.
+    records, scope, approval metadata and runbooks to the finding. Findings
+    with memory provenance require an explicit maximum record age.
     """
     finding = IncidentFinding.from_record(finding_record)
     if (type(now_utc) is not datetime or now_utc.tzinfo is None
             or now_utc.utcoffset() is None):
+        raise ContextError("invalid_query")
+    if (memory_max_age_seconds is not None
+            and (type(memory_max_age_seconds) is not int
+                 or not 1 <= memory_max_age_seconds <= 31_536_000)):
         raise ContextError("invalid_query")
     if type(approval_envelopes) is not list:
         raise ContextError("invalid_memory_approval_batch")
@@ -555,6 +572,8 @@ def verify_incident_finding_memory_provenance(
         if approval_envelopes:
             raise ContextError("incident_finding_memory_mismatch")
         return ()
+    if memory_max_age_seconds is None:
+        raise ContextError("incident_finding_memory_age_required")
 
     verified = verify_incident_memory_approvals(
         approval_envelopes, trusted_public_keys,
@@ -572,6 +591,14 @@ def verify_incident_finding_memory_provenance(
     for approval_id, approval in approvals_by_id.items():
         evidence = evidence_by_id[approval_id]
         record = approval.record
+        recorded_at = datetime.fromisoformat(
+            record.recorded_at.replace("Z", "+00:00"),
+        )
+        record_age = (
+            now_utc.astimezone(timezone.utc) - recorded_at.astimezone(timezone.utc)
+        ).total_seconds()
+        if not 0 <= record_age <= memory_max_age_seconds:
+            raise ContextError("stale_incident_memory")
         runbook_ids.add(record.runbook_id)
         if (
             (record.tenant, record.project) != (finding.tenant, finding.project)

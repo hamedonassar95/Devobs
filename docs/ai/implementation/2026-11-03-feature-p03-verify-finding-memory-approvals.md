@@ -10,9 +10,12 @@ Added `verify_incident_finding_memory_provenance` in
 `scripts/devobs_intelligence/correlation.py`. It validates active Ed25519
 approval envelopes, requires one-to-one agreement with the finding's provenance
 items, checks each signed record against the finding scope and source fields,
-and checks the exact runbook set.
+and checks the exact runbook set. The caller must also provide a bounded
+`memory_max_age_seconds`; signed records that are future-dated or older than
+that policy are rejected as stale.
 
 `validate_attested_impact_finding` now requires the signed memory envelopes and
 trusted memory-key map for memory-bearing findings. Its result exposes the
-verified approval objects separately from the topology attestation fields.
-No external key enrollment or persistence was added.
+verified approval objects separately from the topology attestation fields and
+applies the same explicit memory-age bound. No external key enrollment or
+persistence was added.

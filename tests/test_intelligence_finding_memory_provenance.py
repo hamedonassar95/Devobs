@@ -2,6 +2,7 @@
 import json
 import sys
 import unittest
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -13,9 +14,11 @@ from devobs_intelligence.context import ContextError, ServiceTopologySnapshot, n
 from devobs_intelligence.correlation import (
     correlate, verify_incident_finding_memory_provenance,
 )
-from devobs_intelligence.incident_memory import IncidentMemory, IncidentRecord
+from devobs_intelligence.incident_memory import (
+    IncidentMemory, IncidentMemoryEvidence, IncidentRecord,
+)
 from devobs_intelligence.incident_memory_approval import (
-    IncidentMemoryApprovalRegistry,
+    IncidentMemoryApprovalRegistry, verify_incident_memory_approval,
 )
 
 _NOW = datetime(2026, 11, 3, 12, 0, tzinfo=timezone.utc)
@@ -88,7 +91,7 @@ class FindingMemoryProvenanceTests(unittest.TestCase):
             (finding or self.finding).to_record(),
             [self.approval] if envelopes is None else envelopes,
             self.trusted_keys if trusted_keys is None else trusted_keys,
-            now_utc=now,
+            now_utc=now, memory_max_age_seconds=600,
         )
 
     def test_matching_active_approval_is_independently_verified(self):
@@ -122,6 +125,48 @@ class FindingMemoryProvenanceTests(unittest.TestCase):
                 ([malformed], "invalid_memory_approval_signature")):
             with self.subTest(error=error), self.assertRaisesRegex(ContextError, error):
                 self.validate(envelopes=envelopes)
+
+    def test_active_approval_does_not_make_stale_or_future_memory_fresh(self):
+        for recorded_at in (
+                _stamp(_NOW - timedelta(hours=1)),
+                _stamp(_NOW + timedelta(seconds=1))):
+            with self.subTest(recorded_at=recorded_at):
+                record = replace(self.record, recorded_at=recorded_at)
+                approval = self.sign(record)
+                verified = verify_incident_memory_approval(
+                    approval, self.trusted_keys, now=_NOW,
+                )
+                evidence = IncidentMemoryEvidence(
+                    evidence_digest=record.evidence_digest,
+                    record_digest=record.record_digest,
+                    source_sha=record.source_sha,
+                    recorded_at=record.recorded_at,
+                    approval_id=approval["approval_id"],
+                    approver_id=approval["approver_id"],
+                    approval_digest=verified.approval_digest,
+                )
+                finding = replace(
+                    self.finding, memory_provenance=(evidence,),
+                )
+                with self.assertRaisesRegex(
+                        ContextError, "stale_incident_memory"):
+                    self.validate(finding=finding, envelopes=[approval])
+
+    def test_memory_age_policy_is_required_and_bounded(self):
+        with self.assertRaisesRegex(
+                ContextError, "incident_finding_memory_age_required"):
+            verify_incident_finding_memory_provenance(
+                self.finding.to_record(), [self.approval], self.trusted_keys,
+                now_utc=_NOW,
+            )
+        for age in (0, -1, 31_536_001, True):
+            with self.subTest(age=age), self.assertRaisesRegex(
+                    ContextError, "^invalid_query$"):
+                verify_incident_finding_memory_provenance(
+                    self.finding.to_record(), [self.approval],
+                    self.trusted_keys, now_utc=_NOW,
+                    memory_max_age_seconds=age,
+                )
 
     def test_findings_without_memory_require_no_approval_envelopes(self):
         topology = ServiceTopologySnapshot(
