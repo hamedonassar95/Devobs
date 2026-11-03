@@ -1,6 +1,15 @@
 # Devobs production readiness — current evidence
 
-## Superseding snapshot — 2026-11-03 (after PR #412)
+## Superseding snapshot — 2026-11-03 (after PR #413)
+
+**VERIFIED from GitHub:** main is merge SHA `acf1b0c97c084db4826d07066951ccda23f08d80`, from PR [#413](https://github.com/hamedonassar95/Devobs/pull/413), head `01fb6b0ea23b7d5ceaeadc1c8755c7c7205219d9`.
+
+- Exact-head PR CI [41630254246](https://github.com/hamedonassar95/Devobs/actions/runs/41630254246) and push CI [41630246585](https://github.com/hamedonassar95/Devobs/actions/runs/41630246585) passed; CodeQL [41630247569](https://github.com/hamedonassar95/Devobs/actions/runs/41630247569) passed for Actions, Python and JavaScript/TypeScript; Vercel preview passed.
+- The advisory AI Code Review workflow [41630254446](https://github.com/hamedonassar95/Devobs/actions/runs/41630254446) completed, but its `Review the pull request with Codex` model step was skipped because explicit budget approval was absent. No model call is claimed.
+- Exact-merge main CI [41630631919](https://github.com/hamedonassar95/Devobs/actions/runs/41630631919) and Push on main/CodeQL [41630630347](https://github.com/hamedonassar95/Devobs/actions/runs/41630630347) passed on the merge SHA. Main CI published and verified the static Pages site; Vercel deployment status passed. The controlled incident drill and restoration jobs were skipped by workflow conditions.
+- PR #413 adds offline Ed25519 verification for a strict topology snapshot envelope, scoped to a caller-supplied public key, expected tenant/project, source SHA and freshness. Tests use generated keys and synthetic topology only. Key enrollment and live authorized-source ingestion remain unimplemented; T22 is partial and no readiness decision changes.
+
+## Prior snapshot — 2026-11-03 (after PR #412; superseded by PR #413)
 
 **VERIFIED from GitHub:** `main` is merge SHA `156577a1206ec4cea8786ee9de7f9f718dd25227`, from PR [#412](https://github.com/hamedonassar95/Devobs/pull/412), head `4bbbf8e133cc5fd09a75dd52e598765d63e49e89`.
 

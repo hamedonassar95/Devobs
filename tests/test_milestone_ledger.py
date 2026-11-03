@@ -870,6 +870,22 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("P04 T28/T29", entry["limitations"])
         self.assertIn("all readiness gates remain open or blocked", entry["limitations"])
 
+    def test_pr413_records_signed_topology_attestation_and_limits(self):
+        records = {item["pr_number"]: item for item in self.data["milestones"]}
+        entry = records[413]
+        self.assertEqual(entry["title"], "Verify signed topology provenance offline (P03 T22)")
+        self.assertEqual(entry["pr_head_sha"], "01fb6b0ea23b7d5ceaeadc1c8755c7c7205219d9")
+        self.assertEqual(entry["merge_sha"], "acf1b0c97c084db4826d07066951ccda23f08d80")
+        self.assertEqual(entry["ci_run_id"], 41630254246)
+        self.assertIn("41630246585 SUCCESS", entry["verification"])
+        self.assertIn("41630247569", entry["verification"])
+        self.assertIn("41630631919", entry["verification"])
+        self.assertIn("41630630347 SUCCESS", entry["verification"])
+        self.assertIn("model step was skipped", entry["verification"])
+        self.assertIn("T22 remains partial", entry["limitations"])
+        self.assertIn("generated keys and synthetic topology only", entry["limitations"])
+        self.assertIn("No readiness gate changed", entry["limitations"])
+
     def test_duplicate_achievement_rejected(self):
         self.data["milestones"].append(copy.deepcopy(self.data["milestones"][-1]))
         with self.assertRaisesRegex(InvalidLedger, "duplicate|not increasing"):

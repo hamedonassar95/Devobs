@@ -89,10 +89,11 @@ class TopologyDriftReport:
     resolved_cycles: tuple[tuple[str, ...], ...]
     newly_isolated_services: tuple[str, ...]
     reconnected_services: tuple[str, ...]
+    unverifiable_edges: tuple[tuple[str, str], ...]
 
     def to_record(self) -> dict:
         payload = {
-            "schema_version": 1,
+            "schema_version": 2,
             "tenant": self.tenant,
             "project": self.project,
             "before_snapshot_digest": self.before_snapshot_digest,
@@ -109,6 +110,14 @@ class TopologyDriftReport:
             "resolved_cycles": [list(group) for group in self.resolved_cycles],
             "newly_isolated_services": list(self.newly_isolated_services),
             "reconnected_services": list(self.reconnected_services),
+            "unverifiable_edges": [
+                {
+                    "edge": list(edge),
+                    "status": "UNVERIFIABLE",
+                    "reason": "per_edge_source_metadata_absent",
+                }
+                for edge in self.unverifiable_edges
+            ],
         }
         digest = hashlib.sha256(json.dumps(
             payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True,
@@ -151,4 +160,5 @@ def compare_topology_snapshots(
         resolved_cycles=tuple(sorted(old_cycles - new_cycles)),
         newly_isolated_services=tuple(sorted(new_isolated - old_isolated)),
         reconnected_services=tuple(sorted(old_isolated - new_isolated)),
+        unverifiable_edges=tuple(sorted(new_edges)),
     )

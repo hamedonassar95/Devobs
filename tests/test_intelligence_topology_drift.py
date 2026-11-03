@@ -39,7 +39,24 @@ class TopologyDriftTests(unittest.TestCase):
             before, reordered_after,
         ).to_record()
         self.assertEqual(record, reordered_record)
-        self.assertEqual(record["schema_version"], 1)
+        self.assertEqual(record["schema_version"], 2)
+        self.assertEqual(record["unverifiable_edges"], [
+            {
+                "edge": ["api", "db"],
+                "status": "UNVERIFIABLE",
+                "reason": "per_edge_source_metadata_absent",
+            },
+            {
+                "edge": ["db", "api"],
+                "status": "UNVERIFIABLE",
+                "reason": "per_edge_source_metadata_absent",
+            },
+            {
+                "edge": ["web", "api"],
+                "status": "UNVERIFIABLE",
+                "reason": "per_edge_source_metadata_absent",
+            },
+        ])
         self.assertEqual(record["added_services"], ["web", "worker"])
         self.assertEqual(record["added_edges"], [["db", "api"], ["web", "api"]])
         self.assertEqual(record["introduced_cycles"], [["api", "db"]])
@@ -55,6 +72,7 @@ class TopologyDriftTests(unittest.TestCase):
         self.assertEqual(record["report_digest"], expected_digest)
 
         record["added_services"].append("external-mutation")
+        record["unverifiable_edges"][0]["edge"].append("external-mutation")
         self.assertEqual(compare_topology_snapshots(before, after).to_record(),
                          reordered_record)
 
@@ -75,6 +93,19 @@ class TopologyDriftTests(unittest.TestCase):
         self.assertEqual(record["resolved_cycles"], [["api", "db"]])
         self.assertEqual(record["reconnected_services"], ["worker"])
         self.assertEqual(record["introduced_cycles"], [])
+
+    def test_empty_current_graph_has_no_unverifiable_edges(self):
+        before = snapshot(
+            services=["api"], edges=[], source_sha="a" * 40,
+            captured_at="2026-11-01T00:00:00Z",
+        )
+        after = snapshot(
+            services=["api"], edges=[], source_sha="b" * 40,
+            captured_at="2026-11-02T00:00:00Z",
+        )
+
+        record = compare_topology_snapshots(before, after).to_record()
+        self.assertEqual(record["unverifiable_edges"], [])
 
     def test_comparison_rejects_scope_mismatch_and_nonincreasing_time(self):
         before = snapshot(

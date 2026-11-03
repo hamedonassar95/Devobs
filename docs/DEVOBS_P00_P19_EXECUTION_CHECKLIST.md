@@ -91,6 +91,7 @@
 - [ ] **T22: Discover authorized service dependency topology.** Ingest signed/verified service metadata, exact tenant scope and source freshness.
   Partial local capability: `verify_topology_attestation` checks an Ed25519-signed snapshot against a caller-supplied, scope-bound public key, exact expected SHA and freshness window. Tests use generated keys and synthetic topology only. Key enrollment and live authorized-source ingestion are not implemented; T22 remains open.
 - [ ] **T23: Detect graph drift and cycles.** Bound traversal, handle cycles/orphans and mark unverifiable edges.
+  Partial local capability: the offline drift-report v2 detects service/edge changes, cycle and isolation changes, and marks every current edge `UNVERIFIABLE` when edge-level source metadata is absent. Existing snapshots are bounded to 100 services and 500 edges. This does not validate edge truth or provide live topology evidence; T23 remains open.
 - [ ] **T24: Correlate impacted services.** Explain ranked hypothesis from evidence without claiming causal proof.
 - [ ] **T25: Encrypt and isolate durable incident metadata.** Delete/export/retention policies; deny cross-tenant and raw private logs.
 - [ ] **T26: Evaluate optional vector retrieval safely.** Require consent, scoped embeddings, poisoning tests and baseline comparison.
