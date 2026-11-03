@@ -100,6 +100,7 @@
 - [ ] **T26: Evaluate optional vector retrieval safely.** Require consent, scoped embeddings, poisoning tests and baseline comparison.
 - [ ] **T27: Strengthen abstention and provenance checks.** Reject replay, missing evidence, stale SHA, unknown services and wrong tenant.
   Partial local capability: correlation over a legacy `ServiceTopology` may still rank fresh telemetry and compute declared impact, but it now abstains from incident-memory runbooks because that graph has no source revision or capture-time contract. Memory can inform correlation only with a source-bound, fresh topology snapshot, an explicit memory-age policy and active verified approval; a separate local integration test confirms approval and source provenance reach the finding. Replay protection remains process-local, and this does not authenticate live topology or incident sources; T27 remains open.
+  Serialized finding validation also requires memory provenance and runbook identifiers to appear together, rejecting records that claim only one side even if the caller recomputes the unkeyed finding digest. This checks internal consistency; it does not cryptographically re-verify an approval without the original signed approval envelope.
 
 ### P04 — Evaluation and measurable accuracy
 

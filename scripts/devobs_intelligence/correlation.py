@@ -356,6 +356,8 @@ class IncidentFinding:
                 raise ContextError("invalid_incident_finding_provenance")
             memory_ids.add(item["evidence_digest"])
             memory.append(IncidentMemoryEvidence(**item))
+        if bool(memory) != bool(sequences["runbook_ids"]):
+            raise ContextError("invalid_incident_finding_provenance")
 
         if record["status"] == "INSUFFICIENT_EVIDENCE":
             if (record["category"] != "unknown" or sequences["ranked_services"]

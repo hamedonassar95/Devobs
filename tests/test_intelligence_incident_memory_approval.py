@@ -186,6 +186,19 @@ class IncidentMemoryApprovalTests(unittest.TestCase):
         self.assertEqual(wire_finding["memory_provenance"][0]["approval_id"],
                          approval.approval_id)
 
+        for field, changed_value in (
+                ("runbook_ids", []), ("memory_provenance", [])):
+            changed = json.loads(json.dumps(wire_finding))
+            changed[field] = changed_value
+            payload = dict(changed)
+            payload.pop("finding_digest")
+            changed["finding_digest"] = hashlib.sha256(
+                canonical_bytes(payload),
+            ).hexdigest()
+            with self.subTest(field=field), self.assertRaisesRegex(
+                    ContextError, "invalid_incident_finding_provenance"):
+                IncidentFinding.from_record(changed)
+
     def test_signature_binds_record_identity_approval_and_expiry(self):
         original = self.approval()
         changes = []
