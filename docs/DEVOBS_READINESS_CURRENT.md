@@ -1,6 +1,14 @@
 # Devobs production readiness — current evidence
 
-## Superseding snapshot — 2026-11-03 (after PR #408)
+## Superseding snapshot — 2026-11-03 (after PR #409)
+
+**VERIFIED from GitHub:** `main` is merge SHA `2fae0241c4fda8103e76cb5f05583244b568c819`, from PR [#409](https://github.com/hamedonassar95/Devobs/pull/409), head `2c9bfe18061b6aea698623ac8152c7c7ee3bca36`.
+
+- Exact-head PR CI [41618050928](https://github.com/hamedonassar95/Devobs/actions/runs/41618050928) and push CI [41618026517](https://github.com/hamedonassar95/Devobs/actions/runs/41618026517) passed; CodeQL [41618046825](https://github.com/hamedonassar95/Devobs/actions/runs/41618046825) passed for Actions, Python and JavaScript/TypeScript; Vercel preview passed. The advisory Codex model-review step was skipped.
+- Exact-merge main CI [41618477420](https://github.com/hamedonassar95/Devobs/actions/runs/41618477420) and CodeQL [41618476461](https://github.com/hamedonassar95/Devobs/actions/runs/41618476461) passed on the merge SHA. Main CI published and verified static Pages; the controlled incident drill and restoration checks were skipped by workflow conditions.
+- PR #409 adds a versioned synthetic evidence-sufficiency label and a descriptive abstention rate for explicitly labeled insufficient-evidence cases. The five labels are synthetic and unreviewed; the metric is not a general safe-refusal rate, real-world model-quality result, or hosted runtime proof.
+
+## Prior snapshot — 2026-11-03 (after PR #408; superseded by PR #409)
 
 **VERIFIED from GitHub:** `main` is merge SHA `8d4c1875aafb321f4b6a874ac748e6cae471f0eb`, from PR [#408](https://github.com/hamedonassar95/Devobs/pull/408), head `5fbf3f6578e0c9bbcc6a42190d467872199d0095`.
 

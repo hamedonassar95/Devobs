@@ -26,8 +26,8 @@ _CASE_ID = re.compile(r"[a-z0-9][a-z0-9_-]{0,39}\Z")
 _SHA256 = re.compile(r"[a-f0-9]{64}\Z")
 _WILSON_95_Z = 1.959963984540054
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
-_MANIFEST_RELATIVE_PATH = Path("docs/ai/intelligence-evaluation-policy-v1.json")
-_FIXTURE_RELATIVE_PATH = Path("tests/fixtures/intelligence_eval_cases.json")
+_MANIFEST_RELATIVE_PATH = Path("docs/ai/intelligence-evaluation-policy-v2.json")
+_FIXTURE_RELATIVE_PATH = Path("tests/fixtures/intelligence_eval_cases_v2.json")
 _MAX_FIXTURE_BYTES = 64_000
 
 
@@ -59,13 +59,13 @@ def _validate_fixture_manifest(value: Any) -> dict[str, Any]:
         type(value["schema_version"]) is not int
         or value["schema_version"] != 1
         or value["dataset_id"] != "devobs-adviser-synthetic"
-        or value["dataset_version"] != "v1"
+        or value["dataset_version"] != "v2"
         or value["dataset_path"] != _FIXTURE_RELATIVE_PATH.as_posix()
         or not isinstance(value["dataset_sha256"], str)
         or not _SHA256.fullmatch(value["dataset_sha256"])
         or value["source_kind"] != "synthetic"
         or value["label_status"] != "synthetic_unreviewed"
-        or value["label_method"] != "synthetic_expected_category"
+        or value["label_method"] != "synthetic_expected_category_and_evidence_sufficiency"
         or value["categories"] != sorted(_CATEGORIES)
         or type(value["case_count"]) is not int
         or not 1 <= value["case_count"] <= 100
@@ -121,14 +121,23 @@ def evaluate_cases(cases: list[dict], *, target_accuracy: float | None = None) -
     correct = 0
     abstentions = 0
     non_abstained_correct = 0
+    insufficient_evidence_count = 0
+    insufficient_evidence_abstentions = 0
     expected_categories = []
     predictions = []
     for case in cases:
-        if type(case) is not dict or set(case) != {"case_id", "signals", "expected_category"}:
+        if type(case) is not dict or set(case) != {
+            "case_id", "signals", "expected_category", "evidence_sufficiency"
+        }:
             raise EvaluationError("invalid_case")
-        case_id, signals, expected = case["case_id"], case["signals"], case["expected_category"]
+        case_id, signals, expected, evidence_sufficiency = (
+            case["case_id"], case["signals"], case["expected_category"],
+            case["evidence_sufficiency"],
+        )
         if (type(case_id) is not str or _CASE_ID.fullmatch(case_id) is None
                 or type(expected) is not str or expected not in _CATEGORIES
+                or type(evidence_sufficiency) is not str
+                or evidence_sufficiency not in {"sufficient", "insufficient"}
                 or type(signals) is not dict
                 or set(signals) != {"failed_checks", "error_rate_pct", "capacity_pct"}):
             raise EvaluationError("invalid_case")
@@ -153,6 +162,10 @@ def evaluate_cases(cases: list[dict], *, target_accuracy: float | None = None) -
             raise EvaluationError("invalid_case") from None
         expected_categories.append(expected)
         predictions.append(predicted)
+        if evidence_sufficiency == "insufficient":
+            insufficient_evidence_count += 1
+            if predicted == "unknown":
+                insufficient_evidence_abstentions += 1
         if predicted == expected:
             correct += 1
         if predicted == "unknown":
@@ -164,6 +177,10 @@ def evaluate_cases(cases: list[dict], *, target_accuracy: float | None = None) -
     accuracy = correct / len(cases)
     coverage = non_abstained / len(cases)
     unknown_output_rate = abstentions / len(cases)
+    insufficient_evidence_abstention_rate = (
+        insufficient_evidence_abstentions / insufficient_evidence_count
+        if insufficient_evidence_count else None
+    )
     per_category = {}
     for category in sorted(_CATEGORIES):
         support = sum(actual == category for actual in expected_categories)
@@ -200,7 +217,7 @@ def evaluate_cases(cases: list[dict], *, target_accuracy: float | None = None) -
             "recall_interval_95": _wilson_metric_interval_95(true_positive, support),
         }
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "case_count": len(cases),
         "correct": correct,
         "abstentions": abstentions,
@@ -221,6 +238,14 @@ def evaluate_cases(cases: list[dict], *, target_accuracy: float | None = None) -
             "value": unknown_output_rate,
             "numerator": abstentions,
             "denominator": len(cases),
+        },
+        "insufficient_evidence_abstention_rate": {
+            "value": insufficient_evidence_abstention_rate,
+            "numerator": insufficient_evidence_abstentions,
+            "denominator": insufficient_evidence_count,
+            "interval_95": _wilson_metric_interval_95(
+                insufficient_evidence_abstentions, insufficient_evidence_count
+            ),
         },
         "per_category": per_category,
         "selective_accuracy": non_abstained_correct / non_abstained if non_abstained else None,

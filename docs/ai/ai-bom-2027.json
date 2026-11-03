@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scope": "DevObs offline incident-context module only",
-  "as_of": "2026-10-25",
+  "as_of": "2026-11-03",
   "model_execution": {
     "status": "disabled_in_this_module",
     "provider": null,
@@ -12,6 +12,12 @@
     {
       "id": "synthetic_category_cases",
       "file": "tests/fixtures/intelligence_eval_cases.json",
+      "sensitivity": "synthetic",
+      "production_ground_truth": false
+    },
+    {
+      "id": "synthetic_category_cases_v2",
+      "file": "tests/fixtures/intelligence_eval_cases_v2.json",
       "sensitivity": "synthetic",
       "production_ground_truth": false
     },

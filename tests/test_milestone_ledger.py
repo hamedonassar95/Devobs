@@ -804,6 +804,20 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("five deterministic synthetic cases", entry["limitations"])
         self.assertIn("Gate dispositions did not change", entry["limitations"])
 
+    def test_pr409_merge_records_ci_codeql_and_limited_metric_evidence(self):
+        records = {item["pr_number"]: item for item in self.data["milestones"]}
+        entry = records[409]
+        self.assertEqual(entry["pr_head_sha"], "2c9bfe18061b6aea698623ac8152c7c7ee3bca36")
+        self.assertEqual(entry["merge_sha"], "2fae0241c4fda8103e76cb5f05583244b568c819")
+        self.assertEqual(entry["ci_run_id"], 41618050928)
+        self.assertIn("41618026517 SUCCESS", entry["verification"])
+        self.assertIn("41618046825 SUCCESS", entry["verification"])
+        self.assertIn("41618477420", entry["verification"])
+        self.assertIn("41618476461 SUCCESS", entry["verification"])
+        self.assertIn("Codex model-review step was skipped", entry["verification"])
+        self.assertIn("five synthetic, unreviewed cases", entry["limitations"])
+        self.assertIn("not a general safe-refusal rate", entry["limitations"])
+
     def test_duplicate_achievement_rejected(self):
         self.data["milestones"].append(copy.deepcopy(self.data["milestones"][-1]))
         with self.assertRaisesRegex(InvalidLedger, "duplicate|not increasing"):
