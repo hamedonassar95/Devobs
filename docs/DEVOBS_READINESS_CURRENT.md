@@ -1,6 +1,15 @@
 # Devobs production readiness — current evidence
 
-## Superseding snapshot — 2026-11-03 (after PR #410)
+## Superseding snapshot — 2026-11-03 (after PR #411)
+
+**VERIFIED from GitHub:** `main` is merge SHA `5c8cb05d12560d9771769fbf7a157df056e91934`, from PR [#411](https://github.com/hamedonassar95/Devobs/pull/411), head `db7592d93b674f12d56b338c80494790ba965020`.
+
+- Exact-head PR CI [41626407724](https://github.com/hamedonassar95/Devobs/actions/runs/41626407724) and push CI [41626384456](https://github.com/hamedonassar95/Devobs/actions/runs/41626384456) passed; CodeQL [41626404076](https://github.com/hamedonassar95/Devobs/actions/runs/41626404076) passed for Actions, Python and JavaScript/TypeScript; Vercel preview passed. Node was skipped in PR CI by path selection and passed in push CI. The Codex model-review step was skipped because explicit budget approval was absent.
+- Exact-merge main CI [41626783764](https://github.com/hamedonassar95/Devobs/actions/runs/41626783764) and CodeQL [41626782537](https://github.com/hamedonassar95/Devobs/actions/runs/41626782537) passed on the merge SHA. Main CI published and verified static Pages; the controlled incident drill and restoration checks were skipped by workflow conditions.
+- PR #411 adds the sufficient-evidence abstention rate to the five-case synthetic scorecard. The labels remain unreviewed; this does not establish label validity, safe-refusal behavior, model quality, or model inference.
+- Gate dispositions remain AI-9 **FAIL / BLOCKED**, P01 **NO-GO / BLOCKED**, and Codex agent runtime **OPEN**.
+
+## Prior snapshot — 2026-11-03 (after PR #410; superseded by PR #411)
 
 **VERIFIED from GitHub:** `main` is merge SHA `138fa5423e5aef705c8f8be99fbae51bf5e546bb`, from PR [#410](https://github.com/hamedonassar95/Devobs/pull/410), head `470f02f5d9d1c5a08e806d598ec1179f6b34f8a9`.
 

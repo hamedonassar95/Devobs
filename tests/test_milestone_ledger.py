@@ -836,6 +836,24 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("one explicitly labeled insufficient case", entry["limitations"])
         self.assertIn("Gate dispositions did not change", entry["limitations"])
 
+    def test_pr411_merge_records_sufficient_metric_ci_and_synthetic_scope(self):
+        records = {item["pr_number"]: item for item in self.data["milestones"]}
+        entry = records[411]
+        self.assertEqual(
+            entry["title"],
+            "Add sufficient-evidence abstention rate to offline synthetic scorecard",
+        )
+        self.assertEqual(entry["pr_head_sha"], "db7592d93b674f12d56b338c80494790ba965020")
+        self.assertEqual(entry["merge_sha"], "5c8cb05d12560d9771769fbf7a157df056e91934")
+        self.assertEqual(entry["ci_run_id"], 41626407724)
+        self.assertIn("41626384456 SUCCESS", entry["verification"])
+        self.assertIn("41626404076 SUCCESS", entry["verification"])
+        self.assertIn("41626783764", entry["verification"])
+        self.assertIn("41626782537 SUCCESS", entry["verification"])
+        self.assertIn("Codex model-review step was skipped", entry["verification"])
+        self.assertIn("four synthetic, unreviewed labels", entry["limitations"])
+        self.assertIn("Gate dispositions did not change", entry["limitations"])
+
     def test_duplicate_achievement_rejected(self):
         self.data["milestones"].append(copy.deepcopy(self.data["milestones"][-1]))
         with self.assertRaisesRegex(InvalidLedger, "duplicate|not increasing"):
