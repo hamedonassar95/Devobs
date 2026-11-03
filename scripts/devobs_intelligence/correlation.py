@@ -14,8 +14,10 @@ from .context import (
 from .contracts import parse_event
 from .incident_memory import IncidentMemory, IncidentMemoryEvidence
 
-_FINDING_VERSION = 2
+_FINDING_VERSION = 3
 _RANKING_INTERPRETATION = "fixed_heuristic_not_causal"
+_IMPACT_PATH_DEPTH = 3
+_IMPACT_PATH_INTERPRETATION = "declared_edges_not_causal"
 _RANKING_RULES = {
     "failed_checks_positive": ("failed_checks", 3),
     "error_rate_threshold_met": ("error_rate_pct", 2),
@@ -31,9 +33,11 @@ _RANKING_CATEGORY = {
 }
 _RANKED_SERVICE_FIELDS = frozenset({"service", "rank", "score", "signals"})
 _RANKING_SIGNAL_FIELDS = frozenset({"metric", "reason_code", "points", "evidence_digest"})
+_IMPACT_PATH_FIELDS = frozenset({"service", "path_services"})
 _FINDING_FIELDS = frozenset({
     "schema_version", "tenant", "project", "status", "category",
     "ranked_services", "ranked_service_evidence", "ranking_interpretation",
+    "impact_paths", "impact_path_interpretation",
     "impacted_services", "evidence_digests", "runbook_ids",
     "source_sha", "model_used", "calibrated",
     "topology_snapshot_digest", "topology_captured_at", "memory_provenance",
@@ -90,6 +94,12 @@ class RankedServiceEvidence:
 
 
 @dataclass(frozen=True)
+class ImpactPathEvidence:
+    service: str
+    path_services: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class IncidentFinding:
     status: str
     category: str
@@ -107,9 +117,11 @@ class IncidentFinding:
     project: str | None = None
     ranked_service_evidence: tuple[RankedServiceEvidence, ...] = ()
     ranking_interpretation: str = _RANKING_INTERPRETATION
+    impact_paths: tuple[ImpactPathEvidence, ...] = ()
+    impact_path_interpretation: str = _IMPACT_PATH_INTERPRETATION
 
     def to_record(self) -> dict:
-        """Return a strict JSON-compatible v2 record with an integrity digest."""
+        """Return a strict JSON-compatible v3 record with an integrity digest."""
         try:
             memory = [{
                 "evidence_digest": item.evidence_digest,
@@ -139,6 +151,11 @@ class IncidentFinding:
                     } for signal in item.signals],
                 } for item in self.ranked_service_evidence],
                 "ranking_interpretation": self.ranking_interpretation,
+                "impact_paths": [{
+                    "service": item.service,
+                    "path_services": list(item.path_services),
+                } for item in self.impact_paths],
+                "impact_path_interpretation": self.impact_path_interpretation,
                 "impacted_services": list(self.impacted_services),
                 "evidence_digests": list(self.evidence_digests),
                 "runbook_ids": list(self.runbook_ids),
@@ -158,7 +175,7 @@ class IncidentFinding:
 
     @classmethod
     def from_record(cls, record: dict) -> "IncidentFinding":
-        """Parse one exact v2 result record and check ranking evidence and digest."""
+        """Parse one exact v3 result record and check evidence paths and digest."""
         if type(record) is not dict or set(record) != _FINDING_FIELDS:
             raise ContextError("invalid_incident_finding_record")
         if (type(record["schema_version"]) is not int
@@ -271,6 +288,41 @@ class IncidentFinding:
                 or _RANKING_CATEGORY[ranking[0].signals[0].metric] != record["category"]):
             raise ContextError("invalid_incident_finding_ranking")
 
+        impact_value = record["impact_paths"]
+        if (record["impact_path_interpretation"] != _IMPACT_PATH_INTERPRETATION
+                or type(impact_value) is not list or len(impact_value) > 100):
+            raise ContextError("invalid_incident_finding_impact_paths")
+        impact_paths = []
+        root = sequences["ranked_services"][0] if sequences["ranked_services"] else None
+        impacted_set = set(sequences["impacted_services"])
+        for item in impact_value:
+            if (type(item) is not dict or set(item) != _IMPACT_PATH_FIELDS
+                    or type(item["service"]) is not str
+                    or _FINDING_ID.fullmatch(item["service"]) is None
+                    or type(item["path_services"]) is not list
+                    or not 1 <= len(item["path_services"]) <= _IMPACT_PATH_DEPTH + 1
+                    or any(type(service) is not str
+                           or _FINDING_ID.fullmatch(service) is None
+                           for service in item["path_services"])):
+                raise ContextError("invalid_incident_finding_impact_paths")
+            path_services = tuple(item["path_services"])
+            if (item["service"] not in impacted_set
+                    or path_services[0] != item["service"]
+                    or path_services[-1] != root
+                    or len(set(path_services)) != len(path_services)
+                    or not set(path_services).issubset(impacted_set)
+                    or (item["service"] == root and path_services != (root,))
+                    or (item["service"] != root and len(path_services) < 2)):
+                raise ContextError("invalid_incident_finding_impact_paths")
+            impact_paths.append(ImpactPathEvidence(item["service"], path_services))
+        if (tuple(item.service for item in impact_paths)
+                != sequences["impacted_services"]):
+            raise ContextError("invalid_incident_finding_impact_paths")
+        if record["status"] == "INSUFFICIENT_EVIDENCE" and impact_paths:
+            raise ContextError("invalid_incident_finding_impact_paths")
+        if record["status"] == "PENDING_HUMAN_APPROVAL" and not impact_paths:
+            raise ContextError("invalid_incident_finding_impact_paths")
+
         snapshot_digest = record["topology_snapshot_digest"]
         snapshot_time = record["topology_captured_at"]
         if ((snapshot_digest is None) != (snapshot_time is None)
@@ -321,6 +373,8 @@ class IncidentFinding:
             project=record["project"],
             ranked_service_evidence=tuple(ranking),
             ranking_interpretation=record["ranking_interpretation"],
+            impact_paths=tuple(impact_paths),
+            impact_path_interpretation=record["impact_path_interpretation"],
         )
 
 
@@ -337,6 +391,40 @@ def _revalidate_snapshot(value: ServiceTopologySnapshot) -> ServiceTopologySnaps
         return snapshot
     except (AttributeError, TypeError, ContextError):
         raise ContextError("invalid_topology_snapshot") from None
+
+
+def _find_declared_impact_paths(topology, impacted, root):
+    """Return a deterministic shortest declared dependency route to the root."""
+    dependencies = {}
+    for service, dependency in topology.edges:
+        dependencies.setdefault(service, set()).add(dependency)
+    paths = []
+    for service in impacted:
+        if service == root:
+            paths.append(ImpactPathEvidence(service, (service,)))
+            continue
+        queue = [(service, (service,))]
+        visited = {service}
+        selected = None
+        while queue:
+            current, path = queue.pop(0)
+            if len(path) - 1 >= _IMPACT_PATH_DEPTH:
+                continue
+            for dependency in sorted(dependencies.get(current, ())):
+                if dependency in path:
+                    continue
+                candidate = path + (dependency,)
+                if dependency == root:
+                    selected = candidate
+                    queue.clear()
+                    break
+                if dependency not in visited:
+                    visited.add(dependency)
+                    queue.append((dependency, candidate))
+        if selected is None:
+            raise ContextError("unresolvable_declared_impact_path")
+        paths.append(ImpactPathEvidence(service, selected))
+    return tuple(paths)
 
 
 def correlate(topology: ServiceTopology | ServiceTopologySnapshot,
@@ -467,8 +555,12 @@ def correlate(topology: ServiceTopology | ServiceTopologySnapshot,
                 approval.approval_digest if approval is not None else None,
             ))
     memory_provenance = tuple(memory_provenance)
-    impacted=(snapshot.affected_by(topology.tenant, topology.project, root, now=now)
-              if snapshot is not None else topology.affected_by(root))
+    impacted=(snapshot.affected_by(
+                  topology.tenant, topology.project, root, now=now,
+                  depth=_IMPACT_PATH_DEPTH)
+              if snapshot is not None else
+              topology.affected_by(root, depth=_IMPACT_PATH_DEPTH))
+    impact_paths = _find_declared_impact_paths(topology, impacted, root)
     return IncidentFinding("PENDING_HUMAN_APPROVAL",recommendation.hypothesis,
                            tuple(eligible[:3]),impacted,
                            tuple(sorted(evidence)),
@@ -478,4 +570,5 @@ def correlate(topology: ServiceTopology | ServiceTopologySnapshot,
                            snapshot.captured_at if snapshot is not None else None,
                            memory_provenance,tenant=topology.tenant,
                            project=topology.project,
-                           ranked_service_evidence=tuple(ranked_service_evidence))
+                           ranked_service_evidence=tuple(ranked_service_evidence),
+                           impact_paths=impact_paths)

@@ -1,4 +1,6 @@
-# AI Intelligence — incident finding wire contract v2
+# AI Intelligence — incident finding wire contract v2 (historical)
+
+Superseded by [incident finding wire contract v3](AI_INTELLIGENCE_FINDING_V3.md), which adds bounded declared dependency paths for impacted services.
 
 **Scope:** local, offline serialization of deterministic incident-correlation results. This is a P03 building block only; it is not an API endpoint, a trusted signature, or a readiness-gate change.
 
