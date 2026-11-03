@@ -10,7 +10,10 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from devobs_intelligence.context import ContextError
+from devobs_intelligence.context import (
+    ContextError, ServiceTopologySnapshot, normalize_telemetry,
+)
+from devobs_intelligence.correlation import correlate
 from devobs_intelligence.incident_memory import IncidentMemory, IncidentRecord
 from devobs_intelligence.incident_memory_approval import IncidentMemoryApprovalRegistry
 from devobs_intelligence.incident_memory_encryption import (
@@ -181,6 +184,40 @@ class IncidentMemoryEncryptionTests(unittest.TestCase):
         self.approved_decrypt(envelope, [approval], keyring, registry)
         with self.assertRaisesRegex(ContextError, "replayed_memory_approval"):
             self.approved_decrypt(envelope, [approval], keyring, registry)
+
+    def test_restored_approval_provenance_reaches_the_correlated_finding(self):
+        memory = incident_memory(service="db")
+        private_key = Ed25519PrivateKey.generate()
+        public_key = private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        keyring = {("alpha", "platform", "curator-1"): public_key}
+        approval = signed_approval(memory, private_key)
+        archive = self.encrypt(memory)
+        restored = self.approved_decrypt(
+            archive, [approval], keyring, IncidentMemoryApprovalRegistry(),
+        )
+        topology = ServiceTopologySnapshot(
+            "alpha", "platform", ["api", "db"], [("api", "db")],
+            "b" * 40, _NOW.isoformat(),
+        )
+        telemetry = [normalize_telemetry({
+            "tenant": "alpha", "project": "platform", "service": "db",
+            "source_sha": "b" * 40,
+            "observed_at": _NOW.isoformat(timespec="seconds"),
+            "metric": "error_rate_pct", "value": 9,
+            "evidence_digest": "d" * 64,
+        })]
+
+        finding = correlate(
+            topology, telemetry, restored, _NOW, memory_max_age_seconds=3600,
+        )
+
+        self.assertEqual(finding.runbook_ids, ("RB-SLO-01",))
+        self.assertEqual(len(finding.memory_provenance), 1)
+        self.assertEqual(finding.memory_provenance[0].approval_id, "1" * 32)
+        self.assertEqual(finding.memory_provenance[0].approver_id, "curator-1")
+        self.assertEqual(finding.memory_provenance[0].source_sha, "b" * 40)
 
     def test_wrong_scope_key_salt_or_ciphertext_fails_closed(self):
         envelope = self.encrypt()
