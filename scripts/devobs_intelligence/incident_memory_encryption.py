@@ -258,3 +258,45 @@ def decrypt_incident_memory_bundle(
            for row in memory.to_bundle()["records"]):
         raise ContextError("memory_scope_mismatch")
     return memory
+
+
+def decrypt_approved_incident_memory_bundle(
+    envelope: object,
+    key: bytes,
+    *,
+    expected_tenant: str,
+    expected_project: str,
+    now: datetime,
+    approval_envelopes: object,
+    trusted_public_keys: object,
+    consumption_registry: object,
+) -> IncidentMemory:
+    """Restore approved records only when signed approvals match the archive.
+
+    Signed approval envelopes are supplied separately and contain incident
+    records themselves. Callers must keep them protected and pass them directly
+    to this function; this API does not persist or transport them. Approval IDs
+    are consumed only after the complete verified record set exactly matches
+    the decrypted archive. Replay protection remains process-local.
+    """
+    from .incident_memory_approval import (
+        IncidentMemoryApprovalRegistry, verify_incident_memory_approvals,
+    )
+
+    if type(consumption_registry) is not IncidentMemoryApprovalRegistry:
+        raise ContextError("invalid_memory_approval_registry")
+    archived = decrypt_incident_memory_bundle(
+        envelope, key, expected_tenant=expected_tenant,
+        expected_project=expected_project, now=now,
+    )
+    verified = verify_incident_memory_approvals(
+        approval_envelopes, trusted_public_keys, now=now,
+    )
+    approval_records = IncidentMemory(
+        [approval.record for approval in verified],
+    )
+    if approval_records.to_bundle() != archived.to_bundle():
+        raise ContextError("memory_approval_archive_mismatch")
+    return consumption_registry.load_memory(
+        approval_envelopes, trusted_public_keys, now=now,
+    )

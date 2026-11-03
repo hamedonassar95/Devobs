@@ -6,10 +6,15 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
 
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from devobs_intelligence.context import ContextError
 from devobs_intelligence.incident_memory import IncidentMemory, IncidentRecord
+from devobs_intelligence.incident_memory_approval import IncidentMemoryApprovalRegistry
 from devobs_intelligence.incident_memory_encryption import (
+    decrypt_approved_incident_memory_bundle,
     decrypt_incident_memory_bundle,
     encrypt_incident_memory_bundle,
 )
@@ -26,6 +31,28 @@ def incident_memory(*, tenant="alpha", project="platform", service="private-api"
         (_NOW - timedelta(minutes=1)).isoformat(
             timespec="microseconds").replace("+00:00", "Z"),
     )])
+
+
+def signed_approval(memory, private_key, *, approval_id="1" * 32):
+    record = memory.to_bundle()["records"][0]
+    payload = {
+        "schema_version": 1,
+        "approval_id": approval_id,
+        "approver_id": "curator-1",
+        "approved_at": (_NOW - timedelta(seconds=30)).isoformat(
+            timespec="microseconds").replace("+00:00", "Z"),
+        "expires_at": (_NOW + timedelta(hours=1)).isoformat(
+            timespec="microseconds").replace("+00:00", "Z"),
+        "record": record,
+    }
+    message = json.dumps(
+        payload, sort_keys=True, separators=(",", ":"),
+        ensure_ascii=False, allow_nan=False,
+    ).encode("utf-8")
+    return {
+        **payload,
+        "signature": private_key.sign(message).hex(),
+    }
 
 
 class IncidentMemoryEncryptionTests(unittest.TestCase):
@@ -51,6 +78,14 @@ class IncidentMemoryEncryptionTests(unittest.TestCase):
             expected_project=project, now=now,
         )
 
+    def approved_decrypt(self, envelope, approvals, keyring, registry):
+        return decrypt_approved_incident_memory_bundle(
+            envelope, _KEY, expected_tenant="alpha",
+            expected_project="platform", now=_NOW,
+            approval_envelopes=approvals, trusted_public_keys=keyring,
+            consumption_registry=registry,
+        )
+
     def test_roundtrip_is_scoped_authenticated_and_does_not_expose_plaintext(self):
         memory = incident_memory()
         envelope = self.encrypt(memory)
@@ -71,6 +106,81 @@ class IncidentMemoryEncryptionTests(unittest.TestCase):
             "alpha", "platform", "private-api", "high_error_rate",
             now=_NOW, max_age_seconds=3600, require_approval=True,
         ), ())
+
+    def test_approved_restore_requires_fresh_matching_signed_approval(self):
+        record_memory = incident_memory()
+        private_key = Ed25519PrivateKey.generate()
+        public_key = private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        keyring = {("alpha", "platform", "curator-1"): public_key}
+        approval = signed_approval(record_memory, private_key)
+        source = IncidentMemoryApprovalRegistry().load_memory(
+            [approval], keyring, now=_NOW,
+        )
+        envelope = self.encrypt(source)
+
+        # Plain decryption intentionally strips approval provenance.
+        plain = self.decrypt(envelope)
+        query = {
+            "tenant": "alpha", "project": "platform",
+            "service": "private-api", "category": "high_error_rate",
+            "now": _NOW, "max_age_seconds": 3600, "require_approval": True,
+        }
+        self.assertEqual(plain.retrieve_provenanced(**query), ())
+
+        restored = self.approved_decrypt(
+            envelope, [approval], keyring, IncidentMemoryApprovalRegistry(),
+        )
+        self.assertEqual(restored.retrieve_provenanced(**query),
+                         record_memory.retrieve("alpha", "platform",
+                                                "private-api", "high_error_rate"))
+
+    def test_mismatched_approval_batch_does_not_consume_valid_approval(self):
+        private_key = Ed25519PrivateKey.generate()
+        public_key = private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        keyring = {("alpha", "platform", "curator-1"): public_key}
+        archived_memory = incident_memory(evidence="a" * 64)
+        different_memory = incident_memory(evidence="c" * 64)
+        archived_approval = signed_approval(
+            archived_memory, private_key, approval_id="1" * 32,
+        )
+        different_approval = signed_approval(
+            different_memory, private_key, approval_id="2" * 32,
+        )
+        envelope = self.encrypt(archived_memory)
+        registry = IncidentMemoryApprovalRegistry()
+
+        with self.assertRaisesRegex(
+                ContextError, "memory_approval_archive_mismatch"):
+            self.approved_decrypt(
+                envelope, [archived_approval, different_approval],
+                keyring, registry,
+            )
+        restored = self.approved_decrypt(
+            envelope, [archived_approval], keyring, registry,
+        )
+        self.assertEqual(len(restored.retrieve_provenanced(
+            "alpha", "platform", "private-api", "high_error_rate",
+            now=_NOW, max_age_seconds=3600, require_approval=True,
+        )), 1)
+
+    def test_approved_archive_import_obeys_the_replay_registry(self):
+        memory = incident_memory()
+        private_key = Ed25519PrivateKey.generate()
+        public_key = private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        keyring = {("alpha", "platform", "curator-1"): public_key}
+        approval = signed_approval(memory, private_key)
+        envelope = self.encrypt(memory)
+        registry = IncidentMemoryApprovalRegistry()
+
+        self.approved_decrypt(envelope, [approval], keyring, registry)
+        with self.assertRaisesRegex(ContextError, "replayed_memory_approval"):
+            self.approved_decrypt(envelope, [approval], keyring, registry)
 
     def test_wrong_scope_key_salt_or_ciphertext_fails_closed(self):
         envelope = self.encrypt()
