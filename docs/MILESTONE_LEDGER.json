@@ -959,6 +959,17 @@
       "ci_run_id": 41626407724,
       "verification": "VERIFIED 2026-11-03: PR #411 merged at 5c8cb05d12560d9771769fbf7a157df056e91934 from head db7592d93b674f12d56b338c80494790ba965020. PR CI 41626407724 and push CI 41626384456 SUCCESS; CodeQL 41626404076 SUCCESS for Actions, JavaScript/TypeScript and Python; Vercel preview SUCCESS. The Codex model-review step was skipped because explicit budget approval was absent. Exact-merge main CI 41626783764 and CodeQL 41626782537 SUCCESS; main CI published and verified static Pages. Node was skipped by path selection on main. Controlled incident drill and restoration checks were skipped by workflow conditions.",
       "limitations": "The sufficient-evidence abstention rate is descriptive over four synthetic, unreviewed labels in a five-case fixture. It does not establish label accuracy, a general safe-refusal rate, or real-world model quality. No model inference or hosted API runtime occurred. Gate dispositions did not change."
+    },
+    {
+      "id": "p03-metadata-only-topology-split-guard-pr412",
+      "area": "QUALITY",
+      "title": "Add metadata-only evaluation split leakage guard",
+      "pr_number": 412,
+      "pr_head_sha": "4bbbf8e133cc5fd09a75dd52e598765d63e49e89",
+      "merge_sha": "156577a1206ec4cea8786ee9de7f9f718dd25227",
+      "ci_run_id": 41628667280,
+      "verification": "VERIFIED 2026-11-03: PR #412 merged at 156577a1206ec4cea8786ee9de7f9f718dd25227 from head 4bbbf8e133cc5fd09a75dd52e598765d63e49e89. PR CI 41628667280 and push CI 41628661583 SUCCESS; CodeQL 41628663487 SUCCESS for Actions, Python and JavaScript/TypeScript; Vercel preview SUCCESS. The Actions AI Code Review model step was skipped for missing budget approval; a separate Codex review summary after the draft was marked ready reported completed with no findings. Exact-merge main CI 41629134477 and CodeQL 41629133141 SUCCESS; main CI published and verified static Pages. Node passed; controlled incident drill and restoration checks were skipped by workflow conditions.",
+      "limitations": "The change adds a metadata-only split leakage check using synthetic assignments. It does not create reviewed incidents or a 30-case benchmark; P04 T28/T29 and all readiness gates remain open or blocked."
     }
   ],
   "gates": [

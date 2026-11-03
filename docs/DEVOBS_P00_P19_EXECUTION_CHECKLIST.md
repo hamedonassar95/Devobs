@@ -89,6 +89,7 @@
 [Source Issue #223](https://github.com/hamedonassar95/Devobs/issues/223) · **WAITING—P02** · 6 acceptance items.
 
 - [ ] **T22: Discover authorized service dependency topology.** Ingest signed/verified service metadata, exact tenant scope and source freshness.
+  Partial local capability: `verify_topology_attestation` checks an Ed25519-signed snapshot against a caller-supplied, scope-bound public key, exact expected SHA and freshness window. Tests use generated keys and synthetic topology only. Key enrollment and live authorized-source ingestion are not implemented; T22 remains open.
 - [ ] **T23: Detect graph drift and cycles.** Bound traversal, handle cycles/orphans and mark unverifiable edges.
 - [ ] **T24: Correlate impacted services.** Explain ranked hypothesis from evidence without claiming causal proof.
 - [ ] **T25: Encrypt and isolate durable incident metadata.** Delete/export/retention policies; deny cross-tenant and raw private logs.

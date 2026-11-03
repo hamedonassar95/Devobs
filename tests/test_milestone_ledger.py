@@ -854,6 +854,22 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("four synthetic, unreviewed labels", entry["limitations"])
         self.assertIn("Gate dispositions did not change", entry["limitations"])
 
+    def test_pr412_merge_records_metadata_split_guard_and_preserves_gates(self):
+        records = {item["pr_number"]: item for item in self.data["milestones"]}
+        entry = records[412]
+        self.assertEqual(entry["title"], "Add metadata-only evaluation split leakage guard")
+        self.assertEqual(entry["pr_head_sha"], "4bbbf8e133cc5fd09a75dd52e598765d63e49e89")
+        self.assertEqual(entry["merge_sha"], "156577a1206ec4cea8786ee9de7f9f718dd25227")
+        self.assertEqual(entry["ci_run_id"], 41628667280)
+        self.assertIn("41628661583 SUCCESS", entry["verification"])
+        self.assertIn("41628663487 SUCCESS", entry["verification"])
+        self.assertIn("41629134477", entry["verification"])
+        self.assertIn("41629133141 SUCCESS", entry["verification"])
+        self.assertIn("The Actions AI Code Review model step was skipped", entry["verification"])
+        self.assertIn("separate Codex review summary", entry["verification"])
+        self.assertIn("P04 T28/T29", entry["limitations"])
+        self.assertIn("all readiness gates remain open or blocked", entry["limitations"])
+
     def test_duplicate_achievement_rejected(self):
         self.data["milestones"].append(copy.deepcopy(self.data["milestones"][-1]))
         with self.assertRaisesRegex(InvalidLedger, "duplicate|not increasing"):
