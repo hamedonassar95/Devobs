@@ -1069,6 +1069,17 @@
       "ci_run_id": 41707347161,
       "verification": "VERIFIED 2026-11-03: PR #421 merged at 7ca86444efc3529ba5da0ca934939578f52d6d4e from head 0516a5c64bb91fbd596707b2d201deca8eb97dfc. PR CI 41707347161 and push CI 41707252123 SUCCESS. Exact-merge main CI 41709068995 and Push on main/CodeQL 41709067466 SUCCESS; Pages publish and verify-production passed; controlled incident drill was skipped. Local milestone-ledger tests at merge: 49 passed.",
       "limitations": "Documentation only; records PR #421 merge evidence and the offline limits of PR #420. It proves no live runtime or model inference and changes no readiness gates."
+    },
+    {
+      "id": "p03-merge-evidence-pr422",
+      "area": "DOCUMENTATION",
+      "title": "Record exact merge evidence for PR #421",
+      "pr_number": 422,
+      "pr_head_sha": "e574c7a0947547cd04f535ddddfc64aa62623c70",
+      "merge_sha": "f34977941c1634958c0c94b527ac4cb071b341b6",
+      "ci_run_id": 41710043269,
+      "verification": "VERIFIED 2026-11-03: PR #422 merged at f34977941c1634958c0c94b527ac4cb071b341b6 from head e574c7a0947547cd04f535ddddfc64aa62623c70. PR CI 41710043269 and push CI 41709980987 SUCCESS; PR CodeQL run 41710036442 SUCCESS. Exact-merge main CI 41710442360 and Push on main/CodeQL 41710441908 SUCCESS; Pages publish and verify-production passed. Node tests passed on push CI and were skipped on the duplicate PR CI; controlled incident drill and restore checks were skipped. Local milestone-ledger tests: 50 passed.",
+      "limitations": "Documentation only; records PR #422 merge evidence for PR #421. It adds no live runtime or model inference evidence, no product capability, and no readiness gate promotion."
     }
   ],
   "gates": [

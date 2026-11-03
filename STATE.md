@@ -1,5 +1,11 @@
 # حالة مستودع Devobs
 
+## أحدث دمج موثّق: PR #422 — تحقق 2026-11-03
+
+- **VERIFIED من GitHub:** دُمج [PR #422](https://github.com/hamedonassar95/Devobs/pull/422) عند SHA `f34977941c1634958c0c94b527ac4cb071b341b6` من الرأس `e574c7a0947547cd04f535ddddfc64aa62623c70`. نجح PR CI `41710043269` وpush CI `41709980987` وCodeQL للـPR `41710036442`. نجح main CI `41710442360` وPush on main/CodeQL `41710441908`، ونُشرت Pages واجتازت `verify-production`.
+- نجح Node في push CI وتخطّى في تشغيل PR المكرر للتغيير التوثيقي. تخطّى تدريب الحادث المضبوط وفحوص الاستعادة. PR #422 توثيقي فقط، واختبارات سجل الإنجازات المحلية عند الدمج كانت 50/50.
+- لم تتغير حالات الجاهزية: AI-9 **BLOCKED**، وP01 **BLOCKED**، وCodex runtime **OPEN**. لا يثبت هذا السجل تشغيلًا حيًا أو استدلال نموذج.
+
 ## أحدث دمج موثّق: PR #421 — تحقق 2026-11-03
 
 - **VERIFIED من GitHub:** دُمج [PR #421](https://github.com/hamedonassar95/Devobs/pull/421) عند SHA `7ca86444efc3529ba5da0ca934939578f52d6d4e` من الرأس `0516a5c64bb91fbd596707b2d201deca8eb97dfc`. نجح PR CI `41707347161` وpush CI `41707252123`. نجح main CI `41709068995` وPush on main/CodeQL `41709067466` على SHA الدمج؛ نُشرت Pages الثابتة واجتاز الموقع `verify-production`. تخطّى تدريب الحادث المضبوط.
