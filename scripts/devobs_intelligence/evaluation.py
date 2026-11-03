@@ -90,6 +90,19 @@ def _wilson_interval(successes: int, trials: int) -> dict[str, float]:
     return {"lower": max(0.0, center - radius), "upper": min(1.0, center + radius)}
 
 
+def _wilson_metric_interval_95(successes: int, trials: int) -> dict[str, object] | None:
+    """Return a descriptive interval, or null when the metric has no denominator."""
+    if trials == 0:
+        return None
+    return {
+        "method": "wilson_score",
+        "confidence_level": 0.95,
+        **_wilson_interval(successes, trials),
+        "successes": successes,
+        "trials": trials,
+    }
+
+
 def evaluate_cases(cases: list[dict], *, target_accuracy: float | None = None) -> dict[str, object]:
     """Score fixed synthetic cases without inventing an acceptance target.
 
@@ -176,11 +189,15 @@ def evaluate_cases(cases: list[dict], *, target_accuracy: float | None = None) -
                 "numerator": true_positive,
                 "denominator": predicted_count,
             },
+            "precision_interval_95": _wilson_metric_interval_95(
+                true_positive, predicted_count
+            ),
             "recall": {
                 "value": true_positive / support if support else None,
                 "numerator": true_positive,
                 "denominator": support,
             },
+            "recall_interval_95": _wilson_metric_interval_95(true_positive, support),
         }
     return {
         "schema_version": 1,

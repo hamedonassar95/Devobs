@@ -20,7 +20,7 @@ The new assertions initially failed because the scorecard had no `coverage` fiel
 ## Verification results
 
 - Focused evaluator suite: 16 tests passed.
-- Milestone ledger suite: 38 tests passed and the summary reports latest PR #407, 83 merged milestones, and 3 unchanged gates.
+- Milestone ledger suite: 38 tests passed and the summary reported PR #407 as latest when this change was implemented.
 - Full Python suite: 804 tests passed, 22 skipped, using the existing temporary validation environment with `psycopg` installed.
 - `compileall`, Bandit for the changed evaluator, action-pin check, evaluator CLI, and `git diff --check`: passed.
-- Hosted checks: not run; this local branch has not been pushed.
+- PR #408 exact-head CI, CodeQL, and Vercel passed. Post-merge main CI and CodeQL passed on merge SHA `8d4c1875aafb321f4b6a874ac748e6cae471f0eb`. The advisory Codex inference step was skipped.

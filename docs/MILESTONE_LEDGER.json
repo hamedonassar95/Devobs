@@ -915,6 +915,17 @@
       "ci_run_id": 41520175435,
       "verification": "VERIFIED 2026-11-02: PR #407 merged at 437200597912e5d6f92cf7f9e6aad679b40b0e33 from head ea5108c7855ebb2e4502d89c6b558dbed5aa9da5. PR CI 41520175435 and push CI 41520203368 SUCCESS; CodeQL 41520195858 SUCCESS for Actions, Python and JavaScript/TypeScript; Vercel preview SUCCESS. Advisory workflow 41520203275 completed but skipped Codex inference because explicit budget approval was absent. Exact-merge main CI 41520608784 and CodeQL 41520607823 SUCCESS. Main CI published and verified static Pages; controlled incident drill and restoration jobs were skipped by workflow conditions.",
       "limitations": "The manifest binds only the deterministic synthetic, unreviewed fixture. It does not establish independent labels, real-world quality, model inference, latency/cost, or a hosted API runtime. Pages is static-site evidence. Gate dispositions did not change."
+    },
+    {
+      "id": "p04-scorecard-coverage-pr408",
+      "area": "QUALITY",
+      "title": "Add coverage and unknown-output rates with explicit denominators",
+      "pr_number": 408,
+      "pr_head_sha": "5fbf3f6578e0c9bbcc6a42190d467872199d0095",
+      "merge_sha": "8d4c1875aafb321f4b6a874ac748e6cae471f0eb",
+      "ci_run_id": 41616589063,
+      "verification": "VERIFIED 2026-11-03: PR #408 merged at 8d4c1875aafb321f4b6a874ac748e6cae471f0eb from head 5fbf3f6578e0c9bbcc6a42190d467872199d0095. PR CI 41616589063 and push CI 41616565301 SUCCESS; CodeQL 41616583002 SUCCESS for Actions, Python and JavaScript/TypeScript; Vercel preview SUCCESS. Advisory review completed but Codex inference was skipped. Exact-merge main CI 41617030405 and CodeQL 41617028662 SUCCESS; main CI published static Pages and passed production verification.",
+      "limitations": "Coverage and unknown-output metrics describe only five deterministic synthetic cases. They are not safe-refusal measurements or real-world quality evidence. No model inference occurred; static Pages is not a hosted API runtime. Gate dispositions did not change."
     }
   ],
   "gates": [
