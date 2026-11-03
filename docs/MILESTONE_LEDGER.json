@@ -970,6 +970,17 @@
       "ci_run_id": 41628667280,
       "verification": "VERIFIED 2026-11-03: PR #412 merged at 156577a1206ec4cea8786ee9de7f9f718dd25227 from head 4bbbf8e133cc5fd09a75dd52e598765d63e49e89. PR CI 41628667280 and push CI 41628661583 SUCCESS; CodeQL 41628663487 SUCCESS for Actions, Python and JavaScript/TypeScript; Vercel preview SUCCESS. The Actions AI Code Review model step was skipped for missing budget approval; a separate Codex review summary after the draft was marked ready reported completed with no findings. Exact-merge main CI 41629134477 and CodeQL 41629133141 SUCCESS; main CI published and verified static Pages. Node passed; controlled incident drill and restoration checks were skipped by workflow conditions.",
       "limitations": "The change adds a metadata-only split leakage check using synthetic assignments. It does not create reviewed incidents or a 30-case benchmark; P04 T28/T29 and all readiness gates remain open or blocked."
+    },
+    {
+      "id": "p03-signed-topology-attestation-pr413",
+      "area": "QUALITY",
+      "title": "Verify signed topology provenance offline (P03 T22)",
+      "pr_number": 413,
+      "pr_head_sha": "01fb6b0ea23b7d5ceaeadc1c8755c7c7205219d9",
+      "merge_sha": "acf1b0c97c084db4826d07066951ccda23f08d80",
+      "ci_run_id": 41630254246,
+      "verification": "VERIFIED 2026-11-03: PR #413 merged at acf1b0c97c084db4826d07066951ccda23f08d80 from head 01fb6b0ea23b7d5ceaeadc1c8755c7c7205219d9. PR CI 41630254246 and push CI 41630246585 SUCCESS; CodeQL run 41630247569 passed for Actions, Python, and JavaScript/TypeScript; Vercel preview SUCCESS. Advisory AI Code Review workflow 41630254446 completed, but its \"Review the pull request with Codex\" model step was skipped because explicit budget approval was absent; no model call is claimed. Exact-merge main CI 41630631919 and Push on main/CodeQL run 41630630347 SUCCESS. Main CI published and verified static Pages; the main Vercel deployment status was SUCCESS. Controlled incident drill and restoration jobs were skipped by workflow conditions.",
+      "limitations": "The change verifies an exact schema-v1 snapshot envelope with Ed25519 against caller-supplied scope-bound public keys, expected SHA, and freshness. Tests use generated keys and synthetic topology only. It does not enroll/protect keys, prove a collector observed the real source, ingest live metadata, establish edge truth, or prevent all replay. T22 remains partial. No readiness gate changed."
     }
   ],
   "gates": [

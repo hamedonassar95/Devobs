@@ -1,6 +1,14 @@
 # حالة مستودع Devobs
 
-## أحدث دمج موثّق: PR #412 — تحقق 2026-11-03
+## أحدث دمج موثّق: PR #413 — تحقق 2026-11-03
+
+- **VERIFIED من GitHub:** دُمج [PR #413](https://github.com/hamedonassar95/Devobs/pull/413) عند SHA `acf1b0c97c084db4826d07066951ccda23f08d80` من الرأس `01fb6b0ea23b7d5ceaeadc1c8755c7c7205219d9`. نجح PR CI `41630254246` وpush CI `41630246585` وCodeQL `41630247569` (Actions وPython وJavaScript/TypeScript) ومعاينة Vercel.
+- اكتمل سير AI Code Review `41630254446`، لكن خطوة استدعاء نموذج Codex تخطّت لعدم وجود موافقة ميزانية صريحة؛ لا أسجل نجاح workflow كدليل لاستدعاء نموذج.
+- نجح main CI `41630631919` وPush on main/CodeQL `41630630347` على SHA الدمج. نشر CI موقع Pages الثابت وتحقق منه، ونجحت حالة Vercel. تخطّت شروط workflow تدريب الحادث المضبوط وفحوص الاستعادة.
+- أضاف PR #413 تحققًا محليًا لتوقيع Ed25519 على غلاف لقطة طوبولوجيا مضبوط، مع نطاق tenant/project وSHA وتاريخ حداثة يقدمه المستدعي. استخدمت الاختبارات مفاتيح مولدة وبيانات اصطناعية فقط؛ لا يوجد تسجيل مفاتيح أو مصدر طوبولوجيا حي. T22 تبقى جزئية.
+- سُجل الدمج مع خطوة T23 البرمجية التالية في [`docs/MILESTONE_LEDGER.json`](docs/MILESTONE_LEDGER.json) و[`docs/DEVOBS_READINESS_CURRENT.md`](docs/DEVOBS_READINESS_CURRENT.md). لم تتغير قرارات الجاهزية.
+
+## سجل تاريخي: PR #412 — تحقق 2026-11-03
 
 - **VERIFIED من GitHub:** دُمج [PR #412](https://github.com/hamedonassar95/Devobs/pull/412) عند SHA `156577a1206ec4cea8786ee9de7f9f718dd25227` من الرأس `4bbbf8e133cc5fd09a75dd52e598765d63e49e89`. نجح PR CI `41628667280` وpush CI `41628661583` وCodeQL `41628663487`؛ نجحت معاينة Vercel. تخطّى سير AI Code Review خطوة استدعاء Codex لغياب موافقة الميزانية. منفصلًا، سجل ملخص Codex بعد تحويل المسودة إلى جاهزة مراجعة مكتملة بلا نتائج؛ لا يغيّر هذا حالة أي بوابة.
 - نجح main CI `41629134477` وCodeQL `41629133141` على SHA الدمج. نُشر موقع Pages الثابت وتم التحقق منه. فحوص الاستعادة وتدريب الحادث المضبوط تخطّتها شروط workflow.
