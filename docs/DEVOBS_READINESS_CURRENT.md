@@ -1,13 +1,22 @@
-## Superseding snapshot — 2026-11-03 (after PR #418)
+## Superseding snapshot — 2026-11-03 (after PR #419)
 
-**VERIFIED from GitHub:** `main` is merge SHA `a66775cf8c58b9ab2890936bbd2a88b6647f399c`, from PR [#418](https://github.com/hamedonassar95/Devobs/pull/418), head `3c5c4681a54b9518f4320069860f443273b956bd`.
+**VERIFIED from GitHub:** `main` is merge SHA `3b3eeec8e85fe4068d84f44899aafa946d54cf35`, from PR [#419](https://github.com/hamedonassar95/Devobs/pull/419), head `1da4f176a20c71b23caf038bbd796ea5f073ee9a`.
+
+- PR CI [41673754849](https://github.com/hamedonassar95/Devobs/actions/runs/41673754849) passed. The advisory review workflow [41673754769](https://github.com/hamedonassar95/Devobs/actions/runs/41673754769) completed, but its secret-check, checkout and model-review steps were skipped; no model call is claimed. The local Python suite ran 855 tests with 22 skips.
+- Exact-merge main CI [41674495022](https://github.com/hamedonassar95/Devobs/actions/runs/41674495022) and CodeQL [41674494043](https://github.com/hamedonassar95/Devobs/actions/runs/41674494043) passed. The controlled incident drill and restore checks were skipped by workflow conditions. Vercel on the merge SHA failed because of the preview/build rate limit.
+- PR #419 connects signed topology-snapshot verification to T24 findings and impact paths. It relies on caller-supplied trust keys and synthetic topology; it does not enroll/protect keys or ingest a live authorized source. Topology truth and calibrated detection quality remain unverified.
+- This is repository and static-site evidence only. No live tenant API, managed database, enterprise customer onboarding, support SLO, or customer-data operation was verified; commercial service readiness remains unproven.
+- The documented gate dispositions remain unchanged: AI-9 **FAIL / BLOCKED**, P01 **NO-GO / BLOCKED**, and Codex agent runtime **OPEN**.
+
+## Prior snapshot — 2026-11-03 (after PR #418; superseded by PR #419)
+
+**VERIFIED from GitHub:** `main` was merge SHA `a66775cf8c58b9ab2890936bbd2a88b6647f399c`, from PR [#418](https://github.com/hamedonassar95/Devobs/pull/418), head `3c5c4681a54b9518f4320069860f443273b956bd`.
 
 - PR CI [41655343424](https://github.com/hamedonassar95/Devobs/actions/runs/41655343424) and push CI [41655295899](https://github.com/hamedonassar95/Devobs/actions/runs/41655295899) passed; CodeQL [41655335969](https://github.com/hamedonassar95/Devobs/actions/runs/41655335969) passed for Actions, Python and JavaScript/TypeScript; Vercel preview passed.
 - Local Python suite passed 847 tests with 22 skips. Advisory AI Code Review [41655343274](https://github.com/hamedonassar95/Devobs/actions/runs/41655343274) completed, but the Codex model step was skipped for missing explicit budget approval. No model call is claimed.
 - Exact-merge main CI [41672386628](https://github.com/hamedonassar95/Devobs/actions/runs/41672386628) and Push on main [41672386750](https://github.com/hamedonassar95/Devobs/actions/runs/41672386750) passed. Static Pages was published and `verify-production` passed; the controlled incident drill was skipped.
-- PR #418 validates finding v3 impact paths against the exact fresh snapshot and its content digest. It verifies consistency but did not connect signature verification in the caller path, enroll trusted keys, or ingest a live authorized source; topology truth and calibrated detection quality remain unverified.
-- This is repository and static-site evidence only. No live tenant API, managed database, enterprise customer onboarding, support SLO, or customer-data operation was verified; commercial service readiness remains unproven.
-- The documented gate dispositions remain unchanged: AI-9 **FAIL / BLOCKED**, P01 **NO-GO / BLOCKED**, and Codex agent runtime **OPEN**.
+- PR #418 validates finding v3 impact paths against the exact fresh snapshot and its content digest; it does not prove topology truth, enroll trusted keys, or ingest a live authorized source.
+- Gate dispositions remained AI-9 **FAIL / BLOCKED**, P01 **NO-GO / BLOCKED**, and Codex agent runtime **OPEN**.
 
 ## Prior snapshot — 2026-11-03 (after PR #417; superseded by PR #418)
 

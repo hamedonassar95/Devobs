@@ -991,6 +991,41 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
+    def test_pr419_is_recorded_with_exact_merge_evidence_and_limits(self):
+        records = {item["pr_number"]: item for item in self.data["milestones"]}
+        entry = records[419]
+        self.assertEqual(
+            entry["title"],
+            "Bind T24 findings to signed topology and impact-path verification",
+        )
+        self.assertEqual(
+            entry["pr_head_sha"],
+            "1da4f176a20c71b23caf038bbd796ea5f073ee9a",
+        )
+        self.assertEqual(
+            entry["merge_sha"],
+            "3b3eeec8e85fe4068d84f44899aafa946d54cf35",
+        )
+        self.assertEqual(entry["ci_run_id"], 41673754849)
+        self.assertIn("41674495022", entry["verification"])
+        self.assertIn("41674494043", entry["verification"])
+        self.assertIn("855 tests with 22 skipped", entry["verification"])
+        self.assertIn("model-review steps were skipped", entry["verification"])
+        self.assertIn(
+            "Controlled incident drill and restore checks were skipped",
+            entry["verification"],
+        )
+        self.assertIn("caller-supplied trust source", entry["limitations"])
+        self.assertIn("T24 remains partial", entry["limitations"])
+        self.assertEqual(
+            {gate["id"]: gate["status"] for gate in self.data["gates"]},
+            {
+                "ai9-detection-quality": "BLOCKED",
+                "p01-managed-saas": "BLOCKED",
+                "codex-agent-runtime-acceptance": "OPEN",
+            },
+        )
+
     def test_duplicate_achievement_rejected(self):
         self.data["milestones"].append(copy.deepcopy(self.data["milestones"][-1]))
         with self.assertRaisesRegex(InvalidLedger, "duplicate|not increasing"):

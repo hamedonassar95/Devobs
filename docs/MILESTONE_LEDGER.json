@@ -1036,6 +1036,17 @@
       "ci_run_id": 41655343424,
       "verification": "VERIFIED 2026-11-03: PR #418 merged at a66775cf8c58b9ab2890936bbd2a88b6647f399c from head 3c5c4681a54b9518f4320069860f443273b956bd. PR CI 41655343424 and push CI 41655295899 SUCCESS; CodeQL 41655335969 passed for Actions, Python, and JavaScript/TypeScript; Vercel preview SUCCESS. Local Python suite: 847 tests, 22 skipped. Advisory review workflow 41655343274 completed, but its Codex model step was skipped for missing explicit budget approval; no model call is claimed. Exact-merge main CI 41672386628 and Push on main 41672386750 SUCCESS; static Pages published and verify-production passed. Controlled incident drill was skipped.",
       "limitations": "The finding validator recomputes impacted services and shortest declared paths against an exact fresh snapshot, but the caller must separately authenticate snapshot provenance. It does not prove edge truth, source observation, causal relation, or calibrated quality. Tests use synthetic inputs only. T24 remains partial. No live enterprise service or model inference is demonstrated. Readiness gates remain unchanged."
+    },
+    {
+      "id": "p03-operator-fed-topology-key-rotation-pr419",
+      "area": "QUALITY",
+      "title": "Bind T24 findings to signed topology and impact-path verification",
+      "pr_number": 419,
+      "pr_head_sha": "1da4f176a20c71b23caf038bbd796ea5f073ee9a",
+      "merge_sha": "3b3eeec8e85fe4068d84f44899aafa946d54cf35",
+      "ci_run_id": 41673754849,
+      "verification": "VERIFIED 2026-11-03: PR #419 merged at 3b3eeec8e85fe4068d84f44899aafa946d54cf35 from head 1da4f176a20c71b23caf038bbd796ea5f073ee9a. PR CI 41673754849 SUCCESS; local Python suite ran 855 tests with 22 skipped. Advisory review workflow 41673754769 completed, but its secret-check, checkout and model-review steps were skipped; no model call is claimed. Exact-merge main CI 41674495022 and CodeQL 41674494043 SUCCESS. Controlled incident drill and restore checks were skipped by workflow conditions. Vercel status on the merge SHA failed because of the preview/build rate limit.",
+      "limitations": "Adds offline T24 validation that binds findings and impact paths to a signed topology snapshot using caller-supplied trusted public keys. Tests use generated keys and synthetic topology only. This change does not authenticate the caller-supplied trust source or enroll/protect keys; it does not prove live topology or edge truth. No successful AI model call or hosted runtime is demonstrated. T24 remains partial; AI-9 remains BLOCKED, P01 remains BLOCKED, and Codex runtime remains OPEN."
     }
   ],
   "gates": [

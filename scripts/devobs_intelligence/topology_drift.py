@@ -7,6 +7,11 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from .context import ContextError, ServiceTopologySnapshot
+from .topology_attestation import (
+    RotatingTopologyKeyring,
+    VerifiedTopologyAttestation,
+    verify_topology_attestation,
+)
 
 
 def _validated_snapshot(value: object) -> ServiceTopologySnapshot:
@@ -125,6 +130,42 @@ class TopologyDriftReport:
         return {**payload, "report_digest": digest}
 
 
+@dataclass(frozen=True)
+class AttestedTopologyDriftReport:
+    """A drift report linked to two independently verified envelopes.
+
+    The envelope digests identify the signed inputs but do not replace those
+    inputs or make the report independently verifiable. Retain both original
+    envelopes and the applicable trust configuration when audit replay is
+    required.
+    """
+
+    drift: TopologyDriftReport
+    before_key_id: str
+    after_key_id: str
+    before_attestation_digest: str
+    after_attestation_digest: str
+
+    def to_record(self) -> dict:
+        payload = {
+            "schema_version": 1,
+            "before_attestation": {
+                "key_id": self.before_key_id,
+                "digest": self.before_attestation_digest,
+            },
+            "after_attestation": {
+                "key_id": self.after_key_id,
+                "digest": self.after_attestation_digest,
+            },
+            "drift": self.drift.to_record(),
+        }
+        digest = hashlib.sha256(json.dumps(
+            payload, sort_keys=True, separators=(",", ":"),
+            ensure_ascii=True, allow_nan=False,
+        ).encode("ascii")).hexdigest()
+        return {**payload, "attested_report_digest": digest}
+
+
 def compare_topology_snapshots(
     before: ServiceTopologySnapshot,
     after: ServiceTopologySnapshot,
@@ -161,4 +202,81 @@ def compare_topology_snapshots(
         newly_isolated_services=tuple(sorted(new_isolated - old_isolated)),
         reconnected_services=tuple(sorted(old_isolated - new_isolated)),
         unverifiable_edges=tuple(sorted(new_edges)),
+    )
+
+
+def _verified_attestation(
+    envelope: object,
+    keyring: dict[tuple[str, str, str], bytes],
+    *,
+    tenant: str,
+    project: str,
+    source_sha: str,
+    now: datetime,
+    max_age_seconds: int,
+) -> VerifiedTopologyAttestation:
+    return verify_topology_attestation(
+        envelope, keyring,
+        expected_tenant=tenant,
+        expected_project=project,
+        expected_source_sha=source_sha,
+        now=now,
+        max_age_seconds=max_age_seconds,
+    )
+
+
+def compare_attested_topology_snapshots(
+    before_attestation: object,
+    after_attestation: object,
+    trusted_public_keys: dict[tuple[str, str, str], bytes]
+    | RotatingTopologyKeyring,
+    *,
+    expected_tenant: str,
+    expected_project: str,
+    expected_before_source_sha: str,
+    expected_after_source_sha: str,
+    now: datetime,
+    max_age_seconds: int = 900,
+) -> AttestedTopologyDriftReport:
+    """Verify two signed snapshots under one trust view, then compare them.
+
+    Both snapshots must independently match the requested scope, expected
+    source SHA, and freshness window. Verification is completed before any
+    drift values are computed. This authenticates the envelopes against the
+    caller's configured trust keys; it does not establish that a signer
+    observed a complete or truthful dependency graph.
+    """
+    try:
+        if isinstance(trusted_public_keys, RotatingTopologyKeyring):
+            keyring = trusted_public_keys.snapshot()
+        elif type(trusted_public_keys) is dict:
+            keyring = dict(trusted_public_keys)
+        else:
+            keyring = trusted_public_keys
+    except (RuntimeError, TypeError, ValueError):
+        raise ContextError("invalid_topology_keyring") from None
+
+    before = _verified_attestation(
+        before_attestation, keyring,
+        tenant=expected_tenant,
+        project=expected_project,
+        source_sha=expected_before_source_sha,
+        now=now,
+        max_age_seconds=max_age_seconds,
+    )
+    after = _verified_attestation(
+        after_attestation, keyring,
+        tenant=expected_tenant,
+        project=expected_project,
+        source_sha=expected_after_source_sha,
+        now=now,
+        max_age_seconds=max_age_seconds,
+    )
+    drift = compare_topology_snapshots(before.snapshot, after.snapshot)
+    return AttestedTopologyDriftReport(
+        drift=drift,
+        before_key_id=before.key_id,
+        after_key_id=after.key_id,
+        before_attestation_digest=before.attestation_digest,
+        after_attestation_digest=after.attestation_digest,
     )

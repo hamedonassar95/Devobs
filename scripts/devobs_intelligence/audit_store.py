@@ -8,6 +8,7 @@ import json
 import re
 import sqlite3
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 from cryptography.exceptions import InvalidSignature
@@ -19,7 +20,13 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
 from .context import ServiceTopologySnapshot
 from .contracts import EventEnvelopeV1, EvidenceError, parse_event
 from .policy import EvaluationV1, evaluate_action
-from .topology_drift import TopologyDriftReport, compare_topology_snapshots
+from .topology_attestation import RotatingTopologyKeyring
+from .topology_drift import (
+    AttestedTopologyDriftReport,
+    TopologyDriftReport,
+    compare_attested_topology_snapshots,
+    compare_topology_snapshots,
+)
 
 _DIGEST = re.compile(r"[0-9a-f]{64}\Z")
 _SIGNED_CHECKPOINT_FIELDS = frozenset({
@@ -414,12 +421,57 @@ class AuditStore:
         return self.append(event, evaluate_action(event, 'read_evidence'),
                            'read_evidence', subject_digest=record['finding_digest'])
 
+    def _append_topology_drift_digest(
+        self,
+        event: EventEnvelopeV1,
+        *,
+        tenant: str,
+        project: str,
+        after_source_sha: str,
+        after_captured_at: str,
+        report_digest: str,
+    ) -> AuditEntryV1:
+        if type(event) is not EventEnvelopeV1:
+            raise AuditError('invalid_topology_binding')
+        try:
+            source_event = parse_event({
+                'schema_version': event.schema_version,
+                'event_id': event.event_id,
+                'provider': event.provider,
+                'project_ref': f'{tenant}/{project}',
+                'source_sha': event.source_sha,
+                'kind': event.kind,
+                'observed_at': event.observed_at,
+                'evidence_digests': list(event.evidence_digests),
+            })
+            audit_event = parse_event({
+                'schema_version': 1,
+                'event_id': f'topology-drift-{report_digest[:32]}',
+                'provider': source_event.provider,
+                'project_ref': f'{tenant}/{project}',
+                'source_sha': after_source_sha,
+                'kind': source_event.kind,
+                'observed_at': after_captured_at,
+                'evidence_digests': [report_digest],
+            })
+        except (AttributeError, TypeError, ValueError, EvidenceError):
+            raise AuditError('invalid_topology_binding') from None
+        if (source_event != event or source_event.kind != 'incident'
+                or source_event.source_sha != after_source_sha
+                or type(report_digest) is not str
+                or not _DIGEST.fullmatch(report_digest)):
+            raise AuditError('invalid_topology_binding')
+        return self.append(
+            audit_event, evaluate_action(audit_event, 'read_evidence'),
+            'read_evidence', subject_digest=report_digest,
+        )
+
     def record_topology_drift(
         self, event: EventEnvelopeV1,
         before: ServiceTopologySnapshot,
         after: ServiceTopologySnapshot,
     ) -> tuple[TopologyDriftReport, AuditEntryV1]:
-        """Bind a validated topology-drift digest to the existing read-only chain.
+        """Bind an offline topology-drift digest to the local read-only chain.
 
         The chain stores only the digest and source SHA, not service names or graph
         contents. The caller's event and both snapshots are reconstructed before use.
@@ -430,37 +482,62 @@ class AuditStore:
             raise AuditError('invalid_topology_binding')
         try:
             report = compare_topology_snapshots(before, after)
-            source_event = parse_event({
-                'schema_version': event.schema_version,
-                'event_id': event.event_id,
-                'provider': event.provider,
-                'project_ref': f'{report.tenant}/{report.project}',
-                'source_sha': event.source_sha,
-                'kind': event.kind,
-                'observed_at': event.observed_at,
-                'evidence_digests': list(event.evidence_digests),
-            })
-            record = report.to_record()
-            report_digest = record['report_digest']
-            audit_event = parse_event({
-                'schema_version': 1,
-                'event_id': f'topology-drift-{report_digest[:32]}',
-                'provider': source_event.provider,
-                'project_ref': f'{report.tenant}/{report.project}',
-                'source_sha': report.after_source_sha,
-                'kind': source_event.kind,
-                'observed_at': report.after_captured_at,
-                'evidence_digests': [report_digest],
-            })
+            report_digest = report.to_record()['report_digest']
         except (AttributeError, TypeError, ValueError, EvidenceError):
             raise AuditError('invalid_topology_binding') from None
-        if (source_event != event or source_event.kind != 'incident'
-                or source_event.source_sha != report.after_source_sha
-                or not _DIGEST.fullmatch(report_digest)):
+        entry = self._append_topology_drift_digest(
+            event,
+            tenant=report.tenant,
+            project=report.project,
+            after_source_sha=report.after_source_sha,
+            after_captured_at=report.after_captured_at,
+            report_digest=report_digest,
+        )
+        return report, entry
+
+    def record_attested_topology_drift(
+        self,
+        event: EventEnvelopeV1,
+        before_attestation: object,
+        after_attestation: object,
+        trusted_public_keys: dict[tuple[str, str, str], bytes]
+        | RotatingTopologyKeyring,
+        *,
+        expected_tenant: str,
+        expected_project: str,
+        expected_before_source_sha: str,
+        expected_after_source_sha: str,
+        now: datetime,
+        max_age_seconds: int = 900,
+    ) -> tuple[AttestedTopologyDriftReport, AuditEntryV1]:
+        """Verify two signed inputs before appending their drift digest.
+
+        Only the report digest and after-source SHA enter the audit chain.
+        Original envelopes and trust configuration remain caller-managed; this
+        local store is not an immutable or independently replayable service.
+        """
+        if type(event) is not EventEnvelopeV1:
             raise AuditError('invalid_topology_binding')
-        entry = self.append(
-            audit_event, evaluate_action(audit_event, 'read_evidence'),
-            'read_evidence', subject_digest=report_digest,
+        try:
+            report = compare_attested_topology_snapshots(
+                before_attestation, after_attestation, trusted_public_keys,
+                expected_tenant=expected_tenant,
+                expected_project=expected_project,
+                expected_before_source_sha=expected_before_source_sha,
+                expected_after_source_sha=expected_after_source_sha,
+                now=now,
+                max_age_seconds=max_age_seconds,
+            )
+            report_digest = report.to_record()['attested_report_digest']
+        except (AttributeError, TypeError, ValueError, EvidenceError):
+            raise AuditError('invalid_topology_binding') from None
+        entry = self._append_topology_drift_digest(
+            event,
+            tenant=report.drift.tenant,
+            project=report.drift.project,
+            after_source_sha=report.drift.after_source_sha,
+            after_captured_at=report.drift.after_captured_at,
+            report_digest=report_digest,
         )
         return report, entry
 
