@@ -184,7 +184,7 @@
     link.href = url;
     link.download = 'youtube-content-plan.json';
     link.click();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
   document.querySelector('#import-file').addEventListener('change', async event => {
     const file = event.target.files?.[0];
