@@ -13,7 +13,9 @@ from .context import (
 )
 from .contracts import parse_event
 from .incident_memory import IncidentMemory, IncidentMemoryEvidence
-from .topology_attestation import verify_topology_attestation
+from .topology_attestation import (
+    RotatingTopologyKeyring, verify_topology_attestation,
+)
 
 _FINDING_VERSION = 3
 _RANKING_INTERPRETATION = "fixed_heuristic_not_causal"
@@ -479,15 +481,17 @@ def validate_impact_paths_against_snapshot(
 
 def validate_attested_impact_finding(
         finding_record: dict, attestation_record: object,
-        trusted_public_keys: dict[tuple[str, str, str], bytes], *,
+        trusted_public_keys: dict[tuple[str, str, str], bytes]
+        | RotatingTopologyKeyring, *,
         expected_tenant: str, expected_project: str,
         expected_source_sha: str, now_utc: datetime,
         max_age_seconds: int = 900) -> AttestedImpactFinding:
     """Verify a signed topology envelope, then validate a finding against it.
 
     Expected scope and source SHA must come from the caller's independently
-    trusted request context. The supplied public-key map must come from
-    protected configuration; this helper does not establish key enrollment.
+    trusted request context. Trust may be a protected public-key map or a
+    process-local rotating keyring. The caller must authenticate keyring
+    updates; this helper does not establish key enrollment.
     """
     finding = IncidentFinding.from_record(finding_record)
     attestation = verify_topology_attestation(

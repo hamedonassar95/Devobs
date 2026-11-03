@@ -3,6 +3,7 @@ import sys
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest.mock import patch
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
@@ -13,6 +14,7 @@ from devobs_intelligence.context import ContextError, ServiceTopologySnapshot  #
 from devobs_intelligence.topology_attestation import (  # noqa: E402
     verify_topology_attestation,
 )
+from devobs_intelligence import topology_attestation  # noqa: E402
 
 _NOW = datetime(2026, 11, 3, 12, 0, tzinfo=timezone.utc)
 _DOMAIN = b"devobs-topology-attestation-v1\n"
@@ -163,6 +165,150 @@ class TopologyAttestationTests(unittest.TestCase):
             with self.subTest(options=options), self.assertRaisesRegex(
                     ContextError, "^invalid_topology_query$"):
                 self.verify(**options)
+
+
+class RotatingTopologyKeyringTests(unittest.TestCase):
+    def setUp(self):
+        self.old_private_key = Ed25519PrivateKey.generate()
+        self.new_private_key = Ed25519PrivateKey.generate()
+        self.scope = ("alpha", "platform", "collector-1")
+        self.snapshot = snapshot()
+        keyring_type = getattr(
+            topology_attestation, "RotatingTopologyKeyring", None,
+        )
+        self.assertIsNotNone(
+            keyring_type,
+            "a rotating topology keyring must support reviewed local rotation",
+        )
+        self.keyring = keyring_type({
+            self.scope: self.public_key(self.old_private_key),
+        })
+
+    @staticmethod
+    def public_key(private_key):
+        return private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+
+    def envelope(self, private_key, key_id):
+        payload = {
+            "schema_version": 1,
+            "key_id": key_id,
+            "snapshot": self.snapshot.to_record(),
+        }
+        signature = private_key.sign(
+            _DOMAIN + canonical_json(payload),
+        ).hex()
+        return {**payload, "signature": signature}
+
+    def verify(self, envelope):
+        return verify_topology_attestation(
+            envelope, self.keyring,
+            expected_tenant="alpha", expected_project="platform",
+            expected_source_sha="a" * 40, now=_NOW, max_age_seconds=60,
+        )
+
+    def test_rotation_keeps_overlap_then_revokes_removed_key(self):
+        old_envelope = self.envelope(self.old_private_key, "collector-1")
+        new_scope = ("alpha", "platform", "collector-2")
+        new_envelope = self.envelope(self.new_private_key, "collector-2")
+
+        self.assertEqual(self.verify(old_envelope).key_id, "collector-1")
+        self.keyring.install_operator_verified({
+            self.scope: self.public_key(self.old_private_key),
+            new_scope: self.public_key(self.new_private_key),
+        }, revision=2)
+        self.assertEqual(self.verify(old_envelope).key_id, "collector-1")
+        self.assertEqual(self.verify(new_envelope).key_id, "collector-2")
+
+        self.keyring.install_operator_verified({
+            new_scope: self.public_key(self.new_private_key),
+        }, revision=3)
+        self.assertEqual(self.verify(new_envelope).key_id, "collector-2")
+        with self.assertRaisesRegex(
+                ContextError, "^untrusted_topology_signer$"):
+            self.verify(old_envelope)
+
+    def test_stale_revision_cannot_replace_current_trust(self):
+        old_envelope = self.envelope(self.old_private_key, "collector-1")
+        new_scope = ("alpha", "platform", "collector-2")
+
+        with self.assertRaisesRegex(
+                topology_attestation.TopologyKeyringRotationRejected,
+                "^stale_key_revision$"):
+            self.keyring.install_operator_verified({
+                new_scope: self.public_key(self.new_private_key),
+            }, revision=1)
+
+        self.assertEqual(self.keyring.revision, 1)
+        self.assertEqual(self.verify(old_envelope).key_id, "collector-1")
+
+    def test_snapshot_is_detached_from_internal_keyring(self):
+        old_envelope = self.envelope(self.old_private_key, "collector-1")
+        detached = self.keyring.snapshot()
+        detached.clear()
+
+        self.assertEqual(self.verify(old_envelope).key_id, "collector-1")
+
+    def test_key_id_cannot_be_rebound_to_different_public_bytes(self):
+        old_envelope = self.envelope(self.old_private_key, "collector-1")
+
+        with self.assertRaisesRegex(
+                topology_attestation.TopologyKeyringRotationRejected,
+                "^topology_key_id_reused$"):
+            self.keyring.install_operator_verified({
+                self.scope: self.public_key(self.new_private_key),
+            }, revision=2)
+
+        self.assertEqual(self.keyring.revision, 1)
+        self.assertEqual(self.verify(old_envelope).key_id, "collector-1")
+
+    def test_removed_key_id_cannot_be_reintroduced(self):
+        new_scope = ("alpha", "platform", "collector-2")
+        new_envelope = self.envelope(self.new_private_key, "collector-2")
+        self.keyring.install_operator_verified({
+            new_scope: self.public_key(self.new_private_key),
+        }, revision=2)
+
+        with self.assertRaisesRegex(
+                topology_attestation.TopologyKeyringRotationRejected,
+                "^revoked_topology_key_cannot_be_restored$"):
+            self.keyring.install_operator_verified({
+                self.scope: self.public_key(self.new_private_key),
+                new_scope: self.public_key(self.new_private_key),
+            }, revision=3)
+
+        self.assertEqual(self.keyring.revision, 2)
+        self.assertEqual(self.verify(new_envelope).key_id, "collector-2")
+
+    def test_empty_update_revokes_all_keys(self):
+        old_envelope = self.envelope(self.old_private_key, "collector-1")
+        self.keyring.install_operator_verified({}, revision=2)
+
+        self.assertEqual(self.keyring.snapshot(), {})
+        with self.assertRaisesRegex(
+                ContextError, "^untrusted_topology_signer$"):
+            self.verify(old_envelope)
+
+    def test_revocation_history_limit_rejects_update_atomically(self):
+        second_scope = ("alpha", "platform", "collector-2")
+        third_scope = ("alpha", "platform", "collector-3")
+        second_envelope = self.envelope(self.new_private_key, "collector-2")
+        second_public_key = self.public_key(self.new_private_key)
+
+        self.keyring.install_operator_verified({
+            second_scope: second_public_key,
+        }, revision=2)
+        with patch.object(topology_attestation, "_MAX_REVOKED_KEY_IDS", 1):
+            with self.assertRaisesRegex(
+                    topology_attestation.TopologyKeyringRotationRejected,
+                    "^topology_revocation_history_full$"):
+                self.keyring.install_operator_verified({
+                    third_scope: second_public_key,
+                }, revision=3)
+
+        self.assertEqual(self.keyring.revision, 2)
+        self.assertEqual(self.verify(second_envelope).key_id, "collector-2")
 
 
 if __name__ == "__main__":

@@ -33,7 +33,9 @@
 
 `scripts/devobs_intelligence/topology_attestation.py` verifies an exact schema-v1 Ed25519 envelope. The signed payload uses a domain separator and binds the signer key ID to the full canonical snapshot record. The caller supplies the trusted raw public-key map, expected tenant/project, expected source SHA, current time and freshness limit. Verification returns the validated snapshot plus a digest of the signed envelope; it never returns the signature or key material.
 
-This checks a signature against the caller's trust input. It does not enroll or protect keys, prove that a signer observed the real source commit, ingest live metadata, prevent all replays, or persist an audit trail. Only generated test keys and synthetic topology are used here. T22 remains open until an authorized source and protected key-enrollment process are approved and exercised.
+The verifier accepts either the existing caller-supplied public-key map or `RotatingTopologyKeyring`. The latter atomically installs a newer operator-authenticated trust-set revision, permits old/new key overlap during rotation, and rejects a removed key for verifications that start after the update. Removed scoped key IDs are tombstoned for the lifetime of that process; a key ID cannot be rebound to different public-key bytes. An empty update revokes all currently trusted keys while the revocation-history bound has capacity. Tests cover these transitions with generated keys and synthetic topology only.
+
+`RotatingTopologyKeyring` does not authenticate its own update source: the caller must authenticate the operator, source and revision before invoking `install_operator_verified`. Its revision and tombstones are memory-only, do not survive process restart, and are not synchronized across workers. The tombstone set is limited to 10,000 scoped key IDs; an update that would exceed this limit is rejected atomically. It does not prove that a signer observed the real source commit, ingest live metadata, prevent all replays, or persist an audit trail. T22 remains open until an authorized source and durable protected enrollment process are approved and exercised.
 
 ## Limits and next gate
 

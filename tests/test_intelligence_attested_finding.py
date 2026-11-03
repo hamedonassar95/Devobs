@@ -19,6 +19,9 @@ from devobs_intelligence.correlation import (  # noqa: E402
     validate_attested_impact_finding,
 )
 from devobs_intelligence.incident_memory import IncidentMemory  # noqa: E402
+from devobs_intelligence.topology_attestation import (  # noqa: E402
+    RotatingTopologyKeyring,
+)
 
 NOW = datetime(2026, 11, 3, 12, 0, tzinfo=timezone.utc)
 SOURCE_SHA = "a" * 40
@@ -50,7 +53,10 @@ class AttestedImpactFindingTests(unittest.TestCase):
         public_key = self.private_key.public_key().public_bytes(
             serialization.Encoding.Raw, serialization.PublicFormat.Raw,
         )
-        self.keyring = {("alpha", "platform", "collector-1"): public_key}
+        self.public_key = public_key
+        self.keyring = RotatingTopologyKeyring({
+            ("alpha", "platform", "collector-1"): public_key,
+        })
         topology = make_snapshot()
         telemetry = normalize_telemetry({
             "tenant": "alpha", "project": "platform", "service": "db",
@@ -63,15 +69,16 @@ class AttestedImpactFindingTests(unittest.TestCase):
         )
         self.snapshot = topology
 
-    def envelope(self, topology=None, key_id="collector-1"):
+    def envelope(self, topology=None, key_id="collector-1", private_key=None):
         payload = {
             "schema_version": 1,
             "key_id": key_id,
             "snapshot": (topology or self.snapshot).to_record(),
         }
+        signer = private_key or self.private_key
         return {
             **payload,
-            "signature": self.private_key.sign(
+            "signature": signer.sign(
                 _DOMAIN + canonical_json(payload),
             ).hex(),
         }
@@ -100,6 +107,30 @@ class AttestedImpactFindingTests(unittest.TestCase):
         self.assertEqual(
             result.topology_snapshot_digest, self.snapshot.snapshot_digest,
         )
+
+    def test_finding_gate_accepts_rotated_key_and_rejects_revoked_key(self):
+        new_private_key = Ed25519PrivateKey.generate()
+        new_public_key = new_private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        old_scope = ("alpha", "platform", "collector-1")
+        new_scope = ("alpha", "platform", "collector-2")
+        self.keyring.install_operator_verified({
+            old_scope: self.public_key,
+            new_scope: new_public_key,
+        }, revision=2)
+
+        new_envelope = self.envelope(
+            key_id="collector-2", private_key=new_private_key,
+        )
+        result = self.validate(attestation=new_envelope)
+        self.assertEqual(result.topology_key_id, "collector-2")
+
+        self.keyring.install_operator_verified({
+            new_scope: new_public_key,
+        }, revision=3)
+        with self.assertRaisesRegex(ContextError, "^untrusted_topology_signer$"):
+            self.validate()
 
     def test_untrusted_signer_is_rejected(self):
         with self.assertRaisesRegex(ContextError, "^untrusted_topology_signer$"):
