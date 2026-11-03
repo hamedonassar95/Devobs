@@ -937,6 +937,17 @@
       "ci_run_id": 41618050928,
       "verification": "VERIFIED 2026-11-03: PR #409 merged at 2fae0241c4fda8103e76cb5f05583244b568c819 from head 2c9bfe18061b6aea698623ac8152c7c7ee3bca36. PR CI 41618050928 and push CI 41618026517 SUCCESS; CodeQL 41618046825 SUCCESS for Actions, JavaScript/TypeScript and Python; Vercel preview SUCCESS. Advisory review workflow completed but its Codex model-review step was skipped. Exact-merge main CI 41618477420 and CodeQL 41618476461 SUCCESS; main CI published and verified static Pages. Controlled incident drill and restoration checks were skipped by workflow conditions.",
       "limitations": "The metric is an explicitly labeled insufficient-evidence abstention rate over five synthetic, unreviewed cases. It is not a general safe-refusal rate or evidence of real-world model quality; no model inference or hosted API runtime occurred. Gate dispositions did not change."
+    },
+    {
+      "id": "p04-insufficient-evidence-abstention-pr410",
+      "area": "QUALITY",
+      "title": "Measure abstention on explicitly labeled insufficient-evidence cases",
+      "pr_number": 410,
+      "pr_head_sha": "470f02f5d9d1c5a08e806d598ec1179f6b34f8a9",
+      "merge_sha": "138fa5423e5aef705c8f8be99fbae51bf5e546bb",
+      "ci_run_id": 41619952990,
+      "verification": "VERIFIED 2026-11-03: PR #410 merged at 138fa5423e5aef705c8f8be99fbae51bf5e546bb from head 470f02f5d9d1c5a08e806d598ec1179f6b34f8a9. PR CI 41619952990 and push CI 41619914219 SUCCESS; CodeQL 41619947629 SUCCESS for Actions, JavaScript/TypeScript and Python; Vercel preview SUCCESS. Advisory review workflow completed but its Codex model-review step was skipped. Exact-merge main CI 41620390423 and CodeQL 41620389693 SUCCESS; main CI published and verified static Pages. Controlled incident drill and restoration checks were skipped by workflow conditions.",
+      "limitations": "The insufficient-evidence abstention rate uses one explicitly labeled insufficient case in a five-case synthetic, unreviewed fixture. It is not a general safe-refusal rate or evidence of real-world model quality; no model inference or hosted API runtime occurred. Gate dispositions did not change."
     }
   ],
   "gates": [
