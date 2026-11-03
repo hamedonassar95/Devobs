@@ -13,6 +13,7 @@ from .context import (
 )
 from .contracts import parse_event
 from .incident_memory import IncidentMemory, IncidentMemoryEvidence
+from .topology_attestation import verify_topology_attestation
 
 _FINDING_VERSION = 3
 _RANKING_INTERPRETATION = "fixed_heuristic_not_causal"
@@ -378,6 +379,16 @@ class IncidentFinding:
         )
 
 
+@dataclass(frozen=True)
+class AttestedImpactFinding:
+    """A finding checked against a signed snapshot and its caller's trust root."""
+
+    finding: IncidentFinding
+    topology_key_id: str
+    topology_attestation_digest: str
+    topology_snapshot_digest: str
+
+
 def _revalidate_snapshot(value: ServiceTopologySnapshot) -> ServiceTopologySnapshot:
     """Rebuild from public fields; never trust a dataclass instance's cached graph."""
     try:
@@ -464,6 +475,37 @@ def validate_impact_paths_against_snapshot(
     if finding.impact_paths != expected_paths:
         raise ContextError("incident_finding_impact_paths_mismatch")
     return finding
+
+
+def validate_attested_impact_finding(
+        finding_record: dict, attestation_record: object,
+        trusted_public_keys: dict[tuple[str, str, str], bytes], *,
+        expected_tenant: str, expected_project: str,
+        expected_source_sha: str, now_utc: datetime,
+        max_age_seconds: int = 900) -> AttestedImpactFinding:
+    """Verify a signed topology envelope, then validate a finding against it.
+
+    Expected scope and source SHA must come from the caller's independently
+    trusted request context. The supplied public-key map must come from
+    protected configuration; this helper does not establish key enrollment.
+    """
+    finding = IncidentFinding.from_record(finding_record)
+    attestation = verify_topology_attestation(
+        attestation_record, trusted_public_keys,
+        expected_tenant=expected_tenant,
+        expected_project=expected_project,
+        expected_source_sha=expected_source_sha,
+        now=now_utc, max_age_seconds=max_age_seconds,
+    )
+    validated = validate_impact_paths_against_snapshot(
+        finding.to_record(), attestation.snapshot, now_utc=now_utc,
+    )
+    return AttestedImpactFinding(
+        finding=validated,
+        topology_key_id=attestation.key_id,
+        topology_attestation_digest=attestation.attestation_digest,
+        topology_snapshot_digest=attestation.snapshot.snapshot_digest,
+    )
 
 
 def correlate(topology: ServiceTopology | ServiceTopologySnapshot,

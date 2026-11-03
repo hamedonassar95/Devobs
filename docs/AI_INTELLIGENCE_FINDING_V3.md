@@ -12,11 +12,14 @@ The parser checks each path's service ID, starting service, root endpoint, lengt
 
 `validate_impact_paths_against_snapshot(record, snapshot, now_utc=...)` additionally revalidates the supplied snapshot, checks its digest, tenant, project, source SHA, capture time and freshness against the finding, and recomputes the impacted-service set and deterministic shortest paths. It rejects paths that are valid JSON but do not match the exact snapshot. This is a consistency check, not source authentication: callers must verify a snapshot's signature against their trusted key before relying on its declared edges.
 
+`validate_attested_impact_finding(...)` composes the existing Ed25519 envelope verifier with that path check. Callers must supply expected tenant, project and source SHA from their independently trusted request context, plus a protected keyring; the returned `AttestedImpactFinding` exposes the verified key ID and attestation digest alongside the finding. This does not enroll keys or establish that a signer observed a real source. Tests use generated keys and synthetic snapshots only.
+
 ## Limits
 
 - The path records declared topology only. The schema does not carry edge-level verification, and parsing cannot prove that any edge is real, complete, or causal. A snapshot digest binds a supplied snapshot; it does not authenticate the collector or edge truth.
 - Ranking remains a fixed heuristic, not calibrated confidence or measured detection quality; per-signal digests identify supplied evidence but do not prove its truth.
 - No network endpoint, database, durable storage, model inference, live topology, real incident data, or production action is added.
+- The trusted-key source and its lifecycle remain the caller's responsibility; a valid signature proves only that the supplied key signed the envelope.
 - Consumers must re-check tenant authorization and human-approval requirements; parsing a record is not authorization.
 - This contract does not change AI-9, P01, Codex runtime, or other operational-readiness decisions.
 
