@@ -1,4 +1,5 @@
 """Behavioral contract tests for versioned, scoped incident findings."""
+import hashlib
 import json
 import sys
 import unittest
@@ -30,7 +31,19 @@ class IncidentFindingContractTests(unittest.TestCase):
         record = finding.to_record()
         restored = IncidentFinding.from_record(json.loads(json.dumps(record)))
 
-        self.assertEqual(record["schema_version"], 1)
+        self.assertEqual(record["schema_version"], 2)
+        self.assertEqual(record["ranking_interpretation"], "fixed_heuristic_not_causal")
+        self.assertEqual(record["ranked_service_evidence"][0]["service"], "db")
+        self.assertEqual(record["ranked_service_evidence"][0]["score"], 2)
+        self.assertEqual(
+            record["ranked_service_evidence"][0]["signals"],
+            [{
+                "metric": "error_rate_pct",
+                "reason_code": "error_rate_threshold_met",
+                "points": 2,
+                "evidence_digest": "b" * 64,
+            }],
+        )
         self.assertEqual(record["tenant"], "alpha")
         self.assertEqual(record["project"], "platform")
         self.assertEqual(restored, finding)
@@ -44,7 +57,22 @@ class IncidentFindingContractTests(unittest.TestCase):
 
         self.assertEqual(restored, finding)
         self.assertEqual(restored.ranked_services, ())
+        self.assertEqual(restored.ranked_service_evidence, ())
         self.assertEqual(restored.impacted_services, ())
+
+    def test_tampered_ranking_is_rejected_even_with_recomputed_digest(self):
+        record = make_finding().to_record()
+        record["ranked_service_evidence"][0]["signals"][0]["points"] = 1
+        payload = {key: value for key, value in record.items()
+                   if key != "finding_digest"}
+        canonical = json.dumps(
+            payload, sort_keys=True, separators=(",", ":"),
+            ensure_ascii=False, allow_nan=False,
+        ).encode("utf-8")
+        record["finding_digest"] = hashlib.sha256(canonical).hexdigest()
+
+        with self.assertRaisesRegex(ContextError, "invalid_incident_finding_ranking"):
+            IncidentFinding.from_record(record)
 
     def test_unknown_fields_versions_and_content_changes_are_rejected(self):
         record = make_finding().to_record()
@@ -53,7 +81,7 @@ class IncidentFindingContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ContextError, "invalid_incident_finding_record"):
             IncidentFinding.from_record(extra)
 
-        unsupported = {**record, "schema_version": 2}
+        unsupported = {**record, "schema_version": 3}
         with self.assertRaisesRegex(ContextError, "unsupported_incident_finding_schema"):
             IncidentFinding.from_record(unsupported)
 

@@ -1,6 +1,14 @@
 # حالة مستودع Devobs
 
-## أحدث دمج موثّق: PR #413 — تحقق 2026-11-03
+## أحدث دمج موثّق: PR #414 — تحقق 2026-11-03
+
+- **VERIFIED من GitHub:** دُمج [PR #414](https://github.com/hamedonassar95/Devobs/pull/414) عند SHA `fac245a4686bb6360f41f9ebf4b0668141816a7c` من الرأس `e6d43a9bbe207e54cfd1f21916995dbcea1898ef`. نجح PR CI `41631891044` وpush CI `41631884551` وCodeQL `41631885400` (Actions وPython وJavaScript/TypeScript)، ومعاينة Vercel.
+- اكتمل سير AI Code Review `41631890878`، لكن خطوة النموذج تخطّت لغياب موافقة ميزانية صريحة؛ لا أسجل نجاح workflow كدليل لاستدعاء نموذج.
+- نجح main CI `41632661962` وPush on main/CodeQL `41632661123` على SHA الدمج. نُشرت Pages الثابتة وتم التحقق منها، ونجحت حالة Vercel. تخطّت شروط workflow تدريب الحادث المضبوط وفحوص الاستعادة.
+- أضاف PR #414 حالة `UNVERIFIABLE` لكل حافة في تقرير topology drift v2 عند غياب دليل المصدر على مستوى الحافة. هذا يوضح فجوة الإثبات ولا يثبت حقيقة الحواف أو اكتمالها؛ T23 تبقى جزئية.
+- سُجل الدمج مع خطوة T24 البرمجية التالية. لا تغيير في قرارات الجاهزية: AI-9 **FAIL / BLOCKED**، وP01 **NO-GO / BLOCKED**، وCodex runtime **OPEN**.
+
+## سجل تاريخي: PR #413 — تحقق 2026-11-03
 
 - **VERIFIED من GitHub:** دُمج [PR #413](https://github.com/hamedonassar95/Devobs/pull/413) عند SHA `acf1b0c97c084db4826d07066951ccda23f08d80` من الرأس `01fb6b0ea23b7d5ceaeadc1c8755c7c7205219d9`. نجح PR CI `41630254246` وpush CI `41630246585` وCodeQL `41630247569` (Actions وPython وJavaScript/TypeScript) ومعاينة Vercel.
 - اكتمل سير AI Code Review `41630254446`، لكن خطوة استدعاء نموذج Codex تخطّت لعدم وجود موافقة ميزانية صريحة؛ لا أسجل نجاح workflow كدليل لاستدعاء نموذج.

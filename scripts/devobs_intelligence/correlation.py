@@ -14,11 +14,28 @@ from .context import (
 from .contracts import parse_event
 from .incident_memory import IncidentMemory, IncidentMemoryEvidence
 
-_FINDING_VERSION = 1
+_FINDING_VERSION = 2
+_RANKING_INTERPRETATION = "fixed_heuristic_not_causal"
+_RANKING_RULES = {
+    "failed_checks_positive": ("failed_checks", 3),
+    "error_rate_threshold_met": ("error_rate_pct", 2),
+    "capacity_threshold_met": ("capacity_pct", 1),
+}
+_RANKING_SIGNAL_ORDER = {
+    "failed_checks": 0, "error_rate_pct": 1, "capacity_pct": 2,
+}
+_RANKING_CATEGORY = {
+    "failed_checks": "ci_failure",
+    "error_rate_pct": "high_error_rate",
+    "capacity_pct": "capacity_pressure",
+}
+_RANKED_SERVICE_FIELDS = frozenset({"service", "rank", "score", "signals"})
+_RANKING_SIGNAL_FIELDS = frozenset({"metric", "reason_code", "points", "evidence_digest"})
 _FINDING_FIELDS = frozenset({
     "schema_version", "tenant", "project", "status", "category",
-    "ranked_services", "impacted_services", "evidence_digests",
-    "runbook_ids", "source_sha", "model_used", "calibrated",
+    "ranked_services", "ranked_service_evidence", "ranking_interpretation",
+    "impacted_services", "evidence_digests", "runbook_ids",
+    "source_sha", "model_used", "calibrated",
     "topology_snapshot_digest", "topology_captured_at", "memory_provenance",
     "finding_digest",
 })
@@ -57,6 +74,22 @@ def _finding_timestamp(value: object) -> bool:
 
 
 @dataclass(frozen=True)
+class RankingSignal:
+    metric: str
+    reason_code: str
+    points: int
+    evidence_digest: str
+
+
+@dataclass(frozen=True)
+class RankedServiceEvidence:
+    service: str
+    rank: int
+    score: int
+    signals: tuple[RankingSignal, ...]
+
+
+@dataclass(frozen=True)
 class IncidentFinding:
     status: str
     category: str
@@ -72,9 +105,11 @@ class IncidentFinding:
     memory_provenance: tuple[IncidentMemoryEvidence, ...] = ()
     tenant: str | None = None
     project: str | None = None
+    ranked_service_evidence: tuple[RankedServiceEvidence, ...] = ()
+    ranking_interpretation: str = _RANKING_INTERPRETATION
 
     def to_record(self) -> dict:
-        """Return a strict JSON-compatible v1 record with an integrity digest."""
+        """Return a strict JSON-compatible v2 record with an integrity digest."""
         try:
             memory = [{
                 "evidence_digest": item.evidence_digest,
@@ -92,6 +127,18 @@ class IncidentFinding:
                 "status": self.status,
                 "category": self.category,
                 "ranked_services": list(self.ranked_services),
+                "ranked_service_evidence": [{
+                    "service": item.service,
+                    "rank": item.rank,
+                    "score": item.score,
+                    "signals": [{
+                        "metric": signal.metric,
+                        "reason_code": signal.reason_code,
+                        "points": signal.points,
+                        "evidence_digest": signal.evidence_digest,
+                    } for signal in item.signals],
+                } for item in self.ranked_service_evidence],
+                "ranking_interpretation": self.ranking_interpretation,
                 "impacted_services": list(self.impacted_services),
                 "evidence_digests": list(self.evidence_digests),
                 "runbook_ids": list(self.runbook_ids),
@@ -111,7 +158,7 @@ class IncidentFinding:
 
     @classmethod
     def from_record(cls, record: dict) -> "IncidentFinding":
-        """Parse one exact v1 result record and check its content digest."""
+        """Parse one exact v2 result record and check ranking evidence and digest."""
         if type(record) is not dict or set(record) != _FINDING_FIELDS:
             raise ContextError("invalid_incident_finding_record")
         if (type(record["schema_version"]) is not int
@@ -157,6 +204,73 @@ class IncidentFinding:
                        for value in sequences["runbook_ids"])):
             raise ContextError("invalid_incident_finding")
 
+        payload = {key: record[key] for key in _FINDING_FIELDS - {"finding_digest"}}
+        if (type(record["finding_digest"]) is not str
+                or _FINDING_DIGEST.fullmatch(record["finding_digest"]) is None):
+            raise ContextError("invalid_incident_finding_digest")
+        try:
+            expected = hashlib.sha256(_finding_canonical_json(payload)).hexdigest()
+        except (TypeError, ValueError, OverflowError):
+            raise ContextError("invalid_incident_finding_record") from None
+        if expected != record["finding_digest"]:
+            raise ContextError("incident_finding_digest_mismatch")
+
+        ranking_value = record["ranked_service_evidence"]
+        if (record["ranking_interpretation"] != _RANKING_INTERPRETATION
+                or type(ranking_value) is not list or len(ranking_value) > 3):
+            raise ContextError("invalid_incident_finding_ranking")
+        evidence_set = set(sequences["evidence_digests"])
+        ranking = []
+        rank_keys = []
+        used_signal_evidence = set()
+        for expected_rank, item in enumerate(ranking_value, start=1):
+            if type(item) is not dict or set(item) != _RANKED_SERVICE_FIELDS:
+                raise ContextError("invalid_incident_finding_ranking")
+            if (type(item["service"]) is not str
+                    or _FINDING_ID.fullmatch(item["service"]) is None
+                    or type(item["rank"]) is not int or item["rank"] != expected_rank
+                    or type(item["score"]) is not int or not 1 <= item["score"] <= 6
+                    or type(item["signals"]) is not list
+                    or not 1 <= len(item["signals"]) <= 3):
+                raise ContextError("invalid_incident_finding_ranking")
+            signals = []
+            seen_metrics = set()
+            previous_order = -1
+            for signal in item["signals"]:
+                if (type(signal) is not dict
+                        or set(signal) != _RANKING_SIGNAL_FIELDS
+                        or type(signal["metric"]) is not str
+                        or type(signal["reason_code"]) is not str
+                        or type(signal["points"]) is not int
+                        or type(signal["evidence_digest"]) is not str):
+                    raise ContextError("invalid_incident_finding_ranking")
+                rule = _RANKING_RULES.get(signal["reason_code"])
+                if (rule is None or rule != (signal["metric"], signal["points"])
+                        or signal["metric"] in seen_metrics
+                        or _RANKING_SIGNAL_ORDER[signal["metric"]] <= previous_order
+                        or _FINDING_DIGEST.fullmatch(signal["evidence_digest"]) is None
+                        or signal["evidence_digest"] not in evidence_set
+                        or signal["evidence_digest"] in used_signal_evidence):
+                    raise ContextError("invalid_incident_finding_ranking")
+                seen_metrics.add(signal["metric"])
+                used_signal_evidence.add(signal["evidence_digest"])
+                previous_order = _RANKING_SIGNAL_ORDER[signal["metric"]]
+                signals.append(RankingSignal(**signal))
+            if sum(signal.points for signal in signals) != item["score"]:
+                raise ContextError("invalid_incident_finding_ranking")
+            rank_keys.append((-item["score"], item["service"]))
+            ranking.append(RankedServiceEvidence(
+                item["service"], item["rank"], item["score"], tuple(signals)))
+        if (tuple(item.service for item in ranking) != sequences["ranked_services"]
+                or rank_keys != sorted(rank_keys)):
+            raise ContextError("invalid_incident_finding_ranking")
+        if record["status"] == "INSUFFICIENT_EVIDENCE":
+            if ranking:
+                raise ContextError("invalid_incident_finding_ranking")
+        elif (not ranking
+                or _RANKING_CATEGORY[ranking[0].signals[0].metric] != record["category"]):
+            raise ContextError("invalid_incident_finding_ranking")
+
         snapshot_digest = record["topology_snapshot_digest"]
         snapshot_time = record["topology_captured_at"]
         if ((snapshot_digest is None) != (snapshot_time is None)
@@ -194,17 +308,6 @@ class IncidentFinding:
                     or memory):
                 raise ContextError("invalid_incident_finding")
 
-        payload = {key: record[key] for key in _FINDING_FIELDS - {"finding_digest"}}
-        if (type(record["finding_digest"]) is not str
-                or _FINDING_DIGEST.fullmatch(record["finding_digest"]) is None):
-            raise ContextError("invalid_incident_finding_digest")
-        try:
-            expected = hashlib.sha256(_finding_canonical_json(payload)).hexdigest()
-        except (TypeError, ValueError, OverflowError):
-            raise ContextError("invalid_incident_finding_record") from None
-        if expected != record["finding_digest"]:
-            raise ContextError("incident_finding_digest_mismatch")
-
         return cls(
             status=record["status"], category=record["category"],
             ranked_services=sequences["ranked_services"],
@@ -216,6 +319,8 @@ class IncidentFinding:
             topology_captured_at=snapshot_time,
             memory_provenance=tuple(memory), tenant=record["tenant"],
             project=record["project"],
+            ranked_service_evidence=tuple(ranking),
+            ranking_interpretation=record["ranking_interpretation"],
         )
 
 
@@ -263,6 +368,7 @@ def correlate(topology: ServiceTopology | ServiceTopologySnapshot,
     seen=set()
     scores={}
     per_service={}
+    per_service_evidence={}
     evidence=set()
     for point in telemetry:
         if type(point) is not Telemetry:
@@ -291,6 +397,7 @@ def correlate(topology: ServiceTopology | ServiceTopologySnapshot,
         seen.add(key)
         evidence.add(point.evidence_digest)
         per_service.setdefault(point.service,{})[point.metric]=point.value
+        per_service_evidence.setdefault(point.service,{})[point.metric]=point.evidence_digest
     if snapshot is not None and sha != snapshot.source_sha:
         raise ContextError("topology_source_sha_mismatch")
     for service,values in per_service.items():
@@ -304,6 +411,25 @@ def correlate(topology: ServiceTopology | ServiceTopologySnapshot,
                                snapshot.snapshot_digest if snapshot is not None else None,
                                snapshot.captured_at if snapshot is not None else None,
                                tenant=topology.tenant, project=topology.project)
+    ranked_service_evidence = []
+    for rank, service in enumerate(eligible[:3], start=1):
+        values = per_service[service]
+        source_evidence = per_service_evidence[service]
+        signals = []
+        if values.get("failed_checks", 0) > 0:
+            signals.append(RankingSignal(
+                "failed_checks", "failed_checks_positive", 3,
+                source_evidence["failed_checks"]))
+        if values.get("error_rate_pct", 0) >= 5:
+            signals.append(RankingSignal(
+                "error_rate_pct", "error_rate_threshold_met", 2,
+                source_evidence["error_rate_pct"]))
+        if values.get("capacity_pct", 0) >= 85:
+            signals.append(RankingSignal(
+                "capacity_pct", "capacity_threshold_met", 1,
+                source_evidence["capacity_pct"]))
+        ranked_service_evidence.append(RankedServiceEvidence(
+            service, rank, scores[service], tuple(signals)))
     root=eligible[0]
     values=per_service[root]
     data={"failed_checks":int(values.get("failed_checks",0)),
@@ -351,4 +477,5 @@ def correlate(topology: ServiceTopology | ServiceTopologySnapshot,
                            snapshot.snapshot_digest if snapshot is not None else None,
                            snapshot.captured_at if snapshot is not None else None,
                            memory_provenance,tenant=topology.tenant,
-                           project=topology.project)
+                           project=topology.project,
+                           ranked_service_evidence=tuple(ranked_service_evidence))

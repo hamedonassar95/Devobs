@@ -42,6 +42,14 @@ def finding(*, source_sha="a" * 40, tenant="alpha", project="platform",
 def changed_category(result):
     record = result.to_record()
     record["category"] = "capacity_pressure"
+    ranked = record["ranked_service_evidence"][0]
+    ranked["score"] = 1
+    ranked["signals"] = [{
+        "metric": "capacity_pct",
+        "reason_code": "capacity_threshold_met",
+        "points": 1,
+        "evidence_digest": ranked["signals"][0]["evidence_digest"],
+    }]
     payload = {key: value for key, value in record.items() if key != "finding_digest"}
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"),
                          ensure_ascii=False, allow_nan=False).encode("utf-8")

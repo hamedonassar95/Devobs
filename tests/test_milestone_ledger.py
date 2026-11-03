@@ -886,6 +886,21 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("generated keys and synthetic topology only", entry["limitations"])
         self.assertIn("No readiness gate changed", entry["limitations"])
 
+    def test_pr414_records_edge_verifiability_and_limits(self):
+        records = {item["pr_number"]: item for item in self.data["milestones"]}
+        entry = records[414]
+        self.assertEqual(entry["title"], "Mark unverified edges in topology drift reports (P03 T23)")
+        self.assertEqual(entry["pr_head_sha"], "e6d43a9bbe207e54cfd1f21916995dbcea1898ef")
+        self.assertEqual(entry["merge_sha"], "fac245a4686bb6360f41f9ebf4b0668141816a7c")
+        self.assertEqual(entry["ci_run_id"], 41631891044)
+        self.assertIn("41631884551 SUCCESS", entry["verification"])
+        self.assertIn("41631885400", entry["verification"])
+        self.assertIn("model step was skipped", entry["verification"])
+        self.assertIn("41632661962", entry["verification"])
+        self.assertIn("41632661123 SUCCESS", entry["verification"])
+        self.assertIn("T23 remains partial", entry["limitations"])
+        self.assertIn("Readiness gates remain unchanged", entry["limitations"])
+
     def test_duplicate_achievement_rejected(self):
         self.data["milestones"].append(copy.deepcopy(self.data["milestones"][-1]))
         with self.assertRaisesRegex(InvalidLedger, "duplicate|not increasing"):
