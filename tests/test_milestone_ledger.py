@@ -865,7 +865,8 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("41628663487 SUCCESS", entry["verification"])
         self.assertIn("41629134477", entry["verification"])
         self.assertIn("41629133141 SUCCESS", entry["verification"])
-        self.assertIn("AI model-review steps were skipped", entry["verification"])
+        self.assertIn("The Actions AI Code Review model step was skipped", entry["verification"])
+        self.assertIn("separate Codex review summary", entry["verification"])
         self.assertIn("P04 T28/T29", entry["limitations"])
         self.assertIn("all readiness gates remain open or blocked", entry["limitations"])
 
