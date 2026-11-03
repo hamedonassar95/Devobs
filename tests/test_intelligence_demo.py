@@ -142,7 +142,19 @@ class OfflineDemoTests(unittest.TestCase):
         self.assertEqual(data['mode'], 'synthetic_offline_demo')
         self.assertEqual(data['hypothesis'], 'ci_failure')
         self.assertEqual(data['memory_evidence_count'], 0)
-        self.assertEqual(data['topology_drift']['schema_version'], 1)
+        self.assertEqual(data['topology_drift']['schema_version'], 2)
+        self.assertEqual(data['topology_drift']['unverifiable_edges'], [
+            {
+                'edge': ['api', 'db'],
+                'status': 'UNVERIFIABLE',
+                'reason': 'per_edge_source_metadata_absent',
+            },
+            {
+                'edge': ['web', 'api'],
+                'status': 'UNVERIFIABLE',
+                'reason': 'per_edge_source_metadata_absent',
+            },
+        ])
         self.assertEqual(data['topology_drift']['added_services'], ['web'])
         self.assertEqual(data['topology_drift_audit_digest'],
                          data['topology_drift']['report_digest'])
