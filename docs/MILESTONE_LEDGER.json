@@ -992,6 +992,17 @@
       "ci_run_id": 41631891044,
       "verification": "VERIFIED 2026-11-03: PR #414 merged at fac245a4686bb6360f41f9ebf4b0668141816a7c from head e6d43a9bbe207e54cfd1f21916995dbcea1898ef. PR CI 41631891044 and push CI 41631884551 SUCCESS; CodeQL run 41631885400 passed for Actions, Python, and JavaScript/TypeScript; Vercel preview SUCCESS. Advisory AI Code Review workflow 41631890878 completed, but its model step was skipped for missing explicit budget approval; no model call is claimed. Exact-merge main CI 41632661962 and Push on main/CodeQL run 41632661123 SUCCESS; static Pages publication and verification and Vercel status SUCCESS. Controlled incident drill and restoration checks were skipped by workflow conditions.",
       "limitations": "Offline topology drift v2 marks all after-snapshot edges UNVERIFIABLE when edge-level source metadata is absent. It does not verify edge truth, completeness, or a live topology source; T23 remains partial. AI-9 remains FAIL / BLOCKED, P01 remains NO-GO / BLOCKED, and Codex agent runtime remains OPEN. Readiness gates remain unchanged."
+    },
+    {
+      "id": "p03-ranked-impact-paths-pr415",
+      "area": "QUALITY",
+      "title": "Explain heuristic incident ranking with evidence digests (P03 T24)",
+      "pr_number": 415,
+      "pr_head_sha": "539c9d5db89b9c8635f3c24560b370b7eee059ce",
+      "merge_sha": "7812489e310378d3eb1660d4bc0d37c2cfdb2ee0",
+      "ci_run_id": 41634487079,
+      "verification": "VERIFIED 2026-11-03: PR #415 merged at 7812489e310378d3eb1660d4bc0d37c2cfdb2ee0 from head 539c9d5db89b9c8635f3c24560b370b7eee059ce. PR CI 41634487079 and push CI 41634480958 SUCCESS; CodeQL run 41634481643 passed for Actions, Python, and JavaScript/TypeScript; Vercel preview SUCCESS. Python ran 836 tests with 22 skips. Advisory review workflow 41634486608 completed, but its model step was skipped for missing explicit budget approval; no model call is claimed. Exact-merge main CI 41634896082 and Push on main run 41634894925 SUCCESS, including CodeQL. Static Pages publish and verify-production succeeded; Vercel status SUCCESS. Controlled incident/recovery jobs and Claude were skipped.",
+      "limitations": "Adds deterministic heuristic reason codes and signal digests to offline findings. It does not validate telemetry truth, causal relation, or calibrated quality. Tests use synthetic inputs only; no AI model call is claimed. T24 remains partial. AI-9 remains FAIL / BLOCKED, P01 remains NO-GO / BLOCKED, and Codex runtime remains OPEN. Readiness gates remain unchanged."
     }
   ],
   "gates": [

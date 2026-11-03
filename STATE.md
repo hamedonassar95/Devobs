@@ -1,6 +1,14 @@
 # حالة مستودع Devobs
 
-## أحدث دمج موثّق: PR #414 — تحقق 2026-11-03
+## أحدث دمج موثّق: PR #415 — تحقق 2026-11-03
+
+- **VERIFIED من GitHub:** دُمج [PR #415](https://github.com/hamedonassar95/Devobs/pull/415) عند SHA `7812489e310378d3eb1660d4bc0d37c2cfdb2ee0` من الرأس `539c9d5db89b9c8635f3c24560b370b7eee059ce`. نجح PR CI `41634487079` وpush CI `41634480958` وCodeQL `41634481643` (Actions وPython وJavaScript/TypeScript)، ومعاينة Vercel.
+- اجتاز اختبار Python `836` اختبارًا مع `22` تخطيًا. اكتمل سير AI Code Review `41634486608`، لكن خطوة النموذج تخطّت لغياب موافقة ميزانية صريحة؛ لا أسجل نجاح workflow كدليل لاستدعاء نموذج.
+- نجح main CI `41634896082` وPush on main `41634894925`، بما فيها CodeQL. نُشرت Pages الثابتة وتم التحقق منها، ونجحت حالة Vercel. تخطّت شروط التشغيل بعض فحوص الحوادث والاستعادة وClaude.
+- أضاف PR #415 مخطط finding v2، مع أسباب الدرجات الثابتة وبصمة الدليل لكل إشارة. هذا تفسير heuristic غير سببي؛ الاختبارات تستخدم مدخلات اصطناعية فقط. T24 تبقى جزئية.
+- البوابات لم تتغير: AI-9 **FAIL / BLOCKED**، وP01 **NO-GO / BLOCKED**، وCodex runtime **OPEN**.
+
+## سجل تاريخي: PR #414 — تحقق 2026-11-03
 
 - **VERIFIED من GitHub:** دُمج [PR #414](https://github.com/hamedonassar95/Devobs/pull/414) عند SHA `fac245a4686bb6360f41f9ebf4b0668141816a7c` من الرأس `e6d43a9bbe207e54cfd1f21916995dbcea1898ef`. نجح PR CI `41631891044` وpush CI `41631884551` وCodeQL `41631885400` (Actions وPython وJavaScript/TypeScript)، ومعاينة Vercel.
 - اكتمل سير AI Code Review `41631890878`، لكن خطوة النموذج تخطّت لغياب موافقة ميزانية صريحة؛ لا أسجل نجاح workflow كدليل لاستدعاء نموذج.

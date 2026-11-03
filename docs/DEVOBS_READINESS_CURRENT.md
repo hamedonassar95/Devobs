@@ -1,4 +1,14 @@
-## Superseding snapshot — 2026-11-03 (after PR #414)
+## Superseding snapshot — 2026-11-03 (after PR #415)
+
+**VERIFIED from GitHub:** `main` is merge SHA `7812489e310378d3eb1660d4bc0d37c2cfdb2ee0`, from PR [#415](https://github.com/hamedonassar95/Devobs/pull/415), head `539c9d5db89b9c8635f3c24560b370b7eee059ce`.
+
+- Exact-head PR CI [41634487079](https://github.com/hamedonassar95/Devobs/actions/runs/41634487079) and push CI [41634480958](https://github.com/hamedonassar95/Devobs/actions/runs/41634480958) passed; CodeQL [41634481643](https://github.com/hamedonassar95/Devobs/actions/runs/41634481643) passed for Actions, Python and JavaScript/TypeScript; Vercel preview passed.
+- Python ran 836 tests with 22 skips. Advisory AI Code Review [41634486608](https://github.com/hamedonassar95/Devobs/actions/runs/41634486608) completed, but its model step was skipped because explicit budget approval was absent. No model call is claimed.
+- Exact-merge main CI [41634896082](https://github.com/hamedonassar95/Devobs/actions/runs/41634896082) and Push on main [41634894925](https://github.com/hamedonassar95/Devobs/actions/runs/41634894925) passed, including CodeQL. Static Pages publication and verification and Vercel status passed. Controlled incident, recovery and Claude checks were skipped by workflow conditions.
+- PR #415 adds strict finding schema v2 with deterministic heuristic score reasons and per-signal evidence digests. It does not establish telemetry truth, causal explanation or calibrated quality; T24 remains partial.
+- Gate dispositions remain AI-9 **FAIL / BLOCKED**, P01 **NO-GO / BLOCKED**, and Codex agent runtime **OPEN**.
+
+## Prior snapshot — 2026-11-03 (after PR #414; superseded by PR #415)
 
 **VERIFIED from GitHub:** `main` is merge SHA `fac245a4686bb6360f41f9ebf4b0668141816a7c`, from PR [#414](https://github.com/hamedonassar95/Devobs/pull/414), head `e6d43a9bbe207e54cfd1f21916995dbcea1898ef`.
 

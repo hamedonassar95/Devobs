@@ -901,6 +901,32 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("T23 remains partial", entry["limitations"])
         self.assertIn("Readiness gates remain unchanged", entry["limitations"])
 
+    def test_pr415_records_t24_evidence_and_preserves_gate_dispositions(self):
+        records = {item["pr_number"]: item for item in self.data["milestones"]}
+        entry = records[415]
+        self.assertEqual(
+            entry["title"],
+            "Explain heuristic incident ranking with evidence digests (P03 T24)",
+        )
+        self.assertEqual(entry["pr_head_sha"], "539c9d5db89b9c8635f3c24560b370b7eee059ce")
+        self.assertEqual(entry["merge_sha"], "7812489e310378d3eb1660d4bc0d37c2cfdb2ee0")
+        self.assertEqual(entry["ci_run_id"], 41634487079)
+        self.assertIn("41634480958 SUCCESS", entry["verification"])
+        self.assertIn("41634481643", entry["verification"])
+        self.assertIn("836 tests with 22 skips", entry["verification"])
+        self.assertIn("model step was skipped", entry["verification"])
+        self.assertIn("41634896082", entry["verification"])
+        self.assertIn("41634894925 SUCCESS", entry["verification"])
+        self.assertIn("T24 remains partial", entry["limitations"])
+        self.assertEqual(
+            {gate["id"]: gate["status"] for gate in self.data["gates"]},
+            {
+                "ai9-detection-quality": "BLOCKED",
+                "p01-managed-saas": "BLOCKED",
+                "codex-agent-runtime-acceptance": "OPEN",
+            },
+        )
+
     def test_duplicate_achievement_rejected(self):
         self.data["milestones"].append(copy.deepcopy(self.data["milestones"][-1]))
         with self.assertRaisesRegex(InvalidLedger, "duplicate|not increasing"):

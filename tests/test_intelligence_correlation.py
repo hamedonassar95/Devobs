@@ -82,6 +82,37 @@ class IncidentCorrelationTests(unittest.TestCase):
         )
         self.assertIsNone(report.topology_snapshot_digest)
 
+    def test_impacted_services_include_deterministic_declared_paths_to_root(self):
+        report = correlate(graph(), [data("db", "error_rate_pct", 9, "b")],
+                           memory(), NOW)
+
+        self.assertEqual(
+            report.impact_path_interpretation,
+            "declared_edges_not_causal",
+        )
+        self.assertEqual(
+            [(item.service, item.path_services) for item in report.impact_paths],
+            [
+                ("api", ("api", "db")),
+                ("db", ("db",)),
+                ("web", ("web", "api", "db")),
+            ],
+        )
+
+    def test_shortest_path_ties_are_resolved_lexically_and_cycles_are_avoided(self):
+        topology = ServiceTopology(
+            "alpha", "platform", ["root", "a", "b", "leaf"],
+            [("a", "root"), ("b", "root"), ("leaf", "b"),
+             ("leaf", "a"), ("a", "leaf")],
+        )
+        report = correlate(
+            topology, [data("root", "error_rate_pct", 9, "b")], memory(), NOW,
+        )
+
+        paths = {item.service: item.path_services for item in report.impact_paths}
+        self.assertEqual(paths["leaf"], ("leaf", "a", "root"))
+        self.assertEqual(paths["root"], ("root",))
+
     def test_ranked_evidence_explains_each_fixed_rule(self):
         report = correlate(graph(), [
             data("db", "failed_checks", 1, "b"),
