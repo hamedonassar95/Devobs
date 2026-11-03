@@ -1025,6 +1025,17 @@
       "ci_run_id": 41646481581,
       "verification": "VERIFIED 2026-11-03: PR #417 merged at 620743877ea964fe6b332218961c41c46a0e27a2 from head fd41a93808c96aa6b335b0e858893d3ef2120a6f. PR CI 41646481581 and push CI 41646398283 SUCCESS; CodeQL 41646475413 passed for Actions, Python, and JavaScript/TypeScript; Vercel preview SUCCESS. Advisory review workflow 41646481337 completed, but its Codex model step was skipped for missing explicit budget approval; no model call is claimed. Exact-merge CI 41647057907 and Push on main 41647056104 SUCCESS, including CodeQL; static Pages published and verified. Controlled incident drill and recovery/restore checks were skipped.",
       "limitations": "Updates the static public website design and documents Android/Windows downloads as unavailable because no release assets are verified. It does not add a live dashboard, app binaries, API, or operational runtime evidence. Automated site checks passed; no manual visual acceptance evidence is claimed. No readiness gate changed."
+    },
+    {
+      "id": "p03-impact-path-snapshot-validation-pr418",
+      "area": "QUALITY",
+      "title": "Verify T24 impact paths against the exact fresh topology snapshot",
+      "pr_number": 418,
+      "pr_head_sha": "3c5c4681a54b9518f4320069860f443273b956bd",
+      "merge_sha": "a66775cf8c58b9ab2890936bbd2a88b6647f399c",
+      "ci_run_id": 41655343424,
+      "verification": "VERIFIED 2026-11-03: PR #418 merged at a66775cf8c58b9ab2890936bbd2a88b6647f399c from head 3c5c4681a54b9518f4320069860f443273b956bd. PR CI 41655343424 and push CI 41655295899 SUCCESS; CodeQL 41655335969 passed for Actions, Python, and JavaScript/TypeScript; Vercel preview SUCCESS. Local Python suite: 847 tests, 22 skipped. Advisory review workflow 41655343274 completed, but its Codex model step was skipped for missing explicit budget approval; no model call is claimed. Exact-merge main CI 41672386628 and Push on main 41672386750 SUCCESS; static Pages published and verify-production passed. Controlled incident drill was skipped.",
+      "limitations": "The finding validator recomputes impacted services and shortest declared paths against an exact fresh snapshot, but the caller must separately authenticate snapshot provenance. It does not prove edge truth, source observation, causal relation, or calibrated quality. Tests use synthetic inputs only. T24 remains partial. No live enterprise service or model inference is demonstrated. Readiness gates remain unchanged."
     }
   ],
   "gates": [

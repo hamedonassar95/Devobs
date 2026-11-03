@@ -1,4 +1,15 @@
-## Superseding snapshot — 2026-11-03 (after PR #417)
+## Superseding snapshot — 2026-11-03 (after PR #418)
+
+**VERIFIED from GitHub:** `main` is merge SHA `a66775cf8c58b9ab2890936bbd2a88b6647f399c`, from PR [#418](https://github.com/hamedonassar95/Devobs/pull/418), head `3c5c4681a54b9518f4320069860f443273b956bd`.
+
+- PR CI [41655343424](https://github.com/hamedonassar95/Devobs/actions/runs/41655343424) and push CI [41655295899](https://github.com/hamedonassar95/Devobs/actions/runs/41655295899) passed; CodeQL [41655335969](https://github.com/hamedonassar95/Devobs/actions/runs/41655335969) passed for Actions, Python and JavaScript/TypeScript; Vercel preview passed.
+- Local Python suite passed 847 tests with 22 skips. Advisory AI Code Review [41655343274](https://github.com/hamedonassar95/Devobs/actions/runs/41655343274) completed, but the Codex model step was skipped for missing explicit budget approval. No model call is claimed.
+- Exact-merge main CI [41672386628](https://github.com/hamedonassar95/Devobs/actions/runs/41672386628) and Push on main [41672386750](https://github.com/hamedonassar95/Devobs/actions/runs/41672386750) passed. Static Pages was published and `verify-production` passed; the controlled incident drill was skipped.
+- PR #418 validates finding v3 impact paths against the exact fresh snapshot and its content digest. It verifies consistency but did not connect signature verification in the caller path, enroll trusted keys, or ingest a live authorized source; topology truth and calibrated detection quality remain unverified.
+- This is repository and static-site evidence only. No live tenant API, managed database, enterprise customer onboarding, support SLO, or customer-data operation was verified; commercial service readiness remains unproven.
+- The documented gate dispositions remain unchanged: AI-9 **FAIL / BLOCKED**, P01 **NO-GO / BLOCKED**, and Codex agent runtime **OPEN**.
+
+## Prior snapshot — 2026-11-03 (after PR #417; superseded by PR #418)
 
 **VERIFIED from GitHub:** `main` is merge SHA `620743877ea964fe6b332218961c41c46a0e27a2`, from PR [#417](https://github.com/hamedonassar95/Devobs/pull/417), head `fd41a93808c96aa6b335b0e858893d3ef2120a6f`.
 
