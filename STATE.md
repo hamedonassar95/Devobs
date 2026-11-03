@@ -1,5 +1,11 @@
 # حالة مستودع Devobs
 
+## أحدث دمج موثّق: PR #421 — تحقق 2026-11-03
+
+- **VERIFIED من GitHub:** دُمج [PR #421](https://github.com/hamedonassar95/Devobs/pull/421) عند SHA `7ca86444efc3529ba5da0ca934939578f52d6d4e` من الرأس `0516a5c64bb91fbd596707b2d201deca8eb97dfc`. نجح PR CI `41707347161` وpush CI `41707252123`. نجح main CI `41709068995` وPush on main/CodeQL `41709067466` على SHA الدمج؛ نُشرت Pages الثابتة واجتاز الموقع `verify-production`. تخطّى تدريب الحادث المضبوط.
+- PR #421 توثيقي فقط ويسجل دليل دمج PR #420 وحدود قدراته. اجتازت اختبارات سجل الإنجازات المحلية عند دمج #421 عدد 49 اختبارًا.
+- لم تتغير حالات الجاهزية: AI-9 **BLOCKED**، وP01 **BLOCKED**، وCodex runtime **OPEN**. لا يثبت هذا السجل تشغيلًا حيًا أو استدلال نموذج.
+
 ## أحدث دمج موثّق: PR #420 — تحقق 2026-11-03
 
 - **VERIFIED من GitHub:** دُمج [PR #420](https://github.com/hamedonassar95/Devobs/pull/420) عند SHA `bcaa246bc0d4a670b8f49f0d20edfc9939bbd772` من الرأس `fc83e67277a05d47a7eaeaecc857864a62cda162`. نجح PR CI `41705566648` وفحوص `validate` وCodeQL. نجح main CI `41706381759` وPush on main/CodeQL `41706380276` على SHA الدمج، ونُشرت Pages الثابتة واجتاز الموقع `verify-production`. تخطّى workflow تدريب الحادث المضبوط.
