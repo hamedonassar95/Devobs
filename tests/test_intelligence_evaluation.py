@@ -10,15 +10,15 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from devobs_intelligence.evaluation import EvaluationError, evaluate_cases, evaluate_fixture
 
-FIXTURES = json.loads((ROOT / "tests/fixtures/intelligence_eval_cases.json").read_text())
-MANIFEST_PATH = ROOT / "docs/ai/intelligence-evaluation-policy-v1.json"
-DATASET_PATH = ROOT / "tests/fixtures/intelligence_eval_cases.json"
+FIXTURES = json.loads((ROOT / "tests/fixtures/intelligence_eval_cases_v2.json").read_text())
+MANIFEST_PATH = ROOT / "docs/ai/intelligence-evaluation-policy-v2.json"
+DATASET_PATH = ROOT / "tests/fixtures/intelligence_eval_cases_v2.json"
 
 
 class EvaluationTests(unittest.TestCase):
     def test_baseline_metrics_do_not_assume_an_unapproved_target(self):
         report = evaluate_cases(FIXTURES)
-        self.assertEqual(report["schema_version"], 1)
+        self.assertEqual(report["schema_version"], 2)
         self.assertEqual(report["case_count"], 5)
         self.assertEqual(report["correct"], 4)
         self.assertEqual(report["abstentions"], 1)
@@ -44,6 +44,74 @@ class EvaluationTests(unittest.TestCase):
             "numerator": 3,
             "denominator": 4,
         })
+
+    def test_insufficient_evidence_abstention_rate_uses_labeled_cases_only(self):
+        cases = [
+            {
+                **case,
+                "signals": (
+                    {"failed_checks": 0, "error_rate_pct": 0, "capacity_pct": 30}
+                    if case["case_id"] == "ci" else case["signals"]
+                ),
+            }
+            for case in FIXTURES
+        ]
+        report = evaluate_cases(cases)
+        metric = report["insufficient_evidence_abstention_rate"]
+
+        self.assertEqual(metric["value"], 1.0)
+        self.assertEqual(metric["numerator"], 1)
+        self.assertEqual(metric["denominator"], 1)
+        self.assertEqual(metric["interval_95"]["successes"], 1)
+        self.assertEqual(metric["interval_95"]["trials"], 1)
+        self.assertEqual(report["unknown_output_rate"]["numerator"], 2)
+
+    def test_insufficient_evidence_abstention_rate_is_undefined_without_labeled_cases(self):
+        labeled_cases = [
+            {**case, "evidence_sufficiency": "sufficient"}
+            for case in FIXTURES
+        ]
+
+        metric = evaluate_cases(labeled_cases)["insufficient_evidence_abstention_rate"]
+
+        self.assertIsNone(metric["value"])
+        self.assertEqual(metric["numerator"], 0)
+        self.assertEqual(metric["denominator"], 0)
+        self.assertIsNone(metric["interval_95"])
+
+    def test_insufficient_evidence_non_abstention_counts_as_a_missed_refusal(self):
+        cases = [
+            {
+                **case,
+                "signals": (
+                    {"failed_checks": 1, "error_rate_pct": 0, "capacity_pct": 10}
+                    if case["case_id"] == "abstain" else case["signals"]
+                ),
+            }
+            for case in FIXTURES
+        ]
+
+        metric = evaluate_cases(cases)["insufficient_evidence_abstention_rate"]
+
+        self.assertEqual(metric["value"], 0.0)
+        self.assertEqual(metric["numerator"], 0)
+        self.assertEqual(metric["denominator"], 1)
+        self.assertEqual(metric["interval_95"]["successes"], 0)
+        self.assertEqual(metric["interval_95"]["trials"], 1)
+
+    def test_evidence_sufficiency_label_is_required(self):
+        case_without_label = {
+            key: value for key, value in FIXTURES[0].items()
+            if key != "evidence_sufficiency"
+        }
+
+        with self.assertRaisesRegex(EvaluationError, "^invalid_case$"):
+            evaluate_cases([case_without_label])
+
+    def test_invalid_evidence_sufficiency_label_fails_closed(self):
+        for label in ("unknown", None, {}, True):
+            with self.subTest(label=label), self.assertRaisesRegex(EvaluationError, "^invalid_case$"):
+                evaluate_cases([{**FIXTURES[0], "evidence_sufficiency": label}])
 
     def test_all_unknown_outputs_have_zero_coverage_and_undefined_selective_accuracy(self):
         insufficient_evidence = [
@@ -166,7 +234,7 @@ class EvaluationTests(unittest.TestCase):
         report = evaluate_fixture(ROOT)
         dataset = report["dataset"]
         self.assertEqual(dataset["dataset_id"], "devobs-adviser-synthetic")
-        self.assertEqual(dataset["dataset_version"], "v1")
+        self.assertEqual(dataset["dataset_version"], "v2")
         self.assertEqual(dataset["sha256"], hashlib.sha256(DATASET_PATH.read_bytes()).hexdigest())
         self.assertEqual(dataset["case_count"], 5)
         self.assertEqual(dataset["label_status"], "synthetic_unreviewed")
@@ -182,10 +250,10 @@ class EvaluationTests(unittest.TestCase):
             root = Path(temp_dir)
             (root / "docs/ai").mkdir(parents=True)
             (root / "tests/fixtures").mkdir(parents=True)
-            (root / "docs/ai/intelligence-evaluation-policy-v1.json").write_bytes(
+            (root / "docs/ai/intelligence-evaluation-policy-v2.json").write_bytes(
                 MANIFEST_PATH.read_bytes()
             )
-            (root / "tests/fixtures/intelligence_eval_cases.json").write_bytes(
+            (root / "tests/fixtures/intelligence_eval_cases_v2.json").write_bytes(
                 DATASET_PATH.read_bytes() + b" "
             )
             with self.assertRaisesRegex(EvaluationError, "^dataset_digest_mismatch$"):
@@ -198,10 +266,10 @@ class EvaluationTests(unittest.TestCase):
             (root / "tests/fixtures").mkdir(parents=True)
             manifest = json.loads(MANIFEST_PATH.read_text())
             manifest["production_gate"] = True
-            (root / "docs/ai/intelligence-evaluation-policy-v1.json").write_text(
+            (root / "docs/ai/intelligence-evaluation-policy-v2.json").write_text(
                 json.dumps(manifest)
             )
-            (root / "tests/fixtures/intelligence_eval_cases.json").write_bytes(
+            (root / "tests/fixtures/intelligence_eval_cases_v2.json").write_bytes(
                 DATASET_PATH.read_bytes()
             )
             with self.assertRaisesRegex(EvaluationError, "^invalid_manifest$"):
@@ -216,10 +284,10 @@ class EvaluationTests(unittest.TestCase):
             manifest = json.loads(MANIFEST_PATH.read_text())
             manifest["dataset_sha256"] = hashlib.sha256(raw).hexdigest()
             manifest["case_count"] = 1
-            (root / "docs/ai/intelligence-evaluation-policy-v1.json").write_text(
+            (root / "docs/ai/intelligence-evaluation-policy-v2.json").write_text(
                 json.dumps(manifest)
             )
-            (root / "tests/fixtures/intelligence_eval_cases.json").write_bytes(raw)
+            (root / "tests/fixtures/intelligence_eval_cases_v2.json").write_bytes(raw)
             with self.assertRaisesRegex(EvaluationError, "^invalid_fixture$"):
                 evaluate_fixture(root)
 
