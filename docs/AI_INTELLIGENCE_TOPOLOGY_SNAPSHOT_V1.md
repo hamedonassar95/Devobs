@@ -29,6 +29,12 @@
 - A JSON encode/decode round trip preserves the canonical snapshot, while unsupported versions and altered records are rejected.
 - No network, storage, model, or cloud operation is performed.
 
+## Signed-envelope verification (offline T22 preparation)
+
+`scripts/devobs_intelligence/topology_attestation.py` verifies an exact schema-v1 Ed25519 envelope. The signed payload uses a domain separator and binds the signer key ID to the full canonical snapshot record. The caller supplies the trusted raw public-key map, expected tenant/project, expected source SHA, current time and freshness limit. Verification returns the validated snapshot plus a digest of the signed envelope; it never returns the signature or key material.
+
+This checks a signature against the caller's trust input. It does not enroll or protect keys, prove that a signer observed the real source commit, ingest live metadata, prevent all replays, or persist an audit trail. Only generated test keys and synthetic topology are used here. T22 remains open until an authorized source and protected key-enrollment process are approved and exercised.
+
 ## Limits and next gate
 
 The digest detects accidental content changes; it is **not** a signature, identity assertion, collector attestation, or proof that the topology came from the named commit. The caller still supplies tenant, project, source SHA, capture time, and graph. The schema-v1 record and correlator integration remain local contracts; they do not authenticate a producer, ingest live topology, or prove operational quality. The separate [topology drift report](AI_INTELLIGENCE_TOPOLOGY_DRIFT_V1.md) compares two offline snapshots but does not establish whether declared edges are true or complete. Further work still needs an approved source, reviewed provenance, poisoned/stale-memory controls, retention/privacy decisions, and hosted evidence. No readiness decision changes from this implementation.

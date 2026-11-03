@@ -1,6 +1,15 @@
 # Devobs production readiness — current evidence
 
-## Superseding snapshot — 2026-11-03 (after PR #411)
+## Superseding snapshot — 2026-11-03 (after PR #412)
+
+**VERIFIED from GitHub:** `main` is merge SHA `156577a1206ec4cea8786ee9de7f9f718dd25227`, from PR [#412](https://github.com/hamedonassar95/Devobs/pull/412), head `4bbbf8e133cc5fd09a75dd52e598765d63e49e89`.
+
+- Exact-head PR CI [41628667280](https://github.com/hamedonassar95/Devobs/actions/runs/41628667280) and push CI [41628661583](https://github.com/hamedonassar95/Devobs/actions/runs/41628661583) passed; CodeQL [41628663487](https://github.com/hamedonassar95/Devobs/actions/runs/41628663487) passed for Actions, Python and JavaScript/TypeScript; Vercel preview passed. The Actions AI Code Review model step was skipped for missing budget approval. Separately, a Codex review summary after the draft was marked ready reported completed with no findings.
+- Exact-merge main CI [41629134477](https://github.com/hamedonassar95/Devobs/actions/runs/41629134477) and CodeQL [41629133141](https://github.com/hamedonassar95/Devobs/actions/runs/41629133141) passed on the merge SHA. Main CI published and verified static Pages; Vercel status passed. The controlled incident drill and restoration jobs were skipped by workflow conditions.
+- PR #412 added a metadata-only validator that prevents related synthetic incident cases from crossing review splits. It does not provide a labeled benchmark or close T29.
+- Gate dispositions remain AI-9 **FAIL / BLOCKED**, P01 **NO-GO / BLOCKED**, and Codex agent runtime **OPEN**.
+
+## Prior snapshot — 2026-11-03 (after PR #411; superseded by PR #412)
 
 **VERIFIED from GitHub:** `main` is merge SHA `5c8cb05d12560d9771769fbf7a157df056e91934`, from PR [#411](https://github.com/hamedonassar95/Devobs/pull/411), head `db7592d93b674f12d56b338c80494790ba965020`.
 
