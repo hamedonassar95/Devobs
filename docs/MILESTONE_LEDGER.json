@@ -981,6 +981,17 @@
       "ci_run_id": 41630254246,
       "verification": "VERIFIED 2026-11-03: PR #413 merged at acf1b0c97c084db4826d07066951ccda23f08d80 from head 01fb6b0ea23b7d5ceaeadc1c8755c7c7205219d9. PR CI 41630254246 and push CI 41630246585 SUCCESS; CodeQL run 41630247569 passed for Actions, Python, and JavaScript/TypeScript; Vercel preview SUCCESS. Advisory AI Code Review workflow 41630254446 completed, but its \"Review the pull request with Codex\" model step was skipped because explicit budget approval was absent; no model call is claimed. Exact-merge main CI 41630631919 and Push on main/CodeQL run 41630630347 SUCCESS. Main CI published and verified static Pages; the main Vercel deployment status was SUCCESS. Controlled incident drill and restoration jobs were skipped by workflow conditions.",
       "limitations": "The change verifies an exact schema-v1 snapshot envelope with Ed25519 against caller-supplied scope-bound public keys, expected SHA, and freshness. Tests use generated keys and synthetic topology only. It does not enroll/protect keys, prove a collector observed the real source, ingest live metadata, establish edge truth, or prevent all replay. T22 remains partial. No readiness gate changed."
+    },
+    {
+      "id": "p03-edge-verifiability-pr414",
+      "area": "QUALITY",
+      "title": "Mark unverified edges in topology drift reports (P03 T23)",
+      "pr_number": 414,
+      "pr_head_sha": "e6d43a9bbe207e54cfd1f21916995dbcea1898ef",
+      "merge_sha": "fac245a4686bb6360f41f9ebf4b0668141816a7c",
+      "ci_run_id": 41631891044,
+      "verification": "VERIFIED 2026-11-03: PR #414 merged at fac245a4686bb6360f41f9ebf4b0668141816a7c from head e6d43a9bbe207e54cfd1f21916995dbcea1898ef. PR CI 41631891044 and push CI 41631884551 SUCCESS; CodeQL run 41631885400 passed for Actions, Python, and JavaScript/TypeScript; Vercel preview SUCCESS. Advisory AI Code Review workflow 41631890878 completed, but its model step was skipped for missing explicit budget approval; no model call is claimed. Exact-merge main CI 41632661962 and Push on main/CodeQL run 41632661123 SUCCESS; static Pages publication and verification and Vercel status SUCCESS. Controlled incident drill and restoration checks were skipped by workflow conditions.",
+      "limitations": "Offline topology drift v2 marks all after-snapshot edges UNVERIFIABLE when edge-level source metadata is absent. It does not verify edge truth, completeness, or a live topology source; T23 remains partial. AI-9 remains FAIL / BLOCKED, P01 remains NO-GO / BLOCKED, and Codex agent runtime remains OPEN. Readiness gates remain unchanged."
     }
   ],
   "gates": [

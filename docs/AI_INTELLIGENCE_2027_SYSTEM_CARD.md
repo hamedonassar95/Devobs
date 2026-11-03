@@ -72,7 +72,7 @@ Telemetry adapter consumes a trusted **small numeric metric snapshot**, not the 
 
 The offline topology snapshot and local correlator are documented in [AI_INTELLIGENCE_TOPOLOGY_SNAPSHOT_V1.md](AI_INTELLIGENCE_TOPOLOGY_SNAPSHOT_V1.md). The incident-memory provenance boundary and wire digest are documented in [AI_INTELLIGENCE_INCIDENT_MEMORY_V1.md](AI_INTELLIGENCE_INCIDENT_MEMORY_V1.md). These contracts remain offline; source authenticity and hosted ingestion are unproven.
 
-The correlated finding's JSON interchange contract is documented in [AI_INTELLIGENCE_FINDING_V1.md](AI_INTELLIGENCE_FINDING_V1.md). Its digest detects content changes but does not authenticate the producer or authorize downstream actions.
+The correlated finding's current JSON interchange contract is documented in [AI_INTELLIGENCE_FINDING_V2.md](AI_INTELLIGENCE_FINDING_V2.md); [v1](AI_INTELLIGENCE_FINDING_V1.md) is retained as historical. Its digest detects content changes but does not authenticate the producer or authorize downstream actions.
 
 The audit checkpoint and optional Ed25519 envelope contract are documented in [AI_INTELLIGENCE_AUDIT_CHECKPOINT_V1.md](AI_INTELLIGENCE_AUDIT_CHECKPOINT_V1.md). Signing does not by itself provide trusted external retention, key enrollment, or operator identity.
 

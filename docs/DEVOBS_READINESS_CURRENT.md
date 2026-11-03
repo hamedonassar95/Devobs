@@ -1,6 +1,16 @@
+## Superseding snapshot — 2026-11-03 (after PR #414)
+
+**VERIFIED from GitHub:** `main` is merge SHA `fac245a4686bb6360f41f9ebf4b0668141816a7c`, from PR [#414](https://github.com/hamedonassar95/Devobs/pull/414), head `e6d43a9bbe207e54cfd1f21916995dbcea1898ef`.
+
+- Exact-head PR CI [41631891044](https://github.com/hamedonassar95/Devobs/actions/runs/41631891044) and push CI [41631884551](https://github.com/hamedonassar95/Devobs/actions/runs/41631884551) passed; CodeQL [41631885400](https://github.com/hamedonassar95/Devobs/actions/runs/41631885400) passed for Actions, Python and JavaScript/TypeScript; Vercel preview passed.
+- Advisory AI Code Review workflow [41631890878](https://github.com/hamedonassar95/Devobs/actions/runs/41631890878) completed, but its model step was skipped because explicit budget approval was absent. No model call is claimed.
+- Exact-merge main CI [41632661962](https://github.com/hamedonassar95/Devobs/actions/runs/41632661962) and Push on main/CodeQL [41632661123](https://github.com/hamedonassar95/Devobs/actions/runs/41632661123) passed on this merge SHA. Static Pages publication and verification and Vercel status passed; controlled incident drill and recovery checks were skipped by workflow conditions.
+- PR #414 changes the offline topology drift report to mark after-snapshot edges `UNVERIFIABLE` when edge-level source metadata is absent. This exposes missing provenance; it does not establish edge truth or complete/live topology. T23 remains partial.
+- Gate dispositions remain AI-9 **FAIL / BLOCKED**, P01 **NO-GO / BLOCKED**, and Codex agent runtime **OPEN**. A successful workflow does not prove a model call.
+
 # Devobs production readiness — current evidence
 
-## Superseding snapshot — 2026-11-03 (after PR #413)
+## Prior snapshot — 2026-11-03 (after PR #413; superseded by PR #414)
 
 **VERIFIED from GitHub:** main is merge SHA `acf1b0c97c084db4826d07066951ccda23f08d80`, from PR [#413](https://github.com/hamedonassar95/Devobs/pull/413), head `01fb6b0ea23b7d5ceaeadc1c8755c7c7205219d9`.
 

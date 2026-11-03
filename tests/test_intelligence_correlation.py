@@ -70,7 +70,40 @@ class IncidentCorrelationTests(unittest.TestCase):
         self.assertEqual(report.status,"PENDING_HUMAN_APPROVAL")
         self.assertFalse(report.model_used)
         self.assertFalse(report.calibrated)
+        self.assertEqual(report.ranking_interpretation, "fixed_heuristic_not_causal")
+        self.assertEqual(
+            [(item.service, item.rank, item.score) for item in report.ranked_service_evidence],
+            [("db", 1, 2), ("api", 2, 1), ("web", 3, 1)],
+        )
+        self.assertEqual(
+            [(signal.metric, signal.reason_code, signal.points, signal.evidence_digest)
+             for signal in report.ranked_service_evidence[0].signals],
+            [("error_rate_pct", "error_rate_threshold_met", 2, "b" * 64)],
+        )
         self.assertIsNone(report.topology_snapshot_digest)
+
+    def test_ranked_evidence_explains_each_fixed_rule(self):
+        report = correlate(graph(), [
+            data("db", "failed_checks", 1, "b"),
+            data("db", "error_rate_pct", 9, "c"),
+            data("db", "capacity_pct", 91, "d"),
+        ], memory(), NOW)
+
+        record = report.to_record()
+
+        self.assertEqual(report.category, "ci_failure")
+        self.assertEqual(record["ranking_interpretation"], "fixed_heuristic_not_causal")
+        self.assertEqual(record["ranked_service_evidence"][0]["score"], 6)
+        self.assertEqual(
+            [(signal["reason_code"], signal["points"], signal["evidence_digest"])
+             for signal in record["ranked_service_evidence"][0]["signals"]],
+            [
+                ("failed_checks_positive", 3, "b" * 64),
+                ("error_rate_threshold_met", 2, "c" * 64),
+                ("capacity_threshold_met", 1, "d" * 64),
+            ],
+        )
+        self.assertNotIn("value", record)
 
     def test_fresh_snapshot_is_bound_to_correlation_result_provenance(self):
         topology = snapshot()

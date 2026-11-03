@@ -1,4 +1,6 @@
-# AI Intelligence — incident finding wire contract v1
+# AI Intelligence — incident finding wire contract v1 (historical)
+
+Superseded by [incident finding wire contract v2](AI_INTELLIGENCE_FINDING_V2.md). The v2 parser intentionally rejects v1 records.
 
 **Scope:** local, offline serialization for deterministic incident-correlation results. This is not an API endpoint, a trusted signature, or a readiness-gate change.
 

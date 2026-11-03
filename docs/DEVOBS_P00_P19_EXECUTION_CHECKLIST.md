@@ -93,6 +93,7 @@
 - [ ] **T23: Detect graph drift and cycles.** Bound traversal, handle cycles/orphans and mark unverifiable edges.
   Partial local capability: the offline drift-report v2 detects service/edge changes, cycle and isolation changes, and marks every current edge `UNVERIFIABLE` when edge-level source metadata is absent. Existing snapshots are bounded to 100 services and 500 edges. This does not validate edge truth or provide live topology evidence; T23 remains open.
 - [ ] **T24: Correlate impacted services.** Explain ranked hypothesis from evidence without claiming causal proof.
+  Partial local capability: the offline correlator emits a deterministic top-three score with triggered reason codes and per-signal evidence digests under `fixed_heuristic_not_causal`. It exposes no raw metric values and makes no model call; synthetic tests only. This does not establish causal explanation, calibrated ranking, or detection quality; T24 remains open.
 - [ ] **T25: Encrypt and isolate durable incident metadata.** Delete/export/retention policies; deny cross-tenant and raw private logs.
 - [ ] **T26: Evaluate optional vector retrieval safely.** Require consent, scoped embeddings, poisoning tests and baseline comparison.
 - [ ] **T27: Strengthen abstention and provenance checks.** Reject replay, missing evidence, stale SHA, unknown services and wrong tenant.
