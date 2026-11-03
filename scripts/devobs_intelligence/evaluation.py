@@ -123,6 +123,8 @@ def evaluate_cases(cases: list[dict], *, target_accuracy: float | None = None) -
     non_abstained_correct = 0
     insufficient_evidence_count = 0
     insufficient_evidence_abstentions = 0
+    sufficient_evidence_count = 0
+    sufficient_evidence_abstentions = 0
     expected_categories = []
     predictions = []
     for case in cases:
@@ -166,6 +168,10 @@ def evaluate_cases(cases: list[dict], *, target_accuracy: float | None = None) -
             insufficient_evidence_count += 1
             if predicted == "unknown":
                 insufficient_evidence_abstentions += 1
+        else:
+            sufficient_evidence_count += 1
+            if predicted == "unknown":
+                sufficient_evidence_abstentions += 1
         if predicted == expected:
             correct += 1
         if predicted == "unknown":
@@ -180,6 +186,10 @@ def evaluate_cases(cases: list[dict], *, target_accuracy: float | None = None) -
     insufficient_evidence_abstention_rate = (
         insufficient_evidence_abstentions / insufficient_evidence_count
         if insufficient_evidence_count else None
+    )
+    sufficient_evidence_abstention_rate = (
+        sufficient_evidence_abstentions / sufficient_evidence_count
+        if sufficient_evidence_count else None
     )
     per_category = {}
     for category in sorted(_CATEGORIES):
@@ -217,7 +227,7 @@ def evaluate_cases(cases: list[dict], *, target_accuracy: float | None = None) -
             "recall_interval_95": _wilson_metric_interval_95(true_positive, support),
         }
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "case_count": len(cases),
         "correct": correct,
         "abstentions": abstentions,
@@ -245,6 +255,14 @@ def evaluate_cases(cases: list[dict], *, target_accuracy: float | None = None) -
             "denominator": insufficient_evidence_count,
             "interval_95": _wilson_metric_interval_95(
                 insufficient_evidence_abstentions, insufficient_evidence_count
+            ),
+        },
+        "sufficient_evidence_abstention_rate": {
+            "value": sufficient_evidence_abstention_rate,
+            "numerator": sufficient_evidence_abstentions,
+            "denominator": sufficient_evidence_count,
+            "interval_95": _wilson_metric_interval_95(
+                sufficient_evidence_abstentions, sufficient_evidence_count
             ),
         },
         "per_category": per_category,

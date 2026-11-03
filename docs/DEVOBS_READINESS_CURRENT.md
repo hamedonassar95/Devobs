@@ -1,6 +1,15 @@
 # Devobs production readiness — current evidence
 
-## Superseding snapshot — 2026-11-03 (after PR #409)
+## Superseding snapshot — 2026-11-03 (after PR #410)
+
+**VERIFIED from GitHub:** `main` is merge SHA `138fa5423e5aef705c8f8be99fbae51bf5e546bb`, from PR [#410](https://github.com/hamedonassar95/Devobs/pull/410), head `470f02f5d9d1c5a08e806d598ec1179f6b34f8a9`.
+
+- Exact-head PR CI [41619952990](https://github.com/hamedonassar95/Devobs/actions/runs/41619952990) and push CI [41619914219](https://github.com/hamedonassar95/Devobs/actions/runs/41619914219) passed; CodeQL [41619947629](https://github.com/hamedonassar95/Devobs/actions/runs/41619947629) passed for Actions, Python and JavaScript/TypeScript; Vercel preview passed. The advisory Codex model-review step was skipped.
+- Exact-merge main CI [41620390423](https://github.com/hamedonassar95/Devobs/actions/runs/41620390423) and CodeQL [41620389693](https://github.com/hamedonassar95/Devobs/actions/runs/41620389693) passed on the merge SHA. Main CI published and verified static Pages; the controlled incident drill and restoration checks were skipped by workflow conditions.
+- PR #410 added a versioned five-case synthetic fixture with evidence-sufficiency labels and the descriptive abstention rate for explicitly labeled insufficient-evidence cases. The labels are unreviewed; this metric does not establish label validity, general safe-refusal behavior, real-world model quality, or model inference.
+- Gate dispositions remain AI-9 **FAIL / BLOCKED**, P01 **NO-GO / BLOCKED**, and Codex agent runtime **OPEN**.
+
+## Prior snapshot — 2026-11-03 (after PR #409; superseded by PR #410)
 
 **VERIFIED from GitHub:** `main` is merge SHA `2fae0241c4fda8103e76cb5f05583244b568c819`, from PR [#409](https://github.com/hamedonassar95/Devobs/pull/409), head `2c9bfe18061b6aea698623ac8152c7c7ee3bca36`.
 

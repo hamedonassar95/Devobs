@@ -18,7 +18,7 @@ DATASET_PATH = ROOT / "tests/fixtures/intelligence_eval_cases_v2.json"
 class EvaluationTests(unittest.TestCase):
     def test_baseline_metrics_do_not_assume_an_unapproved_target(self):
         report = evaluate_cases(FIXTURES)
-        self.assertEqual(report["schema_version"], 2)
+        self.assertEqual(report["schema_version"], 3)
         self.assertEqual(report["case_count"], 5)
         self.assertEqual(report["correct"], 4)
         self.assertEqual(report["abstentions"], 1)
@@ -65,6 +65,32 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(metric["interval_95"]["successes"], 1)
         self.assertEqual(metric["interval_95"]["trials"], 1)
         self.assertEqual(report["unknown_output_rate"]["numerator"], 2)
+        sufficient_metric = report["sufficient_evidence_abstention_rate"]
+        self.assertEqual(sufficient_metric["value"], 0.25)
+        self.assertEqual(sufficient_metric["numerator"], 1)
+        self.assertEqual(sufficient_metric["denominator"], 4)
+
+    def test_sufficient_evidence_abstention_rate_has_explicit_denominator_and_interval(self):
+        metric = evaluate_cases(FIXTURES)["sufficient_evidence_abstention_rate"]
+
+        self.assertEqual(metric["value"], 0.0)
+        self.assertEqual(metric["numerator"], 0)
+        self.assertEqual(metric["denominator"], 4)
+        self.assertEqual(metric["interval_95"]["successes"], 0)
+        self.assertEqual(metric["interval_95"]["trials"], 4)
+
+    def test_sufficient_evidence_abstention_rate_is_undefined_without_sufficient_labels(self):
+        cases = [
+            {**case, "evidence_sufficiency": "insufficient"}
+            for case in FIXTURES
+        ]
+
+        metric = evaluate_cases(cases)["sufficient_evidence_abstention_rate"]
+
+        self.assertIsNone(metric["value"])
+        self.assertEqual(metric["numerator"], 0)
+        self.assertEqual(metric["denominator"], 0)
+        self.assertIsNone(metric["interval_95"])
 
     def test_insufficient_evidence_abstention_rate_is_undefined_without_labeled_cases(self):
         labeled_cases = [
