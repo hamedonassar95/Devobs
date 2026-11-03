@@ -204,6 +204,17 @@ class IncidentFinding:
                        for value in sequences["runbook_ids"])):
             raise ContextError("invalid_incident_finding")
 
+        payload = {key: record[key] for key in _FINDING_FIELDS - {"finding_digest"}}
+        if (type(record["finding_digest"]) is not str
+                or _FINDING_DIGEST.fullmatch(record["finding_digest"]) is None):
+            raise ContextError("invalid_incident_finding_digest")
+        try:
+            expected = hashlib.sha256(_finding_canonical_json(payload)).hexdigest()
+        except (TypeError, ValueError, OverflowError):
+            raise ContextError("invalid_incident_finding_record") from None
+        if expected != record["finding_digest"]:
+            raise ContextError("incident_finding_digest_mismatch")
+
         ranking_value = record["ranked_service_evidence"]
         if (record["ranking_interpretation"] != _RANKING_INTERPRETATION
                 or type(ranking_value) is not list or len(ranking_value) > 3):
@@ -296,17 +307,6 @@ class IncidentFinding:
                     or sequences["impacted_services"] or sequences["runbook_ids"]
                     or memory):
                 raise ContextError("invalid_incident_finding")
-
-        payload = {key: record[key] for key in _FINDING_FIELDS - {"finding_digest"}}
-        if (type(record["finding_digest"]) is not str
-                or _FINDING_DIGEST.fullmatch(record["finding_digest"]) is None):
-            raise ContextError("invalid_incident_finding_digest")
-        try:
-            expected = hashlib.sha256(_finding_canonical_json(payload)).hexdigest()
-        except (TypeError, ValueError, OverflowError):
-            raise ContextError("invalid_incident_finding_record") from None
-        if expected != record["finding_digest"]:
-            raise ContextError("incident_finding_digest_mismatch")
 
         return cls(
             status=record["status"], category=record["category"],
