@@ -3,11 +3,23 @@ import hashlib
 import json
 import sys
 import unittest
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from unittest.mock import patch
+
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from devobs_intelligence.context import ContextError, ServiceTopologySnapshot
-from devobs_intelligence.topology_drift import compare_topology_snapshots
+from devobs_intelligence.topology_drift import (
+    compare_attested_topology_snapshots,
+    compare_topology_snapshots,
+)
+from devobs_intelligence.topology_attestation import RotatingTopologyKeyring
+
+_NOW = datetime(2026, 11, 3, 12, 0, tzinfo=timezone.utc)
+_ATTESTATION_DOMAIN = b"devobs-topology-attestation-v1\n"
 
 
 def snapshot(*, services, edges, source_sha, captured_at,
@@ -143,6 +155,133 @@ class TopologyDriftTests(unittest.TestCase):
             compare_topology_snapshots(before, after)
         with self.assertRaisesRegex(ContextError, "invalid_topology_snapshot"):
             compare_topology_snapshots(before, json.loads("{}"))
+
+
+class AttestedTopologyDriftTests(unittest.TestCase):
+    def setUp(self):
+        self.private_key = Ed25519PrivateKey.generate()
+        public_key = self.private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        self.keyring = {("alpha", "platform", "collector-1"): public_key}
+
+    def signed(self, topology):
+        payload = {
+            "schema_version": 1,
+            "key_id": "collector-1",
+            "snapshot": topology.to_record(),
+        }
+        signed_bytes = json.dumps(
+            payload, sort_keys=True, separators=(",", ":"),
+            ensure_ascii=False, allow_nan=False,
+        ).encode("utf-8")
+        signature = self.private_key.sign(
+            _ATTESTATION_DOMAIN + signed_bytes,
+        ).hex()
+        return {**payload, "signature": signature}
+
+    def compare(self, before, after, **overrides):
+        options = {
+            "expected_tenant": "alpha",
+            "expected_project": "platform",
+            "expected_before_source_sha": "a" * 40,
+            "expected_after_source_sha": "b" * 40,
+            "now": _NOW,
+            "max_age_seconds": 60,
+        }
+        options.update(overrides)
+        return compare_attested_topology_snapshots(
+            before, after, self.keyring, **options,
+        )
+
+    def pair(self):
+        before = snapshot(
+            services=["api", "db"], edges=[("api", "db")],
+            source_sha="a" * 40,
+            captured_at=(_NOW - timedelta(seconds=40)).isoformat(
+                timespec="microseconds").replace("+00:00", "Z"),
+        )
+        after = snapshot(
+            services=["api", "db", "worker"],
+            edges=[("api", "db"), ("worker", "api")],
+            source_sha="b" * 40,
+            captured_at=(_NOW - timedelta(seconds=10)).isoformat(
+                timespec="microseconds").replace("+00:00", "Z"),
+        )
+        return self.signed(before), self.signed(after)
+
+    def test_valid_signed_pair_returns_deterministic_provenance_bound_report(self):
+        before, after = self.pair()
+        report = self.compare(before, after)
+        record = report.to_record()
+
+        self.assertEqual(report.before_key_id, "collector-1")
+        self.assertEqual(report.after_key_id, "collector-1")
+        self.assertEqual(record["drift"]["added_services"], ["worker"])
+        self.assertEqual(record["drift"]["unverifiable_edges"][0]["status"],
+                         "UNVERIFIABLE")
+        self.assertEqual(record, self.compare(before, after).to_record())
+        self.assertEqual(len(record["before_attestation"]["digest"]), 64)
+        self.assertEqual(len(record["after_attestation"]["digest"]), 64)
+        self.assertEqual(len(record["attested_report_digest"]), 64)
+        self.assertNotIn("signature", json.dumps(record))
+        self.assertNotIn("public_key", json.dumps(record))
+
+    def test_both_signatures_and_each_expected_source_sha_are_required(self):
+        before, after = self.pair()
+        with self.assertRaisesRegex(ContextError, "^invalid_topology_attestation_signature$"):
+            self.compare(before, {**after, "signature": "0" * 128})
+        with self.assertRaisesRegex(ContextError, "^topology_source_sha_mismatch$"):
+            self.compare(before, after, expected_after_source_sha="c" * 40)
+
+    def test_both_snapshots_must_be_fresh_and_share_expected_scope(self):
+        before, after = self.pair()
+        stale_snapshot = snapshot(
+            services=["api"], edges=[], source_sha="a" * 40,
+            captured_at=(_NOW - timedelta(hours=2)).isoformat(
+                timespec="microseconds").replace("+00:00", "Z"),
+        )
+        with self.assertRaisesRegex(ContextError, "^stale_topology$"):
+            self.compare(self.signed(stale_snapshot), after)
+        with self.assertRaisesRegex(ContextError, "^topology_scope_mismatch$"):
+            self.compare(before, after, expected_project="other")
+
+    def test_nonincreasing_attested_capture_time_is_rejected(self):
+        before, after = self.pair()
+        same_time = snapshot(
+            services=["api", "db", "worker"],
+            edges=[("api", "db"), ("worker", "api")],
+            source_sha="b" * 40,
+            captured_at=(_NOW - timedelta(seconds=40)).isoformat(
+                timespec="microseconds").replace("+00:00", "Z"),
+        )
+        with self.assertRaisesRegex(ContextError, "^invalid_topology_order$"):
+            self.compare(before, self.signed(same_time))
+
+    def test_rotating_keyring_is_snapshotted_once_for_the_pair(self):
+        before, after = self.pair()
+        operator_key = Ed25519PrivateKey.generate()
+        operator_public_key = operator_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        rotating = RotatingTopologyKeyring(
+            self.keyring, operator_public_keys={"operator-1": operator_public_key},
+        )
+
+        with patch.object(rotating, "snapshot", wraps=rotating.snapshot) as snapshot:
+            result = compare_attested_topology_snapshots(
+                before, after, rotating,
+                expected_tenant="alpha",
+                expected_project="platform",
+                expected_before_source_sha="a" * 40,
+                expected_after_source_sha="b" * 40,
+                now=_NOW,
+                max_age_seconds=60,
+            )
+
+        self.assertEqual(snapshot.call_count, 1)
+        self.assertEqual(result.before_key_id, "collector-1")
+        self.assertEqual(result.after_key_id, "collector-1")
 
 
 if __name__ == "__main__":
