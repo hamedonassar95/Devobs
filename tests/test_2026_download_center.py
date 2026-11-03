@@ -36,7 +36,7 @@ class DownloadsTests(unittest.TestCase):
         hrefs = [a["href"] for _, a in html.tags if "href" in a]
         self.assertNotIn("", hrefs)
         for href in hrefs:
-            self.assertNotRegex(href.lower(), r"\\.(?:apk|aab|exe|msi|msix)(?:[?#]|$)")
+            self.assertNotRegex(href.lower(), r"\.(?:apk|aab|exe|msi|msix)(?:[?#]|$)")
             self.assertNotRegex(href.lower(), r"^(?:javascript|data|file):")
         self.assertIn("https://github.com/hamedonassar95/Devobs/releases", hrefs)
         self.assertFalse(any(t == "script" for t, _ in html.tags))
@@ -45,7 +45,7 @@ class DownloadsTests(unittest.TestCase):
         self.assertIn("DESIGN PREVIEW", PAGE)
         self.assertIn("وليس تقريرًا عن CI", PAGE)
         self.assertIn("لا تتضمن لوحة تشغيل حية", PAGE)
-        self.assertEqual(len(re.findall(r"<main\\b", PAGE)), 1)
+        self.assertEqual(len(re.findall(r"<main\b", PAGE)), 1)
 
 
 if __name__ == "__main__":
