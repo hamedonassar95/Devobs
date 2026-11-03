@@ -1,6 +1,14 @@
 # Devobs production readiness — current evidence
 
-## Superseding snapshot — 2026-11-02 (after PR #407)
+## Superseding snapshot — 2026-11-03 (after PR #408)
+
+**VERIFIED from GitHub:** `main` is merge SHA `8d4c1875aafb321f4b6a874ac748e6cae471f0eb`, from PR [#408](https://github.com/hamedonassar95/Devobs/pull/408), head `5fbf3f6578e0c9bbcc6a42190d467872199d0095`.
+
+- Exact-head PR CI [41616589063](https://github.com/hamedonassar95/Devobs/actions/runs/41616589063) and push CI [41616565301](https://github.com/hamedonassar95/Devobs/actions/runs/41616565301) passed; CodeQL [41616583002](https://github.com/hamedonassar95/Devobs/actions/runs/41616583002) passed for Actions, Python and JavaScript/TypeScript; Vercel preview passed. The advisory review workflow completed, but its Codex inference step was skipped.
+- Exact-merge main CI [41617030405](https://github.com/hamedonassar95/Devobs/actions/runs/41617030405) and CodeQL [41617028662](https://github.com/hamedonassar95/Devobs/actions/runs/41617028662) passed on the merge SHA. Main CI passed Node, Python, RLS, security, Terraform, container scan, `validate`, static Pages publication and production-site verification.
+- PR #408 adds explicit coverage and unknown-output denominators to the deterministic synthetic scorecard while preserving the existing selective-accuracy scalar. It does not establish representative labels, safe-refusal performance, model inference or a hosted API runtime.
+
+## Prior snapshot — 2026-11-02 (after PR #407; superseded by PR #408)
 
 **VERIFIED from GitHub:** `main` is merge SHA `437200597912e5d6f92cf7f9e6aad679b40b0e33`, from PR [#407](https://github.com/hamedonassar95/Devobs/pull/407), head `ea5108c7855ebb2e4502d89c6b558dbed5aa9da5`.
 

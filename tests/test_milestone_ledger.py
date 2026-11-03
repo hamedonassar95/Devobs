@@ -790,6 +790,20 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
         self.assertEqual(gates["codex-agent-runtime-acceptance"], "OPEN")
 
+    def test_pr408_merge_records_ci_codeql_and_static_site_evidence(self):
+        records = {item["pr_number"]: item for item in self.data["milestones"]}
+        entry = records[408]
+        self.assertEqual(entry["pr_head_sha"], "5fbf3f6578e0c9bbcc6a42190d467872199d0095")
+        self.assertEqual(entry["merge_sha"], "8d4c1875aafb321f4b6a874ac748e6cae471f0eb")
+        self.assertEqual(entry["ci_run_id"], 41616589063)
+        self.assertIn("41616565301 SUCCESS", entry["verification"])
+        self.assertIn("41616583002 SUCCESS", entry["verification"])
+        self.assertIn("41617030405", entry["verification"])
+        self.assertIn("41617028662 SUCCESS", entry["verification"])
+        self.assertIn("Codex inference was skipped", entry["verification"])
+        self.assertIn("five deterministic synthetic cases", entry["limitations"])
+        self.assertIn("Gate dispositions did not change", entry["limitations"])
+
     def test_duplicate_achievement_rejected(self):
         self.data["milestones"].append(copy.deepcopy(self.data["milestones"][-1]))
         with self.assertRaisesRegex(InvalidLedger, "duplicate|not increasing"):

@@ -98,6 +98,13 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(ci["confusion"], {"tp": 1, "fp": 1, "tn": 3, "fn": 0})
         self.assertEqual(ci["precision"], {"value": 0.5, "numerator": 1, "denominator": 2})
         self.assertEqual(ci["recall"], {"value": 1.0, "numerator": 1, "denominator": 1})
+        self.assertEqual(ci["precision_interval_95"]["method"], "wilson_score")
+        self.assertEqual(ci["precision_interval_95"]["successes"], 1)
+        self.assertEqual(ci["precision_interval_95"]["trials"], 2)
+        self.assertLess(ci["precision_interval_95"]["lower"], ci["precision"]["value"])
+        self.assertGreater(ci["precision_interval_95"]["upper"], ci["precision"]["value"])
+        self.assertEqual(ci["recall_interval_95"]["successes"], 1)
+        self.assertEqual(ci["recall_interval_95"]["trials"], 1)
         high_error = metrics["high_error_rate"]
         self.assertEqual(high_error["support"], 2)
         self.assertEqual(high_error["predicted_count"], 1)
@@ -111,8 +118,10 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(high_error["predicted_count"], 0)
         self.assertIsNone(high_error["precision"]["value"])
         self.assertEqual(high_error["precision"]["denominator"], 0)
+        self.assertIsNone(high_error["precision_interval_95"])
         self.assertIsNone(high_error["recall"]["value"])
         self.assertEqual(high_error["recall"]["denominator"], 0)
+        self.assertIsNone(high_error["recall_interval_95"])
 
     def test_explicit_target_is_compared_truthfully(self):
         report = evaluate_cases(FIXTURES, target_accuracy=0.75)
