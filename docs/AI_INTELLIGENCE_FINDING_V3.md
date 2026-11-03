@@ -10,6 +10,8 @@ Version 3 retains the v2 deterministic top-three score explanation and adds `imp
 
 The parser checks each path's service ID, starting service, root endpoint, length, uniqueness, and alignment with the impacted-service list. It also checks the fixed ranking reason codes and points, per-signal evidence digests, score totals, and top category. The finding digest binds all of these fields as content, but anyone can recompute it.
 
+`validate_impact_paths_against_snapshot(record, snapshot, now_utc=...)` additionally revalidates the supplied snapshot, checks its digest, tenant, project, source SHA, capture time and freshness against the finding, and recomputes the impacted-service set and deterministic shortest paths. It rejects paths that are valid JSON but do not match the exact snapshot. This is a consistency check, not source authentication: callers must verify a snapshot's signature against their trusted key before relying on its declared edges.
+
 ## Limits
 
 - The path records declared topology only. The schema does not carry edge-level verification, and parsing cannot prove that any edge is real, complete, or causal. A snapshot digest binds a supplied snapshot; it does not authenticate the collector or edge truth.

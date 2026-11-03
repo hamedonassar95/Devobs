@@ -927,6 +927,43 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
+    def test_pr416_and_pr417_are_recorded_without_gate_promotion(self):
+        records = {item["pr_number"]: item for item in self.data["milestones"]}
+        impact_paths = records[416]
+        self.assertEqual(impact_paths["title"], "Add deterministic impact paths to T24 findings")
+        self.assertEqual(impact_paths["pr_head_sha"], "7df1c32b03bf99935abdcae7f110ea2f30879624")
+        self.assertEqual(impact_paths["merge_sha"], "1a1ed3d7204dbf245cbc471e591f5390a521ec2e")
+        self.assertEqual(impact_paths["ci_run_id"], 41636602093)
+        self.assertIn("41636593330 SUCCESS", impact_paths["verification"])
+        self.assertIn("41636598032", impact_paths["verification"])
+        self.assertIn("840 tests, 22 skipped", impact_paths["verification"])
+        self.assertIn("41637692177", impact_paths["verification"])
+        self.assertIn("41637691331 SUCCESS", impact_paths["verification"])
+        self.assertIn("T24 remains partial", impact_paths["limitations"])
+
+        website = records[417]
+        self.assertEqual(
+            website["title"],
+            "design(site): Devobs 2026 RTL command center and Android/Windows download status",
+        )
+        self.assertEqual(website["pr_head_sha"], "fd41a93808c96aa6b335b0e858893d3ef2120a6f")
+        self.assertEqual(website["merge_sha"], "620743877ea964fe6b332218961c41c46a0e27a2")
+        self.assertEqual(website["ci_run_id"], 41646481581)
+        self.assertIn("41646398283 SUCCESS", website["verification"])
+        self.assertIn("41646475413", website["verification"])
+        self.assertIn("41647057907", website["verification"])
+        self.assertIn("41647056104 SUCCESS", website["verification"])
+        self.assertIn("no model call is claimed", website["verification"])
+        self.assertIn("No readiness gate changed", website["limitations"])
+        self.assertEqual(
+            {gate["id"]: gate["status"] for gate in self.data["gates"]},
+            {
+                "ai9-detection-quality": "BLOCKED",
+                "p01-managed-saas": "BLOCKED",
+                "codex-agent-runtime-acceptance": "OPEN",
+            },
+        )
+
     def test_duplicate_achievement_rejected(self):
         self.data["milestones"].append(copy.deepcopy(self.data["milestones"][-1]))
         with self.assertRaisesRegex(InvalidLedger, "duplicate|not increasing"):

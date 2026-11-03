@@ -1,4 +1,24 @@
-## Superseding snapshot — 2026-11-03 (after PR #415)
+## Superseding snapshot — 2026-11-03 (after PR #417)
+
+**VERIFIED from GitHub:** `main` is merge SHA `620743877ea964fe6b332218961c41c46a0e27a2`, from PR [#417](https://github.com/hamedonassar95/Devobs/pull/417), head `fd41a93808c96aa6b335b0e858893d3ef2120a6f`.
+
+- Exact-head PR CI [41646481581](https://github.com/hamedonassar95/Devobs/actions/runs/41646481581) and push CI [41646398283](https://github.com/hamedonassar95/Devobs/actions/runs/41646398283) passed; CodeQL [41646475413](https://github.com/hamedonassar95/Devobs/actions/runs/41646475413) passed for Actions, Python, and JavaScript/TypeScript; Vercel preview passed.
+- Advisory AI Code Review [41646481337](https://github.com/hamedonassar95/Devobs/actions/runs/41646481337) completed, but the Codex model step was skipped because explicit budget approval was absent. No model call is claimed.
+- Exact-merge main CI [41647057907](https://github.com/hamedonassar95/Devobs/actions/runs/41647057907) and Push on main [41647056104](https://github.com/hamedonassar95/Devobs/actions/runs/41647056104) passed, including CodeQL. The static Pages site was published and verified; controlled incident and restoration checks were skipped by workflow conditions.
+- PR #417 updates the static public Devobs website to an RTL design and explicitly leaves Android/Windows downloads unavailable because no release assets are verified. It adds no live dashboard or operational API; automated checks do not establish manual visual acceptance.
+- Gate dispositions remain AI-9 **FAIL / BLOCKED**, P01 **NO-GO / BLOCKED**, and Codex agent runtime **OPEN**.
+
+## Prior snapshot — 2026-11-03 (after PR #416; superseded by PR #417)
+
+**VERIFIED from GitHub:** `main` was merge SHA `1a1ed3d7204dbf245cbc471e591f5390a521ec2e`, from PR [#416](https://github.com/hamedonassar95/Devobs/pull/416), head `7df1c32b03bf99935abdcae7f110ea2f30879624`.
+
+- Exact-head PR CI [41636602093](https://github.com/hamedonassar95/Devobs/actions/runs/41636602093) and push CI [41636593330](https://github.com/hamedonassar95/Devobs/actions/runs/41636593330) passed; CodeQL [41636598032](https://github.com/hamedonassar95/Devobs/actions/runs/41636598032) passed for Actions, Python, and JavaScript/TypeScript; Vercel preview passed.
+- Local Python ran 840 tests with 22 skips. Advisory AI Code Review [41636601927](https://github.com/hamedonassar95/Devobs/actions/runs/41636601927) completed, but its model step was skipped for missing explicit budget approval. No model call is claimed.
+- Exact-merge main CI [41637692177](https://github.com/hamedonassar95/Devobs/actions/runs/41637692177) and Push on main [41637691331](https://github.com/hamedonassar95/Devobs/actions/runs/41637691331) passed, including CodeQL; static Pages was published and verified. Controlled incident and restoration checks were skipped by workflow conditions.
+- PR #416 adds strict finding schema v3 with shortest, bounded declared paths to the top-ranked service. Paths are not causal evidence and the digest does not authenticate edge truth; T24 remains partial.
+- Gate dispositions remain AI-9 **FAIL / BLOCKED**, P01 **NO-GO / BLOCKED**, and Codex agent runtime **OPEN**.
+
+## Prior snapshot — 2026-11-03 (after PR #415; superseded by PR #416)
 
 **VERIFIED from GitHub:** `main` is merge SHA `7812489e310378d3eb1660d4bc0d37c2cfdb2ee0`, from PR [#415](https://github.com/hamedonassar95/Devobs/pull/415), head `539c9d5db89b9c8635f3c24560b370b7eee059ce`.
 

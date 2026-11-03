@@ -427,6 +427,45 @@ def _find_declared_impact_paths(topology, impacted, root):
     return tuple(paths)
 
 
+def validate_impact_paths_against_snapshot(
+        finding_record: dict, topology_snapshot: ServiceTopologySnapshot, *,
+        now_utc: datetime) -> IncidentFinding:
+    """Check an offline finding's paths against its exact fresh topology snapshot.
+
+    This checks consistency only. The caller remains responsible for verifying
+    snapshot authenticity against a trusted key before relying on its edges.
+    """
+    finding = IncidentFinding.from_record(finding_record)
+    if type(topology_snapshot) is not ServiceTopologySnapshot:
+        raise ContextError("invalid_topology_snapshot")
+    if (type(now_utc) is not datetime or now_utc.tzinfo is None
+            or now_utc.utcoffset() is None):
+        raise ContextError("invalid_query")
+
+    snapshot = _revalidate_snapshot(topology_snapshot)
+    now = now_utc.astimezone(timezone.utc)
+    snapshot.validate(finding.tenant, finding.project, now=now)
+    if (finding.topology_snapshot_digest != snapshot.snapshot_digest
+            or finding.topology_captured_at != snapshot.captured_at
+            or finding.source_sha != snapshot.source_sha):
+        raise ContextError("incident_finding_topology_mismatch")
+
+    if finding.status == "INSUFFICIENT_EVIDENCE":
+        return finding
+
+    root = finding.ranked_services[0]
+    impacted = snapshot.affected_by(
+        finding.tenant, finding.project, root, now=now,
+        depth=_IMPACT_PATH_DEPTH,
+    )
+    if finding.impacted_services != impacted:
+        raise ContextError("incident_finding_topology_mismatch")
+    expected_paths = _find_declared_impact_paths(snapshot, impacted, root)
+    if finding.impact_paths != expected_paths:
+        raise ContextError("incident_finding_impact_paths_mismatch")
+    return finding
+
+
 def correlate(topology: ServiceTopology | ServiceTopologySnapshot,
               telemetry: list[Telemetry],
               memory: IncidentMemory, now_utc: datetime, *,
