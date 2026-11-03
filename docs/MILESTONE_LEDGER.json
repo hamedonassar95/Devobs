@@ -1047,6 +1047,17 @@
       "ci_run_id": 41673754849,
       "verification": "VERIFIED 2026-11-03: PR #419 merged at 3b3eeec8e85fe4068d84f44899aafa946d54cf35 from head 1da4f176a20c71b23caf038bbd796ea5f073ee9a. PR CI 41673754849 SUCCESS; local Python suite ran 855 tests with 22 skipped. Advisory review workflow 41673754769 completed, but its secret-check, checkout and model-review steps were skipped; no model call is claimed. Exact-merge main CI 41674495022 and CodeQL 41674494043 SUCCESS. Controlled incident drill and restore checks were skipped by workflow conditions. Vercel status on the merge SHA failed because of the preview/build rate limit.",
       "limitations": "Adds offline T24 validation that binds findings and impact paths to a signed topology snapshot using caller-supplied trusted public keys. Tests use generated keys and synthetic topology only. This change does not authenticate the caller-supplied trust source or enroll/protect keys; it does not prove live topology or edge truth. No successful AI model call or hosted runtime is demonstrated. T24 remains partial; AI-9 remains BLOCKED, P01 remains BLOCKED, and Codex runtime remains OPEN."
+    },
+    {
+      "id": "p03-topology-key-memory-trust-pr420",
+      "area": "QUALITY",
+      "title": "Offline topology and approved incident-memory trust lifecycle",
+      "pr_number": 420,
+      "pr_head_sha": "fc83e67277a05d47a7eaeaecc857864a62cda162",
+      "merge_sha": "bcaa246bc0d4a670b8f49f0d20edfc9939bbd772",
+      "ci_run_id": 41705566648,
+      "verification": "VERIFIED 2026-11-03: PR #420 merged at bcaa246bc0d4a670b8f49f0d20edfc9939bbd772 from head fc83e67277a05d47a7eaeaecc857864a62cda162. PR CI 41705566648, required validate and CodeQL checks passed. Exact-merge main CI 41706381759 and Push on main/CodeQL 41706380276 passed; Pages publish and verify-production succeeded. Local Python suite: 893 passed, 22 skipped. Fixed and resolved the review finding by binding approved memory to the finding root service and category.",
+      "limitations": "Offline P03 capabilities only; tests use synthetic data and generated keys. No live topology source, external key enrollment or custody, durable replay defense, hosted tenant-isolation proof, production API, or model inference. T22-T25 remain partial; these results do not establish operational service readiness."
     }
   ],
   "gates": [
