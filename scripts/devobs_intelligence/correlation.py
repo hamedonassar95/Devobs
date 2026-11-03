@@ -617,11 +617,11 @@ def correlate(topology: ServiceTopology | ServiceTopologySnapshot,
                        "evidence_digests":sorted(evidence)})
     recommendation=propose(event,data,model_enabled=False)
     if snapshot is None:
-        safe_memory=memory.retrieve(topology.tenant,topology.project,root,
-                                    recommendation.hypothesis)
+        # Legacy ServiceTopology carries no source revision or capture time.
+        # Keep correlation useful, but never let unverifiable memory affect it.
+        safe_memory=()
     elif memory_max_age_seconds is None:
-        # Legacy memory records have no source/time provenance; do not use them
-        # with provenance-bound topology unless the caller supplies an age policy.
+        # A source-bound snapshot still needs an explicit incident-memory age policy.
         safe_memory=()
     else:
         safe_memory=memory.retrieve_provenanced(

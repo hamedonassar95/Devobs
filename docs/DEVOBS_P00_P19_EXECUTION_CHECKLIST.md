@@ -99,6 +99,7 @@
   A separate offline restore helper can now re-apply approvals only when a caller supplies active Ed25519 approval envelopes, a trusted public-key map and the existing process-local replay registry; the complete approved record set must exactly match the authenticated archive before IDs are consumed. Plain decrypt still returns unapproved records. Approval envelopes contain incident records and must be handled as protected data. This does not provide durable replay protection, key enrollment/custody, hosted isolation or physical deletion; T25 and T27 remain open.
 - [ ] **T26: Evaluate optional vector retrieval safely.** Require consent, scoped embeddings, poisoning tests and baseline comparison.
 - [ ] **T27: Strengthen abstention and provenance checks.** Reject replay, missing evidence, stale SHA, unknown services and wrong tenant.
+  Partial local capability: correlation over a legacy `ServiceTopology` may still rank fresh telemetry and compute declared impact, but it now abstains from incident-memory runbooks because that graph has no source revision or capture-time contract. Memory can inform correlation only with a source-bound, fresh topology snapshot, an explicit memory-age policy and active verified approval; a separate local integration test confirms approval and source provenance reach the finding. Replay protection remains process-local, and this does not authenticate live topology or incident sources; T27 remains open.
 
 ### P04 — Evaluation and measurable accuracy
 

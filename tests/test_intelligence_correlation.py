@@ -66,7 +66,10 @@ class IncidentCorrelationTests(unittest.TestCase):
         ],memory(),NOW)
         self.assertEqual(report.ranked_services,("db","api","web"))
         self.assertEqual(report.impacted_services,("api","db","web"))
-        self.assertEqual(report.runbook_ids,("RB-SLO-01",))
+        # Legacy ServiceTopology has no source revision/freshness contract, so
+        # memory must not contribute to its otherwise valid correlation result.
+        self.assertEqual(report.runbook_ids,())
+        self.assertEqual(report.memory_provenance,())
         self.assertEqual(report.status,"PENDING_HUMAN_APPROVAL")
         self.assertFalse(report.model_used)
         self.assertFalse(report.calibrated)
