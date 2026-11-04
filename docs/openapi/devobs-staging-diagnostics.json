@@ -1,0 +1,74 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Devobs Error Log Diagnosis API",
+    "version": "1.0.0",
+    "description": "Opt-in, advisory diagnosis of a redacted service error log. The endpoint makes one non-stored OpenAI Responses API request and does not persist the submitted log."
+  },
+  "paths": {
+    "/v1/tenants/{tenant}/projects/{project}/services/{service}/diagnostics": {
+      "post": {
+        "operationId": "diagnoseServiceErrorLog",
+        "description": "Requires a bearer token with devobs.ai.diagnose and access to the registered service. Callers must remove secrets and personal data and affirm data_redacted=true. Model output is advisory only.",
+        "security": [{"BearerJWT": []}],
+        "parameters": [
+          {"name": "tenant", "in": "path", "required": true, "schema": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"}},
+          {"name": "project", "in": "path", "required": true, "schema": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"}},
+          {"name": "service", "in": "path", "required": true, "schema": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"}}
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "error_log": {"type": "string", "minLength": 1, "maxLength": 8192},
+                  "data_redacted": {"type": "boolean", "const": true}
+                },
+                "required": ["error_log", "data_redacted"],
+                "additionalProperties": false
+              },
+              "example": {
+                "error_log": "HTTP 503 from /v1/orders; database pool reached its 20 connection limit",
+                "data_redacted": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Advisory AI diagnosis. The caller's submitted log is not echoed.",
+            "headers": {"Cache-Control": {"schema": {"type": "string", "const": "no-store"}}},
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Diagnosis"}}}
+          },
+          "400": {"description": "Invalid request, unredacted log, or detected credential-like data."},
+          "401": {"description": "Invalid or missing bearer access token."},
+          "403": {"description": "Missing diagnosis scope or access to the requested service."},
+          "405": {"description": "Method not allowed."},
+          "413": {"description": "Request body exceeds the configured maximum."},
+          "429": {"description": "Per-subject diagnosis request limit reached."},
+          "503": {"description": "AI provider disabled or unavailable; details are suppressed."}
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {"BearerJWT": {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"}},
+    "schemas": {
+      "Diagnosis": {
+        "type": "object",
+        "properties": {
+          "diagnosis": {"type": "string", "maxLength": 1200},
+          "recommendation": {"type": "string", "maxLength": 1200},
+          "severity": {"type": "string", "enum": ["low", "medium", "high", "critical", "unknown"]},
+          "confidence": {"type": "string", "enum": ["low", "medium", "high"]},
+          "model": {"type": "string", "maxLength": 128},
+          "latency_ms": {"type": "integer", "minimum": 0}
+        },
+        "required": ["diagnosis", "recommendation", "severity", "confidence", "model", "latency_ms"],
+        "additionalProperties": false
+      }
+    }
+  }
+}
