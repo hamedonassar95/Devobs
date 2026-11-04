@@ -1146,6 +1146,17 @@
       "ci_run_id": 41809776109,
       "verification": "VERIFIED 2026-11-04: PR #429 merged at fd5321e330acc6c1e38c516161e98167388bc7be from head 225653774f1778757f1776d0c598e559641461c2. PR CI 41809776109, PR CodeQL run 41809773977, and Vercel preview SUCCESS. Exact-merge main CI 41809998465 SUCCESS; Pages deployment and verify-production passed. Push on main/CodeQL run 41809998782 SUCCESS. Node tests were skipped for the documentation-only change; controlled incident drill and conditional restore checks were skipped.",
       "limitations": "Documentation only. The merge records workflow and static-site evidence; it does not prove live AI service operation or model inference. Readiness gates remain unchanged: AI-9 BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr430",
+      "area": "DOCUMENTATION",
+      "title": "Record verified PR #430 merge and successful Pages verification",
+      "pr_number": 430,
+      "pr_head_sha": "ecb1abadf155851190f64fc9c273bcd079272720",
+      "merge_sha": "c1d2c54d323db21eda41809254016896b14f79f0",
+      "ci_run_id": 41810508402,
+      "verification": "VERIFIED 2026-11-04: PR #430 merged at c1d2c54d323db21eda41809254016896b14f79f0 from head ecb1abadf155851190f64fc9c273bcd079272720. PR CI 41810508402 and push CI 41810470415 SUCCESS; PR CodeQL run 41810505103 and Vercel preview SUCCESS. Exact-merge main CI 41810818519 SUCCESS; Pages deployment and verify-production passed. Push on main/CodeQL run 41810823255 SUCCESS. Node tests were skipped on main for the documentation-only change; controlled incident drill and conditional restore checks were skipped.",
+      "limitations": "Documentation only. This records merge and static-site evidence; it does not establish live AI service operation or model inference. Readiness gates remain unchanged: AI-9 BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
     }
   ],
   "gates": [

@@ -24,4 +24,8 @@ Official GitLab guidance distinguishes:
 
 **Status: no mirror configured or used by this change.**
 
+**VERIFIED — read-only destination check, 2026-11-04:** the authenticated GitLab account is `hamedonassar95`; searching its owned projects for `Devobs` returned no match. The canonical GitHub source `hamedonassar95/Devobs` is public and uses `main`. This search does not rule out a destination under another namespace or project name. No GitLab project was created and no mirroring setting or credential was changed.
+
+**Proposed, not enabled:** use a new private GitLab project such as `hamedonassar95/Devobs-mirror`, with one-way GitHub-to-GitLab pull mirroring of the canonical repository. First confirm the GitLab plan supports pull mirroring, choose the exact destination and branch/ref scope, set protection that permits only controlled mirror updates, and define sync failure and recovery behavior. If a credential is required, the owner must enter it directly in GitLab's UI; never expose it to this session or store it in this repository or CI. A mirror is replication, not a tested backup.
+
 References: https://docs.gitlab.com/user/project/repository/mirror/ and https://docs.gitlab.com/user/project/repository/mirror/pull/ .
