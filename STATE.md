@@ -1,5 +1,11 @@
 # حالة مستودع Devobs
 
+## أحدث دمج موثّق: PR #427 — تحقق 2026-11-04
+
+- **VERIFIED من GitHub:** دُمج [PR #427](https://github.com/hamedonassar95/Devobs/pull/427) عند SHA `d769dc26479e943b743edd45f770498d7d9e5254` من الرأس `c66378723e5396ed0e6e3c09bdad1473bd1179ea`. نجح PR CI `41808975424` وCodeQL `41808973445`. نجح Push on main/CodeQL `41809166587`، وVercel على main ناجح.
+- فشل main CI `41809164943` عند نشر Pages فقط: خدمة deployment أعادت HTTP 500 بعد اجتياز فحص artifact. تخطّى workflow `verify-production` لذلك لا يوجد دليل أن SHA الدمج نُشر أو اجتاز فحص ما بعد النشر. بقية jobs المنفّذة نجحت؛ تخطّى الحادث المضبوط والاستعادة.
+- PR #427 توثيقي فقط. لم أعد تشغيل النشر. حالات الجاهزية لم تتغير: AI-9 **BLOCKED**، وP01 **BLOCKED**، وCodex runtime **OPEN**.
+
 ## أحدث دمج موثّق: PR #426 — تحقق 2026-11-04
 
 - **VERIFIED من GitHub:** دُمج [PR #426](https://github.com/hamedonassar95/Devobs/pull/426) عند SHA `0e1b8af7ae732f333f82c1abaae7a00e317e7f7b` من الرأس `73d166d224e88205d2e15ebfbd36e4d17fa92523`. نجح PR CI `41807891435` وpush CI `41807846313` وCodeQL `41807886602`. نجح main CI `41808324038` وPush on main/CodeQL `41808322378`؛ نُشرت Pages واجتازت `verify-production`.

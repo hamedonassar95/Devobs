@@ -1124,6 +1124,17 @@
       "ci_run_id": 41807891435,
       "verification": "VERIFIED 2026-11-04: PR #426 merged at 0e1b8af7ae732f333f82c1abaae7a00e317e7f7b from head 73d166d224e88205d2e15ebfbd36e4d17fa92523. PR CI 41807891435 and push CI 41807846313 SUCCESS; PR CodeQL run 41807886602 SUCCESS. Exact-merge main CI 41808324038 and Push on main/CodeQL 41808322378 SUCCESS; Pages publish and verify-production passed. Node tests were skipped for documentation-only CI; controlled incident drill and restore checks were skipped. Local milestone-ledger tests: 50 passed.",
       "limitations": "Documentation only; records PR #426 evidence for PRs #424 and #425. It adds no product capability or live runtime/model inference evidence and changes no readiness gates."
+    },
+    {
+      "id": "merge-evidence-pr427",
+      "area": "DOCUMENTATION",
+      "title": "Record verified PR #427 merge and Pages deployment failure",
+      "pr_number": 427,
+      "pr_head_sha": "c66378723e5396ed0e6e3c09bdad1473bd1179ea",
+      "merge_sha": "d769dc26479e943b743edd45f770498d7d9e5254",
+      "ci_run_id": 41808975424,
+      "verification": "VERIFIED 2026-11-04: PR #427 merged at d769dc26479e943b743edd45f770498d7d9e5254 from head c66378723e5396ed0e6e3c09bdad1473bd1179ea. PR CI 41808975424 and PR CodeQL run 41808973445 SUCCESS; Vercel preview SUCCESS. Exact-merge main CI 41809164943 completed with one failure: the Pages deployment API returned HTTP 500 after artifact validation; verify-production was skipped. Push on main/CodeQL run 41809166587 SUCCESS. All other executed main CI jobs passed; incident drill and restore checks were skipped. Main Vercel status SUCCESS.",
+      "limitations": "Documentation only. GitHub Pages deployment and post-deploy verification are not proven for merge SHA d769dc26479e943b743edd45f770498d7d9e5254 because deploy-pages returned HTTP 500. No model inference or readiness-gate promotion is claimed."
     }
   ],
   "gates": [
