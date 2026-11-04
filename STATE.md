@@ -1,5 +1,11 @@
 # حالة مستودع Devobs
 
+## أحدث دمج موثّق: PR #426 — تحقق 2026-11-04
+
+- **VERIFIED من GitHub:** دُمج [PR #426](https://github.com/hamedonassar95/Devobs/pull/426) عند SHA `0e1b8af7ae732f333f82c1abaae7a00e317e7f7b` من الرأس `73d166d224e88205d2e15ebfbd36e4d17fa92523`. نجح PR CI `41807891435` وpush CI `41807846313` وCodeQL `41807886602`. نجح main CI `41808324038` وPush on main/CodeQL `41808322378`؛ نُشرت Pages واجتازت `verify-production`.
+- PR #426 توثيقي فقط، وسجّل الدمجين #424 و#425. اجتازت اختبارات سجل الإنجازات المحلية 50 اختبارًا. تخطّى CI اختبارات Node لتغيير التوثيق، كما تخطّت شروط التشغيل تدريب الحادث وفحوص الاستعادة.
+- لا يثبت هذا الدمج تشغيلًا حيًا أو استدلال نموذج. لا تتغير الحالات: AI-9 **BLOCKED**، وP01 **BLOCKED**، وCodex runtime **OPEN**.
+
 ## أحدث دمج موثّق: PR #425 — تحقق 2026-11-04
 
 - **VERIFIED من GitHub:** دُمج [PR #425](https://github.com/hamedonassar95/Devobs/pull/425) عند SHA `e75a6ba19a9c319b94cb4bfa9a4fdfbcce46fc9d` من الرأس `8137d3e53418e2111485c5ff84c6eb78ef653018`. نجح PR CI `41730515418` وpush CI `41730482109` وCodeQL `41730509522`. نجح main CI `41730759897` وPush on main/CodeQL `41730758476`؛ نُشرت Pages واجتازت `verify-production`.
