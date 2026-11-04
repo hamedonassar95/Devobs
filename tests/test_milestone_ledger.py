@@ -1026,11 +1026,22 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr433_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr435_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 433)
-        self.assertEqual(result["merged_milestones"], 107)
+        self.assertEqual(result["latest_pr"], 435)
+        self.assertEqual(result["merged_milestones"], 108)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
+        actionlint = records[435]
+        self.assertEqual(
+            actionlint["merge_sha"],
+            "4756f7e125fbaff193f25c84df9ac1073e0fe64c",
+        )
+        self.assertEqual(
+            actionlint["pr_head_sha"],
+            "0b461fea0a248cd8c43a1e43aeaad702eb8acffe",
+        )
+        self.assertEqual(actionlint["ci_run_id"], 41846791365)
+        self.assertIn("successful GitHub workflows do not prove", actionlint["limitations"])
         implementation = records[420]
         self.assertEqual(
             implementation["pr_head_sha"],
