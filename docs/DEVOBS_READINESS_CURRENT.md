@@ -1,12 +1,12 @@
-## Superseding snapshot — 2026-11-03 (after PR #419)
+## Current snapshot — 2026-11-04 (after PR #433)
 
-**VERIFIED from GitHub:** `main` is merge SHA `3b3eeec8e85fe4068d84f44899aafa946d54cf35`, from PR [#419](https://github.com/hamedonassar95/Devobs/pull/419), head `1da4f176a20c71b23caf038bbd796ea5f073ee9a`.
+**VERIFIED from GitHub:** `main` is merge SHA `b5ce4a42f10176da1bc0194461353281f64c3707`, from PR [#433](https://github.com/hamedonassar95/Devobs/pull/433), head `07ed303fc42df48b3c0154591e4b63a5ce5ea8ef`.
 
-- PR CI [41673754849](https://github.com/hamedonassar95/Devobs/actions/runs/41673754849) passed. The advisory review workflow [41673754769](https://github.com/hamedonassar95/Devobs/actions/runs/41673754769) completed, but its secret-check, checkout and model-review steps were skipped; no model call is claimed. The local Python suite ran 855 tests with 22 skips.
-- Exact-merge main CI [41674495022](https://github.com/hamedonassar95/Devobs/actions/runs/41674495022) and CodeQL [41674494043](https://github.com/hamedonassar95/Devobs/actions/runs/41674494043) passed. The controlled incident drill and restore checks were skipped by workflow conditions. Vercel on the merge SHA failed because of the preview/build rate limit.
-- PR #419 connects signed topology-snapshot verification to T24 findings and impact paths. It relies on caller-supplied trust keys and synthetic topology; it does not enroll/protect keys or ingest a live authorized source. Topology truth and calibrated detection quality remain unverified.
-- This is repository and static-site evidence only. No live tenant API, managed database, enterprise customer onboarding, support SLO, or customer-data operation was verified; commercial service readiness remains unproven.
-- The documented gate dispositions remain unchanged: AI-9 **FAIL / BLOCKED**, P01 **NO-GO / BLOCKED**, and Codex agent runtime **OPEN**.
+- PR CI [41815601457](https://github.com/hamedonassar95/Devobs/actions/runs/41815601457), CodeQL [41815599849](https://github.com/hamedonassar95/Devobs/actions/runs/41815599849), push CI [41815402183](https://github.com/hamedonassar95/Devobs/actions/runs/41815402183), and Vercel preview passed. Node tests were skipped by path filters; the controlled incident drill and production-release job were skipped for the PR.
+- Exact-merge main CI [41816012226](https://github.com/hamedonassar95/Devobs/actions/runs/41816012226) and Push on main/CodeQL [41816012361](https://github.com/hamedonassar95/Devobs/actions/runs/41816012361) passed. The static Pages site was published and `verify-production` passed. Main Node tests and the controlled incident drill were skipped by workflow conditions.
+- PR #433 adds local SQLite persistence for topology keyring rotation state. It does not establish a live authorized topology source, rollback-proof remote trust, or AI model inference.
+- **P01 evidence update:** a separate live database-only check on an existing Supabase Free project used synthetic identifiers. Forced RLS and the restricted reader role were verified; a transactional isolation check passed and rolled back fixtures. This does not establish an application runtime, API host, OIDC/JWKS, spending cap, restore proof, or P01 GO. Project reference is omitted from this public repo.
+- Gate dispositions remain AI-9 **FAIL / BLOCKED**, P01 **NO-GO / BLOCKED**, and Codex agent runtime **OPEN**. Successful GitHub workflows do not imply model calls.
 
 ## Prior snapshot — 2026-11-03 (after PR #418; superseded by PR #419)
 

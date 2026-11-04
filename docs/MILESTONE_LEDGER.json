@@ -1168,6 +1168,17 @@
       "ci_run_id": 41812081497,
       "verification": "VERIFIED 2026-11-04: PR #431 merged at a7f822e0bd8cc6b8e7017d1992572852f4b9f36a from head f46e8ab832e19d8870462a688ea52359b42db055. PR CI 41812081497, PR CodeQL run 41812079361, and Vercel preview SUCCESS. Exact-merge main CI 41812564677 SUCCESS; Pages deployment and verify-production passed. Push on main/CodeQL run 41812581749 SUCCESS. Node tests were skipped for the documentation-only change; controlled incident drill and conditional restore checks were skipped.",
       "limitations": "Documentation only. The GitLab read-only project search found no owned project matching Devobs; no destination was created and no mirroring setting or credential was changed. No live mirror, AI service operation, model inference, or gate promotion is claimed. Readiness gates remain unchanged: AI-9 BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr433",
+      "area": "PLATFORM",
+      "title": "Record verified PR #433 merge and local topology-keyring limits",
+      "pr_number": 433,
+      "pr_head_sha": "07ed303fc42df48b3c0154591e4b63a5ce5ea8ef",
+      "merge_sha": "b5ce4a42f10176da1bc0194461353281f64c3707",
+      "ci_run_id": 41815601457,
+      "verification": "VERIFIED 2026-11-04: PR #433 merged at b5ce4a42f10176da1bc0194461353281f64c3707 from head 07ed303fc42df48b3c0154591e4b63a5ce5ea8ef. PR CI 41815601457, CodeQL 41815599849, push CI 41815402183, and Vercel preview SUCCESS. Exact-merge main CI 41816012226 and Push on main/CodeQL 41816012361 SUCCESS; Pages publish and verify-production passed. Node tests were skipped by path filters on PR/main; incident drill and conditional restore checks were skipped. AI Code Review workflow success is not evidence of a model call.",
+      "limitations": "PR #433 adds local SQLite topology-keyring persistence only; no live topology ingestion, remote rollback-proof trust, or AI inference is established. Separate Supabase database-only synthetic RLS evidence is recorded in docs/P01_ACTIVATION_READINESS.md and is not part of #433 or P01 service readiness. AI-9 remains FAIL / BLOCKED, P01 remains NO-GO / BLOCKED, and Codex runtime remains OPEN."
     }
   ],
   "gates": [
@@ -1182,8 +1193,8 @@
       "id": "p01-managed-saas",
       "status": "BLOCKED",
       "source": "docs/P01_ACTIVATION_READINESS.md",
-      "reason": "No approved managed staging/provider/region, enforceable all-in spending cap, live IdP, live RLS, recovery proof or owner activation decision.",
-      "next_action": "Keep resources off. Review the AWS new-experience candidate in docs/P01_RAILWAY_SPEND_ENFORCEMENT_EVIDENCE.md; obtain owner approval before contacting AWS or changing provider/region, and require written answers on total post-tax cap, persistent storage/backup charges, enforcement delay, eligibility and residency before any provisioning."
+      "reason": "VERIFIED 2026-11-04: an existing Supabase Free database candidate has forced RLS and a restricted read-only role; synthetic tenant/subject/missing-context/write-denial behavior passed and fixtures were rolled back. This proves only database-layer behavior. No P01 API service, runtime identity, approved all-in provider cap, production residency decision, backup/restore proof, or owner activation GO is established.",
+      "next_action": "Keep P01 BLOCKED and do not create more resources. Obtain evidence for one provider and region whose enforceable total monthly invoice covers every in-scope fee, tax, database, storage, backup and overrun; then separately prove OIDC/JWKS, API runtime, network/TLS, end-to-end tenant isolation, monitoring, restore/deletion, and obtain explicit owner activation approval."
     },
     {
       "id": "codex-agent-runtime-acceptance",

@@ -1,6 +1,16 @@
 # DevObs PostgreSQL RLS: real database integration gate
 
-**Scope:** Original repository `hamedonassar95/Devobs`. Feature branch only. No deployment, cloud resources, external database, stored credentials, real account data or customer onboarding.
+## Live database-only validation — 2026-11-04
+
+**VERIFIED:** An existing Supabase Free project in the `Devobs AI Intelligence` organization (region `us-east-1`) was used only to validate the database reference schema with synthetic identifiers. Its project reference is intentionally omitted because this repository is public. No project or service was created or paused for this check, and no customer rows, credentials, or secrets were read.
+
+The Supabase migration history records versions `20261104111801` (`restrict_rls_auto_enable_public_execution`), `20261104112259` (`devobs_tenant_rls_reference_schema`), and `20261104112310` (`devobs_service_registry_rls_schema`). The corresponding source for the reference schema is `001_tenant_rls.sql` and `002_service_registry.sql`; the supplemental ACL statement is [`supabase-acl/rls_auto_enable.sql`](../deploy/postgres/supabase-acl/rls_auto_enable.sql). That statement is specific to an existing Supabase function and is not a portable third schema migration.
+
+A live catalog check confirmed three `devobs_ai` tables with RLS enabled and forced, three policies, and a `devobs_ai_reader` role that is NOLOGIN and has no SUPERUSER, CREATEDB, CREATEROLE, or BYPASSRLS attributes. The role has read-only grants on the reference tables. The function remains executable by `service_role`, while `PUBLIC`, `anon`, and `authenticated` cannot execute it. Supabase's security advisor returned no security lints at the time of the check. A separate transaction-scoped behavioral check used synthetic tenant/project/subject/service identifiers and rolled its fixtures back; it verified authorized reads, denial for mismatched tenant/subject and absent identity context, and denied writes. A follow-up found no test fixtures persisted.
+
+This is **database-only runtime evidence**. It does not prove an application/API host, a live OIDC/JWKS identity path, an application runtime credential using this role, public network/TLS controls, backup/restore, cost enforcement, customer isolation through the complete service, or P01 readiness. The existing project is a test candidate only; do not treat its region as an approved residency decision for real data.
+
+**Original reference-schema scope:** repository source and CI covered the portable schema contract only. The live Supabase database-only checkpoint is documented above; it used an existing project and did not create a project or application service, deploy the Devobs API, read stored credentials, or onboard customer data.
 
 ## What is actually implemented
 

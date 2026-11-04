@@ -1,6 +1,11 @@
-# حالة مستودع Devobs
+## أحدث دمج موثّق: PR #433 — تحقق 2026-11-04
 
-## أحدث دمج موثّق: PR #431 — تحقق 2026-11-04
+- **VERIFIED من GitHub:** دُمج [PR #433](https://github.com/hamedonassar95/Devobs/pull/433) عند SHA `b5ce4a42f10176da1bc0194461353281f64c3707` من الرأس `07ed303fc42df48b3c0154591e4b63a5ce5ea8ef`. نجح PR CI [`41815601457`](https://github.com/hamedonassar95/Devobs/actions/runs/41815601457)، وCodeQL [`41815599849`](https://github.com/hamedonassar95/Devobs/actions/runs/41815599849)، وpush CI [`41815402183`](https://github.com/hamedonassar95/Devobs/actions/runs/41815402183)، ومعاينة Vercel. على SHA الدمج نجح main CI [`41816012226`](https://github.com/hamedonassar95/Devobs/actions/runs/41816012226) وPush on main/CodeQL [`41816012361`](https://github.com/hamedonassar95/Devobs/actions/runs/41816012361)، ونُشرت Pages واجتاز `verify-production`. تخطّت اختبارات Node في CI للـPR وmain بسبب شروط المسار؛ نجحت بقية الفحوص المنفّذة، كما تخطّى الحادث المضبوط وفحوص الاستعادة المشروطة.
+- يضيف #433 تخزينًا محليًا لحالة تدوير مفاتيح الطوبولوجيا؛ لا يضيف مصدر طوبولوجيا حيًا أو مزامنة ثقة مستضافة، ولا يثبت استدلال نموذج. نجاح سير AI Code Review لا يُعد دليلًا على استدعاء نموذج.
+- **فصل بوابة P01:** فُحصت قاعدة PostgreSQL فقط في مشروع Supabase Free موجود مسبقًا باستخدام معرفات اصطناعية. RLS مفعّل ومُجبَر على الجداول الثلاثة، وسلوك القراءة المعزولة والمنع وفشل الكتابة اجتاز اختبارًا معاملاتيًا اصطناعيًا مع التراجع. التفاصيل في [P01 activation readiness](docs/P01_ACTIVATION_READINESS.md). هذا الدليل منفصل عن #433 ولا يثبت API مستضافة أو هوية تشغيل أو سقف إنفاق أو استعادة.
+- الحالات: AI-9 **FAIL / BLOCKED**، وP01 **NO-GO / BLOCKED**، وCodex runtime **OPEN**.
+
+## دمج موثّق سابقًا: PR #431 — تحقق 2026-11-04
 
 - **VERIFIED من GitHub:** دُمج [PR #431](https://github.com/hamedonassar95/Devobs/pull/431) عند SHA `a7f822e0bd8cc6b8e7017d1992572852f4b9f36a` من الرأس `f46e8ab832e19d8870462a688ea52359b42db055`. نجح PR CI `41812081497` وCodeQL `41812079361`، ونجحت معاينة Vercel.
 - نجح CI على SHA الدمج في `41812564677`، ونجح Push on main/CodeQL `41812581749`. نُشرت Pages واجتاز `verify-production`. تخطّى Node tests بسبب التوثيق فقط، كما تخطّى تدريب الحادث المضبوط وفحوص الاستعادة المشروطة.
