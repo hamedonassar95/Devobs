@@ -208,6 +208,46 @@ jobs:
           cache-dependency-path: requirements-dev.lock
       - name: Install security scan dependencies
         run: python3 -m pip install --disable-pip-version-check --require-hashes -r requirements-dev.lock
+      - name: Install pinned actionlint CLI
+        if: github.event_name == 'pull_request'
+        env:
+          ACTIONLINT_VERSION: "1.7.12"
+          ACTIONLINT_SHA256: "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8"
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          curl --fail --location --silent --show-error --retry 3 \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz" \
+            --output "$archive"
+          printf '%s  %s\n' "$ACTIONLINT_SHA256" "$archive" | sha256sum --check
+          mkdir -p "$RUNNER_TEMP/actionlint-extract"
+          tar -xzf "$archive" -C "$RUNNER_TEMP/actionlint-extract" actionlint
+          install -m 0755 "$RUNNER_TEMP/actionlint-extract/actionlint" "$RUNNER_TEMP/actionlint-bin"
+          version_output="$("$RUNNER_TEMP/actionlint-bin" -version)"
+          printf '%s\n' "$version_output" | grep --fixed-strings --line-regexp --quiet "$ACTIONLINT_VERSION"
+      - name: Install pinned ShellCheck CLI for actionlint
+        if: github.event_name == 'pull_request'
+        env:
+          SHELLCHECK_VERSION: "0.11.0"
+          SHELLCHECK_SHA256: "b7af85e41cc99489dcc21d66c6d5f3685138f06d34651e6d34b42ec6d54fe6f6"
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/shellcheck-v${SHELLCHECK_VERSION}.linux.x86_64.tar.gz"
+          extract_dir="$RUNNER_TEMP/shellcheck-extract"
+          tool_dir="$RUNNER_TEMP/actionlint-tools"
+          curl --fail --location --silent --show-error --retry 3 \
+            "https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VERSION}/shellcheck-v${SHELLCHECK_VERSION}.linux.x86_64.tar.gz" \
+            --output "$archive"
+          printf '%s  %s\n' "$SHELLCHECK_SHA256" "$archive" | sha256sum --check
+          mkdir -p "$extract_dir" "$tool_dir"
+          tar -xzf "$archive" -C "$extract_dir" "shellcheck-v${SHELLCHECK_VERSION}/shellcheck"
+          install -m 0755 "$extract_dir/shellcheck-v${SHELLCHECK_VERSION}/shellcheck" "$tool_dir/shellcheck"
+          version_output="$("$tool_dir/shellcheck" --version)"
+          printf '%s\n' "$version_output" | grep --fixed-strings --line-regexp --quiet "version: $SHELLCHECK_VERSION"
+          printf '%s\n' "$tool_dir" >> "$GITHUB_PATH"
+      - name: Lint authored GitHub Actions workflow files
+        if: github.event_name == 'pull_request'
+        run: python3 scripts/lint_authored_workflows.py "$RUNNER_TEMP/actionlint-bin"
       - name: Static analysis with Bandit
         run: python3 -m bandit -r scripts -x scripts/check_site.py
       - name: Audit Python dependencies for known vulnerabilities
@@ -333,7 +373,7 @@ jobs:
           docker run --detach --rm --name "$container_name" --publish 127.0.0.1:18080:8080 "$IMAGE_TAG"
           trap 'docker stop "$container_name" >/dev/null 2>&1 || true' EXIT
           health_status=""
-          for attempt in $(seq 1 30); do
+          for (( attempt = 1; attempt <= 30; attempt += 1 )); do
             health_status="$(docker inspect --format '{{.State.Health.Status}}' "$container_name")"
             if [[ "$health_status" == "healthy" ]]; then
               break
@@ -363,16 +403,16 @@ jobs:
         run: |
           set -euo pipefail
           version=0.76.1
-          archive="trivy_"$version"_Linux-64bit.tar.gz"
-          release_url="https://github.com/aquasecurity/trivy/releases/download/v$version"
+          archive="trivy_${version}_Linux-64bit.tar.gz"
+          release_url="https://github.com/aquasecurity/trivy/releases/download/v${version}"
           archive_path="$RUNNER_TEMP/$archive"
           checksums_path="$RUNNER_TEMP/trivy_checksums.txt"
           bundle_path="$RUNNER_TEMP/trivy_checksums.txt.sigstore.json"
           install_dir="$RUNNER_TEMP/trivy-install"
           mkdir -p "$install_dir"
           curl --fail --location --silent --show-error "$release_url/$archive" --output "$archive_path"
-          curl --fail --location --silent --show-error "$release_url/trivy_"$version"_checksums.txt" --output "$checksums_path"
-          curl --fail --location --silent --show-error "$release_url/trivy_"$version"_checksums.txt.sigstore.json" --output "$bundle_path"
+          curl --fail --location --silent --show-error "${release_url}/trivy_${version}_checksums.txt" --output "$checksums_path"
+          curl --fail --location --silent --show-error "${release_url}/trivy_${version}_checksums.txt.sigstore.json" --output "$bundle_path"
           # Cosign verify-blob options: https://docs.sigstore.dev/cosign/verifying/verify/
           cosign verify-blob "$checksums_path" \
             --bundle "$bundle_path" \
