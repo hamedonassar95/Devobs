@@ -1,5 +1,11 @@
 # حالة مستودع Devobs
 
+## أحدث دمج موثّق: PR #429 — تحقق 2026-11-04
+
+- **VERIFIED من GitHub:** دُمج [PR #429](https://github.com/hamedonassar95/Devobs/pull/429) عند SHA `fd5321e330acc6c1e38c516161e98167388bc7be` من الرأس `225653774f1778757f1776d0c598e559641461c2`. نجح PR CI `41809776109` وCodeQL `41809773977`، ونجحت معاينة Vercel.
+- نجح CI على SHA الدمج في `41809998465`، ونجح Push on main/CodeQL `41809998782`. نُشرت Pages واجتاز `verify-production` الفحص. تخطّى Node tests بسبب كون التغيير توثيقيًا، كما تخطّى تدريب الحادث المضبوط وفحوص الاستعادة المشروطة.
+- PR #429 توثيقي فقط؛ يسجل نتيجة نشر Pages الناجحة بعد الدمج السابق. لا يثبت استدلال نموذج أو تشغيلًا حيًا لخدمة AI، ولم يغيّر حالات الجاهزية: AI-9 **BLOCKED**، وP01 **BLOCKED**، وCodex runtime **OPEN**.
+
 ## أحدث دمج موثّق: PR #427 — تحقق 2026-11-04
 
 - **VERIFIED من GitHub:** دُمج [PR #427](https://github.com/hamedonassar95/Devobs/pull/427) عند SHA `d769dc26479e943b743edd45f770498d7d9e5254` من الرأس `c66378723e5396ed0e6e3c09bdad1473bd1179ea`. نجح PR CI `41808975424` وCodeQL `41808973445`. نجح Push on main/CodeQL `41809166587`، وVercel على main ناجح.
