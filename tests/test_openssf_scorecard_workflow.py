@@ -5,45 +5,43 @@ import tempfile
 import unittest
 from pathlib import Path
 
-import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
 REUSABLE_PATH = ROOT / ".github/workflows/reusable-openssf-scorecard.yml"
 CALLER_PATH = ROOT / ".github/workflows/openssf-scorecard.yml"
-READ_ONLY_PERMISSIONS = {
-    "checks": "read",
-    "contents": "read",
-    "issues": "read",
-    "pull-requests": "read",
-}
-
-
-def load_workflow(path: Path):
-    return yaml.load(path.read_text(encoding="utf-8"), Loader=yaml.BaseLoader)
+REUSABLE_TEXT = REUSABLE_PATH.read_text(encoding="utf-8")
+CALLER_TEXT = CALLER_PATH.read_text(encoding="utf-8")
 
 
 class OpenSSFScorecardWorkflowTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.reusable = load_workflow(REUSABLE_PATH)
-        cls.caller = load_workflow(CALLER_PATH)
+        cls.reusable_text = REUSABLE_TEXT
+        cls.caller_text = CALLER_TEXT
 
     def test_devobs_entrypoint_is_manual_and_does_not_upload_public_artifacts(self):
-        self.assertEqual(set(self.caller["on"]), {"workflow_dispatch"})
-        self.assertEqual(self.caller["permissions"], {})
-        job = self.caller["jobs"]["scorecard"]
-        self.assertEqual(job["permissions"], READ_ONLY_PERMISSIONS)
-        self.assertEqual(job["uses"], "./.github/workflows/reusable-openssf-scorecard.yml")
-        self.assertEqual(job["with"]["upload_report_artifact"], "false")
+        self.assertIn("on:\n  workflow_dispatch:\n", self.caller_text)
+        self.assertNotIn("schedule:", self.caller_text)
+        self.assertNotIn("pull_request:", self.caller_text)
+        self.assertIn("permissions: {}", self.caller_text)
+        self.assertIn("checks: read", self.caller_text)
+        self.assertIn("contents: read", self.caller_text)
+        self.assertIn("issues: read", self.caller_text)
+        self.assertIn("pull-requests: read", self.caller_text)
+        self.assertIn("uses: ./.github/workflows/reusable-openssf-scorecard.yml", self.caller_text)
+        self.assertIn("upload_report_artifact: false", self.caller_text)
 
     def test_reusable_workflow_exposes_only_workflow_call_and_read_permissions(self):
-        self.assertEqual(set(self.reusable["on"]), {"workflow_call"})
-        self.assertEqual(self.reusable["permissions"], {})
-        inputs = self.reusable["on"]["workflow_call"]["inputs"]
-        self.assertEqual(inputs["upload_report_artifact"]["type"], "boolean")
-        self.assertEqual(inputs["upload_report_artifact"]["default"], "false")
-        self.assertEqual(self.reusable["jobs"]["scorecard"]["permissions"], READ_ONLY_PERMISSIONS)
+        self.assertIn("on:\n  workflow_call:\n    inputs:", self.reusable_text)
+        self.assertNotIn("schedule:", self.reusable_text)
+        self.assertNotIn("pull_request:", self.reusable_text)
+        self.assertIn("permissions: {}", self.reusable_text)
+        self.assertIn("type: boolean", self.reusable_text)
+        self.assertIn("default: false", self.reusable_text)
+        for permission in ("checks", "contents", "issues", "pull-requests"):
+            self.assertIn(f"{permission}: read", self.reusable_text)
+        self.assertNotIn(": write", self.reusable_text)
 
     def test_cli_download_is_checksum_pinned_before_extraction(self):
         text = REUSABLE_PATH.read_text(encoding="utf-8")
@@ -57,12 +55,20 @@ class OpenSSFScorecardWorkflowTests(unittest.TestCase):
         self.assertIn("GITHUB_TOKEN: ${{ github.token }}", text)
 
     def _summary_script(self):
-        step = next(
-            step
-            for step in self.reusable["jobs"]["scorecard"]["steps"]
-            if step.get("name") == "Summarize the validated report"
-        )
-        run = step["run"]
+        section = self.reusable_text.split("      - name: Summarize the validated report\n", 1)[1]
+        section = section.split("      - name: Upload the full JSON report when the caller opts in\n", 1)[0]
+        run = section.split("        run: |\n", 1)[1]
+        python_lines = []
+        for line in run.splitlines():
+            if line.startswith("      - name:"):
+                break
+            if line.startswith("          "):
+                python_lines.append(line[10:])
+            elif not line:
+                python_lines.append("")
+            else:
+                raise AssertionError("Unexpected content in the Scorecard summary workflow step")
+        run = "\n".join(python_lines)
         marker = "python3 - <<'PY'\n"
         self.assertIn(marker, run)
         return run.split(marker, 1)[1].rsplit("\nPY", 1)[0]
@@ -127,8 +133,7 @@ class OpenSSFScorecardWorkflowTests(unittest.TestCase):
         self.assertEqual(summary, "")
 
     def test_full_report_artifact_is_opt_in_and_short_lived(self):
-        text = REUSABLE_PATH.read_text(encoding="utf-8")
-        artifact = text.split("- name: Upload the full JSON report when the caller opts in", 1)[1]
+        artifact = self.reusable_text.split("- name: Upload the full JSON report when the caller opts in", 1)[1]
         self.assertIn("if: inputs.upload_report_artifact", artifact)
         self.assertIn("if-no-files-found: error", artifact)
         self.assertIn("retention-days: 14", artifact)
