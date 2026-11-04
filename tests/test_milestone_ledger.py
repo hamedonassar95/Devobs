@@ -1026,9 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr431_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr433_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 431)
+        self.assertEqual(result["latest_pr"], 433)
+        self.assertEqual(result["merged_milestones"], 107)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         implementation = records[420]
         self.assertEqual(
@@ -1186,6 +1187,21 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("41812581749", newest_merge["verification"])
         self.assertIn("verify-production passed", newest_merge["verification"])
         self.assertIn("no destination was created", newest_merge["limitations"])
+
+        latest_merge = records[433]
+        self.assertEqual(
+            latest_merge["pr_head_sha"],
+            "07ed303fc42df48b3c0154591e4b63a5ce5ea8ef",
+        )
+        self.assertEqual(
+            latest_merge["merge_sha"],
+            "b5ce4a42f10176da1bc0194461353281f64c3707",
+        )
+        self.assertEqual(latest_merge["ci_run_id"], 41815601457)
+        self.assertIn("41816012226", latest_merge["verification"])
+        self.assertIn("41816012361", latest_merge["verification"])
+        self.assertIn("local SQLite topology-keyring persistence", latest_merge["limitations"])
+        self.assertIn("P01 remains NO-GO / BLOCKED", latest_merge["limitations"])
         self.assertEqual(
             {gate["id"]: gate["status"] for gate in self.data["gates"]},
             {
