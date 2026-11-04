@@ -1,5 +1,8 @@
 """Offline tests for signed topology metadata and caller-supplied trust."""
+import json
+import sqlite3
 import sys
+import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -237,6 +240,15 @@ class RotatingTopologyKeyringTests(unittest.TestCase):
             self.update_envelope(keys, revision),
         )
 
+    def persistent_keyring(self, path):
+        return topology_attestation.RotatingTopologyKeyring(
+            {self.scope: self.public_key(self.old_private_key)},
+            operator_public_keys={
+                "operator-1": self.public_key(self.operator_private_key),
+            },
+            state_path=str(path),
+        )
+
     def test_rotation_keeps_overlap_then_revokes_removed_key(self):
         old_envelope = self.envelope(self.old_private_key, "collector-1")
         new_scope = ("alpha", "platform", "collector-2")
@@ -338,6 +350,85 @@ class RotatingTopologyKeyringTests(unittest.TestCase):
 
         self.assertEqual(self.keyring.revision, 2)
         self.assertEqual(self.verify(second_envelope).key_id, "collector-2")
+
+    def test_persisted_revision_and_keys_survive_restart(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "topology-trust.sqlite3"
+            first = self.persistent_keyring(path)
+            new_scope = ("alpha", "platform", "collector-2")
+            active = {
+                self.scope: self.public_key(self.old_private_key),
+                new_scope: self.public_key(self.new_private_key),
+            }
+            first.install_signed_update(self.update_envelope(active, 2))
+
+            restarted = self.persistent_keyring(path)
+            self.assertEqual(restarted.revision, 2)
+            self.assertEqual(restarted.snapshot(), active)
+            with self.assertRaisesRegex(
+                    topology_attestation.TopologyKeyringRotationRejected,
+                    "^stale_key_revision$"):
+                restarted.install_signed_update(self.update_envelope(active, 2))
+
+    def test_revoked_key_tombstone_survives_restart(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "topology-trust.sqlite3"
+            first = self.persistent_keyring(path)
+            new_scope = ("alpha", "platform", "collector-2")
+            new_public_key = self.public_key(self.new_private_key)
+            first.install_signed_update(self.update_envelope({
+                new_scope: new_public_key,
+            }, 2))
+
+            restarted = self.persistent_keyring(path)
+            with self.assertRaisesRegex(
+                    topology_attestation.TopologyKeyringRotationRejected,
+                    "^revoked_topology_key_cannot_be_restored$"):
+                restarted.install_signed_update(self.update_envelope({
+                    self.scope: self.public_key(self.old_private_key),
+                    new_scope: new_public_key,
+                }, 3))
+            self.assertEqual(restarted.revision, 2)
+
+    def test_persistent_instances_share_latest_state(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "topology-trust.sqlite3"
+            first = self.persistent_keyring(path)
+            second = self.persistent_keyring(path)
+            new_scope = ("alpha", "platform", "collector-2")
+            active = {
+                self.scope: self.public_key(self.old_private_key),
+                new_scope: self.public_key(self.new_private_key),
+            }
+            first.install_signed_update(self.update_envelope(active, 2))
+            self.assertEqual(second.revision, 2)
+            self.assertEqual(second.snapshot(), active)
+
+            next_active = {new_scope: self.public_key(self.new_private_key)}
+            second.install_signed_update(self.update_envelope(next_active, 3))
+            self.assertEqual(first.snapshot(), next_active)
+            self.assertEqual(first.revision, 3)
+
+    def test_corrupt_persistent_state_fails_closed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "topology-trust.sqlite3"
+            self.persistent_keyring(path)
+            with sqlite3.connect(path) as connection:
+                state_json = connection.execute(
+                    "SELECT state_json FROM topology_keyring_state "
+                    "WHERE singleton = 1").fetchone()[0]
+                record = json.loads(state_json)
+                record["revision"] = 99
+                connection.execute(
+                    "UPDATE topology_keyring_state SET state_json = ? "
+                    "WHERE singleton = 1",
+                    (json.dumps(record, sort_keys=True, separators=(",", ":")),),
+                )
+
+            with self.assertRaisesRegex(
+                    topology_attestation.TopologyKeyringRotationRejected,
+                    "^invalid_topology_keyring_store$"):
+                self.persistent_keyring(path)
 
     def test_invalid_update_signature_does_not_change_trust(self):
         old_envelope = self.envelope(self.old_private_key, "collector-1")

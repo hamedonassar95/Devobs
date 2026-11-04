@@ -1157,6 +1157,17 @@
       "ci_run_id": 41810508402,
       "verification": "VERIFIED 2026-11-04: PR #430 merged at c1d2c54d323db21eda41809254016896b14f79f0 from head ecb1abadf155851190f64fc9c273bcd079272720. PR CI 41810508402 and push CI 41810470415 SUCCESS; PR CodeQL run 41810505103 and Vercel preview SUCCESS. Exact-merge main CI 41810818519 SUCCESS; Pages deployment and verify-production passed. Push on main/CodeQL run 41810823255 SUCCESS. Node tests were skipped on main for the documentation-only change; controlled incident drill and conditional restore checks were skipped.",
       "limitations": "Documentation only. This records merge and static-site evidence; it does not establish live AI service operation or model inference. Readiness gates remain unchanged: AI-9 BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr431",
+      "area": "DOCUMENTATION",
+      "title": "Record verified PR #431 merge and mirror-readiness audit",
+      "pr_number": 431,
+      "pr_head_sha": "f46e8ab832e19d8870462a688ea52359b42db055",
+      "merge_sha": "a7f822e0bd8cc6b8e7017d1992572852f4b9f36a",
+      "ci_run_id": 41812081497,
+      "verification": "VERIFIED 2026-11-04: PR #431 merged at a7f822e0bd8cc6b8e7017d1992572852f4b9f36a from head f46e8ab832e19d8870462a688ea52359b42db055. PR CI 41812081497, PR CodeQL run 41812079361, and Vercel preview SUCCESS. Exact-merge main CI 41812564677 SUCCESS; Pages deployment and verify-production passed. Push on main/CodeQL run 41812581749 SUCCESS. Node tests were skipped for the documentation-only change; controlled incident drill and conditional restore checks were skipped.",
+      "limitations": "Documentation only. The GitLab read-only project search found no owned project matching Devobs; no destination was created and no mirroring setting or credential was changed. No live mirror, AI service operation, model inference, or gate promotion is claimed. Readiness gates remain unchanged: AI-9 BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
     }
   ],
   "gates": [
