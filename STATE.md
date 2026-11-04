@@ -1,5 +1,17 @@
 # حالة مستودع Devobs
 
+## أحدث دمج موثّق: PR #425 — تحقق 2026-11-04
+
+- **VERIFIED من GitHub:** دُمج [PR #425](https://github.com/hamedonassar95/Devobs/pull/425) عند SHA `e75a6ba19a9c319b94cb4bfa9a4fdfbcce46fc9d` من الرأس `8137d3e53418e2111485c5ff84c6eb78ef653018`. نجح PR CI `41730515418` وpush CI `41730482109` وCodeQL `41730509522`. نجح main CI `41730759897` وPush on main/CodeQL `41730758476`؛ نُشرت Pages واجتازت `verify-production`.
+- أضاف PR #425 مخطط فيديوهات عربيًا محليًا: يحتفظ بالخطة في `localStorage` ويفتح Google Trends خارجيًا. لا يربط YouTube API ولا يرفع أو يجدول فيديوهات. أفكار البداية غير متحقق من رواجها، وتتطلب مراجعة مستقلة.
+- تخطّى تشغيل PR المكرر اختبارات Node وPython، بينما نجحت في push CI. تخطّت شروط التشغيل تدريب الحادث وفحوص الاستعادة. لا يضيف هذا الدمج دليلًا على تشغيل DevOps AI أو استدلال نموذج.
+- حالات الجاهزية لم تتغير: AI-9 **BLOCKED**، وP01 **BLOCKED**، وCodex runtime **OPEN**.
+
+## سجل دمج موثّق: PR #424 — تحقق 2026-11-04
+
+- **VERIFIED من GitHub:** دُمج [PR #424](https://github.com/hamedonassar95/Devobs/pull/424) عند SHA `32632f46f0be09da7d65b143dfa7859d01fa43ad` من الرأس `eef59baf58115762440b02ec2e3043db78e19c70`. نجح PR CI `41719532112` وpush CI `41719481467` وCodeQL `41719526775`. نجح main CI `41722249240` وPush on main/CodeQL `41722248715`، ونُشرت Pages واجتازت `verify-production`.
+- كان PR #424 توثيقيًا فقط؛ نجحت اختبارات Node في push CI وتخطّت في تشغيل PR المكرر. تخطّت شروط التشغيل تدريب الحادث وفحوص الاستعادة. لم تتغير حالات الجاهزية.
+
 ## أحدث دمج موثّق: PR #423 — تحقق 2026-11-03
 
 - **VERIFIED من GitHub:** دُمج [PR #423](https://github.com/hamedonassar95/Devobs/pull/423) عند SHA `29d69e55d982609d2d6b893c7306d37fefc11c4b` من الرأس `d619ab74ce1107d3d970567f7f726c79380bc5af`. نجح PR CI `41711195370` وpush CI `41711156811` وCodeQL `41711186061`. نجح main CI `41717471721` وPush on main/CodeQL `41717469794`؛ نُشرت Pages واجتازت `verify-production`.

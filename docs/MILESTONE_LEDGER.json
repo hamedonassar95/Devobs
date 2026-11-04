@@ -1091,6 +1091,28 @@
       "ci_run_id": 41711195370,
       "verification": "VERIFIED 2026-11-03: PR #423 merged at 29d69e55d982609d2d6b893c7306d37fefc11c4b from head d619ab74ce1107d3d970567f7f726c79380bc5af. PR CI 41711195370 and push CI 41711156811 SUCCESS; PR CodeQL run 41711186061 SUCCESS. Exact-merge main CI 41717471721 and Push on main/CodeQL 41717469794 SUCCESS; Pages publish and verify-production passed. Node tests passed on push CI and were skipped on the duplicate PR CI; controlled incident drill and restore checks were skipped. Local milestone-ledger tests: 50 passed.",
       "limitations": "Documentation only; records PR #423 merge evidence for PR #422. It adds no live runtime or model inference evidence, no product capability, and no readiness gate promotion."
+    },
+    {
+      "id": "p03-merge-evidence-pr424",
+      "area": "DOCUMENTATION",
+      "title": "Record exact merge evidence for PR #423",
+      "pr_number": 424,
+      "pr_head_sha": "eef59baf58115762440b02ec2e3043db78e19c70",
+      "merge_sha": "32632f46f0be09da7d65b143dfa7859d01fa43ad",
+      "ci_run_id": 41719532112,
+      "verification": "VERIFIED 2026-11-04: PR #424 merged at 32632f46f0be09da7d65b143dfa7859d01fa43ad from head eef59baf58115762440b02ec2e3043db78e19c70. PR CI 41719532112 and push CI 41719481467 SUCCESS; PR CodeQL run 41719526775 SUCCESS. Exact-merge main CI 41722249240 and Push on main/CodeQL 41722248715 SUCCESS; Pages publish and verify-production passed. Node tests passed on push CI and were skipped on the duplicate PR CI; incident drill and restore checks were skipped. Documentation only; readiness gates unchanged.",
+      "limitations": "Documentation only; records PR #424 merge evidence for PR #423. No live runtime or model inference is demonstrated, and no readiness gate is promoted."
+    },
+    {
+      "id": "youtube-content-planner-pr425",
+      "area": "PLATFORM",
+      "title": "Add local YouTube content planner",
+      "pr_number": 425,
+      "pr_head_sha": "8137d3e53418e2111485c5ff84c6eb78ef653018",
+      "merge_sha": "e75a6ba19a9c319b94cb4bfa9a4fdfbcce46fc9d",
+      "ci_run_id": 41730515418,
+      "verification": "VERIFIED 2026-11-04: PR #425 merged at e75a6ba19a9c319b94cb4bfa9a4fdfbcce46fc9d from head 8137d3e53418e2111485c5ff84c6eb78ef653018. PR CI 41730515418 and push CI 41730482109 SUCCESS; PR CodeQL run 41730509522 SUCCESS. Python and Node tests passed in push CI and were skipped in the duplicate PR CI. Exact-merge main CI 41730759897 and Push on main/CodeQL 41730758476 SUCCESS; Pages publish and verify-production passed. Incident drill and restore checks were skipped.",
+      "limitations": "Browser-local content planner stores the plan in localStorage and opens Google Trends externally; it has no YouTube API, backend, upload or scheduling integration. Starter ideas are explicitly unverified and require independent review. No DevOps AI runtime, model inference, or readiness-gate evidence is added."
     }
   ],
   "gates": [

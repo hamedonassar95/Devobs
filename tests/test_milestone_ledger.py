@@ -1026,9 +1026,9 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr423_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr425_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 423)
+        self.assertEqual(result["latest_pr"], 425)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         implementation = records[420]
         self.assertEqual(
@@ -1086,6 +1086,34 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("41717471721", newest_documentation["verification"])
         self.assertIn("41717469794", newest_documentation["verification"])
         self.assertIn("Documentation only", newest_documentation["limitations"])
+
+        documentation_424 = records[424]
+        self.assertEqual(
+            documentation_424["pr_head_sha"],
+            "eef59baf58115762440b02ec2e3043db78e19c70",
+        )
+        self.assertEqual(
+            documentation_424["merge_sha"],
+            "32632f46f0be09da7d65b143dfa7859d01fa43ad",
+        )
+        self.assertEqual(documentation_424["ci_run_id"], 41719532112)
+        self.assertIn("41722249240", documentation_424["verification"])
+        self.assertIn("41722248715", documentation_424["verification"])
+
+        platform_feature = records[425]
+        self.assertEqual(
+            platform_feature["pr_head_sha"],
+            "8137d3e53418e2111485c5ff84c6eb78ef653018",
+        )
+        self.assertEqual(
+            platform_feature["merge_sha"],
+            "e75a6ba19a9c319b94cb4bfa9a4fdfbcce46fc9d",
+        )
+        self.assertEqual(platform_feature["ci_run_id"], 41730515418)
+        self.assertIn("41730759897", platform_feature["verification"])
+        self.assertIn("41730758476", platform_feature["verification"])
+        self.assertIn("localStorage", platform_feature["limitations"])
+        self.assertIn("unverified", platform_feature["limitations"])
         self.assertEqual(
             {gate["id"]: gate["status"] for gate in self.data["gates"]},
             {
