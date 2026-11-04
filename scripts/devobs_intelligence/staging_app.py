@@ -16,6 +16,7 @@ from psycopg.conninfo import conninfo_to_dict
 
 from .api_app import make_app, reject_request_body
 from .oidc_rotation import RotatingOIDCVerifier
+from .openai_error_diagnosis import DEFAULT_MODEL, OpenAIErrorLogDiagnostician
 from .postgres_store import PostgresTenantStore
 
 
@@ -56,7 +57,7 @@ def _database_dsn(settings: Mapping[str, str]) -> str:
 
 
 def build_app(settings: Mapping[str, str]) -> Callable:
-    """Construct scoped read API; no network/database call until a request arrives."""
+    """Construct scoped API; model inference is disabled unless explicitly configured."""
     try:
         issuer = settings["DEVOBS_OIDC_ISSUER"]
         audience = settings["DEVOBS_OIDC_AUDIENCE"]
@@ -65,16 +66,27 @@ def build_app(settings: Mapping[str, str]) -> Callable:
         jwks = _decode_document(settings, "DEVOBS_OIDC_JWKS_JSON", 65536)
         verifier = RotatingOIDCVerifier(issuer, audience, client_id, metadata, jwks)
         store = PostgresTenantStore(_database_dsn(settings))
-        api = make_app(verifier, store)
+        enabled = settings.get("DEVOBS_AI_DIAGNOSTICS_ENABLED", "false")
+        if enabled not in {"true", "false"}:
+            raise StagingConfigurationError("invalid_staging_config")
+        diagnostician = None
+        if enabled == "true":
+            if settings.get("DEVOBS_AI_BUDGET_APPROVED") != "true":
+                raise StagingConfigurationError("invalid_staging_config")
+            diagnostician = OpenAIErrorLogDiagnostician(
+                settings.get("OPENAI_API_KEY", ""),
+                model=settings.get("DEVOBS_AI_MODEL", DEFAULT_MODEL),
+            )
+        api = make_app(verifier, store, diagnostician=diagnostician)
     except (KeyError, ValueError, TypeError):
         raise StagingConfigurationError("invalid_staging_config") from None
 
     def application(environ, start_response):
-        rejected = reject_request_body(environ, start_response)
-        if rejected is not None:
-            return rejected
         path = environ.get("PATH_INFO")
         if path == "/healthz":
+            rejected = reject_request_body(environ, start_response)
+            if rejected is not None:
+                return rejected
             if environ.get("REQUEST_METHOD") != "GET":
                 start_response("405 Method Not Allowed", [("Allow", "GET"),
                                                            ("Content-Length", "0"),
@@ -85,6 +97,9 @@ def build_app(settings: Mapping[str, str]) -> Callable:
                                                    ("Content-Length", "0")])
             return [b""]
         if path == "/readyz":
+            rejected = reject_request_body(environ, start_response)
+            if rejected is not None:
+                return rejected
             if environ.get("REQUEST_METHOD") != "GET":
                 start_response("405 Method Not Allowed", [("Allow", "GET"),
                                                            ("Cache-Control", "no-store"),

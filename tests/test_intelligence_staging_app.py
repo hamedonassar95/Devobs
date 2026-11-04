@@ -60,6 +60,26 @@ class StagingBootstrapTests(unittest.TestCase):
         self.assertEqual(json.loads(body), {"error": "invalid_token"})
         self.assertNotIn("synthetic", str(headers) + body.decode())
 
+    def test_model_diagnostics_are_disabled_by_default(self):
+        app = self.module.build_app(self.base)
+        self.assertIsNotNone(app)
+
+    def test_model_diagnostics_require_budget_acknowledgment_and_provider_key(self):
+        config = dict(self.base)
+        config["DEVOBS_AI_DIAGNOSTICS_ENABLED"] = "true"
+        with self.assertRaisesRegex(self.module.StagingConfigurationError,
+                                    "^invalid_staging_config$"):
+            self.module.build_app(config)
+        config["DEVOBS_AI_BUDGET_APPROVED"] = "true"
+        with self.assertRaisesRegex(self.module.StagingConfigurationError,
+                                    "^invalid_staging_config$"):
+            self.module.build_app(config)
+        config["OPENAI_API_KEY"] = "synthetic-test-key"
+        with patch.object(self.module, "OpenAIErrorLogDiagnostician") as provider:
+            app = self.module.build_app(config)
+        self.assertIsNotNone(app)
+        provider.assert_called_once_with("synthetic-test-key", model="gpt-6-luna")
+
     def test_missing_or_untrusted_identity_denied(self):
         for key in self.base:
             with self.subTest(missing=key):
