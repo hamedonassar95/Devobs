@@ -5,6 +5,14 @@
 - **فصل بوابة P01:** فُحصت قاعدة PostgreSQL فقط في مشروع Supabase Free موجود مسبقًا باستخدام معرفات اصطناعية. RLS مفعّل ومُجبَر على الجداول الثلاثة، وسلوك القراءة المعزولة والمنع وفشل الكتابة اجتاز اختبارًا معاملاتيًا اصطناعيًا مع التراجع. التفاصيل في [P01 activation readiness](docs/P01_ACTIVATION_READINESS.md). هذا الدليل منفصل عن #433 ولا يثبت API مستضافة أو هوية تشغيل أو سقف إنفاق أو استعادة.
 - الحالات: AI-9 **FAIL / BLOCKED**، وP01 **NO-GO / BLOCKED**، وCodex runtime **OPEN**.
 
+## تدقيق workflows اليدوية باستخدام actionlint — 2026-11-04 (مراجعة معلّقة)
+
+- **الأساس الحي:** الفرع يبدأ من `origin/main@176cdb17259be9effc925ddc80b11b871206f273`. نجح CI الحالي على هذا SHA في run [41829335307](https://github.com/hamedonassar95/Devobs/actions/runs/41829335307) ونجح CodeQL في run [41829335532](https://github.com/hamedonassar95/Devobs/actions/runs/41829335532) لتحليل Actions وPython وJavaScript/TypeScript. تخطى CI اختبارات Node بسبب اختيار المسار؛ لم يكن ذلك فشلًا. لا يظهر تكامل actionlint في خطوات CI النشطة؛ ظهوره في وثائق قديمة هو سجل استخدام محلي وليس دليل تفعيل.
+- **البحث والمصدر:** يصف upstream actionlint كمدقق static لملفات GitHub Actions ويدرج ترخيص MIT. الإصدار الرسمي `v1.7.12`، وSHA-256 لأرشيف Linux amd64 مطابق لبيانات GitHub الرسمية: `8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8`. [README والفحوص](https://github.com/rhysd/actionlint/blob/v1.7.12/README.md)، [مرجع الفحوص](https://github.com/rhysd/actionlint/blob/v1.7.12/docs/checks.md)، [الإصدار](https://github.com/rhysd/actionlint/releases/tag/v1.7.12).
+- **نتيجة تدقيق الأساس:** اجتازت ملفات workflow المكتوبة يدويًا وعددها 30 فحص actionlint. الأداة أبلغت عن المفتاح `concurrency.queue` في خمسة ملفات `.lock.yml` المولّدة؛ الإصدار المثبت لا يتعرف عليه. لذا يستثني المشغّل ملفات `.lock.yml` فقط، ويرفض symlinks ولا ينجح بصمت إذا غابت الملفات اليدوية. تبقى فحوص `check_agent_spec.py` الحالية لمصادر gh-aw وبوابات الميزانية كما هي؛ ولا يدّعي هذا التكامل فحص syntax للملفات المولّدة.
+- **التنفيذ الجاري:** ينفذ الفحص في job الأمن الموجود عند pull request فقط، بعد تنزيل CLI والتحقق من SHA-256 وقبل الاستخراج. لم يُنشأ job أو status check جديد، ولم تُغيّر صلاحيات أو إعدادات نشر أو أسرار. يستهلك ثواني إضافية من حصة GitHub Actions عند PR.
+- **التحقق المحلي:** اختبارات Python الكاملة نجحت `903` مع `22` تخطيًا؛ Bandit لم يجد مشكلات؛ actionlint نجح على 30 workflow؛ اختبارات عقد/اختيار الملفات/الروابط الرمزية وفشل الأداة نجحت؛ فحوص تثبيت الإجراءات، حواجز الوكلاء، وملخص ledger نجحت. تغييرات العمل ما زالت على فرع مراجعة؛ لم تُدمج ولم تتغير حالات البوابات.
+
 ## دمج موثّق سابقًا: PR #431 — تحقق 2026-11-04
 
 - **VERIFIED من GitHub:** دُمج [PR #431](https://github.com/hamedonassar95/Devobs/pull/431) عند SHA `a7f822e0bd8cc6b8e7017d1992572852f4b9f36a` من الرأس `f46e8ab832e19d8870462a688ea52359b42db055`. نجح PR CI `41812081497` وCodeQL `41812079361`، ونجحت معاينة Vercel.
