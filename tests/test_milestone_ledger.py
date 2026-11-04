@@ -1026,9 +1026,9 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr430_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr431_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 430)
+        self.assertEqual(result["latest_pr"], 431)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         implementation = records[420]
         self.assertEqual(
@@ -1171,6 +1171,21 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("41810823255", latest_merge["verification"])
         self.assertIn("verify-production passed", latest_merge["verification"])
         self.assertIn("Documentation only", latest_merge["limitations"])
+
+        newest_merge = records[431]
+        self.assertEqual(
+            newest_merge["pr_head_sha"],
+            "f46e8ab832e19d8870462a688ea52359b42db055",
+        )
+        self.assertEqual(
+            newest_merge["merge_sha"],
+            "a7f822e0bd8cc6b8e7017d1992572852f4b9f36a",
+        )
+        self.assertEqual(newest_merge["ci_run_id"], 41812081497)
+        self.assertIn("41812564677", newest_merge["verification"])
+        self.assertIn("41812581749", newest_merge["verification"])
+        self.assertIn("verify-production passed", newest_merge["verification"])
+        self.assertIn("no destination was created", newest_merge["limitations"])
         self.assertEqual(
             {gate["id"]: gate["status"] for gate in self.data["gates"]},
             {
