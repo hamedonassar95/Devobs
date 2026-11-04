@@ -1,4 +1,12 @@
-## أحدث دمج موثّق: PR #435 — تحقق 2026-11-04
+## أحدث دمج موثّق: PR #437 — تحقق 2026-11-04
+
+- **VERIFIED من GitHub:** دُمج [PR #437](https://github.com/hamedonassar95/Devobs/pull/437) عند SHA `783a3d329d829e9c2f10cbd33fa6abe77abda846` من الرأس `ff600f7ed15556278fe929df6ccfb8cc20cacde7`.
+- نجح CI بعد الدمج [`41875788207`](https://github.com/hamedonassar95/Devobs/actions/runs/41875788207)، بما فيه `validate` وPython وNode وRLS والأمن والحاوية وTerraform والتحقق من Pages. نجح CodeQL بعد الدمج [`41875787729`](https://github.com/hamedonassar95/Devobs/actions/runs/41875787729) لتحليل Actions وJavaScript/TypeScript وPython. تخطّى تمرين الحادث المضبوط وفحوص الاستعادة المشروطة.
+- اكتمل تشغيل OpenSSF Scorecard اليدوي [`41879187351`](https://github.com/hamedonassar95/Devobs/actions/runs/41879187351) بنجاح. نتيجة التقرير معروضة في ملخص Actions، ولم يُرفع ملف JSON أو تُنشر النتيجة إلى API.
+- يضيف PR #437 تقرير Scorecard يدويًا للقراءة فقط مع تنزيل CLI مثبت ببصمة SHA-256؛ لا يضيف جدولًا أو نشرًا مجدولًا أو فحص دمج حاجبًا. اكتمال workflow لا يثبت تشغيل خدمة أو نجاح استدعاء نموذج.
+- الحالات لم تتغير: AI-9 **FAIL / BLOCKED**، وP01 **NO-GO / BLOCKED**، وCodex runtime **OPEN**.
+
+## سجل سابق: PR #435 — تحقق 2026-11-04
 
 - **VERIFIED من GitHub:** دُمج [PR #435](https://github.com/hamedonassar95/Devobs/pull/435) عند SHA `4756f7e125fbaff193f25c84df9ac1073e0fe64c` من الرأس `0b461fea0a248cd8c43a1e43aeaad702eb8acffe`.
 - نجح CI على رأس PR في [`41846791365`](https://github.com/hamedonassar95/Devobs/actions/runs/41846791365) و[`41846781270`](https://github.com/hamedonassar95/Devobs/actions/runs/41846781270)، ونجح CodeQL [`41846784695`](https://github.com/hamedonassar95/Devobs/actions/runs/41846784695) لتحليل Actions وJavaScript/TypeScript وPython. اكتملت مراجعة Codex الإرشادية ومعاينة Vercel؛ نجاح مراجعة آلية لا يثبت استدعاء نموذج.
