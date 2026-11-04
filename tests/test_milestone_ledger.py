@@ -1026,11 +1026,23 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr435_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr437_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 435)
-        self.assertEqual(result["merged_milestones"], 108)
+        self.assertEqual(result["latest_pr"], 437)
+        self.assertEqual(result["merged_milestones"], 109)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
+        scorecard = records[437]
+        self.assertEqual(
+            scorecard["merge_sha"],
+            "783a3d329d829e9c2f10cbd33fa6abe77abda846",
+        )
+        self.assertEqual(
+            scorecard["pr_head_sha"],
+            "ff600f7ed15556278fe929df6ccfb8cc20cacde7",
+        )
+        self.assertEqual(scorecard["ci_run_id"], 41875788207)
+        self.assertIn("41879187351", scorecard["verification"])
+        self.assertIn("no JSON artifact", scorecard["limitations"])
         actionlint = records[435]
         self.assertEqual(
             actionlint["merge_sha"],

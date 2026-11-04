@@ -1190,6 +1190,17 @@
       "ci_run_id": 41846791365,
       "verification": "VERIFIED 2026-11-04: PR #435 merged at 4756f7e125fbaff193f25c84df9ac1073e0fe64c from head 0b461fea0a248cd8c43a1e43aeaad702eb8acffe. PR CI 41846791365 and 41846781270 SUCCESS; CodeQL 41846784695 SUCCESS for Actions, JavaScript/TypeScript, and Python; Vercel preview SUCCESS. Exact-merge main CI 41849969708 and CodeQL 41849968099 SUCCESS; CI published static Pages and verify-production passed. Controlled incident drill and conditional restore checks were skipped.",
       "limitations": "Adds static actionlint v1.7.12 and pinned ShellCheck 0.11.0 checks for 30 authored workflows; five generated gh-aw .lock.yml files are excluded because this actionlint version does not support concurrency.queue, with existing gh-aw specification checks retained. Static lint and successful GitHub workflows do not prove application runtime or successful AI model calls. Gates unchanged: AI-9 FAIL / BLOCKED, P01 NO-GO / BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "openssf-scorecard-report-pr437",
+      "area": "CI_SECURITY",
+      "title": "Record verified read-only OpenSSF Scorecard report integration",
+      "pr_number": 437,
+      "pr_head_sha": "ff600f7ed15556278fe929df6ccfb8cc20cacde7",
+      "merge_sha": "783a3d329d829e9c2f10cbd33fa6abe77abda846",
+      "ci_run_id": 41875788207,
+      "verification": "VERIFIED 2026-11-04: PR #437 merged at 783a3d329d829e9c2f10cbd33fa6abe77abda846 from head ff600f7ed15556278fe929df6ccfb8cc20cacde7. Exact-merge main CI 41875788207 and Push on main/CodeQL 41875787729 SUCCESS; validate, Python, Node, RLS, security, container, Terraform, static Pages publication, verify-production and all three CodeQL languages passed. Controlled incident drill and conditional restore checks were skipped. Manual Scorecard run 41879187351 completed SUCCESS.",
+      "limitations": "Manual read-only posture report only; the run summary is displayed in GitHub Actions and no JSON artifact or Scorecard API publication was produced. It does not prove live service or AI inference. Gates unchanged: AI-9 FAIL / BLOCKED, P01 NO-GO / BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [

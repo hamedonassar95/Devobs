@@ -1,15 +1,15 @@
-## Current snapshot — 2026-11-04 (after PR #435)
+## Current snapshot — 2026-11-04 (after PR #437)
 
-**VERIFIED from GitHub:** `main` is merge SHA `4756f7e125fbaff193f25c84df9ac1073e0fe64c`, from PR [#435](https://github.com/hamedonassar95/Devobs/pull/435), head `0b461fea0a248cd8c43a1e43aeaad702eb8acffe`.
+**VERIFIED from GitHub:** `main` is merge SHA `783a3d329d829e9c2f10cbd33fa6abe77abda846`, from PR [#437](https://github.com/hamedonassar95/Devobs/pull/437), head `ff600f7ed15556278fe929df6ccfb8cc20cacde7`.
 
-- PR CI [41846791365](https://github.com/hamedonassar95/Devobs/actions/runs/41846791365) and [41846781270](https://github.com/hamedonassar95/Devobs/actions/runs/41846781270) passed; CodeQL [41846784695](https://github.com/hamedonassar95/Devobs/actions/runs/41846784695) passed for Actions, JavaScript/TypeScript, and Python. Vercel preview passed. Controlled incident and production-release checks were skipped where their conditions did not apply.
-- Exact-merge main CI [41849969708](https://github.com/hamedonassar95/Devobs/actions/runs/41849969708) and CodeQL [41849968099](https://github.com/hamedonassar95/Devobs/actions/runs/41849968099) passed. Python, Node, PostgreSQL RLS, security, container, Terraform, and `validate` passed. CI published the static Pages site and `verify-production` passed. The controlled incident drill and conditional restoration checks were skipped.
-- PR #435 adds pinned actionlint `v1.7.12` and ShellCheck `0.11.0` validation for 30 authored workflow files in the existing security job, and fixes seven ShellCheck findings. Five generated gh-aw `.lock.yml` files are excluded because the pinned actionlint version does not support their `concurrency.queue` key; the existing gh-aw specification checks remain active. This is static workflow lint evidence, not runtime proof.
+- Exact-merge main CI [41875788207](https://github.com/hamedonassar95/Devobs/actions/runs/41875788207) and Push on main/CodeQL [41875787729](https://github.com/hamedonassar95/Devobs/actions/runs/41875787729) passed on the merge SHA. CI passed `validate`, Python, Node, PostgreSQL RLS, security, container, Terraform, static Pages publication, and `verify-production`; CodeQL passed for Actions, JavaScript/TypeScript, and Python. Controlled incident and conditional restore checks were skipped.
+- PR #437 adds a manual, read-only OpenSSF Scorecard report workflow using a checksum-pinned CLI. Manual run [41879187351](https://github.com/hamedonassar95/Devobs/actions/runs/41879187351) completed successfully; the report is displayed in the Actions run summary. No JSON artifact was uploaded and no API publish occurred. The run result is not evidence of AI inference or service runtime.
+- Prior PR #435 added pinned actionlint `v1.7.12` and ShellCheck `0.11.0` validation for 30 authored workflow files in the existing security job, and fixed seven ShellCheck findings. Five generated gh-aw `.lock.yml` files are excluded because the pinned actionlint version does not support their `concurrency.queue` key; existing gh-aw specification checks remain active. This is static workflow lint evidence, not runtime proof.
 - The advisory Codex review workflow completing does not establish that an AI model call succeeded. No new runtime or model-inference evidence is claimed by this PR.
 - P01 database-only synthetic RLS evidence from the earlier #433 snapshot remains limited to PostgreSQL isolation behavior; it does not establish API runtime, OIDC/JWKS, spending cap, restoration, or P01 GO. See [P01 activation readiness](P01_ACTIVATION_READINESS.md).
 - Gate dispositions remain AI-9 **FAIL / BLOCKED**, P01 **NO-GO / BLOCKED**, and Codex agent runtime **OPEN**.
 
-## Prior snapshot — 2026-11-04 (after PR #433; superseded by PR #435)
+## Prior snapshot — 2026-11-04 (after PR #433; superseded by PR #437)
 
 **VERIFIED from GitHub:** `main` was merge SHA `b5ce4a42f10176da1bc0194461353281f64c3707`, from PR [#433](https://github.com/hamedonassar95/Devobs/pull/433), head `07ed303fc42df48b3c0154591e4b63a5ce5ea8ef`.
 

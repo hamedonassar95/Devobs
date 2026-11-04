@@ -1,0 +1,76 @@
+name: Zizmor workflow security report
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: zizmor-report-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  report:
+    name: Report authored workflow findings (informational)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the repository without persistent credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install checksum-pinned zizmor CLI
+        env:
+          ZIZMOR_VERSION: "1.32.0"
+          ZIZMOR_SHA256: "bb110cc765eca9cd7efb2e284a956be5974c60027b0970f16397d86208a9957b"
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/zizmor_${ZIZMOR_VERSION}_linux_amd64.tar.gz"
+          curl --fail --location --silent --show-error --retry 3 \
+            "https://github.com/zizmorcore/zizmor/releases/download/v${ZIZMOR_VERSION}/zizmor-x86_64-unknown-linux-gnu.tar.gz" \
+            --output "$archive"
+          printf '%s  %s\n' "$ZIZMOR_SHA256" "$archive" | sha256sum --check
+          mkdir -p "$RUNNER_TEMP/zizmor-extract"
+          tar -xzf "$archive" -C "$RUNNER_TEMP/zizmor-extract" zizmor
+          install -m 0755 "$RUNNER_TEMP/zizmor-extract/zizmor" "$RUNNER_TEMP/zizmor-bin"
+          "$RUNNER_TEMP/zizmor-bin" --version > "$RUNNER_TEMP/zizmor-version.txt"
+          grep --fixed-strings --quiet "zizmor ${ZIZMOR_VERSION}" "$RUNNER_TEMP/zizmor-version.txt"
+
+      - name: Select hand-authored workflow sources
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' > "$RUNNER_TEMP/zizmor-workflows.nul"
+          import sys
+          from scripts.lint_authored_workflows import list_authored_workflows
+
+          for workflow in list_authored_workflows():
+              sys.stdout.buffer.write(workflow.encode("utf-8") + b"\0")
+          PY
+
+      - name: Run zizmor offline and summarize findings
+        env:
+          ZIZMOR_REPORT: ${{ runner.temp }}/zizmor-results.json
+        run: |
+          set -euo pipefail
+          mapfile -d '' -t workflow_files < "$RUNNER_TEMP/zizmor-workflows.nul"
+          ((${#workflow_files[@]} > 0)) || {
+            echo "::error::No authored GitHub Actions workflows were selected."
+            exit 1
+          }
+          # Findings are shown in the report; parser/tool errors still fail this manual report.
+          # CLI reference: https://docs.zizmor.sh/
+          "$RUNNER_TEMP/zizmor-bin" \
+            --offline \
+            --strict-collection \
+            --no-config \
+            --no-progress \
+            --color never \
+            --format json \
+            --no-exit-codes \
+            --collect=workflows \
+            "${workflow_files[@]}" > "$ZIZMOR_REPORT"
+          test -s "$ZIZMOR_REPORT"
+          python3 scripts/summarize_zizmor_report.py "$ZIZMOR_REPORT"
