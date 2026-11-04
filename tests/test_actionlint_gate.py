@@ -77,6 +77,9 @@ class ActionlintGateTests(unittest.TestCase):
         security_job = WORKFLOW.split("  security:\n", 1)[1].split("\n  site-contract:", 1)[0]
         self.assertIn("- name: Install pinned actionlint CLI\n", security_job)
         install_step = security_job.split("- name: Install pinned actionlint CLI\n", 1)[1].split(
+            "- name: Install pinned ShellCheck CLI for actionlint\n", 1
+        )[0]
+        shellcheck_step = security_job.split("- name: Install pinned ShellCheck CLI for actionlint\n", 1)[1].split(
             "- name: Lint authored GitHub Actions workflow files\n", 1
         )[0]
         lint_step = security_job.split("- name: Lint authored GitHub Actions workflow files\n", 1)[1].split(
@@ -91,6 +94,16 @@ class ActionlintGateTests(unittest.TestCase):
         )
         self.assertIn("sha256sum --check", install_step)
         self.assertLess(install_step.index("sha256sum --check"), install_step.index("tar -xzf"))
+        self.assertIn('SHELLCHECK_VERSION: "0.11.0"', shellcheck_step)
+        self.assertIn(
+            'SHELLCHECK_SHA256: "b7af85e41cc99489dcc21d66c6d5f3685138f06d34651e6d34b42ec6d54fe6f6"',
+            shellcheck_step,
+        )
+        self.assertIn("koalaman/shellcheck/releases/download/v${SHELLCHECK_VERSION}", shellcheck_step)
+        self.assertIn("if: github.event_name == 'pull_request'", shellcheck_step)
+        self.assertIn("sha256sum --check", shellcheck_step)
+        self.assertLess(shellcheck_step.index("sha256sum --check"), shellcheck_step.index("tar -xzf"))
+        self.assertIn('"$tool_dir" >> "$GITHUB_PATH"', shellcheck_step)
         self.assertIn("if: github.event_name == 'pull_request'", lint_step)
         self.assertIn('python3 scripts/lint_authored_workflows.py "$RUNNER_TEMP/actionlint-bin"', lint_step)
 
