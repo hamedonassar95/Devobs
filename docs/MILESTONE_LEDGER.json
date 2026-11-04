@@ -1201,6 +1201,17 @@
       "ci_run_id": 41875788207,
       "verification": "VERIFIED 2026-11-04: PR #437 merged at 783a3d329d829e9c2f10cbd33fa6abe77abda846 from head ff600f7ed15556278fe929df6ccfb8cc20cacde7. Exact-merge main CI 41875788207 and Push on main/CodeQL 41875787729 SUCCESS; validate, Python, Node, RLS, security, container, Terraform, static Pages publication, verify-production and all three CodeQL languages passed. Controlled incident drill and conditional restore checks were skipped. Manual Scorecard run 41879187351 completed SUCCESS.",
       "limitations": "Manual read-only posture report only; the run summary is displayed in GitHub Actions and no JSON artifact or Scorecard API publication was produced. It does not prove live service or AI inference. Gates unchanged: AI-9 FAIL / BLOCKED, P01 NO-GO / BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-zizmor-report-pr438",
+      "area": "CI_SECURITY",
+      "title": "Record verified PR #438 offline zizmor report integration",
+      "pr_number": 438,
+      "pr_head_sha": "711d1d94cdede3e898bf6eae1a7ad447aa3d1756",
+      "merge_sha": "fb6c448ce234ad6e8295cd178225794f94ea044f",
+      "ci_run_id": 41884733066,
+      "verification": "VERIFIED 2026-11-04: PR #438 merged at fb6c448ce234ad6e8295cd178225794f94ea044f from head 711d1d94cdede3e898bf6eae1a7ad447aa3d1756. Exact-head PR CI 41883450110 and 41883488377, CodeQL 41883268953, and Vercel preview SUCCESS. Exact-merge main CI 41884733066 and Push on main/CodeQL 41884731624 SUCCESS; validate, Python, Node, RLS, security, container/Trivy, Terraform, site contract, static Pages publication and verify-production passed. All three CodeQL languages passed. Controlled incident drill and conditional restore checks were skipped.",
+      "limitations": "Adds a manual, read-only zizmor report and Phase 8 input validation; no production service or image is deployed by this change. Successful workflow checks do not prove live runtime or AI model calls. Gates unchanged: AI-9 FAIL / BLOCKED, P01 NO-GO / BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [

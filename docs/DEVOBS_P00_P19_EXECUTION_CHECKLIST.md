@@ -161,6 +161,7 @@
 
 - [ ] **T53: Extend pipeline security scanners.** SAST, SCA, secret scan, container and IaC checks with reproducible failures.
 - [ ] **T54: Produce SBOM and artifact provenance.** Document transitive deps, signed release image and reproducible build.
+  - Partial CI groundwork: generate an unsigned CycloneDX inventory for the exact local image already smoke-tested and vulnerability-scanned, and retain it with SHA-bound evidence for 7 days. This does not provide signed provenance, a signed/reproducible release image, or deployed-image proof; T54 remains open and P09 remains WAITING—P08.
 - [ ] **T55: Pen-test auth, tenant data and approval paths.** Independent or authorized security review, prioritized remediation tracked to tests.
 - [ ] **T56: Complete privacy and legal gap assessment.** Data map, DPA, processors, residency, retention and EU AI Act applicability.
 - [ ] **T57: Establish compliance readiness evidence pack.** SOC 2/ISO 27001/42001 gap ownership, proofs and external review boundaries.

@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr437_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr438_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 437)
-        self.assertEqual(result["merged_milestones"], 109)
+        self.assertEqual(result["latest_pr"], 438)
+        self.assertEqual(result["merged_milestones"], 110)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         scorecard = records[437]
         self.assertEqual(
@@ -1043,6 +1043,18 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(scorecard["ci_run_id"], 41875788207)
         self.assertIn("41879187351", scorecard["verification"])
         self.assertIn("no JSON artifact", scorecard["limitations"])
+        zizmor = records[438]
+        self.assertEqual(
+            zizmor["merge_sha"],
+            "fb6c448ce234ad6e8295cd178225794f94ea044f",
+        )
+        self.assertEqual(
+            zizmor["pr_head_sha"],
+            "711d1d94cdede3e898bf6eae1a7ad447aa3d1756",
+        )
+        self.assertEqual(zizmor["ci_run_id"], 41884733066)
+        self.assertIn("41884731624", zizmor["verification"])
+        self.assertIn("AI-9 FAIL / BLOCKED", zizmor["limitations"])
         actionlint = records[435]
         self.assertEqual(
             actionlint["merge_sha"],

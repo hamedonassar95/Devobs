@@ -1,4 +1,12 @@
-## أحدث دمج موثّق: PR #437 — تحقق 2026-11-04
+## أحدث دمج موثّق: PR #438 — تحقق 2026-11-04
+
+- **VERIFIED من GitHub:** دُمج [PR #438](https://github.com/hamedonassar95/Devobs/pull/438) عند SHA `fb6c448ce234ad6e8295cd178225794f94ea044f` من الرأس `711d1d94cdede3e898bf6eae1a7ad447aa3d1756`.
+- نجح CI على رأس PR في [`41883450110`](https://github.com/hamedonassar95/Devobs/actions/runs/41883450110) و[`41883488377`](https://github.com/hamedonassar95/Devobs/actions/runs/41883488377)، ونجح CodeQL [`41883268953`](https://github.com/hamedonassar95/Devobs/actions/runs/41883268953) للغات Actions وJavaScript/TypeScript وPython. نجحت معاينة Vercel.
+- بعد الدمج، نجح [CI `41884733066`](https://github.com/hamedonassar95/Devobs/actions/runs/41884733066) و[Push on main/CodeQL `41884731624`](https://github.com/hamedonassar95/Devobs/actions/runs/41884731624) على SHA الدمج. اجتاز CI `validate` وPython وNode وRLS والأمن والحاوية/Trivy وTerraform وعقد الموقع ونشر Pages الثابت والتحقق منه؛ اجتازت لغات CodeQL الثلاث. تخطّى تمرين الحادث المضبوط وفحوص الاستعادة المشروطة.
+- يضيف PR #438 تقرير zizmor يدويًا للقراءة فقط، ولا ينشر خدمة أو صورة. نجاح CI أو وجود تكاملات AI لا يثبت استدعاء نموذج حيًا.
+- الحالات لم تتغير: AI-9 **FAIL / BLOCKED**، وP01 **NO-GO / BLOCKED**، وCodex runtime **OPEN**.
+
+## أحدث دمج سابق موثّق: PR #437 — تحقق 2026-11-04
 
 - **VERIFIED من GitHub:** دُمج [PR #437](https://github.com/hamedonassar95/Devobs/pull/437) عند SHA `783a3d329d829e9c2f10cbd33fa6abe77abda846` من الرأس `ff600f7ed15556278fe929df6ccfb8cc20cacde7`.
 - نجح CI بعد الدمج [`41875788207`](https://github.com/hamedonassar95/Devobs/actions/runs/41875788207)، بما فيه `validate` وPython وNode وRLS والأمن والحاوية وTerraform والتحقق من Pages. نجح CodeQL بعد الدمج [`41875787729`](https://github.com/hamedonassar95/Devobs/actions/runs/41875787729) لتحليل Actions وJavaScript/TypeScript وPython. تخطّى تمرين الحادث المضبوط وفحوص الاستعادة المشروطة.

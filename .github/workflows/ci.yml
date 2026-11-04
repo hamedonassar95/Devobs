@@ -427,6 +427,21 @@ jobs:
           tar -xzf "$archive_path" -C "$install_dir" trivy
           sudo install -m 0755 "$install_dir/trivy" /usr/local/bin/trivy
           trivy --version | grep -Fx "Version: $version"
+          echo "TRIVY_VERSION=$version" >> "$GITHUB_ENV"
+      - name: Generate CycloneDX SBOM for the exact Trivy-scanned image
+        env:
+          SBOM_PATH: ${{ runner.temp }}/trivy-image-sbom.cdx.json
+          EVIDENCE_PATH: ${{ runner.temp }}/trivy-image-sbom-evidence.json
+        run: |
+          set -euo pipefail
+          actual_image_id="$(docker image inspect --format '{{.Id}}' "$IMAGE_TAG")"
+          if [[ "$actual_image_id" != "$IMAGE_ID" ]]; then
+            echo '::error::The SBOM image ID differs from the image built and smoke-tested in this job.' >&2
+            exit 1
+          fi
+          # Trivy SBOM output docs: https://trivy.dev/latest/docs/supply-chain/sbom/
+          trivy image --image-src docker --format cyclonedx --output "$SBOM_PATH" "$IMAGE_TAG"
+          python3 scripts/trivy_sbom_policy.py --sbom "$SBOM_PATH" --evidence "$EVIDENCE_PATH" --summary "$GITHUB_STEP_SUMMARY" --revision "$COMMIT_SHA" --expected-image "$IMAGE_TAG" --image-id "$IMAGE_ID" --trivy-version "$TRIVY_VERSION"
       - name: Scan the exact image that passed the smoke test
         env:
           REPORT_PATH: ${{ runner.temp }}/trivy-image-report.json
@@ -449,8 +464,11 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: trivy-image-report-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/trivy-image-report.json
+          name: trivy-image-sbom-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/trivy-image-report.json
+            ${{ runner.temp }}/trivy-image-sbom.cdx.json
+            ${{ runner.temp }}/trivy-image-sbom-evidence.json
           if-no-files-found: error
           retention-days: 7
 
