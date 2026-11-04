@@ -1179,6 +1179,17 @@
       "ci_run_id": 41815601457,
       "verification": "VERIFIED 2026-11-04: PR #433 merged at b5ce4a42f10176da1bc0194461353281f64c3707 from head 07ed303fc42df48b3c0154591e4b63a5ce5ea8ef. PR CI 41815601457, CodeQL 41815599849, push CI 41815402183, and Vercel preview SUCCESS. Exact-merge main CI 41816012226 and Push on main/CodeQL 41816012361 SUCCESS; Pages publish and verify-production passed. Node tests were skipped by path filters on PR/main; incident drill and conditional restore checks were skipped. AI Code Review workflow success is not evidence of a model call.",
       "limitations": "PR #433 adds local SQLite topology-keyring persistence only; no live topology ingestion, remote rollback-proof trust, or AI inference is established. Separate Supabase database-only synthetic RLS evidence is recorded in docs/P01_ACTIVATION_READINESS.md and is not part of #433 or P01 service readiness. AI-9 remains FAIL / BLOCKED, P01 remains NO-GO / BLOCKED, and Codex runtime remains OPEN."
+    },
+    {
+      "id": "merge-evidence-pr435",
+      "area": "CI_SECURITY",
+      "title": "Record verified PR #435 authored workflow lint integration",
+      "pr_number": 435,
+      "pr_head_sha": "0b461fea0a248cd8c43a1e43aeaad702eb8acffe",
+      "merge_sha": "4756f7e125fbaff193f25c84df9ac1073e0fe64c",
+      "ci_run_id": 41846791365,
+      "verification": "VERIFIED 2026-11-04: PR #435 merged at 4756f7e125fbaff193f25c84df9ac1073e0fe64c from head 0b461fea0a248cd8c43a1e43aeaad702eb8acffe. PR CI 41846791365 and 41846781270 SUCCESS; CodeQL 41846784695 SUCCESS for Actions, JavaScript/TypeScript, and Python; Vercel preview SUCCESS. Exact-merge main CI 41849969708 and CodeQL 41849968099 SUCCESS; CI published static Pages and verify-production passed. Controlled incident drill and conditional restore checks were skipped.",
+      "limitations": "Adds static actionlint v1.7.12 and pinned ShellCheck 0.11.0 checks for 30 authored workflows; five generated gh-aw .lock.yml files are excluded because this actionlint version does not support concurrency.queue, with existing gh-aw specification checks retained. Static lint and successful GitHub workflows do not prove application runtime or successful AI model calls. Gates unchanged: AI-9 FAIL / BLOCKED, P01 NO-GO / BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [

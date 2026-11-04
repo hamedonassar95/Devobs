@@ -1,12 +1,23 @@
-## Current snapshot — 2026-11-04 (after PR #433)
+## Current snapshot — 2026-11-04 (after PR #435)
 
-**VERIFIED from GitHub:** `main` is merge SHA `b5ce4a42f10176da1bc0194461353281f64c3707`, from PR [#433](https://github.com/hamedonassar95/Devobs/pull/433), head `07ed303fc42df48b3c0154591e4b63a5ce5ea8ef`.
+**VERIFIED from GitHub:** `main` is merge SHA `4756f7e125fbaff193f25c84df9ac1073e0fe64c`, from PR [#435](https://github.com/hamedonassar95/Devobs/pull/435), head `0b461fea0a248cd8c43a1e43aeaad702eb8acffe`.
 
-- PR CI [41815601457](https://github.com/hamedonassar95/Devobs/actions/runs/41815601457), CodeQL [41815599849](https://github.com/hamedonassar95/Devobs/actions/runs/41815599849), push CI [41815402183](https://github.com/hamedonassar95/Devobs/actions/runs/41815402183), and Vercel preview passed. Node tests were skipped by path filters; the controlled incident drill and production-release job were skipped for the PR.
-- Exact-merge main CI [41816012226](https://github.com/hamedonassar95/Devobs/actions/runs/41816012226) and Push on main/CodeQL [41816012361](https://github.com/hamedonassar95/Devobs/actions/runs/41816012361) passed. The static Pages site was published and `verify-production` passed. Main Node tests and the controlled incident drill were skipped by workflow conditions.
+- PR CI [41846791365](https://github.com/hamedonassar95/Devobs/actions/runs/41846791365) and [41846781270](https://github.com/hamedonassar95/Devobs/actions/runs/41846781270) passed; CodeQL [41846784695](https://github.com/hamedonassar95/Devobs/actions/runs/41846784695) passed for Actions, JavaScript/TypeScript, and Python. Vercel preview passed. Controlled incident and production-release checks were skipped where their conditions did not apply.
+- Exact-merge main CI [41849969708](https://github.com/hamedonassar95/Devobs/actions/runs/41849969708) and CodeQL [41849968099](https://github.com/hamedonassar95/Devobs/actions/runs/41849968099) passed. Python, Node, PostgreSQL RLS, security, container, Terraform, and `validate` passed. CI published the static Pages site and `verify-production` passed. The controlled incident drill and conditional restoration checks were skipped.
+- PR #435 adds pinned actionlint `v1.7.12` and ShellCheck `0.11.0` validation for 30 authored workflow files in the existing security job, and fixes seven ShellCheck findings. Five generated gh-aw `.lock.yml` files are excluded because the pinned actionlint version does not support their `concurrency.queue` key; the existing gh-aw specification checks remain active. This is static workflow lint evidence, not runtime proof.
+- The advisory Codex review workflow completing does not establish that an AI model call succeeded. No new runtime or model-inference evidence is claimed by this PR.
+- P01 database-only synthetic RLS evidence from the earlier #433 snapshot remains limited to PostgreSQL isolation behavior; it does not establish API runtime, OIDC/JWKS, spending cap, restoration, or P01 GO. See [P01 activation readiness](P01_ACTIVATION_READINESS.md).
+- Gate dispositions remain AI-9 **FAIL / BLOCKED**, P01 **NO-GO / BLOCKED**, and Codex agent runtime **OPEN**.
+
+## Prior snapshot — 2026-11-04 (after PR #433; superseded by PR #435)
+
+**VERIFIED from GitHub:** `main` was merge SHA `b5ce4a42f10176da1bc0194461353281f64c3707`, from PR [#433](https://github.com/hamedonassar95/Devobs/pull/433), head `07ed303fc42df48b3c0154591e4b63a5ce5ea8ef`.
+
+- PR CI [41815601457](https://github.com/hamedonassar95/Devobs/actions/runs/41815601457), CodeQL [41815599849](https://github.com/hamedonassar95/Devobs/actions/runs/41815599849), push CI [41815402183](https://github.com/hamedonassar95/Devobs/actions/runs/41815402183), and Vercel preview passed. Node tests were skipped by path filters; controlled incident and production-release checks were skipped where conditions did not apply.
+- Exact-merge main CI [41816012226](https://github.com/hamedonassar95/Devobs/actions/runs/41816012226) and Push on main/CodeQL [41816012361](https://github.com/hamedonassar95/Devobs/actions/runs/41816012361) passed. Static Pages was published and `verify-production` passed.
 - PR #433 adds local SQLite persistence for topology keyring rotation state. It does not establish a live authorized topology source, rollback-proof remote trust, or AI model inference.
-- **P01 evidence update:** a separate live database-only check on an existing Supabase Free project used synthetic identifiers. Forced RLS and the restricted reader role were verified; a transactional isolation check passed and rolled back fixtures. This does not establish an application runtime, API host, OIDC/JWKS, spending cap, restore proof, or P01 GO. Project reference is omitted from this public repo.
-- Gate dispositions remain AI-9 **FAIL / BLOCKED**, P01 **NO-GO / BLOCKED**, and Codex agent runtime **OPEN**. Successful GitHub workflows do not imply model calls.
+- The separate Supabase database-only synthetic RLS evidence is not part of #433 and does not establish application runtime, OIDC/JWKS, spending cap, restore proof, or P01 GO.
+- Gate dispositions remained AI-9 **FAIL / BLOCKED**, P01 **NO-GO / BLOCKED**, and Codex agent runtime **OPEN**.
 
 ## Prior snapshot — 2026-11-03 (after PR #418; superseded by PR #419)
 
