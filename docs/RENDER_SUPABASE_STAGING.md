@@ -1,5 +1,7 @@
 # Devobs managed staging — Render Free + separate Supabase Free proposal
 
+> **Superseded planning note (2026-11-05):** the owner has since selected Render for the staging host and OpenAI for model diagnosis. The current preparation and manual procedure are in [RENDER_OPENAI_STAGING_RUNBOOK.md](RENDER_OPENAI_STAGING_RUNBOOK.md). This file is retained as historical Supabase comparison; it is not the current deployment procedure.
+
 **Status: preparation only; no service or database is provisioned.** This document and [`render.yaml`](../render.yaml) describe a candidate P01 experiment; they do not create resources, connect provider accounts, enter secrets, enable billing, migrate data, or certify readiness. The user's prior approval selected Frankfurt for planning only: Render Frankfurt, Germany and Supabase `eu-central-1` (Frankfurt). It did not approve accounts, deployment, cost, customer data, or any service integration.
 
 **P00 is governance-only GO. P01 remains NO-GO / BLOCKED** until the owner separately authorizes exact provider accounts, an eligible plan, spending conditions, data policy, and a particular create/deploy action. The USD $10/month amount remains a planning target, not a cap or payment consent. Render Free + Supabase Free is the preferred experiment to evaluate, not an approved deployment. All use contemplated here is **synthetic data only**.

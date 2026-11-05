@@ -52,6 +52,15 @@ class FakeDiagnostician:
         return dict(RESULT)
 
 
+class PerTokenVerifier:
+    scopes = frozenset({"devobs.read", "devobs.ai.diagnose"})
+
+    def verify(self, token):
+        if token not in {"synthetic-access-a", "synthetic-access-b"}:
+            raise AuthenticationError("invalid_token")
+        return AuthenticatedPrincipal(token, self.scopes)
+
+
 def send(app, *, token="synthetic-access", body=None, method="POST", headers=None,
          environ_overrides=None):
     raw = b"" if body is None else body if isinstance(body, bytes) else json.dumps(body).encode()
@@ -139,6 +148,18 @@ class ErrorLogDiagnosisApiTests(unittest.TestCase):
         limited = send(app, body=body)
         self.assertEqual(limited[0][:3], "429")
         self.assertEqual(json.loads(limited[2]), {"error": "rate_limited"})
+        self.assertEqual(len(self.provider.calls), 1)
+
+    def test_total_model_limit_applies_across_principals(self):
+        app = make_app(PerTokenVerifier(), self.store, diagnostician=self.provider,
+                       diagnostic_requests_per_window=5,
+                       diagnostic_total_requests_per_window=1, clock=lambda: 100)
+        body = {"error_log": LOG, "data_redacted": True}
+        first = send(app, token="synthetic-access-a", body=body)
+        second = send(app, token="synthetic-access-b", body=body)
+        self.assertEqual(first[0][:3], "200")
+        self.assertEqual(second[0][:3], "429")
+        self.assertEqual(json.loads(second[2]), {"error": "rate_limited"})
         self.assertEqual(len(self.provider.calls), 1)
 
     def test_openapi_contract_matches_the_route_and_response(self):
