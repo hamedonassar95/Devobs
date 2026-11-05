@@ -7,6 +7,7 @@ import sys
 import unittest
 from pathlib import Path
 from unittest.mock import patch
+from psycopg.conninfo import conninfo_to_dict
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import jwt
@@ -114,6 +115,29 @@ class StagingBootstrapTests(unittest.TestCase):
                 with self.assertRaisesRegex(self.module.StagingConfigurationError,
                                             "^invalid_staging_config$"):
                     self.module.build_app(config)
+
+    def test_render_internal_tls_mode_is_explicit_and_render_only(self):
+        config = dict(self.base)
+        config.update({
+            "DEVOBS_PG_DSN": "postgresql://devobs_reader:synthetic@internal-db/staging",
+            "DEVOBS_PG_TLS_MODE": "render-internal-require",
+            "RENDER": "true",
+            "RENDER_SERVICE_TYPE": "web",
+        })
+        parsed = conninfo_to_dict(self.module._database_dsn(config))
+        self.assertEqual(parsed["sslmode"], "require")
+        self.assertEqual(parsed["host"], "internal-db")
+
+        for env_updates in (
+            {"RENDER": "false"},
+            {"RENDER_SERVICE_TYPE": "worker"},
+        ):
+            invalid = dict(config)
+            invalid.update(env_updates)
+            with self.subTest(env_updates=env_updates):
+                with self.assertRaisesRegex(self.module.StagingConfigurationError,
+                                            "^invalid_staging_config$"):
+                    self.module._database_dsn(invalid)
 
     def test_readiness_requires_actual_database_probe(self):
         # Avoid real credentials: readiness checks are isolated behind the store.

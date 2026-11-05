@@ -47,7 +47,7 @@
           "403": {"description": "Missing diagnosis scope or access to the requested service."},
           "405": {"description": "Method not allowed."},
           "413": {"description": "Request body exceeds the configured maximum."},
-          "429": {"description": "Per-subject diagnosis request limit reached."},
+          "429": {"description": "Per-subject or per-process diagnosis request limit reached."},
           "503": {"description": "AI provider disabled or unavailable; details are suppressed."}
         }
       }

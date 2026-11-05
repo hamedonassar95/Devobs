@@ -138,6 +138,7 @@ class _SubjectTenantRateLimiter:
 def make_app(verifier: AccessTokenVerifier, tenant_gate: object, *, diagnostician=None,
              requests_per_window: int = 60, window_seconds: int = 60,
              diagnostic_requests_per_window: int = 5,
+             diagnostic_total_requests_per_window: int = 5,
              max_tracked_principals: int = 4096, max_in_flight: int = 8,
              clock: Callable[[], float] = time.monotonic) -> Callable:
     """Bounded authenticated API: read GETs plus opt-in advisory model diagnosis."""
@@ -145,6 +146,11 @@ def make_app(verifier: AccessTokenVerifier, tenant_gate: object, *, diagnosticia
                                         max_tracked_principals, clock)
     diagnostic_limiter = _SubjectTenantRateLimiter(
         diagnostic_requests_per_window, window_seconds, max_tracked_principals, clock)
+    # Additional per-process ceiling across identities. The Render Blueprint
+    # uses one Gunicorn worker; this reduces burst spend but is not a monthly
+    # provider-enforced spend cap and resets when the process restarts.
+    diagnostic_total_limiter = _SubjectTenantRateLimiter(
+        diagnostic_total_requests_per_window, window_seconds, 1, clock)
     if type(max_in_flight) is not int or max_in_flight < 1:
         raise ValueError("invalid_max_in_flight")
     in_flight = BoundedSemaphore(max_in_flight)
@@ -234,6 +240,16 @@ def make_app(verifier: AccessTokenVerifier, tenant_gate: object, *, diagnosticia
                 except ValueError as error:
                     return _reply(start_response, "400 Bad Request",
                                   {"error": str(error)})
+                try:
+                    total_retry_after = diagnostic_total_limiter.retry_after(
+                        "all-principals", "all-tenants")
+                except Exception:
+                    return _reply(start_response, "503 Service Unavailable",
+                                  {"error": "backend_unavailable"})
+                if total_retry_after is not None:
+                    return _reply(start_response, "429 Too Many Requests",
+                                  {"error": "rate_limited"},
+                                  [("Retry-After", str(total_retry_after))])
                 started = clock()
                 try:
                     result = diagnostician.diagnose(error_log)

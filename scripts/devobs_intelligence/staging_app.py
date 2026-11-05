@@ -2,7 +2,9 @@
 
 This module NEVER fetches OIDC metadata, migrates the database, or provisions
 cloud resources. Operators must supply authenticated metadata/JWKS and a
-restricted, TLS-verified PostgreSQL connection string through a secret store.
+restricted PostgreSQL connection through a secret store. The default database
+mode requires TLS certificate verification; a separate explicit Render-internal
+mode requires TLS encryption but cannot verify Render's self-signed peer cert.
 """
 from __future__ import annotations
 
@@ -12,7 +14,7 @@ from collections.abc import Mapping
 from typing import Callable
 
 from psycopg import Error as PsycopgError
-from psycopg.conninfo import conninfo_to_dict
+from psycopg.conninfo import conninfo_to_dict, make_conninfo
 
 from .api_app import make_app, reject_request_body
 from .oidc_rotation import RotatingOIDCVerifier
@@ -45,15 +47,32 @@ def _database_dsn(settings: Mapping[str, str]) -> str:
         cfg = conninfo_to_dict(dsn)
     except (ValueError, TypeError, PsycopgError):
         raise StagingConfigurationError("invalid_staging_config") from None
-    # Supabase supports verify-full with a trusted CA file installed by operator.
     # Runtime identity must be a dedicated non-owner, never the postgres admin.
     role = cfg.get("user", "")
-    if (cfg.get("sslmode") != "verify-full"
-            or not cfg.get("sslrootcert") or not cfg.get("host")
-            or not cfg.get("dbname") or not cfg.get("password")
+    if (not cfg.get("host") or not cfg.get("dbname") or not cfg.get("password")
             or not role or role == "postgres" or role.startswith("postgres.")):
         raise StagingConfigurationError("invalid_staging_config")
-    return dsn
+    tls_mode = settings.get("DEVOBS_PG_TLS_MODE", "verify-full")
+    if tls_mode == "verify-full":
+        if cfg.get("sslmode") != "verify-full" or not cfg.get("sslrootcert"):
+            raise StagingConfigurationError("invalid_staging_config")
+        return dsn
+    if tls_mode == "render-internal-require":
+        # Render documents that its same-region internal Postgres connection
+        # supports TLS with sslmode=require, but not peer-certificate
+        # verification because its internal certificate is self-signed. This
+        # weaker mode is permitted only for a Render web service and must be
+        # selected explicitly in its Blueprint; all other environments retain
+        # verify-full as the default.
+        if settings.get("RENDER") != "true" or settings.get("RENDER_SERVICE_TYPE") != "web":
+            raise StagingConfigurationError("invalid_staging_config")
+        if cfg.get("sslmode") not in (None, "require"):
+            raise StagingConfigurationError("invalid_staging_config")
+        try:
+            return make_conninfo(dsn, sslmode="require")
+        except (ValueError, TypeError):
+            raise StagingConfigurationError("invalid_staging_config") from None
+    raise StagingConfigurationError("invalid_staging_config")
 
 
 def build_app(settings: Mapping[str, str]) -> Callable:

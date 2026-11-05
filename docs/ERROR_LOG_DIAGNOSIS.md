@@ -8,8 +8,11 @@ POST /v1/tenants/{tenant}/projects/{project}/services/{service}/diagnostics
 
 It accepts only `application/json` with `error_log` and `data_redacted: true`. The
 caller must have the `devobs.ai.diagnose` token scope and be authorized for the
-registered service. Input is limited to 8 KiB of UTF-8; requests are rate-limited
-to five diagnoses per subject and tenant per minute per process. The response
+registered service. Input is limited to 8 KiB of UTF-8 and the complete JSON
+request body is limited to 32 KiB. Requests are rate-limited to five diagnoses
+per subject and tenant per minute and five total valid diagnoses per process
+per minute. Both limits are in-memory, reset on process restart, and do not
+enforce a monthly dollar cap. The Render draft uses one Gunicorn worker. The response
 contains diagnosis, recommendation, severity, confidence, model id, and request
 latency. Logs and model responses are not written to Devobs storage or echoed
 into API errors. The provider response is not retained by the Responses API
@@ -36,10 +39,13 @@ personal or confidential information. Send only logs reviewed and redacted by
 the customer. Model output is untrusted advice and must not trigger automated
 changes or incident actions.
 
-The provider adapter makes one HTTPS request to `POST /v1/responses`, uses a
-strict JSON Schema response, sets `store: false`, caps generation at 512 output
-tokens, refuses redirects, and does not retry. It defaults to `gpt-6-luna`,
+The provider adapter reads only `OPENAI_API_KEY` from the runtime environment,
+makes one HTTPS request to `POST /v1/responses` with a 20-second network timeout,
+uses a strict JSON Schema response, sets `store: false`, caps generation at 512
+output tokens, refuses redirects, and does not retry. It defaults to `gpt-6-luna`,
 which OpenAI documents as its efficient model for focused, high-volume tasks.
+These request/token limits reduce burst and per-request exposure, but they are
+not an account-level monthly spending cap.
 The model can be overridden with `DEVOBS_AI_MODEL` after confirming the model is
 available to the account and supports Structured Outputs.
 
