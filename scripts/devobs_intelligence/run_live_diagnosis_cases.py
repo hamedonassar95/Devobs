@@ -183,7 +183,7 @@ def run_cases(endpoint: str, token: str, *, opener=None, clock=time.perf_counter
             # Keep failures non-sensitive: never serialize exception text or
             # the request object, both of which may contain operator data.
             error = "request_error"
-        latency_ms = max(0, int((clock() - started) * 1000))
+        latency_ms = max(0, int(round((clock() - started) * 1000)))
         valid_output = (
             type(output) is dict
             and all(type(output.get(key)) is str and output[key]

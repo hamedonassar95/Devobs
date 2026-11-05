@@ -2,7 +2,7 @@
 
 **Status: deployment preparation only.** The owner selected Render for staging and OpenAI for diagnosis in the 2026-11-05 request. `render.yaml` and this guide do not create a service, add a key, run migrations, enable paid inference, or prove a live result. PR #440, which introduced the API source baseline, has already merged. The follow-up branch `feat/render-openai-staging` contains this deployment preparation and still requires its own review. No hosted API request or live model call has run. P01 remains NO-GO / BLOCKED until the remaining controls below are verified.
 
-The draft uses one Render Free Python web service and one private Render Free PostgreSQL database in Frankfurt. The API stays disabled by default. The database is for a temporary synthetic test only: Render Free Postgres has a 1 GB limit and expires after 30 days; it has no durable staging guarantee. Render Free web services sleep after 15 minutes without traffic, and workspace build-pipeline/outbound-bandwidth limits are not an all-in invoice cap. Do not use customer logs or real tenant data.
+The draft uses one Render Free Python web service and one private Render Free PostgreSQL database in Frankfurt. **Synthetic data only.** The API stays disabled by default. The database is for a temporary synthetic test only: Render Free Postgres has a 1 GB limit and expires after 30 days; it has no durable staging guarantee. Render Free web services sleep after 15 minutes without traffic, and workspace build-pipeline/outbound-bandwidth limits are not an all-in invoice cap. Do not use customer logs or real tenant data.
 
 ## Limits and trust boundaries in the draft
 

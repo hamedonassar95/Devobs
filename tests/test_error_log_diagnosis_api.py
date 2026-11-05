@@ -151,7 +151,13 @@ class ErrorLogDiagnosisApiTests(unittest.TestCase):
         self.assertEqual(len(self.provider.calls), 1)
 
     def test_total_model_limit_applies_across_principals(self):
-        app = make_app(PerTokenVerifier(), self.store, diagnostician=self.provider,
+        class MultiPrincipalStore:
+            def authorize_service(self, subject, tenant, project, service):
+                return subject in {"synthetic-access-a", "synthetic-access-b"} and (
+                    tenant, project, service
+                ) == ("alpha", "mobile", "api")
+
+        app = make_app(PerTokenVerifier(), MultiPrincipalStore(), diagnostician=self.provider,
                        diagnostic_requests_per_window=5,
                        diagnostic_total_requests_per_window=1, clock=lambda: 100)
         body = {"error_log": LOG, "data_redacted": True}
