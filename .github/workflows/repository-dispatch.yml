@@ -1,0 +1,39 @@
+name: "Repository Dispatch: Devobs AI Intelligence CI"
+
+on:
+  repository_dispatch:
+    types: [devobs_ai_intelligence_ci_passed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repository-dispatch-${{ github.event.action }}-${{ github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  validate-and-ingest:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out trusted AI-1 ingestion code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Check script syntax
+        run: |
+          node --check scripts/ai_intelligence/repository_dispatch_event.mjs
+          node --check scripts/ai_intelligence/event_schema.mjs
+          node --check scripts/ai_intelligence/event_ingest.mjs
+      - name: Test dispatch contract and existing event ingestion
+        run: node --test tests/repository_dispatch_event.test.mjs tests/ai_event_ingest.test.mjs
+      - name: Validate and ingest metadata in runner-local temporary storage
+        env:
+          DISPATCH_EVENT_PATH: ${{ github.event_path }}
+        run: |
+          set -euo pipefail
+          STORE="$RUNNER_TEMP/devobs-dispatch-events.jsonl"
+          trap 'rm -f "$STORE" "$STORE.lock" "$STORE".tmp-*' EXIT
+          node scripts/ai_intelligence/repository_dispatch_event.mjs "$DISPATCH_EVENT_PATH" \
+            | node scripts/ai_intelligence/event_ingest.mjs --input - --store "$STORE"
