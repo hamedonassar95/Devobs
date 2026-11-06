@@ -47,6 +47,8 @@ jobs:
           set -euo pipefail
 
           TOKEN="$DEVOBS_REPOSITORY_DISPATCH_TOKEN"
+          TOKEN="${TOKEN#"${TOKEN%%[!$' \t\r\n']*}"}"
+          TOKEN="${TOKEN%"${TOKEN##*[!$' \t\r\n']}"}"
           if [[ -z "$TOKEN" ]]; then
             echo '::error::missing_dispatch_credential' >&2
             exit 2
