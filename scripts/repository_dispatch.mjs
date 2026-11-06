@@ -42,15 +42,18 @@ export function createDispatchBody(run) {
 }
 
 export async function sendDispatch(body, token, fetchImpl = fetch) {
-  if (typeof token !== 'string' || token.length === 0) {
+  if (typeof token !== 'string') {
     throw new Error('missing_dispatch_credential');
   }
+  const normalizedToken = token.trim();
+  if (normalizedToken.length === 0) throw new Error('missing_dispatch_credential');
+  if (/[\r\n]/.test(normalizedToken)) throw new Error('invalid_dispatch_credential_format');
 
   const response = await fetchImpl(API_URL, {
     method: 'POST',
     headers: {
       Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${normalizedToken}`,
       'X-GitHub-Api-Version': API_VERSION,
       'Content-Type': 'application/json',
     },
@@ -61,6 +64,13 @@ export async function sendDispatch(body, token, fetchImpl = fetch) {
   if (response.status !== 204) {
     throw new Error(`dispatch_http_${response.status}`);
   }
+}
+
+export function classifyDispatchError(error) {
+  if (error instanceof Error && /^[a-z0-9_]+$/.test(error.message)) return error.message;
+  if (error?.name === 'AbortError' || error?.name === 'TimeoutError') return 'dispatch_timeout';
+  if (error?.name === 'TypeError') return 'dispatch_transport_error';
+  return 'dispatch_failed';
 }
 
 export async function main({ eventPath = process.env.GITHUB_EVENT_PATH,
@@ -77,10 +87,7 @@ export async function main({ eventPath = process.env.GITHUB_EVENT_PATH,
     process.stdout.write('GitHub accepted the repository_dispatch event.\n');
     return 0;
   } catch (error) {
-    const code = error instanceof Error && /^[a-z0-9_]+$/.test(error.message)
-      ? error.message
-      : 'dispatch_failed';
-    process.stderr.write(`repository-dispatch: ${code}\n`);
+    process.stderr.write(`repository-dispatch: ${classifyDispatchError(error)}\n`);
     return 2;
   }
 }

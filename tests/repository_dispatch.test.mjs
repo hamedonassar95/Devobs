@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  classifyDispatchError,
   createDispatchBody,
   DISPATCH_EVENT_TYPE,
   sendDispatch,
@@ -33,6 +34,21 @@ test('sender posts only the prepared event to the fixed Devobs target', async ()
   assert.equal(request.options.method, 'POST');
   assert.equal(request.options.headers.Authorization, 'Bearer test-only-token');
   assert.deepEqual(JSON.parse(request.options.body), body);
+});
+
+test('sender trims surrounding token whitespace without exposing the token', async () => {
+  let authorization;
+  await sendDispatch(createDispatchBody(validRun()), '  test-only-token\n', async (_url, options) => {
+    authorization = options.headers.Authorization;
+    return { status: 204 };
+  });
+  assert.equal(authorization, 'Bearer test-only-token');
+});
+
+test('dispatch errors report safe categories and never surface messages', () => {
+  assert.equal(classifyDispatchError(new Error('dispatch_http_403')), 'dispatch_http_403');
+  assert.equal(classifyDispatchError(new TypeError('secret-bearing error text')), 'dispatch_transport_error');
+  assert.equal(classifyDispatchError(new Error('untrusted detail')), 'dispatch_failed');
 });
 
 test('dispatch body contains only bounded source build metadata', () => {
