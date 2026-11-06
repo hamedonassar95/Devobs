@@ -53,7 +53,7 @@ jobs:
             echo '::error::missing_dispatch_credential' >&2
             exit 2
           fi
-          if [[ ! "$TOKEN" =~ ^[A-Za-z0-9_]+$ ]]; then
+          if [[ "$TOKEN" =~ [[:cntrl:]] || "$TOKEN" == *'"'* || "$TOKEN" == *'\'* ]]; then
             echo '::error::invalid_dispatch_credential_format' >&2
             exit 2
           fi
