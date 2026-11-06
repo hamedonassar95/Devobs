@@ -33,7 +33,44 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
+      - name: Prepare metadata-only repository dispatch payload
+        env:
+          DISPATCH_EVENT_PATH: ${{ github.event_path }}
+          DISPATCH_PAYLOAD_PATH: ${{ runner.temp }}/devobs-repository-dispatch.json
+        run: node scripts/repository_dispatch.mjs --prepare "$DISPATCH_EVENT_PATH" "$DISPATCH_PAYLOAD_PATH"
       - name: Send metadata-only repository dispatch
         env:
           DEVOBS_REPOSITORY_DISPATCH_TOKEN: ${{ secrets.DEVOBS_REPOSITORY_DISPATCH_TOKEN }}
-        run: node scripts/repository_dispatch.mjs
+          DISPATCH_PAYLOAD_PATH: ${{ runner.temp }}/devobs-repository-dispatch.json
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TOKEN="$DEVOBS_REPOSITORY_DISPATCH_TOKEN"
+          if [[ -z "$TOKEN" ]]; then
+            echo '::error::missing_dispatch_credential' >&2
+            exit 2
+          fi
+          if [[ ! "$TOKEN" =~ ^[A-Za-z0-9_]+$ ]]; then
+            echo '::error::invalid_dispatch_credential_format' >&2
+            exit 2
+          fi
+
+          if ! STATUS="$(
+            printf 'header = "Authorization: Bearer %s"\n' "$TOKEN" |
+              curl --silent --output /dev/null --write-out '%{http_code}' --max-time 10 --config - \
+                --header 'Accept: application/vnd.github+json' \
+                --header 'X-GitHub-Api-Version: 2022-11-28' \
+                --header 'Content-Type: application/json' \
+                --data-binary "@$DISPATCH_PAYLOAD_PATH" \
+                'https://api.github.com/repos/hamedonassar95/Devobs/dispatches'
+          )"; then
+            echo '::error::dispatch_transport_error' >&2
+            exit 2
+          fi
+
+          if [[ "$STATUS" != '204' ]]; then
+            echo "::error::dispatch_http_$STATUS" >&2
+            exit 2
+          fi
+          echo 'GitHub accepted the metadata-only repository_dispatch event.'

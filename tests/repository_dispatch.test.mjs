@@ -1,11 +1,14 @@
 import assert from 'node:assert/strict';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import test from 'node:test';
 
 import {
   classifyDispatchError,
   createDispatchBody,
   DISPATCH_EVENT_TYPE,
-  sendDispatch,
+  prepareDispatchPayload,
   SOURCE_REPOSITORY,
   SOURCE_WORKFLOW,
   TARGET_REPOSITORY,
@@ -23,32 +26,25 @@ const validRun = () => ({
   head_sha: sha,
 });
 
-test('sender posts only the prepared event to the fixed Devobs target', async () => {
-  const body = createDispatchBody(validRun());
-  let request;
-  await sendDispatch(body, 'test-only-token', async (url, options) => {
-    request = { url, options };
-    return { status: 204 };
-  });
-  assert.equal(request.url, 'https://api.github.com/repos/hamedonassar95/Devobs/dispatches');
-  assert.equal(request.options.method, 'POST');
-  assert.equal(request.options.headers.Authorization, 'Bearer test-only-token');
-  assert.deepEqual(JSON.parse(request.options.body), body);
+test('payload preparation writes only the approved metadata event', async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'devobs-dispatch-'));
+  const eventPath = path.join(directory, 'event.json');
+  const outputPath = path.join(directory, 'payload.json');
+  const event = { workflow_run: validRun() };
+  try {
+    await writeFile(eventPath, JSON.stringify(event));
+    const body = await prepareDispatchPayload(eventPath, outputPath);
+    assert.deepEqual(body, createDispatchBody(event.workflow_run));
+    assert.deepEqual(JSON.parse(await readFile(outputPath, 'utf8')), body);
+    await assert.rejects(prepareDispatchPayload(eventPath, outputPath));
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
 });
 
-test('sender trims surrounding token whitespace without exposing the token', async () => {
-  let authorization;
-  await sendDispatch(createDispatchBody(validRun()), '  test-only-token\n', async (_url, options) => {
-    authorization = options.headers.Authorization;
-    return { status: 204 };
-  });
-  assert.equal(authorization, 'Bearer test-only-token');
-});
-
-test('dispatch errors report safe categories and never surface messages', () => {
-  assert.equal(classifyDispatchError(new Error('dispatch_http_403')), 'dispatch_http_403');
-  assert.equal(classifyDispatchError(new TypeError('secret-bearing error text')), 'dispatch_transport_error');
+test('payload preparation errors never surface input contents', () => {
   assert.equal(classifyDispatchError(new Error('untrusted detail')), 'dispatch_failed');
+  assert.equal(classifyDispatchError(new Error('dispatch_out_of_scope')), 'dispatch_out_of_scope');
 });
 
 test('dispatch body contains only bounded source build metadata', () => {
