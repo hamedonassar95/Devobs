@@ -124,6 +124,7 @@ jobs:
         run: |
           node --check scripts/ai_intelligence/event_schema.mjs
           node --check scripts/ai_intelligence/event_ingest.mjs
+          node --check scripts/ai_intelligence/repository_dispatch_event.mjs
           node --check scripts/ai_intelligence/anomaly_detector.mjs
           node --check scripts/ai_intelligence/anomaly_report.mjs
           node --check scripts/ai_intelligence/incident_analysis.mjs
@@ -146,6 +147,7 @@ jobs:
           node --check scripts/ai_intelligence/ai9_coherent_onset_v3_replay.mjs
           node --check scripts/ai_intelligence/ai9_v3_frozen_holdout_once.mjs
           node --check tests/ai_event_ingest.test.mjs
+          node --check tests/repository_dispatch_event.test.mjs
           node --check tests/ai_anomaly_detector.test.mjs
           node --check tests/ai_incident_analysis.test.mjs
           node --check tests/ai_recommendations.test.mjs
@@ -162,7 +164,7 @@ jobs:
           node --check tests/ai9_coherent_onset_v3.test.mjs
           node --check tests/ai9_coherent_onset_v3_replay.test.mjs
           node --check tests/ai9_v3_frozen_holdout_contract.test.mjs
-          node --test tests/incident_guard.test.cjs tests/ai_event_ingest.test.mjs tests/ai_anomaly_detector.test.mjs tests/ai_incident_analysis.test.mjs tests/ai_recommendations.test.mjs tests/ai_trend_forecast.test.mjs tests/ai_feedback_learning.test.mjs tests/ai_dashboard_api.test.mjs
+          node --test tests/incident_guard.test.cjs tests/ai_event_ingest.test.mjs tests/repository_dispatch_event.test.mjs tests/ai_anomaly_detector.test.mjs tests/ai_incident_analysis.test.mjs tests/ai_recommendations.test.mjs tests/ai_trend_forecast.test.mjs tests/ai_feedback_learning.test.mjs tests/ai_dashboard_api.test.mjs
           node --test tests/post_detector_confirmation_adapter.test.mjs
           node --test tests/post_detector_confirmation_journal.test.mjs
           node --test tests/ai9_fp_slice_exploration.test.mjs
