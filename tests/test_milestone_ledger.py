@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr444_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr445_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 444)
-        self.assertEqual(result["merged_milestones"], 115)
+        self.assertEqual(result["latest_pr"], 445)
+        self.assertEqual(result["merged_milestones"], 116)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         scorecard = records[437]
         self.assertEqual(
@@ -1263,6 +1263,11 @@ class MilestoneLedgerTests(unittest.TestCase):
                 "96698a7e1ed4c50fe85ca8996760b65be75863c5",
                 42411639299,
             ),
+            445: (
+                "ae780aa23c4c20541dcf7715109aa3920fbb4ce2",
+                "0ea63c5d7ca7ccb3a5f3ca3a97b3206804ff7224",
+                42416177822,
+            ),
         }
         for pr_number, (head_sha, merge_sha, run_id) in recent_merges.items():
             entry = records[pr_number]
@@ -1284,6 +1289,10 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("42411638478", records[444]["verification"])
         self.assertIn("verify-production passed", records[444]["verification"])
         self.assertIn("No post-merge repository_dispatch event", records[444]["limitations"])
+        self.assertIn("42416005932", records[445]["verification"])
+        self.assertIn("42416177272", records[445]["verification"])
+        self.assertIn("Node CI job skipped by path filtering", records[445]["verification"])
+        self.assertIn("no model inference is claimed", records[445]["limitations"])
         self.assertEqual(
             {gate["id"]: gate["status"] for gate in self.data["gates"]},
             {
