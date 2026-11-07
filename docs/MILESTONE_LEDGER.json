@@ -1256,6 +1256,17 @@
       "ci_run_id": 42144057744,
       "verification": "VERIFIED 2026-11-07: PR #442 merged at 4b5923254c52b61e87a7afd77301ee4e3719b4aa from head 3e64be9b530708c9ee2a6080c17d72ef0487b85d. Exact-head PR CI 42143283969 and CodeQL 42143278800 SUCCESS. Exact-merge main CI 42144057744 and Push on main/CodeQL 42144056625 SUCCESS; validate, Python, Node, RLS, security, container, Terraform, site-contract, Pages publication and verify-production passed. Receiver runs 42204373063 and 42213639979 both SUCCESS on the merge SHA.",
       "limitations": "Adds a metadata-only repository_dispatch receiver and contract validation; the two receiver runs succeeded, but their originating source event linkage was not independently established from the retrieved run metadata. PR description reports an earlier sender attempt failed with missing_dispatch_credential. No AI inference, customer data processing or production action is established. Gates unchanged: AI-9 BLOCKED, P01 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-dispatch-summary-pr444",
+      "area": "PLATFORM",
+      "title": "Record verified PR #444 repository-dispatch provenance summary",
+      "pr_number": 444,
+      "pr_head_sha": "f58c4528ee59e977693bd3469702317fafbb403b",
+      "merge_sha": "96698a7e1ed4c50fe85ca8996760b65be75863c5",
+      "ci_run_id": 42411639299,
+      "verification": "VERIFIED 2026-11-07: PR #444 merged at 96698a7e1ed4c50fe85ca8996760b65be75863c5 from head f58c4528ee59e977693bd3469702317fafbb403b. Exact-head PR CI 42411292978 and CodeQL 42411290552 SUCCESS. Exact-merge main CI 42411639299 and Push on main/CodeQL 42411638478 SUCCESS; Python, Node, RLS, security, container/Trivy, Terraform, site-contract, static Pages publication and verify-production passed. Controlled incident drill and automatic restoration checks were skipped by conditions.",
+      "limitations": "Adds an allowlisted source-run/commit summary after metadata ingestion; displayed source fields remain payload claims and are not independently authenticated. No post-merge repository_dispatch event has produced a live summary. AI Code Review 42411292976 completed with its model step skipped by the budget gate; no model inference is claimed. Gates unchanged: AI-9 BLOCKED, P01 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
