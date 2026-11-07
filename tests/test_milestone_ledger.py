@@ -1026,11 +1026,44 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr448_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr450_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 448)
-        self.assertEqual(result["merged_milestones"], 119)
+        self.assertEqual(result["latest_pr"], 450)
+        self.assertEqual(result["merged_milestones"], 121)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
+        evidence_sync_449 = records[449]
+        self.assertEqual(
+            evidence_sync_449["pr_head_sha"],
+            "423673da4fa8c1754ebf9b6ee94b5d14149e545f",
+        )
+        self.assertEqual(
+            evidence_sync_449["merge_sha"],
+            "0e8c03e5ba4df6e7aa09f63e64918103606d8814",
+        )
+        self.assertEqual(evidence_sync_449["ci_run_id"], 42425213432)
+        self.assertIn("Exact-merge main CI 42425213432", evidence_sync_449["verification"])
+        self.assertIn("Documentation/test synchronization", evidence_sync_449["limitations"])
+        foundation_450 = records[450]
+        self.assertEqual(
+            foundation_450["pr_head_sha"],
+            "adf08378470dc0bf93b286a1a44a981bf1e2cb2e",
+        )
+        self.assertEqual(
+            foundation_450["merge_sha"],
+            "fe19ff799a9eb8d2be42e5ff788b8b1a252f79a3",
+        )
+        self.assertEqual(foundation_450["ci_run_id"], 42425329761)
+        self.assertIn("Exact-merge main CI 42425329761", foundation_450["verification"])
+        self.assertIn("PR #451 merged only into", foundation_450["limitations"])
+        self.assertIn("not main", foundation_450["limitations"])
+        self.assertEqual(
+            {gate["id"]: gate["status"] for gate in self.data["gates"]},
+            {
+                "ai9-detection-quality": "BLOCKED",
+                "p01-managed-saas": "BLOCKED",
+                "codex-agent-runtime-acceptance": "OPEN",
+            },
+        )
         evidence_sync_448 = records[448]
         self.assertEqual(
             evidence_sync_448["pr_head_sha"],
