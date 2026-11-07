@@ -11,15 +11,33 @@
 <body>
   <main class="layout">
     <header class="hero">
-      <p class="eyebrow">AI-7 · محلي · قراءة فقط</p>
+      <p class="eyebrow">AI-1 إلى AI-7 · مسار موحّد · محلي · استرشادي</p>
       <h1>لوحة الذكاء التشغيلي</h1>
-      <p>ملخص للأحداث المحلية، فرضيات الحوادث، والتوصيات التي تحتاج مراجعة بشرية.</p>
+      <p>تجمع المحركات المحلية في تقرير واحد للأحداث والشذوذ والاتجاهات والفرضيات والتوصيات التي تحتاج مراجعة بشرية.</p>
       <p id="status" class="status" role="status" aria-live="polite">جارٍ تحميل اللقطة المحلية…</p>
     </header>
 
     <section aria-labelledby="summary-title">
       <h2 id="summary-title">الملخص</h2>
       <dl id="summary" class="summary-grid"></dl>
+    </section>
+
+    <section aria-labelledby="pipeline-title">
+      <h2 id="pipeline-title">مسار التحليل الموحد · AI-1 إلى AI-7</h2>
+      <p class="notice">يعرض التقرير حالة كل مرحلة. كلمة «جاهز» تعني أن التحليل المحلي نُفذ، ولا تعني أن النموذج اجتاز معايرة إنتاجية.</p>
+      <div id="pipeline" class="card-grid"></div>
+    </section>
+
+    <section aria-labelledby="anomalies-title">
+      <h2 id="anomalies-title">AI-2 · كشف الشذوذ</h2>
+      <p class="notice">الإشارات إحصائية استرشادية وتحتاج مراجعة المشغّل.</p>
+      <div id="anomalies" class="card-grid"></div>
+    </section>
+
+    <section aria-labelledby="trends-title">
+      <h2 id="trends-title">AI-5 · الاتجاهات والاستقراء</h2>
+      <p class="notice">الاستقراء لليوم التالي أولي، بلا فواصل ثقة أو معايرة، ولا يُعد إنذارًا أو توقعًا موثوقًا.</p>
+      <div id="trends" class="card-grid"></div>
     </section>
 
     <section aria-labelledby="incidents-title">
@@ -33,7 +51,7 @@
       <div id="recommendations" class="card-grid"></div>
     </section>
 
-    <footer>الواجهة تعرض لقطة من ملفات محلية عند بدء الخادم. أوقف الخادم بـCtrl+C. لا تُدخل بيانات حساسة.</footer>
+    <footer>الواجهة تعرض لقطة من ملفات محلية عند بدء الخادم. أعد تشغيل الخادم بعد تحديثها. أوقفه بـCtrl+C. لا تُدخل بيانات حساسة.</footer>
   </main>
 </body>
 </html>
