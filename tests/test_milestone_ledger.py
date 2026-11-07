@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr442_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr444_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 442)
-        self.assertEqual(result["merged_milestones"], 114)
+        self.assertEqual(result["latest_pr"], 444)
+        self.assertEqual(result["merged_milestones"], 115)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         scorecard = records[437]
         self.assertEqual(
@@ -1258,6 +1258,11 @@ class MilestoneLedgerTests(unittest.TestCase):
                 "4b5923254c52b61e87a7afd77301ee4e3719b4aa",
                 42144057744,
             ),
+            444: (
+                "f58c4528ee59e977693bd3469702317fafbb403b",
+                "96698a7e1ed4c50fe85ca8996760b65be75863c5",
+                42411639299,
+            ),
         }
         for pr_number, (head_sha, merge_sha, run_id) in recent_merges.items():
             entry = records[pr_number]
@@ -1275,6 +1280,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             "source event linkage was not independently established",
             records[442]["limitations"],
         )
+        self.assertIn("42411290552", records[444]["verification"])
+        self.assertIn("42411638478", records[444]["verification"])
+        self.assertIn("verify-production passed", records[444]["verification"])
+        self.assertIn("No post-merge repository_dispatch event", records[444]["limitations"])
         self.assertEqual(
             {gate["id"]: gate["status"] for gate in self.data["gates"]},
             {
