@@ -1212,6 +1212,50 @@
       "ci_run_id": 41884733066,
       "verification": "VERIFIED 2026-11-04: PR #438 merged at fb6c448ce234ad6e8295cd178225794f94ea044f from head 711d1d94cdede3e898bf6eae1a7ad447aa3d1756. Exact-head PR CI 41883450110 and 41883488377, CodeQL 41883268953, and Vercel preview SUCCESS. Exact-merge main CI 41884733066 and Push on main/CodeQL 41884731624 SUCCESS; validate, Python, Node, RLS, security, container/Trivy, Terraform, site contract, static Pages publication and verify-production passed. All three CodeQL languages passed. Controlled incident drill and conditional restore checks were skipped.",
       "limitations": "Adds a manual, read-only zizmor report and Phase 8 input validation; no production service or image is deployed by this change. Successful workflow checks do not prove live runtime or AI model calls. Gates unchanged: AI-9 FAIL / BLOCKED, P01 NO-GO / BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-sbom-pr439",
+      "area": "CI_SECURITY",
+      "title": "Record verified PR #439 CycloneDX SBOM integration and partial post-merge CI",
+      "pr_number": 439,
+      "pr_head_sha": "8913531b0c592f8783434a164aaa69acb41d7618",
+      "merge_sha": "6aa6963996b4f98d112b45af9c52631adcecb81e",
+      "ci_run_id": 41891798822,
+      "verification": "VERIFIED 2026-11-07: PR #439 merged at 6aa6963996b4f98d112b45af9c52631adcecb81e from head 8913531b0c592f8783434a164aaa69acb41d7618. Exact-head PR CI 41889983866 and PR CodeQL 41889979467 SUCCESS. Exact-merge main CI 41891798822 was CANCELLED during Pages publication; validate, Python, Node, RLS, security, container, Terraform and site-contract jobs succeeded. Push on main/CodeQL 41891797970 SUCCESS.",
+      "limitations": "Adds an unsigned CycloneDX SBOM and SHA-bound 7-day artifact for the same locally built, smoke-tested and scanned image. Exact-merge CI was cancelled during Pages publication; Pages publish and verify-production are not claimed successful for this SHA. SBOM is not signed provenance, a release image or deployment proof. Gates unchanged: AI-9 BLOCKED, P01 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-ai-diagnostics-pr440",
+      "area": "PLATFORM",
+      "title": "Record verified PR #440 opt-in AI error-log diagnosis endpoint",
+      "pr_number": 440,
+      "pr_head_sha": "b2700d26090480dddc7321a1a3536c20223b91f7",
+      "merge_sha": "d21f9008fa492b154218c113b53a78cd87f8f8b1",
+      "ci_run_id": 41903748967,
+      "verification": "VERIFIED 2026-11-07: PR #440 merged at d21f9008fa492b154218c113b53a78cd87f8f8b1 from head b2700d26090480dddc7321a1a3536c20223b91f7. Exact-head PR CI 41902902164 and CodeQL 41902896911 SUCCESS. Exact-merge main CI 41903748967 and Push on main/CodeQL 41903747459 SUCCESS; validate, Python, Node, RLS, security, container, Terraform, site-contract, Pages publication and verify-production passed.",
+      "limitations": "Adds an opt-in, disabled-by-default diagnostics API with bounded/redacted inputs and structured advisory output. No real OpenAI request, hosted service, paid inference or tenant-isolation end-to-end proof is established. P01 remains NO-GO / BLOCKED; AI-9 remains FAIL / BLOCKED; Codex runtime remains OPEN."
+    },
+    {
+      "id": "merge-evidence-render-openai-prep-pr441",
+      "area": "PLATFORM",
+      "title": "Record verified Render and OpenAI staging preparation",
+      "pr_number": 441,
+      "pr_head_sha": "3e9ebab9838ad72d07d3d4a080109c24611b4661",
+      "merge_sha": "5b75be633b4fd5c797d9e4fdc1e960fd0d68e07e",
+      "ci_run_id": 42008311085,
+      "verification": "VERIFIED 2026-11-07: PR #441 merged at 5b75be633b4fd5c797d9e4fdc1e960fd0d68e07e from head 3e9ebab9838ad72d07d3d4a080109c24611b4661. Exact-head PR CI 42007123598 and CodeQL 42007114471 SUCCESS. Exact-merge main CI 42008311085 and Push on main/CodeQL 42008311248 SUCCESS; validate, Python, Node, RLS, security, container, Terraform, site-contract, Pages publication and verify-production passed.",
+      "limitations": "Adds a manually activated Render Blueprint and runbook; no Render resource, database, hosted request, migration or OpenAI call was created or run. The in-memory limiter is not a monthly spend cap; Render Free Postgres expiry and internal TLS verify-full gap remain. P01 stays NO-GO / BLOCKED; AI-9 FAIL / BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-repository-dispatch-pr442",
+      "area": "PLATFORM",
+      "title": "Record verified repository-dispatch receiver integration",
+      "pr_number": 442,
+      "pr_head_sha": "3e64be9b530708c9ee2a6080c17d72ef0487b85d",
+      "merge_sha": "4b5923254c52b61e87a7afd77301ee4e3719b4aa",
+      "ci_run_id": 42144057744,
+      "verification": "VERIFIED 2026-11-07: PR #442 merged at 4b5923254c52b61e87a7afd77301ee4e3719b4aa from head 3e64be9b530708c9ee2a6080c17d72ef0487b85d. Exact-head PR CI 42143283969 and CodeQL 42143278800 SUCCESS. Exact-merge main CI 42144057744 and Push on main/CodeQL 42144056625 SUCCESS; validate, Python, Node, RLS, security, container, Terraform, site-contract, Pages publication and verify-production passed. Receiver runs 42204373063 and 42213639979 both SUCCESS on the merge SHA.",
+      "limitations": "Adds a metadata-only repository_dispatch receiver and contract validation; the two receiver runs succeeded, but their originating source event linkage was not independently established from the retrieved run metadata. PR description reports an earlier sender attempt failed with missing_dispatch_credential. No AI inference, customer data processing or production action is established. Gates unchanged: AI-9 BLOCKED, P01 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
