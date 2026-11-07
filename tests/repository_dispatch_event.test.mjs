@@ -9,6 +9,7 @@ import { readEventStore } from '../scripts/ai_intelligence/event_ingest.mjs';
 import {
   dispatchToAiEvent,
   DISPATCH_ACTION,
+  renderDispatchSummary,
   SOURCE_REPOSITORY,
   SOURCE_WORKFLOW,
 } from '../scripts/ai_intelligence/repository_dispatch_event.mjs';
@@ -48,6 +49,19 @@ test('approved dispatch becomes a synthetic CI metadata event', () => {
   assert.match(event_id, /^sha256:[0-9a-f]{64}$/);
 });
 
+test('dispatch summary exposes only validated source provenance', () => {
+  const summary = renderDispatchSummary(validDispatch());
+
+  assert.match(summary, /Validated AI CI dispatch metadata/);
+  assert.match(summary, /Source run: \[123456\].*attempt 1/);
+  assert.ok(summary.includes(`Source commit: [\`${sha}\`](https://github.com/${SOURCE_REPOSITORY}/commit/${sha})`));
+  assert.match(summary, /not independent cryptographic authentication/);
+  assert.doesNotMatch(summary, /client_payload|incident_log|Authorization/);
+  assert.throws(() => renderDispatchSummary({
+    ...validDispatch(), client_payload: { ...validDispatch().client_payload, source_run_id: '123456' },
+  }), { code: 'repository_dispatch_out_of_scope' });
+});
+
 test('dispatch rejects wrong action, extra fields, and out-of-scope source metadata', () => {
   assert.throws(() => dispatchToAiEvent({ ...validDispatch(), action: 'other' }), { code: 'invalid_repository_dispatch' });
   assert.throws(() => dispatchToAiEvent({
@@ -84,6 +98,15 @@ test('receiver CLI validates and ingests only bounded CI metadata locally', asyn
   assert.equal(parsed.status, 0, parsed.stderr);
   assert.equal(parsed.stderr, '');
   assert.equal(parsed.stdout.includes('client_payload'), false);
+  const summary = spawnSync(process.execPath, [
+    path.join(ROOT, 'scripts/ai_intelligence/repository_dispatch_event.mjs'), '--summary', inputPath,
+  ], { cwd: ROOT, env, encoding: 'utf8', timeout: 10_000 });
+
+  assert.equal(summary.status, 0, summary.stderr);
+  assert.equal(summary.stderr, '');
+  assert.match(summary.stdout, /Source run: \[123456\]/);
+  assert.match(summary.stdout, new RegExp(sha));
+
   const ingested = spawnSync(process.execPath, [
     path.join(ROOT, 'scripts/ai_intelligence/event_ingest.mjs'),
     '--input', '-', '--store', storePath,

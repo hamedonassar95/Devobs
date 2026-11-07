@@ -64,18 +64,44 @@ export function dispatchToAiEvent(dispatch, occurredAt = new Date().toISOString(
   });
 }
 
+/** Render only the validated, public CI provenance fields for a GitHub job summary. */
+export function renderDispatchSummary(dispatch) {
+  dispatchToAiEvent(dispatch);
+  const payload = dispatch.client_payload;
+  const sourceBaseUrl = `https://github.com/${SOURCE_REPOSITORY}`;
+  return [
+    '## Validated AI CI dispatch metadata',
+    '',
+    `- Source repository: [\`${payload.source_repository}\`](${sourceBaseUrl})`,
+    `- Source workflow: \`${payload.source_workflow}\``,
+    `- Source run: [${payload.source_run_id}](${sourceBaseUrl}/actions/runs/${payload.source_run_id}) (attempt ${payload.source_run_attempt})`,
+    `- Source commit: [\`${payload.source_sha}\`](${sourceBaseUrl}/commit/${payload.source_sha})`,
+    `- Source event/result: \`${payload.source_event}\` / \`${payload.source_conclusion}\``,
+    '',
+    'The receiver validated these payload claims before AI-1 ingestion; this summary is not independent cryptographic authentication of the sender.',
+    '',
+  ].join('\n');
+}
+
 export async function main(args = process.argv.slice(2)) {
   try {
-    if (args.length !== 1 || typeof args[0] !== 'string' || args[0].length === 0) {
+    const summaryMode = args[0] === '--summary';
+    const inputPath = summaryMode ? args[1] : args[0];
+    if (args.length !== (summaryMode ? 2 : 1)
+      || typeof inputPath !== 'string' || inputPath.length === 0) {
       throw new EventIngestError('invalid_arguments');
     }
-    const raw = await readFile(args[0], 'utf8');
+    const raw = await readFile(inputPath, 'utf8');
     if (Buffer.byteLength(raw, 'utf8') > 65_535) throw new EventIngestError('input_too_large');
     let dispatch;
     try {
       dispatch = JSON.parse(raw);
     } catch {
       throw new EventIngestError('invalid_json');
+    }
+    if (summaryMode) {
+      process.stdout.write(renderDispatchSummary(dispatch));
+      return 0;
     }
     const event = dispatchToAiEvent(dispatch);
     process.stdout.write(`${JSON.stringify({
