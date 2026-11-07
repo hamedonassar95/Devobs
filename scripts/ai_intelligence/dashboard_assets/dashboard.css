@@ -21,6 +21,7 @@ h2 { margin: 2rem 0 1rem; font-size: 1.35rem; }
 .metric-card dt, .muted, footer, .notice { color: var(--muted); }
 .metric-card dd { margin: .35rem 0 0; font-size: 1.7rem; font-weight: 700; }
 .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr)); gap: .8rem; }
+.stage-card { border-inline-start: 3px solid var(--accent); }
 .card h3 { margin: 0 0 .5rem; }
 .card p { margin: .4rem 0; }
 .compact-list { margin: .5rem 0; padding-inline-start: 1.25rem; }
