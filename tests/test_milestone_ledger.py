@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr438_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr442_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 438)
-        self.assertEqual(result["merged_milestones"], 110)
+        self.assertEqual(result["latest_pr"], 442)
+        self.assertEqual(result["merged_milestones"], 114)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         scorecard = records[437]
         self.assertEqual(
@@ -1055,6 +1055,23 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(zizmor["ci_run_id"], 41884733066)
         self.assertIn("41884731624", zizmor["verification"])
         self.assertIn("AI-9 FAIL / BLOCKED", zizmor["limitations"])
+
+        recent = {
+            439: ("8913531b0c592f8783434a164aaa69acb41d7618",
+                 "6aa6963996b4f98d112b45af9c52631adcecb81e", 41891798822),
+            440: ("b2700d26090480dddc7321a1a3536c20223b91f7",
+                 "d21f9008fa492b154218c113b53a78cd87f8f8b1", 41903748967),
+            441: ("3e9ebab9838ad72d07d3d4a080109c24611b4661",
+                 "5b75be633b4fd5c797d9e4fdc1e960fd0d68e07e", 42008311085),
+            442: ("3e64be9b530708c9ee2a6080c17d72ef0487b85d",
+                 "4b5923254c52b61e87a7afd77301ee4e3719b4aa", 42144057744),
+        }
+        for pr_number, (head_sha, merge_sha, ci_run_id) in recent.items():
+            with self.subTest(pr_number=pr_number):
+                entry = records[pr_number]
+                self.assertEqual(entry["pr_head_sha"], head_sha)
+                self.assertEqual(entry["merge_sha"], merge_sha)
+                self.assertEqual(entry["ci_run_id"], ci_run_id)
         actionlint = records[435]
         self.assertEqual(
             actionlint["merge_sha"],
