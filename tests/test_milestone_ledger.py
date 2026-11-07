@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr438_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr442_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 438)
-        self.assertEqual(result["merged_milestones"], 110)
+        self.assertEqual(result["latest_pr"], 442)
+        self.assertEqual(result["merged_milestones"], 114)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         scorecard = records[437]
         self.assertEqual(
@@ -1237,6 +1237,44 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("41816012361", latest_merge["verification"])
         self.assertIn("local SQLite topology-keyring persistence", latest_merge["limitations"])
         self.assertIn("P01 remains NO-GO / BLOCKED", latest_merge["limitations"])
+        recent_merges = {
+            439: (
+                "8913531b0c592f8783434a164aaa69acb41d7618",
+                "6aa6963996b4f98d112b45af9c52631adcecb81e",
+                41891798822,
+            ),
+            440: (
+                "b2700d26090480dddc7321a1a3536c20223b91f7",
+                "d21f9008fa492b154218c113b53a78cd87f8f8b1",
+                41903748967,
+            ),
+            441: (
+                "3e9ebab9838ad72d07d3d4a080109c24611b4661",
+                "5b75be633b4fd5c797d9e4fdc1e960fd0d68e07e",
+                42008311085,
+            ),
+            442: (
+                "3e64be9b530708c9ee2a6080c17d72ef0487b85d",
+                "4b5923254c52b61e87a7afd77301ee4e3719b4aa",
+                42144057744,
+            ),
+        }
+        for pr_number, (head_sha, merge_sha, run_id) in recent_merges.items():
+            entry = records[pr_number]
+            self.assertEqual(entry["pr_head_sha"], head_sha)
+            self.assertEqual(entry["merge_sha"], merge_sha)
+            self.assertEqual(entry["ci_run_id"], run_id)
+            self.assertIn("VERIFIED 2026-11-07", entry["verification"])
+        self.assertIn(
+            "Pages publish and verify-production are not claimed successful",
+            records[439]["limitations"],
+        )
+        self.assertIn("No real OpenAI request", records[440]["limitations"])
+        self.assertIn("no Render resource", records[441]["limitations"])
+        self.assertIn(
+            "source event linkage was not independently established",
+            records[442]["limitations"],
+        )
         self.assertEqual(
             {gate["id"]: gate["status"] for gate in self.data["gates"]},
             {
