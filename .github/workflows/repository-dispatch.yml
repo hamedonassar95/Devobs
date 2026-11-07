@@ -33,7 +33,12 @@ jobs:
           DISPATCH_EVENT_PATH: ${{ github.event_path }}
         run: |
           set -euo pipefail
+          umask 077
           STORE="$RUNNER_TEMP/devobs-dispatch-events.jsonl"
-          trap 'rm -f "$STORE" "$STORE.lock" "$STORE".tmp-*' EXIT
+          EVENT="$RUNNER_TEMP/devobs-dispatch-event.jsonl"
+          trap 'rm -f "$STORE" "$STORE.lock" "$STORE".tmp-* "$EVENT"' EXIT
           node scripts/ai_intelligence/repository_dispatch_event.mjs "$DISPATCH_EVENT_PATH" \
+            | tee "$EVENT" \
             | node scripts/ai_intelligence/event_ingest.mjs --input - --store "$STORE"
+          node scripts/ai_intelligence/repository_dispatch_event.mjs --summary "$DISPATCH_EVENT_PATH" \
+            >> "$GITHUB_STEP_SUMMARY"

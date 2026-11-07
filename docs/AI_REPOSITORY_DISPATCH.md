@@ -1,6 +1,6 @@
 # Devobs AI Intelligence repository dispatch
 
-**Status:** workflow implementation prepared on a feature branch; not active until it is reviewed and merged to Devobs `main`, the source workflows reach the source repository's default branch, and the source repository secret is configured.
+**Status:** sender and receiver implementations are present on both default branches. This was verified from read-only refs on 2026-11-07: Devobs `3be14bf017f2be92518edda5d2ffa538e446388d` and DevObs AI Intelligence `4b957cdd47f27f1b46366107c7b1b0a7fca65560`. Secret configuration and end-to-end delivery remain **UNVERIFIED**; do not treat the bridge as operational until a matching successful sender and receiver run is independently confirmed.
 
 The sender in `hamedonassar95/DevObs-ai-Intelligence-` sends event type `devobs_ai_intelligence_ci_passed` only after its `Devobs AI Intelligence CI` workflow succeeds for a push to `main`. The receiver accepts only that event type and validates the exact source repository, branch, workflow, event, successful conclusion, SHA format, run ID, and attempt.
 

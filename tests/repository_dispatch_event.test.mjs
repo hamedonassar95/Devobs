@@ -1,13 +1,20 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import test from 'node:test';
 
+import { readEventStore } from '../scripts/ai_intelligence/event_ingest.mjs';
 import {
   dispatchToAiEvent,
   DISPATCH_ACTION,
+  renderDispatchSummary,
   SOURCE_REPOSITORY,
   SOURCE_WORKFLOW,
 } from '../scripts/ai_intelligence/repository_dispatch_event.mjs';
 
+const ROOT = path.resolve(import.meta.dirname, '..');
 const sha = 'b'.repeat(40);
 const validDispatch = () => ({
   action: DISPATCH_ACTION,
@@ -42,6 +49,19 @@ test('approved dispatch becomes a synthetic CI metadata event', () => {
   assert.match(event_id, /^sha256:[0-9a-f]{64}$/);
 });
 
+test('dispatch summary exposes only validated source provenance', () => {
+  const summary = renderDispatchSummary(validDispatch());
+
+  assert.match(summary, /Validated AI CI dispatch metadata/);
+  assert.match(summary, /Source run: \[123456\].*attempt 1/);
+  assert.ok(summary.includes(`Source commit: [\`${sha}\`](https://github.com/${SOURCE_REPOSITORY}/commit/${sha})`));
+  assert.match(summary, /not independent cryptographic authentication/);
+  assert.doesNotMatch(summary, /client_payload|incident_log|Authorization/);
+  assert.throws(() => renderDispatchSummary({
+    ...validDispatch(), client_payload: { ...validDispatch().client_payload, source_run_id: '123456' },
+  }), { code: 'repository_dispatch_out_of_scope' });
+});
+
 test('dispatch rejects wrong action, extra fields, and out-of-scope source metadata', () => {
   assert.throws(() => dispatchToAiEvent({ ...validDispatch(), action: 'other' }), { code: 'invalid_repository_dispatch' });
   assert.throws(() => dispatchToAiEvent({
@@ -61,4 +81,56 @@ test('dispatch rejects wrong action, extra fields, and out-of-scope source metad
       ...validDispatch(), client_payload: { ...validDispatch().client_payload, ...changes },
     }), { code: 'repository_dispatch_out_of_scope' });
   }
+});
+
+test('receiver CLI validates and ingests only bounded CI metadata locally', async t => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'devobs-dispatch-contract-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const inputPath = path.join(directory, 'dispatch.json');
+  const storePath = path.join(directory, 'events.jsonl');
+  await writeFile(inputPath, JSON.stringify(validDispatch()), 'utf8');
+
+  const env = { PATH: process.env.PATH ?? '' };
+  const parsed = spawnSync(process.execPath, [
+    path.join(ROOT, 'scripts/ai_intelligence/repository_dispatch_event.mjs'), inputPath,
+  ], { cwd: ROOT, env, encoding: 'utf8', timeout: 10_000 });
+
+  assert.equal(parsed.status, 0, parsed.stderr);
+  assert.equal(parsed.stderr, '');
+  assert.equal(parsed.stdout.includes('client_payload'), false);
+  const summary = spawnSync(process.execPath, [
+    path.join(ROOT, 'scripts/ai_intelligence/repository_dispatch_event.mjs'), '--summary', inputPath,
+  ], { cwd: ROOT, env, encoding: 'utf8', timeout: 10_000 });
+
+  assert.equal(summary.status, 0, summary.stderr);
+  assert.equal(summary.stderr, '');
+  assert.match(summary.stdout, /Source run: \[123456\]/);
+  assert.match(summary.stdout, new RegExp(sha));
+
+  const ingested = spawnSync(process.execPath, [
+    path.join(ROOT, 'scripts/ai_intelligence/event_ingest.mjs'),
+    '--input', '-', '--store', storePath,
+  ], { cwd: ROOT, env, input: parsed.stdout, encoding: 'utf8', timeout: 10_000 });
+
+  assert.equal(ingested.status, 0, ingested.stderr);
+  assert.equal(ingested.stderr, '');
+  assert.deepEqual(JSON.parse(ingested.stdout), {
+    schema_version: 1,
+    accepted: 1,
+    duplicateIgnored: 0,
+  });
+  const events = await readEventStore(storePath);
+  assert.equal(events.length, 1);
+  assert.equal(events[0].source, 'github_actions');
+  assert.equal(events[0].kind, 'ci_result');
+  assert.equal(events[0].severity, 'info');
+  assert.deepEqual(events[0].data, {
+    workflow: SOURCE_WORKFLOW,
+    job: 'build-and-validate',
+    conclusion: 'success',
+    commit_sha: sha,
+  });
+  const storedText = await readFile(storePath, 'utf8');
+  assert.equal(storedText.includes('incident_log'), false);
+  assert.equal(storedText.includes('Authorization'), false);
 });
