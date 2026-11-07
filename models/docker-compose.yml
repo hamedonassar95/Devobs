@@ -1,0 +1,43 @@
+name: devobs-local-models
+
+services:
+  ollama:
+    image: ollama/ollama@sha256:0e59999e0e8f9fd4e704bd788a89b7e4cad399367fb1365f8c102ac662288761 # v0.40.15, OCI index
+    init: true
+    restart: "no"
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+  localai:
+    image: localai/localai@sha256:c8556c4f7b6dd9b76e915d515ab5cfe5a765d8ea8fd3f0cf563f9c690b48a7f4 # v4.12.1 CPU, OCI index
+    profiles:
+      - localai
+    init: true
+    restart: "no"
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      DEBUG: "false"
+      LOCALAI_API_KEY: ${LOCALAI_API_KEY:-}
+    volumes:
+      - localai_models:/models
+      - localai_backends:/backends
+      - localai_configuration:/configuration
+      - localai_data:/data
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  ollama_data:
+  localai_models:
+  localai_backends:
+  localai_configuration:
+  localai_data:
