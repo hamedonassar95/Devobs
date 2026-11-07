@@ -1267,6 +1267,28 @@
       "ci_run_id": 42411639299,
       "verification": "VERIFIED 2026-11-07: PR #444 merged at 96698a7e1ed4c50fe85ca8996760b65be75863c5 from head f58c4528ee59e977693bd3469702317fafbb403b. Exact-head PR CI 42411292978 and CodeQL 42411290552 SUCCESS. Exact-merge main CI 42411639299 and Push on main/CodeQL 42411638478 SUCCESS; Python, Node, RLS, security, container/Trivy, Terraform, site-contract, static Pages publication and verify-production passed. Controlled incident drill and automatic restoration checks were skipped by conditions.",
       "limitations": "Adds an allowlisted source-run/commit summary after metadata ingestion; displayed source fields remain payload claims and are not independently authenticated. No post-merge repository_dispatch event has produced a live summary. AI Code Review 42411292976 completed with its model step skipped by the budget gate; no model inference is claimed. Gates unchanged: AI-9 BLOCKED, P01 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr444-record-pr445",
+      "area": "DOCUMENTATION",
+      "title": "Record verified PR #445 evidence-ledger synchronization",
+      "pr_number": 445,
+      "pr_head_sha": "ae780aa23c4c20541dcf7715109aa3920fbb4ce2",
+      "merge_sha": "0ea63c5d7ca7ccb3a5f3ca3a97b3206804ff7224",
+      "ci_run_id": 42416177822,
+      "verification": "VERIFIED 2026-11-07: PR #445 merged at 0ea63c5d7ca7ccb3a5f3ca3a97b3206804ff7224 from head ae780aa23c4c20541dcf7715109aa3920fbb4ce2. Exact-head PR CI 42416008116 and CodeQL 42416005932 SUCCESS. Exact-merge main CI 42416177822 and Push on main/CodeQL 42416177272 SUCCESS; Python, RLS, security, container/Trivy, Terraform, site-contract, static Pages publication and verify-production passed. Node CI job skipped by path filtering; local Node suite passed 164 tests. Controlled incident and restoration jobs skipped by conditions.",
+      "limitations": "Documentation/test-ledger synchronization only; no runtime or AI behavior changed. AI Code Review 42416008165 completed with its Codex review step skipped by the explicit budget gate; no model inference is claimed. Gates unchanged: AI-9 BLOCKED, P01 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr446-ai-stage-unification",
+      "area": "PLATFORM",
+      "title": "Record verified PR #446 local AI-1 through AI-7 dashboard integration",
+      "pr_number": 446,
+      "pr_head_sha": "5bd2173ba7faf09b6035f37b36692f713653cebd",
+      "merge_sha": "abdaf0f21e47761d961d3826478a772365b7a1f7",
+      "ci_run_id": 42419091194,
+      "verification": "VERIFIED 2026-11-07: PR #446 merged at abdaf0f21e47761d961d3826478a772365b7a1f7 from head 5bd2173ba7faf09b6035f37b36692f713653cebd. Exact-head CI 42418599351 and CodeQL 42418685534 SUCCESS. Exact-merge main CI 42419091194 and CodeQL 42419090854 SUCCESS; Node, Python on PR head, RLS, security, container/Trivy, Terraform, site-contract, validation, Pages publication and verify-production passed. Python tests, controlled incident drill and restoration checks skipped on merge run by conditions.",
+      "limitations": "Deterministic, local, read-only composition; no model inference or autonomous remediation. AI-2/AI-3/AI-5 remain heuristic/statistical prototypes and dashboard data is a startup snapshot. Gates unchanged: AI-9 BLOCKED, P01 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
