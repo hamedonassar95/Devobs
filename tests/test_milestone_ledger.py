@@ -1026,11 +1026,23 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr446_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr447_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 446)
-        self.assertEqual(result["merged_milestones"], 117)
+        self.assertEqual(result["latest_pr"], 447)
+        self.assertEqual(result["merged_milestones"], 118)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
+        evidence_sync = records[447]
+        self.assertEqual(
+            evidence_sync["pr_head_sha"],
+            "6b6d51d2f56c0b483915d09d0ea21f2866d6671c",
+        )
+        self.assertEqual(
+            evidence_sync["merge_sha"],
+            "c2a9ddbcf8e505a2612ee2a69a1e1f0e312a3d0e",
+        )
+        self.assertEqual(evidence_sync["ci_run_id"], 42420735715)
+        self.assertIn("Exact-merge CI 42420735715", evidence_sync["verification"])
+        self.assertIn("Documentation/test synchronization", evidence_sync["limitations"])
         ai_stage_integration = records[446]
         self.assertEqual(
             ai_stage_integration["pr_head_sha"],
