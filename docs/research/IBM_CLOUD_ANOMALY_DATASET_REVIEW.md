@@ -79,3 +79,54 @@ AI-9 remains **FAIL / BLOCKED** and P01 remains **NO-GO / BLOCKED**. This note d
 - AI-9 evaluation: **NOT RUN**.
 - Dataset upload or commit: **NOT DONE**.
 - Main branch, deployments, paid services, secrets, and release gates: **UNCHANGED**.
+
+
+## Related research implementation — static source review
+
+Reviewed read-only at public repository:
+https://github.com/msi-ru-cs/icse-seip2025-anomaly-detector-public
+Reviewed source revision: `b9240359275cfadf2be3e9098bc872b4ef09017d`
+
+Relevant source files:
+- `README.md`
+- `Dockerfile`
+- `requirements.txt`
+- `conf/config.yaml`
+- `src/run_experiment__multi_models_GRU_ANN.py`
+- `src/preprocessing.py`
+- `src/anomaly_likelihood.py`
+- `src/nab_scoring.py`
+
+### What the reference implementation does
+
+- Uses HTTP 5XX telemetry features from the pivoted Parquet data.
+- Uses ANN or GRU autoencoders, reconstruction error and a likelihood calculation.
+- Uses labeled anomaly windows and a window-based NAB-style score.
+- The README describes Python 3.11 and pinned TensorFlow/Keras, pandas, NumPy, scikit-learn and Parquet dependencies.
+
+### Static-review findings
+
+1. **The checked-in configuration uses a fixed chronological split:** training from 2024-01-26 through 2024-02-29 and testing from 2024-03-01 through 2024-05-31. This is a documented experiment configuration, not proof of independent validation for Devobs.
+2. **The apparent grid search is currently a single configuration:** the active arrays contain one threshold (0.9996), one long window (30), and one short window (2). The code therefore evaluates one parameter combination in this revision, despite the function name.
+3. **The configured GRU sequence length is one:** the training and inference paths pass `time_steps=1`. This provides no multi-interval sequence context in that configured path, so it should not be described as demonstrated long-sequence temporal learning.
+4. **The model-selection/evaluation path uses the test period's labeled anomaly windows to calculate and report its score.** The inspected code does not establish a separate untouched validation set for choosing or confirming settings. Treat reported test-period scores as experiment-specific, not as an independent estimate of production performance.
+5. **The Dockerfile downloads the Parquet dataset during image build and starts the experiment as its container command.** Do not run `docker build` or the container as a lightweight inspection step: the build downloads a multi-gigabyte dataset, installs the ML stack, and the default command starts model training/evaluation.
+6. **The repository's Apache-2.0 LICENSE applies to the software repository's code as published there.** It does not grant rights to the separate Zenodo dataset. Dataset rights remain unresolved until the dataset record's own license or written permission is confirmed.
+
+These are static observations from the cited source revision; no code was executed and no model metrics were reproduced.
+
+### Devobs applicability
+
+**Potentially useful research patterns:** telemetry feature extraction, chronological train/test separation, anomaly-window labeling, reconstruction-error signals, and event-timing-aware scoring.
+
+**Not suitable for direct adoption as AI-9 acceptance evidence:** this implementation is a batch anomaly-detection experiment over a specific IBM 5XX telemetry dataset. It does not validate Devobs incident reasoning, root-cause attribution, multi-tenant authorization, security controls, or production operations.
+
+### Updated execution record
+
+- Public reference implementation inspected at a pinned source revision: **VERIFIED — STATIC REVIEW ONLY**.
+- Software repository LICENSE observed as Apache-2.0: **VERIFIED FOR THAT CODE REPOSITORY ONLY**.
+- Zenodo dataset license: **UNVERIFIED / BLOCKED**.
+- Docker build, dataset download, training, or experiment execution: **NOT RUN**.
+- Dataset content/schema/checksum inspection: **NOT RUN**.
+- AI-9 scoring or holdout: **NOT RUN**.
+- Devobs application, workflows, thresholds, metrics, and release gates: **UNCHANGED**.
