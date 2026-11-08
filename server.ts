@@ -828,6 +828,155 @@ app.get('/api/github/git-info', (req, res) => {
   }
 });
 
+// Route 10b: Test GitHub Connection and Permissions
+app.post('/api/github/test-connection', async (req, res) => {
+  try {
+    const { token, owner = 'hamedonassar95', repo = 'Devobs' } = req.body;
+    if (!token || typeof token !== 'string') {
+      return res.status(400).json({ success: false, error: 'رمز الدخول الشخصي (GitHub Token) مطلوب' });
+    }
+
+    const trimmedToken = token.trim();
+    // 1. Verify user profile
+    const userRes = await fetch('https://api.github.com/user', {
+      headers: {
+        Authorization: `Bearer ${trimmedToken}`,
+        Accept: 'application/vnd.github+json',
+        'User-Agent': 'Devops-AI-Console',
+      },
+    });
+
+    if (!userRes.ok) {
+      return res.status(userRes.status).json({
+        success: false,
+        error: `فشل التحقق من GitHub: الرمز غير صالح (رمز الاستجابة: ${userRes.status})`,
+      });
+    }
+
+    const userData = await userRes.json();
+
+    // 2. Verify repo permissions
+    const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+      headers: {
+        Authorization: `Bearer ${trimmedToken}`,
+        Accept: 'application/vnd.github+json',
+        'User-Agent': 'Devops-AI-Console',
+      },
+    });
+
+    if (!repoRes.ok) {
+      return res.status(repoRes.status).json({
+        success: false,
+        error: `المستخدم @${userData.login} موثق بنجاح، لكن يتعذر الوصول لمستودع ${owner}/${repo}. تأكد من صلاحية Token (Contents: Read and write).`,
+      });
+    }
+
+    const repoData = await repoRes.json();
+
+    res.json({
+      success: true,
+      user: {
+        login: userData.login,
+        name: userData.name || userData.login,
+        avatar_url: userData.avatar_url,
+      },
+      repo: {
+        full_name: repoData.full_name,
+        permissions: repoData.permissions,
+        default_branch: repoData.default_branch,
+        private: repoData.private,
+      },
+      canPush: Boolean(repoData.permissions?.push || repoData.permissions?.admin),
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message || 'حدث خطأ أثناء فحص الاتصال بـ GitHub' });
+  }
+});
+
+// Route 10c: Direct Server-to-GitHub Sync and Push
+app.post('/api/github/sync-and-push', async (req, res) => {
+  try {
+    const { token, targetBranch = 'main', force = false, commitMessage } = req.body;
+    if (!token || typeof token !== 'string') {
+      return res.status(400).json({ success: false, error: 'رمز الدخول الشخصي (GitHub Token) مطلوب لإتمام عملية الرفع' });
+    }
+
+    const trimmedToken = token.trim();
+    if (!/^[a-zA-Z0-9_]+$/.test(trimmedToken)) {
+      return res.status(400).json({ success: false, error: 'صيغة رمز الدخول (Token) غير صالحة' });
+    }
+
+    const owner = 'hamedonassar95';
+    const repo = 'Devobs';
+
+    // Verify token validity first
+    const userRes = await fetch('https://api.github.com/user', {
+      headers: {
+        Authorization: `Bearer ${trimmedToken}`,
+        Accept: 'application/vnd.github+json',
+        'User-Agent': 'Devops-AI-Console',
+      },
+    });
+
+    if (!userRes.ok) {
+      return res.status(401).json({ success: false, error: 'رمز GitHub Token غير صالح أو انتهت صلاحيته' });
+    }
+    const user = await userRes.json();
+
+    // Check if there are uncommitted changes locally
+    try {
+      const status = execSync('git status --porcelain', { encoding: 'utf-8' }).trim();
+      if (status) {
+        const msg = commitMessage ? String(commitMessage).replace(/"/g, '\\"') : 'feat: auto-commit DevOps AI Intelligence updates';
+        execSync(`git add -A && git commit -m "${msg}"`, { encoding: 'utf-8' });
+      }
+    } catch (e: any) {
+      console.log('Git commit note:', e.message);
+    }
+
+    // Perform push using authenticated remote URL
+    const remoteUrl = `https://${trimmedToken}@github.com/${owner}/${repo}.git`;
+    const targetRef = targetBranch || 'main';
+    const forceFlag = force ? ' --force' : '';
+
+    try {
+      const pushCmd = `git push "${remoteUrl}" HEAD:${targetRef}${forceFlag}`;
+      const pushOutput = execSync(pushCmd, {
+        encoding: 'utf-8',
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+
+      const latestCommit = execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim();
+
+      return res.json({
+        success: true,
+        message: `تم رفع الشيفرة البرمجية بنجاح إلى المستودع ${owner}/${repo} على الفرع ${targetRef}!`,
+        pushedBy: user.login,
+        commit: latestCommit,
+        branch: targetRef,
+        repoUrl: `https://github.com/${owner}/${repo}/tree/${targetRef}`,
+        rawOutput: pushOutput || 'Everything up-to-date',
+      });
+    } catch (pushErr: any) {
+      const rawError = pushErr.stderr || pushErr.message || '';
+      const sanitizedError = rawError.replace(new RegExp(trimmedToken, 'g'), '***TOKEN***');
+      
+      const isNonFastForward = sanitizedError.includes('fetch first') || sanitizedError.includes('non-fast-forward') || sanitizedError.includes('Updates were rejected');
+      
+      return res.status(400).json({
+        success: false,
+        error: sanitizedError || 'فشلت عملية الرفع إلى GitHub',
+        isNonFastForward,
+        hint: isNonFastForward
+          ? 'المستودع البعيد يحتوي على تعديلات سابقة غير متزامنة. يمكنك الرفع على فرع جديد مثل (feature/devops-ai-console) أو تفعيل خيار الرفع الإجباري (Force Push).'
+          : 'تأكد من أن الـ Token يملك صلاحيات (Contents: write) على المستودع.',
+      });
+    }
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message || 'حدث خطأ في الخادم أثناء الرفع' });
+  }
+});
+
 // Route 11: AI-Powered GitHub Release Notes Generator using Gemini 3.8 Flash
 app.post('/api/github/generate-release-notes', async (req, res) => {
   try {

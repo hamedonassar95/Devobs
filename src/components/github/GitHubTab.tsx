@@ -25,6 +25,10 @@ import {
   Radio,
   Download,
   Key,
+  Eye,
+  EyeOff,
+  UploadCloud,
+  AlertTriangle,
 } from 'lucide-react';
 import { Server, Incident, Deployment } from '../../types/serverDashboard';
 
@@ -101,7 +105,28 @@ export const GitHubTab: React.FC<GitHubTabProps> = ({ servers, incidents, deploy
   const [customUsername, setCustomUsername] = useState('hamedonassar95');
   const [customRepoName, setCustomRepoName] = useState('Devobs');
   const [personalAccessToken, setPersonalAccessToken] = useState('');
-  const [isTokenSaved, setIsTokenSaved] = useState(false);
+  const [showToken, setShowToken] = useState(false);
+  const [targetPushBranch, setTargetPushBranch] = useState('main');
+  const [allowForcePush, setAllowForcePush] = useState(false);
+  const [isTestingToken, setIsTestingToken] = useState(false);
+  const [tokenTestResult, setTokenTestResult] = useState<{
+    success: boolean;
+    user?: { login: string; name: string; avatar_url: string };
+    repo?: { full_name: string; permissions?: any; default_branch: string };
+    canPush?: boolean;
+    error?: string;
+  } | null>(null);
+  const [isPushingLive, setIsPushingLive] = useState(false);
+  const [pushResult, setPushResult] = useState<{
+    success: boolean;
+    message?: string;
+    commit?: string;
+    branch?: string;
+    repoUrl?: string;
+    error?: string;
+    isNonFastForward?: boolean;
+    hint?: string;
+  } | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
 
   // Sub-tabs in GitHub Hub
@@ -267,6 +292,68 @@ export const GitHubTab: React.FC<GitHubTabProps> = ({ servers, incidents, deploy
     navigator.clipboard.writeText(text);
     setCopiedIndex(id);
     setTimeout(() => setCopiedIndex(null), 2000);
+  };
+
+  // Test PAT connection to GitHub
+  const handleTestToken = async () => {
+    if (!personalAccessToken.trim()) {
+      setTokenTestResult({ success: false, error: 'الرجاء إدخال GitHub Personal Access Token أولاً' });
+      return;
+    }
+    setIsTestingToken(true);
+    setTokenTestResult(null);
+    try {
+      const res = await fetch('/api/github/test-connection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: personalAccessToken.trim(),
+          owner: customUsername,
+          repo: customRepoName,
+        }),
+      });
+      const data = await res.json();
+      setTokenTestResult(data);
+    } catch (err: any) {
+      setTokenTestResult({ success: false, error: err.message || 'فشل الاتصال بالخادم' });
+    } finally {
+      setIsTestingToken(false);
+    }
+  };
+
+  // Push directly from server to GitHub
+  const handlePushLive = async () => {
+    if (!personalAccessToken.trim()) {
+      setPushResult({ success: false, error: 'الرجاء إدخال GitHub Personal Access Token لإتمام عملية الرفع' });
+      return;
+    }
+    setIsPushingLive(true);
+    setPushResult(null);
+    try {
+      const res = await fetch('/api/github/sync-and-push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: personalAccessToken.trim(),
+          targetBranch: targetPushBranch,
+          force: allowForcePush,
+          commitMessage: `feat: DevOps AI Intelligence Console sync to ${customUsername}/${customRepoName}`,
+        }),
+      });
+      const data = await res.json();
+      setPushResult(data);
+      if (data.success) {
+        // Refresh local git info
+        fetch('/api/github/git-info')
+          .then((r) => r.json())
+          .then((d) => d && d.branch && setGitInfo(d))
+          .catch(() => {});
+      }
+    } catch (err: any) {
+      setPushResult({ success: false, error: err.message || 'فشل تنفيذ عملية الرفع إلى GitHub' });
+    } finally {
+      setIsPushingLive(false);
+    }
   };
 
   // Trigger manual workflow run
@@ -556,16 +643,237 @@ ${incident.stackTrace || 'No stack trace provided'}
       {/* SUB-TAB 1: Push to GitHub Command Center */}
       {activeSubTab === 'push_wizard' && (
         <div className="space-y-6">
+          {/* Direct 1-Click Server-to-GitHub Push & Connection Panel */}
+          <div className="bg-gradient-to-br from-slate-900 via-indigo-950/40 to-slate-900 border-2 border-indigo-500/40 rounded-2xl p-6 shadow-xl space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-indigo-500/20 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-indigo-600/20 border border-indigo-500/40 text-indigo-400">
+                  <UploadCloud className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-base font-extrabold text-white flex items-center gap-2">
+                    <span>الربط المباشر والدفع إلى GitHub من السيرفر</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                      Direct One-Click Push
+                    </span>
+                  </h4>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    اربط المستودع وادفع كامل الشيفرة البرمجية الحالية والتحديثات إلى <span className="text-indigo-400 font-mono font-bold">hamedonassar95/Devobs</span> مباشرة من هنا
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-indigo-300 font-mono bg-indigo-950/70 px-3 py-1.5 rounded-xl border border-indigo-800 flex items-center gap-1.5">
+                  <FolderGit2 className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>https://github.com/hamedonassar95/Devobs</span>
+                </span>
+              </div>
+            </div>
+
+            {/* Instruction Callout */}
+            <div className="bg-slate-950/70 border border-slate-800 rounded-xl p-4 text-xs text-slate-300 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-white flex items-center gap-1.5">
+                  <Key className="w-4 h-4 text-amber-400" />
+                  <span>متطلبات المصادقة مع GitHub:</span>
+                </span>
+                <a
+                  href="https://github.com/settings/tokens/new?scopes=repo&description=Devobs-AI-Console"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-2.5 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600 text-indigo-300 hover:text-white font-semibold transition-colors flex items-center gap-1"
+                >
+                  <span>إنشاء Token جديد على GitHub (بصلاحية repo)</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+              <p className="text-slate-400 leading-relaxed">
+                لكي يتمكن الخادم من الدفع إلى مستودعك الخاص دون الحاجة إلى تشغيل أوامر من جهازك، يحتاج GitHub إلى <strong className="text-slate-200">Personal Access Token (PAT)</strong> يمتلك صلاحية <code className="text-indigo-300 font-mono">repo</code> (أو صلاحية Contents: Read and write).
+              </p>
+            </div>
+
+            {/* Token Input and Test Connection */}
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-500">
+                    <Key className="w-4 h-4" />
+                  </div>
+                  <input
+                    type={showToken ? 'text' : 'password'}
+                    value={personalAccessToken}
+                    onChange={(e) => setPersonalAccessToken(e.target.value)}
+                    placeholder="الصق رمز GitHub Personal Access Token هنا (e.g. ghp_xxxxxxxxxxxxxx)"
+                    className="w-full pl-10 pr-9 py-2.5 bg-slate-950 border border-slate-700 focus:border-indigo-500 rounded-xl text-xs text-white font-mono placeholder:text-slate-600 focus:outline-none"
+                    dir="ltr"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowToken(!showToken)}
+                    className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500 hover:text-slate-300"
+                  >
+                    {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+
+                <button
+                  onClick={handleTestToken}
+                  disabled={isTestingToken || !personalAccessToken.trim()}
+                  className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-white font-semibold text-xs rounded-xl border border-slate-700 transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isTestingToken ? 'animate-spin' : ''}`} />
+                  <span>{isTestingToken ? 'جارٍ الفحص...' : 'فحص الاتصال والصلاحية'}</span>
+                </button>
+              </div>
+
+              {/* Token Test Result Feedback */}
+              {tokenTestResult && (
+                <div
+                  className={`p-3.5 rounded-xl border text-xs flex items-start gap-2.5 ${
+                    tokenTestResult.success
+                      ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
+                      : 'bg-rose-950/40 border-rose-500/40 text-rose-300'
+                  }`}
+                >
+                  {tokenTestResult.success ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 text-rose-400 mt-0.5 shrink-0" />
+                  )}
+                  <div className="space-y-1">
+                    {tokenTestResult.success ? (
+                      <div>
+                        <div className="font-bold text-white flex items-center gap-2">
+                          <span>تم التحقق من الحساب بنجاح: @{tokenTestResult.user?.login}</span>
+                          {tokenTestResult.canPush ? (
+                            <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                              صلاحية الرفع (Push) مفعلة
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                              قراءة فقط - تأكد من إضافة صلاحية repo
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-emerald-400/80">
+                          المستودع المستهدف: {tokenTestResult.repo?.full_name} | الفرع الافتراضي: {tokenTestResult.repo?.default_branch}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="font-medium">{tokenTestResult.error}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Target Branch and Force Push Options */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-800/80">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
+                  <span>الفرع المستهدف للرفع (Target Branch):</span>
+                  <span className="text-[10px] text-indigo-400 font-mono">HEAD:{targetPushBranch}</span>
+                </label>
+                <div className="flex gap-2">
+                  <select
+                    value={targetPushBranch}
+                    onChange={(e) => setTargetPushBranch(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white font-mono focus:outline-none focus:border-indigo-500"
+                  >
+                    <option value="main">main (الفرع الرئيسي المباشر)</option>
+                    <option value="feature/devops-ai-intelligence">feature/devops-ai-intelligence (فرع جديد لـ PR)</option>
+                    <option value="devops-ai-console">devops-ai-console (فرع مستقل)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-2 flex flex-col justify-end">
+                <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-300 select-none">
+                  <input
+                    type="checkbox"
+                    checked={allowForcePush}
+                    onChange={(e) => setAllowForcePush(e.target.checked)}
+                    className="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 bg-slate-950 w-4 h-4"
+                  />
+                  <span>السماح بالرفع الإجباري (Force Push --force)</span>
+                </label>
+                <p className="text-[10px] text-slate-400">
+                  مفيد إذا كان المستودع البعيد يحتوي على تاريخ غير متزامن مع فرعك المحلي وتريد استبداله بتحديثات هذا المشروع.
+                </p>
+              </div>
+            </div>
+
+            {/* Push Button Trigger */}
+            <div className="pt-2">
+              <button
+                onClick={handlePushLive}
+                disabled={isPushingLive || !personalAccessToken.trim()}
+                className="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-50 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2.5"
+              >
+                <UploadCloud className={`w-4 h-4 ${isPushingLive ? 'animate-bounce' : ''}`} />
+                <span>
+                  {isPushingLive
+                    ? 'جارٍ رفع الشيفرة البرمجية والتحديثات إلى GitHub...'
+                    : `دفع كامل المشروع إلى GitHub (https://github.com/${customUsername}/${customRepoName} @ ${targetPushBranch})`}
+                </span>
+              </button>
+            </div>
+
+            {/* Push Execution Result Banner */}
+            {pushResult && (
+              <div
+                className={`p-4 rounded-xl border text-xs space-y-2 ${
+                  pushResult.success
+                    ? 'bg-emerald-950/50 border-emerald-500/50 text-emerald-200'
+                    : 'bg-rose-950/50 border-rose-500/50 text-rose-200'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 font-bold text-sm">
+                    {pushResult.success ? (
+                      <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                    ) : (
+                      <AlertTriangle className="w-5 h-5 text-rose-400" />
+                    )}
+                    <span>{pushResult.success ? 'تم الرفع إلى GitHub بنجاح!' : 'فشل عملية الرفع'}</span>
+                  </div>
+
+                  {pushResult.success && pushResult.repoUrl && (
+                    <a
+                      href={pushResult.repoUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition-colors flex items-center gap-1.5"
+                    >
+                      <span>عرض الكود على GitHub</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                </div>
+
+                <p className="leading-relaxed">{pushResult.message || pushResult.error}</p>
+
+                {pushResult.hint && (
+                  <div className="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800 text-[11px] text-amber-300">
+                    <strong>تلميح الحل: </strong>
+                    {pushResult.hint}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Step 1: Customize your repository target */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h4 className="text-sm font-bold text-white flex items-center gap-2">
                   <Terminal className="w-4 h-4 text-indigo-400" />
-                  <span>دليل رفع المشروع إلى حسابك على GitHub</span>
+                  <span>دليل أوامر Git اليدوية البديلة (Manual CLI Alternative)</span>
                 </h4>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  أدخل اسم المستخدم واسم المستودع لتوليد أوامر Git الجاهزة للنسخ والتنفيذ بنقرة زر واحدة
+                  أوامر سطر الأوامر لتشغيلها يدوياً على جهازك المحلي في حال أردت الرفع من حاسوبك
                 </p>
               </div>
 
