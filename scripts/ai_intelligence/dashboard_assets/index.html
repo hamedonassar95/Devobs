@@ -51,7 +51,36 @@
       <div id="recommendations" class="card-grid"></div>
     </section>
 
-    <footer>الواجهة تعرض لقطة من ملفات محلية عند بدء الخادم. أعد تشغيل الخادم بعد تحديثها. أوقفه بـCtrl+C. لا تُدخل بيانات حساسة.</footer>
+    <section aria-labelledby="runbook-notes-title">
+      <h2 id="runbook-notes-title">مذكرات المشغّل المحلية</h2>
+      <p class="notice">مذكراتك منفصلة عن أحداث النظام ونتائج AI-6؛ تُحفظ في تخزين هذا المتصفح فقط، ولا تصل إلى الخادم أو التوصيات. لا تكتب أسرارًا أو بيانات عملاء.</p>
+      <form id="runbook-note-form" class="card note-form">
+        <label for="runbook-note-title">عنوان المذكرة</label>
+        <input id="runbook-note-title" name="title" required maxlength="120" autocomplete="off" placeholder="مثال: خطوات التحقق من اتصال الخدمة">
+        <label for="runbook-note-content">الخطوات والملاحظات</label>
+        <textarea id="runbook-note-content" name="content" required maxlength="5000" rows="4" placeholder="اكتب خطوات غير حساسة يمكن الرجوع إليها..."></textarea>
+        <button type="submit">حفظ المذكرة محليًا</button>
+        <p id="runbook-note-status" class="muted" role="status" aria-live="polite">المذكرات غير محفوظة على الخادم.</p>
+      </form>
+
+      <div class="note-toolbar" role="group" aria-label="تصفية المذكرات">
+        <button type="button" id="runbook-active-tab" aria-pressed="true">نشطة (<span id="runbook-active-count">0</span>)</button>
+        <button type="button" id="runbook-archived-tab" aria-pressed="false">الأرشيف (<span id="runbook-archived-count">0</span>)</button>
+        <label for="runbook-note-search">بحث</label>
+        <input id="runbook-note-search" type="search" maxlength="120" placeholder="العنوان أو المحتوى">
+      </div>
+      <div id="runbook-notes" class="card-grid" aria-live="polite"></div>
+    </section>
+
+    <footer>بيانات AI-1 إلى AI-7 لقطة محلية للقراءة فقط. مذكرات المشغّل تعديلات محلية في المتصفح ولا تغيّر ملفات الأحداث أو AI-6. أعد تشغيل الخادم لتحديث اللقطة. أوقفه بـCtrl+C. لا تُدخل بيانات حساسة.</footer>
   </main>
+  <dialog id="runbook-archive-dialog" aria-labelledby="runbook-archive-title">
+    <h2 id="runbook-archive-title">تأكيد أرشفة المذكرة</h2>
+    <p id="runbook-archive-description"></p>
+    <div class="note-dialog-actions">
+      <button type="button" id="runbook-archive-cancel">إلغاء</button>
+      <button type="button" id="runbook-archive-confirm">تأكيد الأرشفة</button>
+    </div>
+  </dialog>
 </body>
 </html>

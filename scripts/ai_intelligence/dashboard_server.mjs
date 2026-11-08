@@ -19,11 +19,13 @@ const CONTENT_TYPES = new Map([
   ['/', 'text/html; charset=utf-8'],
   ['/dashboard.js', 'text/javascript; charset=utf-8'],
   ['/dashboard.css', 'text/css; charset=utf-8'],
+  ['/runbook_notes.mjs', 'text/javascript; charset=utf-8'],
 ]);
 const ASSET_FILES = new Map([
   ['/', 'index.html'],
   ['/dashboard.js', 'dashboard.js'],
   ['/dashboard.css', 'dashboard.css'],
+  ['/runbook_notes.mjs', 'runbook_notes.mjs'],
 ]);
 
 export class DashboardError extends Error {
