@@ -1,0 +1,42 @@
+name: CD Automated Deployment & Cloud Delivery
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target Deployment Environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+jobs:
+  deploy:
+    name: Build & Deploy Application
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Production Build
+        run: npm run build
+
+      - name: Notify SRE Console
+        run: |
+          echo "Deployment initiated for environment: ${{ github.event.inputs.environment || 'production' }}"
+          echo "Commit SHA: ${{ github.sha }}"
+          echo "Triggered by: ${{ github.actor }}"

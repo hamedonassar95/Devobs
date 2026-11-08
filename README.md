@@ -1,167 +1,166 @@
-# Devobs
+# 🚀 Devobs Enterprise Console & SRE Command Center
+### منظومة رصد وإدارة البنية التحتية، الخوادم، والعمليات السحابية الذكية
 
-[![CI](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml)
+[![CI Build](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml/badge.svg)](https://github.com/hamedonassar95/Devobs/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node Version](https://img.shields.io/badge/Node-v20%2B-green.svg)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19.0-61dafb.svg)](https://react.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-v4-38bdf8.svg)](https://tailwindcss.com/)
+[![Three.js](https://img.shields.io/badge/Three.js-3D_Visuals-black.svg)](https://threejs.org/)
+[![Firebase](https://img.shields.io/badge/Firebase-Firestore-orange.svg)](https://firebase.google.com/)
+[![Google Gemini](https://img.shields.io/badge/Gemini-3.8_Flash_%26_Live-8e75ff.svg)](https://ai.google.dev/)
 
-مشروع عملي لتعلّم DevOps وCI/CD باستخدام GitHub Actions وGitHub Pages. تتضمن المستودع أتمتة إضافية موثقة؛ الصفحة المنشورة حاليًا صفحة HTML ثابتة ولا تحتاج خادم تطبيق أو قاعدة بيانات.
+---
 
-## DevOps AI Intelligence — مصدر موحّد
+## 📖 نظرة عامة (Overview)
 
-هذا المستودع `Devobs` هو المصدر الأساسي للمشروعين. مراحل الذكاء التشغيلي المحلية AI-1 إلى AI-7 ولوحة AI-7 مدمجة هنا بالفعل؛ نضيف فقط ما يسد فجوة واضحة بدل نسخ مكونات مكررة. المحركات الحالية محلية وحتمية/إحصائية ولا تستدعي نموذجًا لغويًا.
+منظومة **ServerOps Console** هي منصة متكاملة لهندسة موثوقية المواقع (SRE) وعمليات السحابة (DevOps). تدمج المنصة بين الرصد اللحظي للبنى التحتية، تفاعل ثلاثي الأبعاد لغرفة الخوادم وحرب الدفاع السيبراني، الذكاء الاصطناعي التوليدي عبر نماذج **Google Gemini**، الربط العميق مع خدمات **Google Workspace**، والتكامل التام مع **GitHub CI/CD Pipelines**.
+
+---
+
+## 🌟 الميزات التقنية الرئيسية (Key Features)
+
+### 1. 🖥️ مراقبة الخوادم والأنظمة (Live Server Infrastructure)
+- مراقبة حية لاستهلاك المعالج (CPU)، الذاكرة (RAM)، القرص التخزيني، وحركة الشبكة.
+- إجراءات تشغيلية فورية: إعادة تشغيل سلسة (Graceful Restart)، وضع الصيانة (Maintenance Mode)، وإضافة خوادم جديدة.
+- مزامنة حية سحابية عبر **Firebase Firestore** مع تخزين احتياطي محلي (Offline Resilient).
+
+### 2. 🧊 غرفة الخوادم ثلاثية الأبعاد (Three.js 3D Server Room)
+- محاكاة واقعية لمركز بيانات كبائن الخوادم (Racks) مع إضاءة PBR ونظام تبريد زجاجي.
+- تدفق حزم بيانات نيون ثلاثية الأبعاد متزامنة مع نبض الخوادم الفعلي.
+- تفاعل كامل بالنقر على أي كابينة لعرض القياسات اللحظية وتشخيص الأعطال.
+
+### 3. 🛡️ لعبة الدفاع السيبراني ثلاثية الأبعاد (Cyber Shield 3D)
+- لعبة تفاعلية مبنية بالكامل على Three.js للدفاع عن خوادم النظام ضد هجمات الـ DDoS والبرمجيات الخبيثة.
+- أنظمة دفاعية ليزرية وموجات تصاعدية للأعداء مع نظام نقاط وتحفيز للفرق التشغيلية.
+
+### 4. 🐙 تكامل GitHub الشامل (GitHub DevOps & CI/CD Hub)
+- تتبع فوري لمسارات **GitHub Actions CI/CD** وحالات بناء وتدقيق المشروعات.
+- استعراض سجل الـ Commits، الـ Branches، والـ Pull Requests.
+- تحويل حوادث الخوادم التشغيلية (Incidents) إلى **GitHub Issues** تلقائياً بنموذج SRE موحد.
+- توليد تقارير الإصدارات (Release Notes) والتغييرات بضغطة زر عبر **Gemini AI**.
+- دليل تفاعلي ومرئي لربط ودفع المشروع إلى GitHub فوراً.
+
+### 5. 🤖 مساعد DevOps الذكي (Gemini Copilot Suite)
+- نموذج **Gemini 3.8 Flash** لتحليل الأسباب الجذرية للأعطال (RCA) فور وقوعها.
+- تدقيق شامل للبنية التحتية (Health & Security Audit) بتقرير تنفيذي تفصيلي.
+- محادثة تفاعلية مدعومة بالبحث المباشر عبر الإنترنت (**Google Search Grounding**).
+- تفريغ الأوامر الصوتية وتحويل الصوت إلى نص (**gemini-3.5-transcribe**).
+- استوديو وسائط الذكاء الاصطناعي لتوليد المخططات، الفيديو، والموسيقى التصويرية.
+
+### 6. 💼 تكامل حزمة Google Workspace
+- **Google Docs**: صياغة تقارير الحوادث الرسمية ووثائق ما بعد الوفاة (Post-Mortem).
+- **Google Sheets**: تصدير وتحليل مقاييس الأداء وجداول الخوادم لحظياً.
+- **Google Slides**: بناء عروض تقديمية لاجتماعات SRE وإدارة المخاطر.
+- **Google Drive, Gmail, Chat, Tasks, Keep, Calendar, Forms**.
+
+---
+
+## 🛠️ التقنيات المستخدمة (Tech Stack)
+
+| النطاق | التقنية المستخدمة |
+|---|---|
+| **الواجهة الأمامية** | React 19, TypeScript, Tailwind CSS v4, Lucide Icons, Motion |
+| **الرسوم ثلاثية الأبعاد** | Three.js (WebGL, PBR Shaders, Orbit Controls) |
+| **الواجهة الخلفية (Backend)** | Node.js, Express, tsx |
+| **محرك الذكاء الاصطناعي** | `@google/genai` (Gemini 3.8 Flash, Lyria, Gemini Omni) |
+| **قواعد البيانات السحابية** | Firebase Firestore (Real-time sync) |
+| **الأتمتة والـ CI/CD** | GitHub Actions Workflows |
+
+---
+
+## ⚡ البدء السريع (Quick Start)
+
+### المتطلبات المسبقة:
+- [Node.js](https://nodejs.org/) الإصدار 20 أو أحدث.
+- [Git](https://git-scm.com/) مثبت على جهازك.
+
+### 1. تثبيت الحزم (Install Dependencies)
+```bash
+npm install
+```
+
+### 2. إعداد المتغيرات البيئية (Environment Setup)
+قم بإنشاء ملف `.env` استناداً إلى `.env.example`:
+```bash
+cp .env.example .env
+```
+أضف مفتاح Gemini API الخاص بك:
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+PORT=3000
+```
+
+### 3. تشغيل خادم التطوير (Run Development Server)
+```bash
+npm run dev
+```
+افتح المتصفح على: `http://localhost:3000`
+
+### 4. بناء المشروع للإنتاج (Production Build)
+```bash
+npm run build
+npm start
+```
+
+---
+
+## 📤 كيفية رفع وربط المشروع بـ GitHub (Push to GitHub)
+
+إذا كنت ترغب في رفع هذا المستودع إلى حسابك الشخصي أو المؤسسي على GitHub:
+
+### الخطوة 1: المستودع على GitHub
+المستودع المستهدف: [https://github.com/hamedonassar95/Devobs](https://github.com/hamedonassar95/Devobs)
+
+### الخطوة 2: ربط المستودع المحلي بالبعيد ورفع الشيفرة
+```bash
+# تهيئة مستودع Git محلياً
+git init -b main
+
+# إضافة جميع الملفات
+git add .
+
+# إنشاء Commit
+git commit -m "feat: complete Devobs AI Intelligence & automated CI/CD"
+
+# ربط المستودع برابط مستودعك Devobs على GitHub
+git remote add origin https://github.com/hamedonassar95/Devobs.git
+
+# دفع الشيفرة المصدرية إلى الفرع الرئيسي
+git push -u origin main
+```
+
+---
+
+## 📂 هيكلة المشروع (Project Structure)
 
 ```text
-بيانات تشغيل اصطناعية محلية
-  → AI-1 استقبال وتحقق
-  → AI-2 كشف شذوذ → AI-3 تحليل → AI-4 توصيات runbook
-  → AI-5 اتجاهات → AI-6 تغذية راجعة اختيارية → AI-7 لوحة/API للقراءة فقط
-  → GitHub Actions: اختبارات وفحوص أمنية ومراجعة PR اختيارية
+├── .github/
+│   └── workflows/
+│       ├── ci.yml            # فحص TypeScript وبناء الحزم تلقائياً
+│       └── deploy.yml        # مسار النشر السحابي المؤتمت
+├── src/
+│   ├── components/
+│   │   ├── dashboard/        # مكونات لوحة القيادة والمراقبة
+│   │   ├── github/           # وحدة التحكم وإدارة مستودعات وعمليات GitHub
+│   │   ├── three/            # غرفة الخوادم ثلاثية الأبعاد (Three.js)
+│   │   ├── game/             # لعبة الدفاع السيبراني 3D
+│   │   ├── chat/             # مساعد Gemini الذكي والتحكم الصوتي
+│   │   ├── studio/           # استوديو وسائط الذكاء الاصطناعي
+│   │   └── workspace/        # تكاملات Google Docs, Sheets, Slides, etc.
+│   ├── services/             # خدمات Firebase, Google APIs, و Gemini
+│   ├── types/                # تعريفات TypeScript
+│   ├── App.tsx               # التطبيق الرئيسي
+│   └── main.tsx              # نقطة الدخول
+├── server.ts                 # خادم Express ومسارات Gemini API
+└── package.json              # الحزم والإعدادات
 ```
 
-إضافة PR-Agent اختيارية ومطفأة افتراضيًا، وتعمل كمراجع بديل عن مراجعة Codex حتى لا يتكرر الاستدلال. بقية المحركات المرشحة مثل Ollama وK8sGPT وHolmesGPT وMLflow ليست مضافة أو منشورة ضمن هذه الخطوة.
+---
 
-| المكوّن الخارجي المضاف | الإصدار/البصمة | الرخصة | النطاق |
-| --- | --- | --- | --- |
-| [PR-Agent](https://github.com/The-PR-Agent/pr-agent) | v0.49.0؛ صورة مثبتة على digest موثق في [دليل التكامل](docs/PR_AGENT_INTEGRATION.md) | MIT | مراجعة PR اختيارية؛ غير مفعّلة ما لم تُستوفَ بوابات الاختيار والميزانية والتحقق من المصدر والاعتماد الموجود |
+## 📄 الرخصة (License)
+هذا المشروع مرخص تحت رخصة **MIT**. راجع ملف [LICENSE](LICENSE) لمزيد من التفاصيل.
 
-مجلدات `agents/` و`workflows/` و`models/` و`mlops/` هي فهارس توثيقية لهذه المرحلة؛ ملفات التشغيل الفعلية تبقى في مواقعها الحالية. راجع [خريطة الوكلاء](agents/README.md)، [خريطة سير العمل](workflows/README.md)، [خريطة النماذج](models/README.md)، [تكامل PR-Agent](docs/PR_AGENT_INTEGRATION.md)، [خريطة المراقبة](monitoring/README.md)، و[خريطة MLOps](mlops/README.md).
-
-## مركز الأتمتة
-
-- **ابدأ من هنا:** [مركز الأتمتة وسير التشغيل الموحد](docs/AUTOMATION_HUB.md)
-- **سجل الإنجازات والبوابات:** [Milestone Ledger](docs/MILESTONE_LEDGER.md) — فحص دون شبكة يربط كل إنجاز موثق برقم PR وSHA ودليل CI، ويعرض النواقص دون تغيير حالة جاهزيتها.
-- **تكامل OpenArt الاختياري:** [حوكمة طلبات الصور والفيديو عبر MCP](docs/OPENART_MCP_INTEGRATION.md) — صيغة طلب خاصة آمنة دون شبكة أو كلفة، مع موافقة منفصلة قبل أي توليد.
-- [Devobs AI DevOps Control Room](docs/AI_DEVOPS_CONTROL_ROOM.md): توثيق مسارات AI وCI وحالة التحقق من المصدر مقابل التشغيل.
-- [استقبال أحداث AI-1 محليًا](docs/AI_EVENT_INGESTION.md): صيغة موحّدة وملف JSONL محلي؛ بلا اتصالات أو خدمات خارجية.
-- [كشف الشذوذ AI-2 محليًا](docs/AI_ANOMALY_DETECTION.md): مؤشرات إحصائية قابلة للتفسير على أحداث مقاييس محلية اصطناعية.
-- [تحليل الحوادث AI-3 محليًا](docs/AI_INCIDENT_ANALYSIS.md): تجميع سجلات اصطناعية وفرضيات أسباب محتملة وسياق CI فقط.
-- [توصيات AI-4 المحلية](docs/AI_RECOMMENDATIONS.md): مطابقة فرضيات AI-3 مع runbooks ثابتة، بوضع الاقتراح فقط.
-- [تقارير الاتجاه AI-5 محليًا](docs/AI_TREND_REPORTS.md): ملخص يومي/أسبوعي واستقراء أولي لمقاييس سجل محلي دون اتصال خارجي.
-- [تغذية راجعة للتوصيات AI-6](docs/AI_FEEDBACK_LEARNING.md): تسجيل قبول/رفض محلي اختياري يؤثر في ترتيب المراجعة بعد حد أدنى من القرارات.
-- [لوحة وAPI الذكاء التشغيلي AI-7](docs/AI_LOCAL_DASHBOARD.md): لقطة محلية للقراءة فقط؛ لا تُنشر مع الموقع ولا تعرض السجلات الخام.
-- [تدقيق حوكمة main الحالي](docs/DEVOBS_MAIN_GOVERNANCE_AUDIT.md): القواعد الفعالة وفحوص PR وحالة الموافقات وفق GitHub API.
-- [P00 release gate evidence](docs/P00_RELEASE_GATE_EVIDENCE.md): current branch rules, exact-main CI evidence, release safeguards and owner exit checklist.
-- [P00 unsigned owner decision packet](docs/P00_OWNER_DECISION.md): immutable evidence baseline and blank GO/NO-GO fields for the human owner.
-- [P00 PR #253 image-scan gap review](docs/P00_PR253_GAP_REVIEW.md): overlap with merged Trivy CI, unique scan-report gaps, and recommended rework.
-- CI stages and validates `_site`; the main Pages release downloads the same run-scoped artifact across partial retries and revalidates it before publication. Rollback and Vercel remain separate paths; see [CI details](docs/CI.md).
-- **Container security in CI:** the existing scan job builds `devobs-web:<checked-out SHA>` and Trivy 0.76.1 scans only that local Docker image. The fail-closed JSON policy requires the report's `container_image` type and exact `ArtifactName`; scanner/image/report errors or HIGH/CRITICAL findings (including unfixed) fail the required `validate` gate. The JSON report is retained for seven days and no image is published. Validate changes with `python3 -m unittest discover -s tests -p 'test_trivy_report_policy.py' -v` and `python3 scripts/check_action_pins.py`; see [CI details](docs/CI.md).
-- [قرار P00 بشأن PR #262](docs/P00_PR262_DISPOSITION.md): سجل دليل الإحلال وحالة تعليق الإغلاق بانتظار حسم مراجعة PR.
-- [تقرير جاهزية Devobs الحالي](docs/DEVOBS_READINESS_CURRENT.md): حالة موثقة بالأدلة على SHA الحالي، مع فصل النشر الثابت عن جاهزية API وSaaS غير المثبتة.
-- [Offline staging acceptance](docs/STAGING_ACCEPTANCE.md): synthetic coverage and verified limits for the read-only tenant-isolation smoke check.
-- [P01 managed-staging activation decision](docs/P01_ACTIVATION_READINESS.md): default NO-GO owner checklist; see the [region/budget decision](docs/P01_REGION_BUDGET_SECURITY.md) and [Render + Supabase proposal](docs/RENDER_SUPABASE_STAGING.md).
-- [Devobs Production Execution Roadmap](docs/plans/2026-10-26-devobs-production-execution-roadmap.md): sequential P00–P12 gates, current evidence, blockers, and owner signoffs.
-
-## التثبيت والتشغيل محليًا
-
-المتطلبات: Git، وPython 3.10 أو أحدث لفحوص الموقع والاختبارات، وNode.js لاختبارات حارس الحوادث ومراحل AI-1 إلى AI-7 المحلية. لا توجد حزم تطبيق أو عملية build مطلوبة.
-
-```sh
-git clone https://github.com/hamedonassar95/Devobs.git
-cd Devobs
-python3 -m http.server 8000 --bind 127.0.0.1
-```
-
-افتح <http://127.0.0.1:8000> في المتصفح. لإيقاف الخادم اضغط `Ctrl+C`. على Windows استخدم `py -3 -m http.server 8000 --bind 127.0.0.1` بدلًا من `python3`.
-
-## الاختبارات والفحوص
-
-من جذر المستودع:
-
-```sh
-python3 -m compileall -q scripts tests
-python3 -m unittest discover -s tests -v
-node --test tests/incident_guard.test.cjs tests/ai_event_ingest.test.mjs tests/ai_anomaly_detector.test.mjs tests/ai_incident_analysis.test.mjs tests/ai_recommendations.test.mjs tests/ai_trend_forecast.test.mjs tests/ai_feedback_learning.test.mjs tests/ai_dashboard_api.test.mjs
-python3 scripts/check_site.py
-```
-
-لتجربة استقبال محلي ببيانات اصطناعية، اتبع [دليل AI-1](docs/AI_EVENT_INGESTION.md). لا يقرأ الأمر سجلات GitHub أو الخوادم تلقائيًا.
-
-لتشغيل كشف AI-2 على السجل الاصطناعي نفسه دون تغيير الملف، اتبع [دليل كشف الشذوذ](docs/AI_ANOMALY_DETECTION.md). المخرجات مرشحات إحصائية وليست تشخيصًا أو تنبيهًا مؤكدًا.
-
-لتجميع السجلات وربط سياق CI محليًا، اتبع [دليل AI-3](docs/AI_INCIDENT_ANALYSIS.md). لا يثبت ذلك سببًا جذريًا ولا يدعم ربط أحداث النشر في مخطط AI-1 الحالي.
-
-لتوليد اقتراحات محلية من runbooks ثابتة دون تنفيذ، اتبع [دليل AI-4](docs/AI_RECOMMENDATIONS.md). يلزم اعتماد بشري منفصل لأي تغيير؛ المخرجات احتمالية ولا تتصل بخدمات خارجية.
-
-لإنتاج ملخص يومي/أسبوعي واستقراء أولي للمقاييس من ملف JSONL محلي، شغّل `node scripts/ai_intelligence/trend_report.mjs --store <local-jsonl-file>` واتبع [دليل AI-5](docs/AI_TREND_REPORTS.md). لا يكتب الأمر في الملف أو يتصل بالشبكة، ولا ينتج قيمة تنبؤ عند نقص ستة أيام UTC متصلة.
-
-لتسجيل قبول/رفض توصية بموافقة المشغّل وترتيب الاقتراحات وفق سجل محلي اختياري، اتبع [دليل AI-6](docs/AI_FEEDBACK_LEARNING.md). لا تُجمع ملاحظات نصية، ولا يتصل النظام بالشبكة؛ المعدل إشارة تفضيل محدودة وليس قياسًا لدقة الأسباب.
-
-لتشغيل لوحة AI-7 محليًا مع API للقراءة فقط، اتبع [دليل اللوحة المحلية](docs/AI_LOCAL_DASHBOARD.md). لا تنشرها أو تعرضها عبر نفق؛ الموقع المنشور يبقى صفحة ثابتة بلا API.
-
-يفحص CI شيفرة Python باستخدام Bandit، والاعتماديات باستخدام `pip-audit`. لتشغيل الفحوص محليًا:
-
-```sh
-python3 -m pip install -r requirements-dev.txt
-python3 -m bandit -r scripts -x scripts/check_site.py
-pip-audit --requirement requirements-dev.txt
-```
-
-يفحص GitHub Actions الأسرار باستخدام Gitleaks، ويتحقق من تثبيت الإجراءات الخارجية على SHA كامل. راجع [نطاق وضوابط DevSecOps](docs/DEVSECOPS.md). لا يحتاج تشغيل الموقع أو الاختبارات إلى مفاتيح أو حسابات خدمات خارجية.
-
-## الإعداد والأسرار
-
-المشروع لا يقرأ ملفات `.env` ولا يستخدم متغيرات بيئة محلية لتشغيل الصفحة. أُنشئ [.env.example](.env.example) كمرجع لأسماء أسرار الأتمتة الاختيارية فقط؛ لا تنسخه إلى ملف إعدادات ولا تضع فيه قيمًا حقيقية.
-
-تُضاف أسرار الأتمتة المطلوبة من **Settings → Secrets and variables → Actions → Secrets** في GitHub، لا في ملفات المستودع أو سجلات CI:
-
-- `COPILOT_GITHUB_TOKEN`: اختياري لتشغيل مسارات التحقيق المدعومة بـCopilot. راجع [إعداد محقق Copilot](docs/PHASE7_COPILOT_INVESTIGATOR.md) للصلاحيات المطلوبة.
-- `GH_AW_CI_TRIGGER_TOKEN`: اختياري إذا احتاجت أتمتة إنشاء PR إلى تشغيل CI؛ استخدم اعتمادًا محدود الصلاحيات.
-- `GH_AW_GITHUB_TOKEN` و`GH_AW_GITHUB_MCP_SERVER_TOKEN`: اختياريان لعمليات GitHub التي تتطلب صلاحيات إضافية؛ تستخدم التدفقات `GITHUB_TOKEN` المدمج كخيار احتياطي عند ملاءمته.
-- `GH_AW_DEFAULT_OTLP_HEADERS`: اختياري إذا أُعدّ إرسال بيانات الرصد إلى OTLP.
-
-يصدر GitHub Actions قيمة `GITHUB_TOKEN` تلقائيًا لكل تشغيل؛ لا تنشئها يدويًا. إعداد Vertex AI يستخدم اتحاد هوية GitHub Actions مع Google Cloud ولا يحتاج مفتاح حساب خدمة. تُحفظ معرفات مشروع Google ومزوّد الهوية وحساب الخدمة كـ **Variables** غير سرية. راجع [إعداد Vertex AI](docs/VERTEX_AI_FALLBACK.md). يمكن إضافة متغيرات إعداد gh-aw غير الحساسة من صفحة **Variables** نفسها.
-
-لا تضع اعتمادًا حقيقيًا في `.env.example` أو المستندات أو الشيفرة. إذا سبق كشف اعتماد، أبطله ودوّره قبل متابعة استخدامه.
-
-## المراقبة المحلية الاختيارية
-
-يتضمن المستودع إعدادًا محليًا لـPrometheus وGrafana. حاليًا يراقب Prometheus نفسه فقط؛ الموقع الثابت لا يوفّر endpoint لمقاييس التطبيق. شغّل المكونات من جذر المستودع بكلمة مرور Grafana محلية مؤقتة:
-
-```sh
-export GRAFANA_ADMIN_PASSWORD="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
-docker compose -f monitoring/compose.yml up --detach
-```
-
-افتح Prometheus على <http://127.0.0.1:9090> وGrafana على <http://127.0.0.1:3000>، ثم أوقف الحاويات ونظّف متغير كلمة المرور:
-
-```sh
-docker compose -f monitoring/compose.yml down
-unset GRAFANA_ADMIN_PASSWORD
-```
-
-تظهر قواعد التنبيه في Prometheus، لكنها لا ترسل إشعارات لعدم إعداد Alertmanager. لا يفعّل هذا الإعداد مراقبة إنتاجية أو يرسل بيانات إلى خدمة خارجية. راجع [دليل المراقبة](docs/MONITORING.md) للتفاصيل والقيود.
-
-## النشر
-
-النشر الحالي إلى GitHub Pages:
-
-1. في إعدادات المستودع افتح **Settings → Pages** واختر **GitHub Actions** كمصدر للنشر.
-2. ادفع التغيير إلى فرع، وافتح Pull Request إلى `main`.
-3. انتظر نجاح فحص `validate` وراجع المعاينة القابلة للتنزيل في ملخص CI.
-4. بعد مراجعة ودمج Pull Request، ينشر سير العمل الصفحة من `main` بعد نجاح CI.
-5. راجع رابط النشر ونتيجة فحص الصحة في GitHub Actions.
-
-لا يحتاج نشر Pages الحالي إلى أسرار نشر؛ صلاحيات النشر وإثبات الهوية تُدار عبر GitHub Actions وOIDC. راجع [دليل المعاينة والنشر والرجوع](docs/DEPLOYMENT.md) و[دليل CI](docs/CI.md) للتفاصيل.
-
-## التشغيل والتوثيق
-
-- [CI documentation](docs/CI.md)
-- [DevSecOps controls and scope](docs/DEVSECOPS.md)
-- [Repository policy audit setup](docs/REPOSITORY_POLICY_AUDIT.md)
-- [GitHub Pages DevOps roadmap](docs/GITHUB_PAGES_DEVOPS_ROADMAP.md)
-- [AI model strategy](docs/AI_MODEL_STRATEGY.md)
-- [AI provider resilience design](docs/AI_PROVIDER_RESILIENCE.md)
-- [AI code review setup and limits](docs/AI_CODE_REVIEW.md)
-- [Optional local coding-agent tool review](docs/FREE_CLAUDE_CODE_EVALUATION.md)
-- [AI investigation acceptance and measured results](docs/INVESTIGATOR_ACCEPTANCE.md)
-- [GitHub AI Scan setup and billing](docs/GITHUB_AI_SCAN.md)
-- [AI and Agentic Workflow cost controls](docs/GITHUB_CODE_QUALITY_COSTS.md)
-- [مرجع إصدار Neovim الليلي وأصوله](docs/NEOVIM_NIGHTLY.md)
-- [iOS exploit claim triage](docs/IOS_EXPLOIT_CLAIM_TRIAGE.md)
-- [Release & rollback runbook](docs/RELEASE_ROLLBACK.md)
-- [النشر والرجوع](docs/DEPLOYMENT.md)
-- [الاستجابة للحوادث](docs/INCIDENT_RESPONSE.md)
-- [الأمان والإبلاغ عن الثغرات](SECURITY.md)
-- [Stable baseline: v1.0.0](https://github.com/hamedonassar95/Devobs/releases/tag/v1.0.0)
-
-إعداد AI DevKit للمساهمين ومراحل العمل موثق في [دليل AI DevKit](docs/AI_DEVKIT.md). هذا الإعداد منفصل عن تشغيل CI/CD؛ مركز وحدات الأتمتة القابلة لإعادة الاستخدام موجود في [مركز الأتمتة](docs/AUTOMATION_HUB.md).
-
-- [Manual P01 evidence completeness gate](docs/P01_ACTIVATION_READINESS.md#p01-offline-evidence-gate-review-only): fails closed on missing or stale launch evidence, but cannot approve P01, launch SaaS, or access provider accounts.
+---
+**فريق التطوير**: تم التطوير بعناية لتقديم أرقى معايير مراقبة الخوادم وهندسة الأنظمة السحابية.

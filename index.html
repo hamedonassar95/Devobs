@@ -1,138 +1,20 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="خدمات DevOps والبرمجيات بمساندة الذكاء الاصطناعي للشركات حول العالم. | AI-assisted DevOps and software services for businesses worldwide.">
-  <meta name="theme-color" content="#090e1b">
-  <title>Devobs | خدمات DevOps والبرمجيات للشركات | Software &amp; DevOps Services</title>
-  <style>
-    :root { color-scheme:dark; --bg:#090e1b;--bg2:#10182b;--panel:#151f34;--panel2:#1b2940;--text:#f1f6ff;--muted:#b3bfd3;--line:#30415b;--cyan:#6cddf5;--blue:#74a6ff;--violet:#a994ff;--green:#7ee7be;--amber:#ffce83; }
-    *,*::before,*::after{box-sizing:border-box}
-    html{min-width:320px;scroll-behavior:smooth}
-    body{margin:0;background:radial-gradient(ellipse at 87% 8%,rgba(108,99,211,.18),transparent 33rem),radial-gradient(ellipse at 1% 47%,rgba(48,154,192,.10),transparent 36rem),var(--bg);color:var(--text);font:16px/1.75 system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;overflow-x:clip}
-    a{color:var(--cyan);overflow-wrap:anywhere;text-underline-offset:4px}
-    a:focus-visible{outline:3px solid var(--cyan);outline-offset:4px;border-radius:5px}
-    .skip{position:absolute;inset-block-start:-100px;inset-inline-start:12px;padding:10px 15px;border-radius:10px;background:var(--cyan);color:#001d27;z-index:40}.skip:focus{inset-block-start:10px}
-    .shell{width:min(1180px,calc(100% - 36px));margin-inline:auto}
-    .nav-wrap{position:relative;border-bottom:1px solid rgba(152,170,208,.14);background:rgba(11,17,32,.74)}
-    .navbar{display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:82px}
-    .brand{display:inline-flex;align-items:center;gap:13px;text-decoration:none;color:#fff}
-    .logo{display:grid;place-items:center;width:44px;height:44px;flex:none;border:1px solid #585dba;border-radius:14px;background:linear-gradient(140deg,#2c3e7c,#271e53);box-shadow:0 10px 30px #3d37b033;color:#dcf6ff;font-weight:900;font-size:20px}
-    .brand strong,.brand small{display:block}.brand strong{letter-spacing:.08em;font-size:1.1rem}.brand small{color:#9eb5d4;font-size:.69rem;line-height:1.3}
-    .nav-links{display:flex;flex-wrap:wrap;align-items:center;gap:5px}.nav-links a{min-height:42px;padding:8px 12px;border-radius:10px;color:#c5d0e4;font-weight:650;font-size:.84rem;text-decoration:none}.nav-links a:hover{background:#202d47;color:#fff}
-    .nav-links a.nav-primary{border:1px solid #517ca6;background:linear-gradient(130deg,#1b3558,#252d54);color:#e5f9ff}
-    .eyebrow{display:inline-flex;align-items:center;gap:9px;margin:0 0 15px;color:var(--cyan);font-size:.78rem;letter-spacing:.09em;font-weight:850}
-    .eyebrow::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 0 4px #6cddf51a}
-    header.hero{display:grid;grid-template-columns:minmax(0,1.04fr) minmax(330px,.96fr);align-items:center;gap:clamp(24px,5vw,76px);padding:72px 0 82px;min-height:600px}
-    h1,h2,h3{line-height:1.35;letter-spacing:-.024em}
-    h1{font-size:clamp(2.3rem,5.1vw,4.45rem);margin:0;max-width:16ch;font-weight:850;text-wrap:balance}
-    h1 em{font-style:normal;color:#9eeafa}
-    h1 [lang="en"]{display:block;margin-top:14px;font-size:clamp(.96rem,1.6vw,1.27rem);font-weight:550;letter-spacing:0;line-height:1.6;color:#bac8ed}
-    .hero-lead{max-width:58ch;margin:22px 0 0;color:#bfcce0;font-size:1.01rem}
-    .hero-actions{display:flex;flex-wrap:wrap;gap:11px;margin:25px 0 0}
-    .button{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:50px;padding:12px 19px;border:1px solid transparent;border-radius:12px;text-decoration:none;font-weight:800;font-size:.87rem;transition:transform .16s ease,background .16s ease,border-color .16s ease}
-    .button:hover{transform:translateY(-2px)}.button.primary{color:#08182a;background:linear-gradient(120deg,#92eafb,#92b6ff)}.button.primary:hover{background:#b8f3ff}
-    .button.secondary{color:#e3edff;border-color:#485d80;background:#1a2740}.button.secondary:hover{border-color:#7894cf;background:#202f4d}
-    .hero-footnote{color:#8198b4;font-size:.76rem;margin:17px 0 0}
-    .preview{position:relative;min-width:0;padding:15px;border:1px solid #405478;border-radius:21px;background:linear-gradient(145deg,#17243c,#101829);box-shadow:0 32px 85px #030713a8,0 0 0 5px #7097d30b}
-    .preview-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid #324260;padding:6px 6px 16px;color:#9fb4d7;font-size:.7rem;letter-spacing:.02em}
-    .dots{display:flex;gap:6px;direction:ltr}.dots i{display:block;width:8px;height:8px;border-radius:50%;background:#6584a8}.dots i:nth-child(1){background:#ec8c9c}.dots i:nth-child(2){background:#f4c87b}.dots i:nth-child(3){background:#79dcb7}
-    .preview-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:19px 3px 13px}.preview-title strong{font-size:.96rem}.preview-title span{border:1px solid #59639d;border-radius:100px;background:#2a2d56;color:#d8d2ff;padding:4px 9px;font-size:.7rem}
-    .metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.metric{padding:14px 11px;border:1px solid #364863;border-radius:12px;background:#1a2a43;min-width:0}
-    .metric small{display:block;color:#9cbbd4;font-size:.7rem}.metric strong{display:block;font-size:1.25rem;margin-top:7px}.metric strong.cyan{color:#91ebff}.metric strong.violet{color:#bdb0ff}.metric strong.green{color:#97eccc}
-    .pipeline{margin-top:12px;padding:16px;border:1px solid #344662;border-radius:12px;background:#132139}.pipeline-head{display:flex;justify-content:space-between;gap:10px;color:#cedbec;font-weight:750;font-size:.77rem;margin-bottom:16px}
-    .pipeline-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;direction:ltr}
-    .pipe-step{text-align:center;min-width:0}.pipe-step .pipe-dot{display:grid;place-items:center;width:34px;height:34px;margin:auto;border-radius:11px;border:1px solid #4f759c;color:#bbdfff;background:#263c59;font-size:.92rem;font-weight:900}.pipe-step.done .pipe-dot{border-color:#39856a;background:#224f48;color:#8af1c5}.pipe-step.pending .pipe-dot{border-color:#776641;background:#53422a;color:#ffda98}
-    .pipe-step small{display:block;margin-top:7px;color:#b4c9dc;font-size:.65rem}
-    .preview-note{margin:12px 3px 1px;color:#92a7c3;font-size:.72rem}
-    .trustline{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 50px;padding-top:19px;border-top:1px solid #273a55}
-    .trustline span{padding:8px 13px;border:1px solid #30445f;border-radius:999px;background:#142137;color:#b1cae2;font-size:.76rem}
-    main{display:grid;gap:22px}
-    section{scroll-margin-top:22px}.section-box{padding:clamp(24px,3.6vw,38px);border:1px solid #2d415f;border-radius:23px;background:linear-gradient(155deg,#121f34,#101a2d)}
-    section .section-head{max-width:720px;margin-bottom:27px}.section-kicker{margin:0 0 8px;color:#7ce5f5;letter-spacing:.1em;font-weight:800;font-size:.73rem}
-    h2{margin:0;font-size:clamp(1.65rem,3vw,2.3rem)}.section-intro{color:#b7c7dc;max-width:67ch;margin:11px 0 0;font-size:.89rem}
-    .service-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0;padding:0;list-style:none}
-    .service-list li{min-width:0;padding:21px;border:1px solid #364969;border-radius:15px;background:linear-gradient(160deg,#1b2b45,#142239)}
-    .service-icon{display:grid;place-items:center;width:43px;height:43px;border:1px solid #5074a6;border-radius:12px;background:#263d63;color:#9ce1ff;font-size:1.15rem;margin-bottom:23px}
-    .service-list h3{margin:0;font-size:1.02rem}.english-copy{display:block;margin-top:5px;direction:ltr;text-align:left;color:#9fb5d3;font-size:.78rem;font-weight:500;line-height:1.65}.service-list p{color:#b3c3d8;margin:12px 0 0;font-size:.83rem}
-    .features{display:grid;grid-template-columns:1fr 1fr;gap:16px}.feature{display:flex;align-items:start;gap:14px;padding:18px;border:1px solid #334862;border-radius:14px;background:#19263d}.feature b{display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;border:1px solid #4c6893;border-radius:11px;background:#263853;color:#9ddcff}.feature strong{display:block;font-size:.87rem}.feature p{margin:4px 0 0;color:#acbed6;font-size:.79rem}
-    .download-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.download-card{display:flex;flex-direction:column;gap:12px;padding:22px;border:1px solid #39506e;border-radius:17px;background:linear-gradient(140deg,#1d304b,#16243b)}
-    .download-top{display:flex;align-items:center;gap:12px}.os-symbol{display:grid;place-items:center;flex:none;width:48px;height:48px;border:1px solid #52739b;border-radius:13px;background:#263f60;color:#d0f3ff;font-weight:900;font-size:1.2rem}
-    .download-top h3{margin:0;font-size:1.13rem}.os-caption{display:block;color:#94accb;font-size:.73rem}.status{display:inline-flex;align-items:center;gap:7px;align-self:start;border:1px solid #786a53;border-radius:100px;background:#322c2b;color:#ffd9a4;font-size:.69rem;font-weight:700;padding:4px 9px}.status.available{border-color:#377962;background:#203a38;color:#a4f4d2}
-    .download-card p{margin:0;color:#b5c7db;font-size:.82rem;line-height:1.8}.download-action{display:block;margin-top:auto;padding:12px;border:1px solid #4b5870;border-radius:10px;background:#242d43;text-align:center;color:#aebfd2;font-weight:800;font-size:.82rem;text-decoration:none}.download-action.open{border-color:#598eb6;background:#214461;color:#dcf7ff}.download-action.open:hover{background:#2b5a80}.download-action[aria-disabled="true"]{cursor:not-allowed}
-    .download-footnote{margin-top:19px;padding:16px 18px;border:1px solid #364d69;border-radius:12px;background:#182840;color:#c1d0e4;font-size:.82rem}
-    #start ol{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;list-style:none;counter-reset:step;margin:0;padding:0}
-    #start li{padding:20px;border:1px solid #334a68;border-radius:14px;background:#1a2a42;counter-increment:step}#start li:before{display:block;margin-bottom:10px;color:#8be1fc;font-size:1.1rem;font-weight:900;content:counter(step,decimal-leading-zero)}.step-copy{display:block}.step-copy strong{display:block;font-size:.86rem}
-    .contact-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;align-items:center}.contact-grid p{color:#b6c7dc;font-size:.88rem}
-    .contact-links{display:flex;gap:10px;flex-wrap:wrap}.contact-link{display:inline-flex;align-items:center;min-height:45px;padding:10px 13px;border:1px solid #4d698b;border-radius:10px;background:#1b3451;text-decoration:none;color:#c8ecfb;font-weight:750;font-size:.83rem;direction:ltr;unicode-bidi:isolate}
-    footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:17px;margin:28px 0 40px;padding-top:21px;border-top:1px solid #2a3b56;color:#9fb3cf;font-size:.77rem}.footer-copy p{margin:0}.footer-copy [lang="en"]{direction:ltr;text-align:left}.footer-links{display:flex;gap:16px;flex-wrap:wrap}.footer-links a{text-decoration:none}
-    @media(max-width:1000px){header.hero{grid-template-columns:1fr;gap:35px;padding-block:45px}.preview{max-width:690px;width:100%;margin-inline:auto}.service-list{grid-template-columns:repeat(2,minmax(0,1fr))}.download-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    @media(max-width:700px){.shell{width:min(100% - 24px,1180px)}.navbar{align-items:start;flex-direction:column;justify-content:center;padding:15px 0;gap:13px}.nav-links{width:100%;gap:4px}.nav-links a{padding:8px 10px;font-size:.77rem}.hero{min-height:auto}header.hero{padding:38px 0 50px}.hero-actions{flex-direction:column}.button{width:100%}.trustline{margin-bottom:25px}.section-box{padding:21px}.service-list,.download-grid,.features,#start ol{grid-template-columns:1fr}.contact-grid{grid-template-columns:1fr}.contact-links{flex-direction:column}.contact-link{justify-content:center}.metric{padding:11px 7px}.metric strong{font-size:1rem}.pipeline-steps{gap:3px}.pipe-step small{font-size:.59rem}footer{align-items:flex-start;flex-direction:column}}
-    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.button{transition:none}.button:hover{transform:none}}
-  </style>
-</head>
-<body>
-  <a class="skip" href="#content">تجاوز إلى المحتوى</a>
-  <div class="nav-wrap">
-    <nav class="navbar shell" aria-label="القائمة الرئيسية">
-      <a class="brand" href="#top" aria-label="Devobs AI Intelligence"><span class="logo" aria-hidden="true">D</span><span><strong>DEVOBS</strong><small>AI INTELLIGENCE · DEVOPS</small></span></a>
-      <div class="nav-links"><a href="#services">الخدمات</a><a href="#capabilities">القدرات</a><a href="#downloads">التنزيلات</a><a href="assets/creator-planner/">مخطط القناة</a><a href="#start">آلية العمل</a><a class="nav-primary" href="#contact">تواصل معنا ←</a></div>
-    </nav>
-  </div>
-  <div class="shell" id="top">
-    <header class="hero" aria-label="مقدمة Devobs">
-      <div>
-        <p class="eyebrow">DEVOPS AUTOMATION / AI INTELLIGENCE</p>
-        <h1>خدمات البرمجيات وDevOps للشركات <em>بمنهج قائم على الأدلة</em><span lang="en">Software and DevOps services for businesses</span></h1>
-        <p class="hero-lead">خدمات DevOps والبرمجيات بمساندة الذكاء الاصطناعي للشركات حول العالم — من مراجعة مسارات CI/CD إلى بناء حلول وأتمتة قابلة للمراجعة البشرية.</p>
-        <p class="hero-lead" lang="en" dir="ltr">AI-assisted DevOps and software services for businesses worldwide.</p>
-        <div class="hero-actions"><a class="button primary" href="#services">استكشف خدماتنا ←</a><a class="button secondary" href="#downloads">تطبيقات Android وWindows ↓</a></div>
-        <p class="hero-footnote">واجهة تعريفية عامة · لا تتضمن لوحة تشغيل حية أو قياسات عميل.</p>
-      </div>
-      <div class="preview" aria-label="معاينة تصميمية توضيحية لخط أنابيب DevOps، وليست بيانات حقيقية">
-        <div class="preview-bar"><span dir="ltr">DEVOBS / CONTROL PREVIEW</span><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span></div>
-        <div class="preview-title"><strong>DevOps Control Center</strong><span>DESIGN PREVIEW</span></div>
-        <div class="metric-grid">
-          <div class="metric"><small>CI/CD</small><strong class="cyan">PIPELINE</strong></div>
-          <div class="metric"><small>Security</small><strong class="violet">REVIEW</strong></div>
-          <div class="metric"><small>AI advisory</small><strong class="green">HUMAN</strong></div>
-        </div>
-        <div class="pipeline"><div class="pipeline-head"><span>مثال توضيحي لمسار العمل</span><span dir="ltr">build → review</span></div><div class="pipeline-steps" aria-hidden="true"><div class="pipe-step done"><div class="pipe-dot">✓</div><small>Code</small></div><div class="pipe-step done"><div class="pipe-dot">✓</div><small>Tests</small></div><div class="pipe-step"><div class="pipe-dot">◇</div><small>Security</small></div><div class="pipe-step pending"><div class="pipe-dot">!</div><small>Approve</small></div></div></div>
-        <p class="preview-note">هذا تصور تصميمي للمنتج، وليس تقريرًا عن CI أو أمن أو ذكاء اصطناعي يعمل حاليًا.</p>
-      </div>
-    </header>
-
-    <div class="trustline" aria-label="خصائص التصميم"><span>واجهة عربية RTL</span><span>CI/CD &amp; DevSecOps</span><span>مراجعة بشرية للتغييرات</span><span>لا خدمات مدفوعة مفعلة من الموقع</span></div>
-    <main id="content">
-      <section id="services" class="section-box" aria-labelledby="services-title">
-        <div class="section-head"><p class="section-kicker">OUR SERVICES</p><h2 id="services-title">الخدمات <span class="english-copy" lang="en">Services</span></h2><p class="section-intro">خدمات محددة يمكن مناقشة نطاقها قبل أي تكاليف أو تشغيل. التنفيذ التجاري يُحدد باتفاق مستقل.</p></div>
-        <ul class="service-list">
-          <li><span class="service-icon" aria-hidden="true">▣</span><h3>إنشاء تطبيقات الويب والمواقع الإلكترونية <span class="english-copy" lang="en">Build web applications and websites</span></h3><p>واجهات واضحة وتجارب مناسبة للجوال.</p></li>
-          <li><span class="service-icon" aria-hidden="true">◇</span><h3>إنشاء تطبيقات الهواتف المحمولة <span class="english-copy" lang="en">Build mobile applications</span></h3><p>تخطيط وتطوير التطبيقات حسب نطاق المشروع.</p></li>
-          <li><span class="service-icon" aria-hidden="true">⌁</span><h3>إصلاح المواقع والأنظمة وصيانتها <span class="english-copy" lang="en">Repair and maintain websites and systems</span></h3><p>تحليل الأعطال وإصلاحها مع اختبارات واضحة.</p></li>
-          <li><span class="service-icon" aria-hidden="true">⟳</span><h3>أتمتة DevOps باستخدام GitHub Actions وCI/CD <span class="english-copy" lang="en">DevOps automation with GitHub Actions and CI/CD</span></h3><p>فحوص وبوابات مراجعة ضمن سير تطوير قابل للتتبع.</p></li>
-          <li><span class="service-icon" aria-hidden="true">✦</span><h3>مراجعة الشيفرة وفرز الحوادث بمساندة الذكاء الاصطناعي <span class="english-copy" lang="en">AI-assisted code review and incident triage</span></h3><p>التوصيات استشارية ولا تنفذ تغييرات إنتاجية تلقائيًا.</p></li>
-          <li><span class="service-icon" aria-hidden="true">↗</span><h3>خدمات مخصصة وتكاملات برمجية <span class="english-copy" lang="en">Custom integrations and automation</span></h3><p>نحدد الاحتياج والمتطلبات والمخاطر قبل تقديم عرض عمل.</p></li>
-        </ul>
-      </section>
-      <section id="capabilities" class="section-box" aria-labelledby="capabilities-title">
-        <div class="section-head"><p class="section-kicker">ENGINEERING APPROACH</p><h2 id="capabilities-title">تقنية مفهومة، ونتائج قابلة للتحقق.</h2><p class="section-intro">الأتمتة الجيدة لا تكتفي بإظهار حالة خضراء؛ توثّق ما تم فحصه وما لا يزال بحاجة إلى مراجعة.</p></div>
-        <div class="features"><div class="feature"><b aria-hidden="true">01</b><div><strong>فحوص جودة الشيفرة</strong><p>اختبارات CI وتتبّع التغيير قبل الاعتماد.</p></div></div><div class="feature"><b aria-hidden="true">02</b><div><strong>مراجعات أمنية</strong><p>فحوص تعتمد على الأدلة بدل الادعاء بانعدام المخاطر.</p></div></div><div class="feature"><b aria-hidden="true">03</b><div><strong>مساعدة AI الاستشارية</strong><p>مقترحات لا تعادل قرارات التنفيذ أو نشر الإنتاج.</p></div></div><div class="feature"><b aria-hidden="true">04</b><div><strong>بوابة موافقة بشرية</strong><p>لا تغيير للأنظمة الحساسة دون مراجعة مصرح بها.</p></div></div></div>
-      </section>
-      <section id="downloads" class="section-box" aria-labelledby="downloads-title">
-        <div class="section-head"><p class="section-kicker">APPS &amp; DOWNLOADS</p><h2 id="downloads-title">تطبيقات Devobs للكمبيوتر والهاتف</h2><p class="section-intro">مركز تحميل مستقبلي للنسخ الرسمية. لم تُنشر بعد حزم Android أو Windows خاصة بمستودع Devobs. لن تظهر روابط ملفات وهمية.</p></div>
-        <div class="download-grid">
-          <article class="download-card"><div class="download-top"><span class="os-symbol" aria-hidden="true">▦</span><div><span class="os-caption">WINDOWS DESKTOP</span><h3>Windows</h3></div></div><span class="status">قيد الإعداد · لا يوجد مثبت معتمد</span><p>سيُتاح تنزيل التطبيق عند وجود ملف EXE أو MSIX موقع ومختبر، مع رقم الإصدار والبصمة.</p><span class="download-action" aria-disabled="true">تنزيل Windows — غير متاح حاليًا</span></article>
-          <article class="download-card"><div class="download-top"><span class="os-symbol" aria-hidden="true">◈</span><div><span class="os-caption">ANDROID APPLICATION</span><h3>Android</h3></div></div><span class="status">قيد الإعداد · لا يوجد APK معتمد</span><p>سيُتاح ملف APK رسمي بعد التأكد من البناء والتوقيع واختبار التثبيت على جهاز مصرح به.</p><span class="download-action" aria-disabled="true">تنزيل Android — غير متاح حاليًا</span></article>
-          <article class="download-card"><div class="download-top"><span class="os-symbol" aria-hidden="true">⌘</span><div><span class="os-caption">WEB &amp; SOURCE</span><h3>نسخة الويب والمصدر</h3></div></div><span class="status available">موقع الويب متاح</span><p>الموقع الحالي يقدم معلومات الخدمات؛ لا يقدم بعد لوحة Devobs SaaS مستضافة.</p><a class="download-action open" href="https://github.com/hamedonassar95/Devobs/releases" rel="noopener noreferrer">استعرض إصدارات GitHub ←</a></article>
-        </div>
-        <p class="download-footnote">تنويه: وجود مصدر برمجي أو ZIP أو نجاح GitHub Actions لا يثبت وجود تطبيق مثبت. الروابط المباشرة ستُفعّل بعد التحقق من ملف الإصدار وبصمته وتوقيعه واعتماد النشر.</p>
-      </section>
-      <section id="start" class="section-box" aria-labelledby="start-title"><div class="section-head"><p class="section-kicker">WORK WITH DEVOBS</p><h2 id="start-title">كيف نبدأ <span class="english-copy" lang="en">Getting started</span></h2></div><ol><li><span class="step-copy"><strong>أرسل موجز مشروعك</strong><span class="english-copy" lang="en">Send us your project brief</span></span></li><li><span class="step-copy"><strong>نراجعه</strong><span class="english-copy" lang="en">We review it to understand your needs</span></span></li><li><span class="step-copy"><strong>نقترح نطاق العمل</strong><span class="english-copy" lang="en">We propose a suitable scope of work</span></span></li></ol></section>
-      <section id="contact" class="section-box" aria-labelledby="contact-title"><div class="contact-grid"><div><p class="section-kicker">LET'S TALK</p><h2 id="contact-title">التواصل <span class="english-copy" lang="en">Contact</span></h2><p>يمكن مناقشة المشاريع وخدمات الأتمتة عن بُعد داخل الأردن أو حول العالم <span lang="en" dir="ltr">worldwide</span>. لا يوجد طلب شراء أو دفع مباشر في هذه الصفحة.</p></div><div class="contact-links"><a class="contact-link" href="mailto:hamedonassar95@outlook.sa">hamedonassar95@outlook.sa</a><a class="contact-link" href="tel:+962798081818">+962 79 808 1818</a></div></div></section>
-    </main>
-    <footer><div class="footer-copy"><p lang="ar" dir="rtl">Devobs — خدمات DevOps والذكاء الاصطناعي.</p><p lang="en" dir="ltr">Devobs — DevOps and AI-assisted services.</p></div><div class="footer-links"><a href="assets/creator-planner/">مخطط محتوى القناة</a><a href="#top">العودة للأعلى ↑</a><a href="https://github.com/hamedonassar95/Devobs" rel="noopener noreferrer">مستودع GitHub</a></div></footer>
-  </div>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>دليل ومحراب البناء الذكي | AI Studio Guide</title>
+    <meta name="description" content="دليل تفاعلي متكامل لتعلم كيفية استخدام وتوجيه مهندس البرمجيات الذكي لبناء تطبيقات ومشاريع ويب كاملة ومميزة." />
+    <meta property="og:title" content="دليل ومحراب البناء الذكي | AI Studio Guide" />
+    <meta property="og:description" content="دليل تفاعلي متكامل لتعلم كيفية استخدام وتوجيه مهندس البرمجيات الذكي لبناء تطبيقات ومشاريع ويب كاملة ومميزة." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased selection:bg-indigo-500 selection:text-white transition-colors duration-200">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

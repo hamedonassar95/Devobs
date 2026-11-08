@@ -1,0 +1,12 @@
+{
+  "projectId": "my-apps-hamedo",
+  "appId": "1:542509435603:web:9158b561751b436bbf2226",
+  "apiKey": "AIzaSyAqvxSTKGCfnCgipJCwBIoCUxGS4UtJ1N0",
+  "authDomain": "my-apps-hamedo.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-promptpal-f1b3ebe9-9826-4fca-9a67-b5376e8669b3",
+  "storageBucket": "my-apps-hamedo.firebasestorage.app",
+  "messagingSenderId": "542509435603",
+  "measurementId": "",
+  "oAuthClientId": "542509435603-gerpd9nig50hfii5kromqtokvfuof6v4.apps.googleusercontent.com",
+  "recaptchaSiteKey": ""
+}
