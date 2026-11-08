@@ -1,4 +1,12 @@
-## أحدث لقطة موثّقة: PR #475 — تحقق 2026-11-08
+## أحدث لقطة موثّقة: PR #476 — تحقق 2026-11-08
+
+- **VERIFIED من GitHub:** دُمج PR [#476](https://github.com/hamedonassar95/Devobs/pull/476) على `main` عند `a2745960a56fe58e934e5c2a65aa9347cb3126c5` من الرأس `94241f7327be0ddc0004097ed2b3bd725dd701b0`. نجحت فحوص الرأس: CI [42509380200](https://github.com/hamedonassar95/Devobs/actions/runs/42509380200) و[42509355473](https://github.com/hamedonassar95/Devobs/actions/runs/42509355473)، وCodeQL [42509377766](https://github.com/hamedonassar95/Devobs/actions/runs/42509377766)، ومراجعة AI [42509380058](https://github.com/hamedonassar95/Devobs/actions/runs/42509380058). بعد الدمج نجح CI [42509629238](https://github.com/hamedonassar95/Devobs/actions/runs/42509629238) وCodeQL [42509628495](https://github.com/hamedonassar95/Devobs/actions/runs/42509628495) على SHA الدمج نفسه. اجتازت Python وPostgreSQL RLS والأمن وTrivy للصورة نفسها وTerraform وعقد الموقع و`validate`. نُشرت صفحة Pages الثابتة واجتاز `verify-production`.
+- يسجل PR #476 دمج #475 في الحالة وسجل الإنجازات واختباره. التغيير توثيق واختبار سجل فقط؛ لا يغيّر سلوك التطبيق أو الصلاحيات أو البوابات. اجتاز Node في تشغيل الرأس [42509355473](https://github.com/hamedonassar95/Devobs/actions/runs/42509355473)، وتخطاه تشغيل الرأس [42509380200](https://github.com/hamedonassar95/Devobs/actions/runs/42509380200) وتشغيل الدمج بسبب مرشح المسارات. تخطّى PR-Agent الاختياري وتمرين الحادث وفحوص الاستعادة شروطها.
+- **البوابات:** AI-9 **BLOCKED** وP01 **BLOCKED** وCodex runtime **OPEN**.
+
+---
+
+## لقطة سابقة موثّقة: PR #475 — تحقق 2026-11-08
 
 - **VERIFIED من GitHub:** دُمج PR [#475](https://github.com/hamedonassar95/Devobs/pull/475) على `main` عند `5cb98322e9a54f0102f2f0ab1df7673de2121b4c` من الرأس `0c643266996a75e40f657b7f8be4ab3f900e2d13`. نجحت فحوص الرأس: CI [42508810489](https://github.com/hamedonassar95/Devobs/actions/runs/42508810489) و[42508814564](https://github.com/hamedonassar95/Devobs/actions/runs/42508814564)، وCodeQL [42508811151](https://github.com/hamedonassar95/Devobs/actions/runs/42508811151) ومراجعة AI [42508814500](https://github.com/hamedonassar95/Devobs/actions/runs/42508814500). بعد الدمج نجح CI [42509038532](https://github.com/hamedonassar95/Devobs/actions/runs/42509038532) وCodeQL [42509038342](https://github.com/hamedonassar95/Devobs/actions/runs/42509038342) على SHA الدمج نفسه. اجتازت Python وRLS والأمن وTrivy للصورة نفسها وTerraform وعقد الموقع والتحقق. نُشرت صفحة Pages الثابتة واجتاز `verify-production`. تخطّى Node مرشح المسارات، وتخطّى تمرين الحادث وفحوص الاستعادة لشروطها.
 - يسجل PR #475 دمج #473 و#474، ويحدّث قرار إغلاق #454 دون دمج. هو توثيق واختبار سجل فقط؛ لا يضيف سلوكًا أو خدمة ولا يغير البوابات. #454 مغلق بلا merge commit، ولم يُنقل منه كود.

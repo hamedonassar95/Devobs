@@ -1564,6 +1564,17 @@
       "ci_run_id": 42509038532,
       "verification": "VERIFIED 2026-11-08: PR #475 merged to main at 5cb98322e9a54f0102f2f0ab1df7673de2121b4c from head 0c643266996a75e40f657b7f8be4ab3f900e2d13. Exact-head CI 42508810489 and 42508814564, CodeQL 42508811151 and AI Code Review 42508814500 SUCCESS; exact-merge main CI 42509038532 and CodeQL 42509038342 SUCCESS. Python, RLS, security, same-image Trivy, Terraform, site-contract and validate passed. Existing Pages publication and verify-production passed.",
       "limitations": "Documentation and regression-test synchronization only; PR #475 also records #473/#474 and the no-merge closure of PR #454. Node tests skipped by path selection; incident drill and restoration checks skipped by workflow conditions. No application behavior or gate changed. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr476-record-pr475",
+      "area": "DOCUMENTATION",
+      "title": "Record verified PR #476 merge evidence for PR #475",
+      "pr_number": 476,
+      "pr_head_sha": "94241f7327be0ddc0004097ed2b3bd725dd701b0",
+      "merge_sha": "a2745960a56fe58e934e5c2a65aa9347cb3126c5",
+      "ci_run_id": 42509629238,
+      "verification": "VERIFIED 2026-11-08: PR #476 merged to main at a2745960a56fe58e934e5c2a65aa9347cb3126c5 from head 94241f7327be0ddc0004097ed2b3bd725dd701b0. Exact-head CI 42509380200 and 42509355473, CodeQL 42509377766, and AI Code Review 42509380058 SUCCESS. Exact-merge main CI 42509629238 and CodeQL 42509628495 SUCCESS. Python, PostgreSQL RLS, security, same-image Trivy, Terraform, site-contract and validate passed; existing Pages publication and verify-production passed.",
+      "limitations": "Documentation and milestone-ledger regression-test synchronization for PR #475 only; no application behavior, permissions or readiness gate changed. Node tests passed in exact-head CI 42509355473 and were skipped in exact-head CI 42509380200 and merge CI by path filters. The optional PR-Agent review, controlled incident drill and restoration checks were skipped by their workflow conditions. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
     }
   ],
   "gates": [
