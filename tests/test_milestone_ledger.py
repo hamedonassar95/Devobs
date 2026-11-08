@@ -1026,11 +1026,17 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr476_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr477_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 476)
-        self.assertEqual(result["merged_milestones"], 143)
+        self.assertEqual(result["latest_pr"], 477)
+        self.assertEqual(result["merged_milestones"], 144)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
+        evidence_sync_477 = records[477]
+        self.assertEqual(evidence_sync_477["pr_head_sha"], "f2637976c699bcdacddfcca2b3027fcb813d25e7")
+        self.assertEqual(evidence_sync_477["merge_sha"], "f657f4c51e2001d1be78d0d7d407ab5f3ad6b6a9")
+        self.assertEqual(evidence_sync_477["ci_run_id"], 42510206549)
+        self.assertIn("CodeQL 42510206514 SUCCESS", evidence_sync_477["verification"])
+        self.assertIn("no model inference is claimed", evidence_sync_477["limitations"])
         evidence_sync_476 = records[476]
         self.assertEqual(evidence_sync_476["pr_head_sha"], "94241f7327be0ddc0004097ed2b3bd725dd701b0")
         self.assertEqual(evidence_sync_476["merge_sha"], "a2745960a56fe58e934e5c2a65aa9347cb3126c5")
