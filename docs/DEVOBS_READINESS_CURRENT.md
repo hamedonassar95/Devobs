@@ -1,4 +1,18 @@
-## Current snapshot — 2026-11-08 (main at PR #457)
+## Current snapshot — 2026-11-08 (main at PR #458; PR #459 open)
+
+**VERIFIED from GitHub:** PR [#458](https://github.com/hamedonassar95/Devobs/pull/458) merged to `main` at `63895a1159f6867f5becda56f24395ff33f4057f` from head `0803958af80e25ec164de778fded0f14265c390b`. Exact-head CI [42486018274](https://github.com/hamedonassar95/Devobs/actions/runs/42486018274) and CodeQL [42486015475](https://github.com/hamedonassar95/Devobs/actions/runs/42486015475) passed. Exact-merge main CI [42486881365](https://github.com/hamedonassar95/Devobs/actions/runs/42486881365) and CodeQL [42486880663](https://github.com/hamedonassar95/Devobs/actions/runs/42486880663) passed. PR #458 changes only `STATE.md`, this readiness file, the milestone ledger and its tests.
+
+The merge CI passed Python, PostgreSQL RLS, security, container/Trivy, Terraform, site-contract and `validate`; static GitHub Pages publication and `verify-production` succeeded. Node, the controlled incident drill and conditional restoration checks were skipped by workflow selection. Node was also skipped on the PR-head CI run. This records static-site publication evidence, not a new hosted AI service.
+
+**VERIFIED from GitHub at this snapshot:** PR [#459](https://github.com/hamedonassar95/Devobs/pull/459) is open at head `6314e0a06d1518dcc11489cbfbe099cad41394b5` against `main` `63895a1159f6867f5becda56f24395ff33f4057f`; GitHub reports it `CLEAN` and mergeable. Required CI and CodeQL checks passed; PR-Agent was skipped by its gate and Vercel completed a PR preview. It adds an optional Gemini provider for the existing staging diagnostics path, while OpenAI remains the default. Gemini is disabled by default, requires explicit configuration and a key from the environment, and has not been called; no external log data was sent. This PR is not merged.
+
+**VERIFIED from GitHub:** PR [#454](https://github.com/hamedonassar95/Devobs/pull/454) remains open and conflicting with `main`; its CodeQL gate reports 13 alerts (3 critical, 8 high, 2 medium), and its TypeScript/Unit Tests/Vite check failed during job setup. Keep it unmerged until the findings are addressed and required CI passes.
+
+Gate dispositions remain AI-9 **BLOCKED**, P01 **BLOCKED**, and Codex runtime **OPEN**.
+
+---
+
+## Previous snapshot — 2026-11-08 (main at PR #457; superseded by PR #458)
 
 **VERIFIED from GitHub:** PR [#456](https://github.com/hamedonassar95/Devobs/pull/456) merged at `97a7da7592be21cd8250bda2efff65c5fa45792e` from head `3c76f5f6ea91c9a7dbcc93297ca033ccf5affffb`. Exact-head CI [42483128563](https://github.com/hamedonassar95/Devobs/actions/runs/42483128563) and [42483146245](https://github.com/hamedonassar95/Devobs/actions/runs/42483146245), plus CodeQL [42483143589](https://github.com/hamedonassar95/Devobs/actions/runs/42483143589), passed. Exact-merge main CI [42484399657](https://github.com/hamedonassar95/Devobs/actions/runs/42484399657) and Push on main [42484398714](https://github.com/hamedonassar95/Devobs/actions/runs/42484398714) passed. PR #456 synchronizes evidence for #455 only; no service behavior changed.
 
