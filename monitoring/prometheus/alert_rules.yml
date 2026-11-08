@@ -1,0 +1,40 @@
+groups:
+  - name: devobs-host
+    rules:
+      - alert: HighCpuUsage
+        expr: 1 - avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) > 0.90
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Host CPU usage is high
+          description: Average host CPU usage has exceeded 90% for more than ten minutes.
+
+      - alert: HighMemoryUsage
+        expr: 1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) > 0.90
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Host memory usage is high
+          description: Host memory usage has exceeded 90% for more than ten minutes.
+
+      - alert: DiskSpaceRunningLow
+        expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs|rootfs"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs|rootfs"}) < 0.10 and node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs|rootfs"} > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Host filesystem has little free space
+          description: A host filesystem has less than 10% available space for more than ten minutes.
+
+  - name: devobs-core
+    rules:
+      - alert: ServiceDown
+        expr: up{job=~"prometheus|alertmanager"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: A core monitoring service is down
+          description: Prometheus or Alertmanager has been unavailable to Prometheus for more than two minutes.

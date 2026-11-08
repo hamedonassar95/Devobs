@@ -117,21 +117,27 @@ pip-audit --requirement requirements-dev.txt
 
 ## المراقبة المحلية الاختيارية
 
-يتضمن المستودع إعدادًا محليًا لـPrometheus وGrafana. حاليًا يراقب Prometheus نفسه فقط؛ الموقع الثابت لا يوفّر endpoint لمقاييس التطبيق. شغّل المكونات من جذر المستودع بكلمة مرور Grafana محلية مؤقتة:
+يتضمن المستودع إعدادًا محليًا لـPrometheus وGrafana وAlertmanager. Node Exporter اختياري لمضيف Linux، والموقع الثابت لا يوفّر مقاييس تطبيق.
 
 ```sh
 export GRAFANA_ADMIN_PASSWORD="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
 docker compose -f monitoring/compose.yml up --detach
 ```
 
-افتح Prometheus على <http://127.0.0.1:9090> وGrafana على <http://127.0.0.1:3000>، ثم أوقف الحاويات ونظّف متغير كلمة المرور:
+الواجهات المحلية: Prometheus <http://127.0.0.1:9090>، Grafana <http://127.0.0.1:3000>، Alertmanager <http://127.0.0.1:9093>. لإضافة مقاييس Linux:
 
 ```sh
-docker compose -f monitoring/compose.yml down
-unset GRAFANA_ADMIN_PASSWORD
+docker compose --profile linux-host -f monitoring/compose.yml up --detach
 ```
 
-تظهر قواعد التنبيه في Prometheus، لكنها لا ترسل إشعارات لعدم إعداد Alertmanager. لا يفعّل هذا الإعداد مراقبة إنتاجية أو يرسل بيانات إلى خدمة خارجية. راجع [دليل المراقبة](docs/MONITORING.md) للتفاصيل والقيود.
+على Docker Desktop في Windows أو macOS يقيس Node Exporter آلة Docker الافتراضية. لا يرسل Alertmanager تنبيهات لخدمات خارجية. راجع [دليل المراقبة](docs/MONITORING.md) للتفاصيل والقيود والتراخيص.
+
+لإيقاف جميع المكونات وتنظيف متغير كلمة المرور:
+
+```sh
+docker compose --profile linux-host -f monitoring/compose.yml down
+unset GRAFANA_ADMIN_PASSWORD
+```
 
 ## النشر
 
