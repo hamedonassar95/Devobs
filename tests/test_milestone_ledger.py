@@ -1026,11 +1026,34 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr463_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr465_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 463)
-        self.assertEqual(result["merged_milestones"], 130)
+        self.assertEqual(result["latest_pr"], 465)
+        self.assertEqual(result["merged_milestones"], 132)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
+        evidence_sync_464 = records[464]
+        self.assertEqual(
+            evidence_sync_464["pr_head_sha"],
+            "939e4439068fbe82d06dc492ef9cc61d7051d883",
+        )
+        self.assertEqual(
+            evidence_sync_464["merge_sha"],
+            "413a69eef88f15303b675adcde5da4e14f4c64f0",
+        )
+        self.assertEqual(evidence_sync_464["ci_run_id"], 42498146148)
+        self.assertIn("Exact-merge main CI 42498146148", evidence_sync_464["verification"])
+        local_models_465 = records[465]
+        self.assertEqual(
+            local_models_465["pr_head_sha"],
+            "e6b0d631620adc28633c25fce2e6baad2f104245",
+        )
+        self.assertEqual(
+            local_models_465["merge_sha"],
+            "bd883cc49e79c461eb616f2d0592718fbd8b5c52",
+        )
+        self.assertEqual(local_models_465["ci_run_id"], 42498318610)
+        self.assertIn("Exact-merge main CI 42498318610", local_models_465["verification"])
+        self.assertIn("No local model container/image or weights", local_models_465["limitations"])
         evidence_sync_463 = records[463]
         self.assertEqual(
             evidence_sync_463["pr_head_sha"],

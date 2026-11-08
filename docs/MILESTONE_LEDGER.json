@@ -1432,6 +1432,28 @@
       "ci_run_id": 42496643751,
       "verification": "VERIFIED 2026-11-08: PR #463 merged to main at 16377e2b605772f102245f735d5d90db24d663ec from head 42879ec9cf65fffeff45f49f93da335f0ed0b80f. Exact-head CI 42496245023 and CodeQL 42496242643 SUCCESS; push CI 42496225724 SUCCESS. Exact-merge main CI 42496643751 and Push on main/CodeQL 42496642846 SUCCESS; Python, RLS, security, container/Trivy, Terraform, site-contract and validate passed. Existing CI published static Pages and verify-production passed. Node passed on push CI and skipped on PR/merge CI by path filters; incident drill and restore checks skipped by conditions.",
       "limitations": "Documentation/test synchronization recording PR #462 only; no runtime behavior or gate status changed. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr464-record-pr463",
+      "area": "DOCUMENTATION",
+      "title": "Record verified PR #464 merge evidence for PR #463",
+      "pr_number": 464,
+      "pr_head_sha": "939e4439068fbe82d06dc492ef9cc61d7051d883",
+      "merge_sha": "413a69eef88f15303b675adcde5da4e14f4c64f0",
+      "ci_run_id": 42498146148,
+      "verification": "VERIFIED 2026-11-08: PR #464 merged to main at 413a69eef88f15303b675adcde5da4e14f4c64f0 from head 939e4439068fbe82d06dc492ef9cc61d7051d883. Exact-head CI 42497592989 and CodeQL 42497590263 SUCCESS; push CI 42497564610 SUCCESS. Exact-merge main CI 42498146148 and Push on main/CodeQL 42498145665 SUCCESS; Python, RLS, security, container/Trivy, Terraform, site-contract and validate passed. Existing CI published static Pages and verify-production passed. Node passed on push CI and skipped on PR/merge CI by path filters; incident drill and restore checks skipped by conditions.",
+      "limitations": "Documentation/test synchronization recording PR #463 only; no runtime behavior or gate status changed. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr465-local-model-diagnostics",
+      "area": "AI_GOVERNANCE",
+      "title": "Add opt-in local Ollama and LocalAI staging diagnostics",
+      "pr_number": 465,
+      "pr_head_sha": "e6b0d631620adc28633c25fce2e6baad2f104245",
+      "merge_sha": "bd883cc49e79c461eb616f2d0592718fbd8b5c52",
+      "ci_run_id": 42498318610,
+      "verification": "VERIFIED 2026-11-08: PR #465 merged to main at bd883cc49e79c461eb616f2d0592718fbd8b5c52 from head e6b0d631620adc28633c25fce2e6baad2f104245. Exact-head PR CI 42498196163 and CodeQL 42498192822 SUCCESS; push CI 42498191501 SUCCESS. Exact-merge main CI 42498318610 and Push on main/CodeQL 42498317559 SUCCESS; Python, RLS, security, container/Trivy, Terraform, site-contract and validate passed. Existing CI published static Pages and verify-production passed. Node, incident drill and restore checks skipped by path filters/conditions.",
+      "limitations": "Adds explicitly approved local inference only for staging diagnostics with fixed loopback endpoints. No local model container/image or weights were downloaded or started, and no live inference occurred. The feature does not connect models to AI-1–AI-7 or automate remediation; existing cloud-provider gates remain unchanged. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
     }
   ],
   "gates": [
