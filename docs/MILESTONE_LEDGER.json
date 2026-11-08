@@ -1399,6 +1399,17 @@
       "ci_run_id": 42489904300,
       "verification": "VERIFIED 2026-11-08: PR #460 merged at 418deb79296d44a1f06671287e6aa6798a3305d7 from head 12a6e40ff08ca8334a7425598fddb479d8452e99. Exact-head CI 42488504758 and CodeQL 42488502126 SUCCESS; push CI 42488461904 SUCCESS. Exact-merge main CI 42489904300 and CodeQL 42489903954 SUCCESS; Python, RLS, security, Trivy container, Terraform, site-contract and validate passed; static Pages publication and verify-production passed. Node passed on push CI and skipped on PR/main CI; incident and restore checks skipped by conditions.",
       "limitations": "Documentation/test synchronization recording PR #458 only; no runtime behavior or gate status changed. The existing workflow published static GitHub Pages. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr461-record-pr459-460",
+      "area": "DOCUMENTATION",
+      "title": "Record verified PR #461 merge evidence for PR #459 and #460",
+      "pr_number": 461,
+      "pr_head_sha": "130f86ddc0903425559ef8126d3b5166fbb78146",
+      "merge_sha": "e9578d677601e4efbbe47aef8f869686b9604038",
+      "ci_run_id": 42494465959,
+      "verification": "VERIFIED 2026-11-08: PR #461 merged to main at e9578d677601e4efbbe47aef8f869686b9604038 from head 130f86ddc0903425559ef8126d3b5166fbb78146. Exact-head CI 42490799344 and CodeQL 42490796598 SUCCESS; push CI 42490772611 SUCCESS. Exact-merge main CI 42494465959 and Push on main/CodeQL 42494465688 SUCCESS; Python, RLS, security, container/Trivy, Terraform, site-contract and validate passed. Existing CI published static Pages and verify-production passed. Node passed on push CI and skipped on PR/merge CI by path filters; incident drill and restore checks skipped by conditions.",
+      "limitations": "Documentation/test synchronization recording PR #459 and #460 evidence only; no integration, service behavior or gate status changed. No Gemini inference or external data transfer is established. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
     }
   ],
   "gates": [

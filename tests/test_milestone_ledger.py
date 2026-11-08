@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr460_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr461_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 460)
-        self.assertEqual(result["merged_milestones"], 127)
+        self.assertEqual(result["latest_pr"], 461)
+        self.assertEqual(result["merged_milestones"], 128)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         evidence_sync_449 = records[449]
         self.assertEqual(
@@ -1132,6 +1132,19 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("Exact-head CI 42488504758", evidence_sync_460["verification"])
         self.assertIn("Exact-merge main CI 42489904300", evidence_sync_460["verification"])
         self.assertIn("Documentation/test synchronization", evidence_sync_460["limitations"])
+        evidence_sync_461 = records[461]
+        self.assertEqual(
+            evidence_sync_461["pr_head_sha"],
+            "130f86ddc0903425559ef8126d3b5166fbb78146",
+        )
+        self.assertEqual(
+            evidence_sync_461["merge_sha"],
+            "e9578d677601e4efbbe47aef8f869686b9604038",
+        )
+        self.assertEqual(evidence_sync_461["ci_run_id"], 42494465959)
+        self.assertIn("Exact-head CI 42490799344", evidence_sync_461["verification"])
+        self.assertIn("Exact-merge main CI 42494465959", evidence_sync_461["verification"])
+        self.assertIn("No Gemini inference", evidence_sync_461["limitations"])
         self.assertEqual(
             {gate["id"]: gate["status"] for gate in self.data["gates"]},
             {
