@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Server, Incident, Deployment } from '../../types/serverDashboard';
-import { Sparkles, Check, Copy, Download, Loader2, ShieldCheck } from 'lucide-react';
+import { Sparkles, Check, Copy, Download, Loader2, ShieldCheck, Cloud, CheckCircle2 } from 'lucide-react';
 import { downloadTextFile } from '../../utils/dashboardUtils';
+import { uploadDriveFile } from '../../services/googleDriveService';
 
 interface AiAuditModalProps {
   servers: Server[];
   incidents: Incident[];
   deployments: Deployment[];
   onClose: () => void;
+  token?: string | null;
 }
 
 export const AiAuditModal: React.FC<AiAuditModalProps> = ({
@@ -15,11 +17,14 @@ export const AiAuditModal: React.FC<AiAuditModalProps> = ({
   incidents,
   deployments,
   onClose,
+  token,
 }) => {
   const [report, setReport] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
+  const [savingToDrive, setSavingToDrive] = useState<boolean>(false);
+  const [savedToDrive, setSavedToDrive] = useState<boolean>(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -72,6 +77,24 @@ export const AiAuditModal: React.FC<AiAuditModalProps> = ({
   const handleDownload = () => {
     const filename = `تقرير_تدقيق_البنية_التحتية_${new Date().toISOString().slice(0, 10)}.md`;
     downloadTextFile(filename, report);
+  };
+
+  const handleSaveToDrive = async () => {
+    if (!token || !report) return;
+    const confirmed = window.confirm('هل تود حفظ هذا التقرير الشامل في حسابك على Google Drive؟');
+    if (!confirmed) return;
+
+    setSavingToDrive(true);
+    try {
+      const filename = `تقرير_تدقيق_البنية_التحتية_${new Date().toISOString().slice(0, 10)}.md`;
+      await uploadDriveFile(token, filename, report, 'text/markdown');
+      setSavedToDrive(true);
+      setTimeout(() => setSavedToDrive(false), 3000);
+    } catch (err: any) {
+      alert(`فشل الحفظ في Google Drive: ${err.message}`);
+    } finally {
+      setSavingToDrive(false);
+    }
   };
 
   return (
@@ -127,8 +150,8 @@ export const AiAuditModal: React.FC<AiAuditModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-800 bg-slate-950/70 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+        <div className="p-4 border-t border-slate-800 bg-slate-950/70 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={handleCopy}
               disabled={loading || !!error}
@@ -144,8 +167,25 @@ export const AiAuditModal: React.FC<AiAuditModalProps> = ({
               className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors flex items-center gap-1.5 disabled:opacity-50"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>تنزيل كملف Markdown</span>
+              <span>تنزيل Markdown</span>
             </button>
+
+            {token && (
+              <button
+                onClick={handleSaveToDrive}
+                disabled={loading || !!error || savingToDrive}
+                className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-indigo-950 hover:bg-indigo-900 text-indigo-300 border border-indigo-800 transition-colors flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {savingToDrive ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : savedToDrive ? (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                ) : (
+                  <Cloud className="w-3.5 h-3.5" />
+                )}
+                <span>{savedToDrive ? 'تم الحفظ في Drive!' : 'حفظ في Google Drive'}</span>
+              </button>
+            )}
           </div>
 
           <button

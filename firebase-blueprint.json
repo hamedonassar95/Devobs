@@ -1,0 +1,79 @@
+{
+  "entities": {
+    "Server": {
+      "title": "Server",
+      "description": "Represents an infrastructure server instance and its live telemetry.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique server ID" },
+        "name": { "type": "string", "description": "Server hostname", "maxLength": 100 },
+        "ip": { "type": "string", "description": "IP address" },
+        "type": { "type": "string", "enum": ["api", "database", "worker", "cache", "storage"] },
+        "region": { "type": "string", "description": "Cloud hosting region" },
+        "environment": { "type": "string", "enum": ["production", "staging", "development"] },
+        "status": { "type": "string", "enum": ["healthy", "warning", "critical", "maintenance"] },
+        "cpu": { "type": "number", "description": "CPU load percentage 0-100" },
+        "memory": { "type": "number", "description": "Memory load percentage 0-100" },
+        "disk": { "type": "number", "description": "Disk utilization percentage 0-100" },
+        "networkMbps": { "type": "number", "description": "Network throughput in Mbps" },
+        "uptimeDays": { "type": "number", "description": "Days of continuous uptime" },
+        "lastPing": { "type": "string", "description": "Last ping description or timestamp" },
+        "os": { "type": "string", "description": "Operating system and kernel version" },
+        "updatedAt": { "type": "string", "description": "Timestamp of last update" }
+      },
+      "required": ["id", "name", "ip", "type", "region", "environment", "status", "cpu", "memory", "disk"]
+    },
+    "Incident": {
+      "title": "Incident",
+      "description": "An operational incident, anomaly, or error log entry for a server.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique incident ID" },
+        "serverId": { "type": "string", "description": "Reference to affected server" },
+        "serverName": { "type": "string", "description": "Name of affected server" },
+        "severity": { "type": "string", "enum": ["critical", "warning", "info"] },
+        "code": { "type": "string", "description": "Error code identifier" },
+        "message": { "type": "string", "description": "Human-readable error description" },
+        "stackTrace": { "type": "string", "description": "Detailed error call stack" },
+        "timestamp": { "type": "string", "description": "ISO timestamp of occurrence" },
+        "resolved": { "type": "boolean", "description": "Whether incident has been resolved" },
+        "resolvedAt": { "type": "string", "description": "Timestamp when incident was resolved" },
+        "aiAnalysis": { "type": "string", "description": "Gemini AI root-cause analysis" }
+      },
+      "required": ["id", "serverId", "serverName", "severity", "code", "message", "timestamp", "resolved"]
+    },
+    "Deployment": {
+      "title": "Deployment",
+      "description": "A software release or CI/CD deployment execution record.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique deployment ID" },
+        "version": { "type": "string", "description": "Semantic version tag", "maxLength": 50 },
+        "commitHash": { "type": "string", "description": "Git commit hash", "maxLength": 40 },
+        "serviceName": { "type": "string", "description": "Microservice or app name" },
+        "branch": { "type": "string", "description": "Target git branch" },
+        "author": { "type": "string", "description": "Engineer or CI system executing deployment" },
+        "timestamp": { "type": "string", "description": "Deployment start timestamp" },
+        "status": { "type": "string", "enum": ["successful", "failed", "in_progress", "rolled_back"] },
+        "durationSeconds": { "type": "number", "description": "Deployment duration in seconds" },
+        "changeLog": { "type": "string", "description": "Summary of release changes" },
+        "targetServers": { "type": "array", "description": "List of server IDs where code was deployed" }
+      },
+      "required": ["id", "version", "commitHash", "serviceName", "branch", "author", "timestamp", "status"]
+    }
+  },
+  "firestore": {
+    "/servers/{serverId}": {
+      "schema": "Server",
+      "description": "Stores server telemetry, status, and health metrics."
+    },
+    "/incidents/{incidentId}": {
+      "schema": "Incident",
+      "description": "Stores operational error logs and security incidents."
+    },
+    "/deployments/{deploymentId}": {
+      "schema": "Deployment",
+      "description": "Stores CI/CD deployment history and status."
+    }
+  }
+}

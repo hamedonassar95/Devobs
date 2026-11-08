@@ -11,15 +11,27 @@ import {
   Download,
   PlusCircle,
   Terminal,
+  Flame,
+  Zap,
+  ShieldAlert,
+  Database,
+  Cpu,
 } from 'lucide-react';
 import { exportIncidentsToCSV } from '../../utils/dashboardUtils';
+
+export interface ChaosScenario {
+  code: string;
+  severity: IncidentSeverity;
+  message: string;
+  stack: string;
+}
 
 interface ErrorLogViewerProps {
   incidents: Incident[];
   servers: Server[];
   onResolveIncident: (incidentId: string) => void;
   onAnalyzeWithAI: (incident: Incident) => void;
-  onSimulateIncident: () => void;
+  onSimulateIncident: (scenario?: ChaosScenario) => void;
 }
 
 export const ErrorLogViewer: React.FC<ErrorLogViewerProps> = ({
@@ -33,6 +45,7 @@ export const ErrorLogViewer: React.FC<ErrorLogViewerProps> = ({
   const [severityFilter, setSeverityFilter] = useState<string>('all');
   const [resolutionFilter, setResolutionFilter] = useState<'all' | 'unresolved' | 'resolved'>('all');
   const [expandedTraceId, setExpandedTraceId] = useState<string | null>(null);
+  const [showChaosMenu, setShowChaosMenu] = useState(false);
 
   const toggleTrace = (id: string) => {
     setExpandedTraceId((prev) => (prev === id ? null : id));
@@ -108,13 +121,110 @@ export const ErrorLogViewer: React.FC<ErrorLogViewerProps> = ({
               <span>تصدير CSV</span>
             </button>
 
-            <button
-              onClick={onSimulateIncident}
-              className="px-4 py-2.5 text-xs font-bold rounded-xl bg-rose-600 hover:bg-rose-500 text-white transition-colors flex items-center gap-1.5 shadow-sm"
-            >
-              <PlusCircle className="w-4 h-4" />
-              <span>محاكاة خطأ جديد</span>
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowChaosMenu(!showChaosMenu)}
+                className="px-4 py-2.5 text-xs font-bold rounded-xl bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white transition-all flex items-center gap-1.5 shadow-md shadow-rose-950/40"
+              >
+                <Flame className="w-4 h-4 text-amber-200 animate-pulse" />
+                <span>اختبار الفوضى (Chaos Engineering)</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showChaosMenu ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showChaosMenu && (
+                <div className="absolute left-0 mt-2 w-72 bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl p-2 z-30 space-y-1 text-xs">
+                  <div className="px-3 py-2 text-[11px] font-bold text-slate-400 border-b border-slate-800">
+                    اختر سيناريو الكارثة التشغيلية لحقنه:
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      onSimulateIncident({
+                        code: 'ERR_HTTP_502_BAD_GATEWAY',
+                        severity: 'critical',
+                        message: 'توقف مفاجئ في استجابة خدمة البروكسي الداخلي Nginx (Worker segfault).',
+                        stack: 'connect() failed (111: Connection refused) while connecting to upstream.\nworker process 3108 exited on signal 11.',
+                      });
+                      setShowChaosMenu(false);
+                    }}
+                    className="w-full text-right p-2.5 rounded-xl hover:bg-slate-800 text-slate-200 transition-colors flex items-center gap-2"
+                  >
+                    <AlertOctagon className="w-4 h-4 text-rose-400 shrink-0" />
+                    <div>
+                      <div className="font-bold text-white text-[11px]">سقوط الـ Gateway (HTTP 502)</div>
+                      <div className="text-[10px] text-slate-400">انقطاع الاتصال بالخوادم الخلفية</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      onSimulateIncident({
+                        code: 'ERR_HIGH_CPU_SPIKE',
+                        severity: 'critical',
+                        message: 'قفزة مفاجئة في استهلاك المعالج تجاوزت 96% بسبب معالجة دفعات متزامنة.',
+                        stack: 'PID 14088 node [worker-thread] consuming 96.8% CPU.\nGarbage collector thrashing detected.',
+                      });
+                      setShowChaosMenu(false);
+                    }}
+                    className="w-full text-right p-2.5 rounded-xl hover:bg-slate-800 text-slate-200 transition-colors flex items-center gap-2"
+                  >
+                    <Cpu className="w-4 h-4 text-amber-400 shrink-0" />
+                    <div>
+                      <div className="font-bold text-white text-[11px]">اختناق المعالج الحرج (CPU &gt; 96%)</div>
+                      <div className="text-[10px] text-slate-400">تراكم المهام وتجميد الـ Event Loop</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      onSimulateIncident({
+                        code: 'ERR_DB_DEADLOCK_TIMEOUT',
+                        severity: 'critical',
+                        message: 'استنفاد مجمع اتصالات قاعدة البيانات (Connection Pool Exhaustion) وحدوث Deadlock.',
+                        stack: 'KnexTimeoutError: Knex: Timeout acquiring a connection. The pool is probably full.\nTransaction locked on row #94082.',
+                      });
+                      setShowChaosMenu(false);
+                    }}
+                    className="w-full text-right p-2.5 rounded-xl hover:bg-slate-800 text-slate-200 transition-colors flex items-center gap-2"
+                  >
+                    <Database className="w-4 h-4 text-purple-400 shrink-0" />
+                    <div>
+                      <div className="font-bold text-white text-[11px]">اختناق قاعدة البيانات (Deadlock)</div>
+                      <div className="text-[10px] text-slate-400">استنفاد اتصالات PostgreSQL / MySQL</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      onSimulateIncident({
+                        code: 'SEC_DDOS_PACKET_STORM',
+                        severity: 'critical',
+                        message: 'رصد هجوم حزم مكثف (SYN Flood Attack) تجاوز 120,000 طلب بالثانية على المنفذ 443.',
+                        stack: 'Firewall rate-limiter threshold exceeded.\nIngress packet drop rate at 42.8%.',
+                      });
+                      setShowChaosMenu(false);
+                    }}
+                    className="w-full text-right p-2.5 rounded-xl hover:bg-slate-800 text-slate-200 transition-colors flex items-center gap-2"
+                  >
+                    <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0" />
+                    <div>
+                      <div className="font-bold text-white text-[11px]">هجوم سيبراني (DDoS SYN Flood)</div>
+                      <div className="text-[10px] text-slate-400">تدفق هائل للحزم الخبيثة</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      onSimulateIncident();
+                      setShowChaosMenu(false);
+                    }}
+                    className="w-full text-right p-2 rounded-xl hover:bg-slate-800 text-indigo-400 transition-colors font-semibold text-[11px] text-center border-t border-slate-800 mt-1 pt-2"
+                  >
+                    🎲 محاكاة عطل عشوائي تلقائي
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

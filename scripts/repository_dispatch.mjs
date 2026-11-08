@@ -5,7 +5,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 export const DISPATCH_EVENT_TYPE = 'devobs_ai_intelligence_ci_passed';
-export const SOURCE_REPOSITORY = 'hamedonassar95/DevObs-ai-Intelligence-';
+export const SOURCE_REPOSITORY = 'hamedonassar95/Devobs';
 export const TARGET_REPOSITORY = 'hamedonassar95/Devobs';
 export const SOURCE_WORKFLOW = 'Devobs AI Intelligence CI';
 
