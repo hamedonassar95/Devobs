@@ -1,4 +1,18 @@
-## Current snapshot — 2026-11-08 (main at PR #455)
+## Current snapshot — 2026-11-08 (main at PR #457)
+
+**VERIFIED from GitHub:** PR [#456](https://github.com/hamedonassar95/Devobs/pull/456) merged at `97a7da7592be21cd8250bda2efff65c5fa45792e` from head `3c76f5f6ea91c9a7dbcc93297ca033ccf5affffb`. Exact-head CI [42483128563](https://github.com/hamedonassar95/Devobs/actions/runs/42483128563) and [42483146245](https://github.com/hamedonassar95/Devobs/actions/runs/42483146245), plus CodeQL [42483143589](https://github.com/hamedonassar95/Devobs/actions/runs/42483143589), passed. Exact-merge main CI [42484399657](https://github.com/hamedonassar95/Devobs/actions/runs/42484399657) and Push on main [42484398714](https://github.com/hamedonassar95/Devobs/actions/runs/42484398714) passed. PR #456 synchronizes evidence for #455 only; no service behavior changed.
+
+**VERIFIED from GitHub:** PR [#457](https://github.com/hamedonassar95/Devobs/pull/457) merged to `main` at `b2a5a4feec930cc9e0ca75289f1c9b640ed99cac` from head `eb2a0e5c94348d3b95517e35780e52968d62d67f`. Exact-head CI [42484417443](https://github.com/hamedonassar95/Devobs/actions/runs/42484417443) and [42484419702](https://github.com/hamedonassar95/Devobs/actions/runs/42484419702), plus CodeQL [42484418029](https://github.com/hamedonassar95/Devobs/actions/runs/42484418029), passed. Exact-merge main CI [42484596864](https://github.com/hamedonassar95/Devobs/actions/runs/42484596864) and Push on main [42484596189](https://github.com/hamedonassar95/Devobs/actions/runs/42484596189) passed; Cosign verification, Trivy, `validate`, static Pages publication, and `verify-production` passed. Main's path-selected Node/Python jobs and the controlled incident drill were skipped; the PR CI's Python validation passed and Node was run locally.
+
+PR #457 adds optional local Ollama and LocalAI Compose services, pinned to reviewed OCI digests and loopback-bound. No images, weights, containers, or cloud services were started. These runtimes are not connected to AI-1–AI-7. Existing Trivy scans the Devobs web image, not the optional model images.
+
+**VERIFIED from GitHub:** PR [#454](https://github.com/hamedonassar95/Devobs/pull/454) remains open at head `efc4fd7243b840c0ba3c480a1f6e6c8d64177801` and is conflicting with `main`. Its CodeQL gate reports 13 new alerts (3 critical, 8 high, 2 medium) [CodeQL finding summary](https://github.com/hamedonassar95/Devobs/runs/128714877853). The TypeScript/Unit Tests/Vite job failed at `Set up job`; application tests did not run in that attempt. Keep #454 unmerged until the findings are addressed and required CI passes.
+
+Gate dispositions remain AI-9 **BLOCKED**, P01 **BLOCKED**, and Codex runtime **OPEN**.
+
+---
+
+## Previous snapshot — 2026-11-08 (main at PR #455; superseded by PR #457)
 
 **VERIFIED from GitHub:** PR [#455](https://github.com/hamedonassar95/Devobs/pull/455) merged to `main` at `4d1a4e5c663e69c31964a62afc8417b5a6386e29` from head `2489f919aece388ebe1ca22b4f672d15fa187969`. Exact-head CI [42481909591](https://github.com/hamedonassar95/Devobs/actions/runs/42481909591) and CodeQL [42481906695](https://github.com/hamedonassar95/Devobs/actions/runs/42481906695) passed. Exact-merge main CI [42482486198](https://github.com/hamedonassar95/Devobs/actions/runs/42482486198) and CodeQL [42482485483](https://github.com/hamedonassar95/Devobs/actions/runs/42482485483) passed. Main CI passed validate, Python, Node, PostgreSQL RLS, security, web-container/Trivy, Terraform, site-contract, static GitHub Pages publication and `verify-production`; the controlled incident drill and conditional restoration checks were skipped.
 
