@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr455_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr457_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 455)
-        self.assertEqual(result["merged_milestones"], 122)
+        self.assertEqual(result["latest_pr"], 457)
+        self.assertEqual(result["merged_milestones"], 124)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         evidence_sync_449 = records[449]
         self.assertEqual(
@@ -1069,6 +1069,30 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("Exact-merge main CI 42482486198", runbook_455["verification"])
         self.assertIn("localStorage", runbook_455["limitations"])
         self.assertIn("AI-9 BLOCKED", runbook_455["limitations"])
+        evidence_sync_456 = records[456]
+        self.assertEqual(
+            evidence_sync_456["pr_head_sha"],
+            "3c76f5f6ea91c9a7dbcc93297ca033ccf5affffb",
+        )
+        self.assertEqual(
+            evidence_sync_456["merge_sha"],
+            "97a7da7592be21cd8250bda2efff65c5fa45792e",
+        )
+        self.assertEqual(evidence_sync_456["ci_run_id"], 42484399657)
+        self.assertIn("Exact-merge main CI 42484399657", evidence_sync_456["verification"])
+        self.assertIn("recording PR #455", evidence_sync_456["limitations"])
+        local_models_457 = records[457]
+        self.assertEqual(
+            local_models_457["pr_head_sha"],
+            "eb2a0e5c94348d3b95517e35780e52968d62d67f",
+        )
+        self.assertEqual(
+            local_models_457["merge_sha"],
+            "b2a5a4feec930cc9e0ca75289f1c9b640ed99cac",
+        )
+        self.assertEqual(local_models_457["ci_run_id"], 42484596864)
+        self.assertIn("Cosign verification", local_models_457["verification"])
+        self.assertIn("No model weights", local_models_457["limitations"])
         self.assertEqual(
             {gate["id"]: gate["status"] for gate in self.data["gates"]},
             {

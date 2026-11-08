@@ -1344,6 +1344,28 @@
       "ci_run_id": 42482486198,
       "verification": "VERIFIED 2026-11-08: PR #455 merged to main at 4d1a4e5c663e69c31964a62afc8417b5a6386e29 from head 2489f919aece388ebe1ca22b4f672d15fa187969. Exact-head CI 42481909591 and CodeQL 42481906695 SUCCESS; Exact-merge main CI 42482486198 and CodeQL 42482485483 SUCCESS. Main CI passed validation, Python, Node, PostgreSQL RLS, security, Trivy container, Terraform, site contract, static Pages publication and verify-production. Controlled incident drill and conditional restore checks were skipped.",
       "limitations": "Adds browser-local AI-7 runbook note management only. Notes are stored in localStorage and are not sent to the API, AI-1 event store, or AI-6 feedback ledger. MIT attribution and license are included. No model inference, hosted service, customer telemetry, or autonomous action is established. Gates unchanged: AI-9 BLOCKED, P01 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr456-record-pr455",
+      "area": "DOCUMENTATION",
+      "title": "Record verified PR #456 merge evidence synchronization",
+      "pr_number": 456,
+      "pr_head_sha": "3c76f5f6ea91c9a7dbcc93297ca033ccf5affffb",
+      "merge_sha": "97a7da7592be21cd8250bda2efff65c5fa45792e",
+      "ci_run_id": 42484399657,
+      "verification": "VERIFIED 2026-11-08: PR #456 merged at 97a7da7592be21cd8250bda2efff65c5fa45792e from head 3c76f5f6ea91c9a7dbcc93297ca033ccf5affffb. Exact-head CI 42483128563 and 42483146245 and CodeQL 42483143589 SUCCESS. Exact-merge main CI 42484399657 and Push on main/CodeQL 42484398714 SUCCESS.",
+      "limitations": "Documentation/test synchronization recording PR #455 merge evidence only; no service behavior or readiness gate changed. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr457-local-model-runtimes",
+      "area": "PLATFORM",
+      "title": "Record verified PR #457 optional local model runtimes",
+      "pr_number": 457,
+      "pr_head_sha": "eb2a0e5c94348d3b95517e35780e52968d62d67f",
+      "merge_sha": "b2a5a4feec930cc9e0ca75289f1c9b640ed99cac",
+      "ci_run_id": 42484596864,
+      "verification": "VERIFIED 2026-11-08: PR #457 merged at b2a5a4feec930cc9e0ca75289f1c9b640ed99cac from head eb2a0e5c94348d3b95517e35780e52968d62d67f. Exact-head CI 42484417443 and 42484419702 and CodeQL 42484418029 SUCCESS. Exact-merge main CI 42484596864 and Push on main 42484596189 SUCCESS. Cosign verification, Trivy, site-contract, Terraform and validate passed; static Pages publication and verify-production passed. Node and controlled incident drill skipped by workflow conditions; path-selected Python validation passed on PR CI.",
+      "limitations": "Adds manually started, loopback-bound Ollama and LocalAI Compose services pinned to reviewed image digests. No model weights or images were downloaded and no containers were started. No AI-1 through AI-7 LLM connection or production runtime is established. Existing Trivy scans the Devobs web image, not optional model runtime images. The LocalAI API key is optional; without it, keep LocalAI loopback-bound. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
     }
   ],
   "gates": [
