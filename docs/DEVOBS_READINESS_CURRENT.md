@@ -1,4 +1,12 @@
-## Current snapshot — 2026-11-08 (Devobs PR #486 and LiveOps PR #1)
+## Current snapshot — 2026-11-08 (main after Devobs PR #487)
+
+**VERIFIED from GitHub:** PR [#487](https://github.com/hamedonassar95/Devobs/pull/487) merged at `06e852b8845a2d8ac1087fbdce2246c3248d8aad` from head `a91a8d68fb174d340a242816bbfbf7cf990a2f09`. Exact-head CI [42527158616](https://github.com/hamedonassar95/Devobs/actions/runs/42527158616) and [42527177183](https://github.com/hamedonassar95/Devobs/actions/runs/42527177183), CodeQL [42527174614](https://github.com/hamedonassar95/Devobs/actions/runs/42527174614), and advisory Codex review [42527177080](https://github.com/hamedonassar95/Devobs/actions/runs/42527177080) passed. Exact-merge main CI [42527292764](https://github.com/hamedonassar95/Devobs/actions/runs/42527292764) and CodeQL [42527292455](https://github.com/hamedonassar95/Devobs/actions/runs/42527292455) passed; Pages publication and `verify-production` passed. Node passed in exact-head CI 42527158616; the duplicate head and merge runs skipped it by path selection. The PR updates documentation and ledger regression tests only.
+
+The latest implementation record remains Devobs PR #486 and cross-repo LiveOps PR #1. The bridge is still ready in code but inactive: the LiveOps main build confirmed that `DEVOBS_DISPATCH_TOKEN` was not configured, and no dispatch event was observed. The owner must add the secret manually for metadata flow. The 153 ledger milestones retain AI-9 **BLOCKED**, P01 **BLOCKED**, and Codex runtime **OPEN**.
+
+---
+
+## Previous snapshot — 2026-11-08 (Devobs PR #486 and LiveOps PR #1)
 
 **VERIFIED from GitHub:** Devobs PR [#486](https://github.com/hamedonassar95/Devobs/pull/486) merged at `9bd2030931b1df953bd1005e0b45fc3d12454a41` from head `a9e52e05beca9728ddada58ccfda7c627e55ed18`. Exact-head CI [42526105156](https://github.com/hamedonassar95/Devobs/actions/runs/42526105156) and [42526134101](https://github.com/hamedonassar95/Devobs/actions/runs/42526134101), CodeQL [42526130734](https://github.com/hamedonassar95/Devobs/actions/runs/42526130734), and advisory Codex review [42526134019](https://github.com/hamedonassar95/Devobs/actions/runs/42526134019) passed; Codex reported no findings. Exact-merge CI [42526324255](https://github.com/hamedonassar95/Devobs/actions/runs/42526324255) and CodeQL [42526324165](https://github.com/hamedonassar95/Devobs/actions/runs/42526324165) passed on the merge SHA. Python, Node, PostgreSQL RLS, security, same-image Cosign/Trivy, Terraform, site-contract, validate, existing Pages publication and `verify-production` passed.
 
