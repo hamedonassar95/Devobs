@@ -1487,6 +1487,17 @@
       "ci_run_id": 42502451903,
       "verification": "VERIFIED 2026-11-08: PR #468 merged to main at 2783cb7293c6535b0b051cde88d803aaff4df7e3 from head 15b71acbe810988e4b9d3517c2d390664a2bb927. Exact-head CI 42502245287 and 42502250229 and CodeQL 42502247039 SUCCESS. Exact-merge main CI 42502451903 and CodeQL 42502451386 SUCCESS; Python, RLS, security, container/Trivy, Terraform, site-contract and validate passed. Existing CI published static GitHub Pages and verify-production passed. Node, controlled incident drill and restoration checks skipped by workflow conditions.",
       "limitations": "Documentation/test synchronization recording PR #467 only; no runtime behavior or gate status changed. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr469-record-pr468",
+      "area": "DOCUMENTATION",
+      "title": "Record verified PR #469 merge evidence for PR #468",
+      "pr_number": 469,
+      "pr_head_sha": "0d3ef0d808a7c0feae0da074616017bd4fda4288",
+      "merge_sha": "21f9c8d3f6c2cc7b9e580bfcf8d81121b9e02d4a",
+      "ci_run_id": 42502967385,
+      "verification": "VERIFIED 2026-11-08: PR #469 merged to main at 21f9c8d3f6c2cc7b9e580bfcf8d81121b9e02d4a from head 0d3ef0d808a7c0feae0da074616017bd4fda4288. Exact-head CI 42502821469 and 42502825921 and CodeQL 42502824595 SUCCESS. Exact-merge main CI 42502967385 and CodeQL 42502966485 SUCCESS; Python, RLS, security, container/Trivy, Terraform, site-contract and validate passed. Existing CI published static GitHub Pages and verify-production passed. Node passed on one exact-head CI run and was skipped by path selection on the duplicate head run and merge CI. Controlled incident drill and restoration checks skipped by conditions.",
+      "limitations": "Documentation/test synchronization recording PR #468 only; no runtime behavior or gate status changed. Node passed in exact-head CI and was skipped by path selection in merge CI. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
     }
   ],
   "gates": [
