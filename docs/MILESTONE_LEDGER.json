@@ -1377,6 +1377,28 @@
       "ci_run_id": 42486881365,
       "verification": "VERIFIED 2026-11-08: PR #458 merged to main at 63895a1159f6867f5becda56f24395ff33f4057f from head 0803958af80e25ec164de778fded0f14265c390b. Exact-head CI 42486018274 and CodeQL 42486015475 SUCCESS. Exact-merge main CI 42486881365 and CodeQL 42486880663 SUCCESS; Python, PostgreSQL RLS, security, Trivy container, Terraform, site-contract and validate passed; static Pages publication and verify-production passed. Node skipped on PR and main CI; controlled incident drill and restore checks skipped by conditions.",
       "limitations": "Documentation/test synchronization only (STATE.md, readiness, ledger and ledger test); no service behavior or gate status changed. The existing CI published static Pages. PR #459 remains open/unmerged with an optional disabled-by-default Gemini diagnostics adapter; no Gemini inference or external log transfer is established. PR #454 remains conflicting with 13 CodeQL alerts. AI-9 BLOCKED, P01 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr459-gemini-diagnostics",
+      "area": "PLATFORM",
+      "title": "Record verified PR #459 optional Gemini diagnostics provider",
+      "pr_number": 459,
+      "pr_head_sha": "1ba0ed7ae91449e306bd9b065df1b05b5793f679",
+      "merge_sha": "0a350672865b1c62f72928fccf078ee5e1bd12c5",
+      "ci_run_id": 42490036290,
+      "verification": "VERIFIED 2026-11-08: PR #459 merged to main at 0a350672865b1c62f72928fccf078ee5e1bd12c5 from final head 1ba0ed7ae91449e306bd9b065df1b05b5793f679. Exact-head CI 42489939852 and push CI 42489938788 and CodeQL 42489938455 SUCCESS. Exact-merge main CI 42490036290 and CodeQL 42490036203 SUCCESS; Python, RLS, security, Trivy container, Terraform, site-contract and validate passed; static Pages publication and verify-production passed. Node, incident drill and restore checks skipped by conditions.",
+      "limitations": "Adds an optional direct Gemini provider for existing staging log diagnosis; OpenAI remains the default. Explicit provider, model, API key, data-policy and budget acknowledgments are required. No Gemini inference or external log transfer was performed; acknowledgments are not a provider-enforced cost cap or data-retention guarantee. This is separate from the existing Vertex AI workflow. AI-9 BLOCKED, P01 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr460-record-pr458",
+      "area": "DOCUMENTATION",
+      "title": "Record verified PR #460 merge evidence synchronization",
+      "pr_number": 460,
+      "pr_head_sha": "12a6e40ff08ca8334a7425598fddb479d8452e99",
+      "merge_sha": "418deb79296d44a1f06671287e6aa6798a3305d7",
+      "ci_run_id": 42489904300,
+      "verification": "VERIFIED 2026-11-08: PR #460 merged at 418deb79296d44a1f06671287e6aa6798a3305d7 from head 12a6e40ff08ca8334a7425598fddb479d8452e99. Exact-head CI 42488504758 and CodeQL 42488502126 SUCCESS; push CI 42488461904 SUCCESS. Exact-merge main CI 42489904300 and CodeQL 42489903954 SUCCESS; Python, RLS, security, Trivy container, Terraform, site-contract and validate passed; static Pages publication and verify-production passed. Node passed on push CI and skipped on PR/main CI; incident and restore checks skipped by conditions.",
+      "limitations": "Documentation/test synchronization recording PR #458 only; no runtime behavior or gate status changed. The existing workflow published static GitHub Pages. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
     }
   ],
   "gates": [
