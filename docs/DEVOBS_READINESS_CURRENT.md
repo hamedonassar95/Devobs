@@ -8,6 +8,8 @@ PR #474 caps the `actions/deploy-pages` v5.0.1 action input timeout at 600000 ms
 
 These are documentation synchronization and a bounded CI reliability correction. They add no application service and do not change readiness gates. AI-9 remains **BLOCKED**, P01 **BLOCKED**, and Codex runtime **OPEN**.
 
+**VERIFIED from GitHub:** PR [#454](https://github.com/hamedonassar95/Devobs/pull/454) was closed without merge at head `efc4fd7243b840c0ba3c480a1f6e6c8d64177801`; GitHub reports no merge commit. Its review showed 13 CodeQL alerts (3 critical, 8 high, 2 medium), a TypeScript job failure at `Set up job` without an available detailed failure message, and a dirty conflict with main. The PR was not carried forward: Devobs already has its read-only AI-7 dashboard and optional Gemini staging provider, while this PR replaces existing CI gates and introduces direct token-based git push/force-push behavior, broadly scoped Google Workspace OAuth, and Firestore rules permitting public reads. No code from #454 was integrated. Firebase and Workspace integrations remain absent pending a specific least-privilege use case; AI-9, P01, and Codex runtime dispositions are unchanged.
+
 ---
 
 ## Previous snapshot — 2026-11-08 (main after PR #472)
