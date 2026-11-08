@@ -81,6 +81,55 @@ class StagingBootstrapTests(unittest.TestCase):
         self.assertIsNotNone(app)
         provider.assert_called_once_with("synthetic-test-key", model="gpt-6-luna")
 
+    def test_gemini_requires_key_model_data_policy_and_budget_approval(self):
+        config = dict(self.base)
+        config.update({
+            "DEVOBS_AI_DIAGNOSTICS_ENABLED": "true",
+            "DEVOBS_AI_PROVIDER": "gemini",
+            "DEVOBS_GEMINI_MODEL": "gemini-test-flash",
+            "GEMINI_API_KEY": "synthetic-gemini-key",
+        })
+        with self.assertRaisesRegex(self.module.StagingConfigurationError,
+                                    "^invalid_staging_config$"):
+            self.module.build_app(config)
+
+        config["DEVOBS_AI_BUDGET_APPROVED"] = "true"
+        with self.assertRaisesRegex(self.module.StagingConfigurationError,
+                                    "^invalid_staging_config$"):
+            self.module.build_app(config)
+
+        config["DEVOBS_AI_GEMINI_DATA_POLICY_APPROVED"] = "true"
+        with patch.object(self.module, "GeminiErrorLogDiagnostician") as provider:
+            app = self.module.build_app(config)
+        self.assertIsNotNone(app)
+        provider.assert_called_once_with("synthetic-gemini-key", model="gemini-test-flash")
+
+        for missing in ("GEMINI_API_KEY", "DEVOBS_GEMINI_MODEL"):
+            invalid = dict(config)
+            invalid.pop(missing)
+            with self.subTest(missing=missing), self.assertRaisesRegex(
+                    self.module.StagingConfigurationError, "^invalid_staging_config$"):
+                self.module.build_app(invalid)
+
+    def test_gemini_never_falls_back_to_google_api_key_or_unknown_provider(self):
+        config = dict(self.base)
+        config.update({
+            "DEVOBS_AI_DIAGNOSTICS_ENABLED": "true",
+            "DEVOBS_AI_BUDGET_APPROVED": "true",
+            "DEVOBS_AI_PROVIDER": "gemini",
+            "DEVOBS_GEMINI_MODEL": "gemini-test-flash",
+            "DEVOBS_AI_GEMINI_DATA_POLICY_APPROVED": "true",
+            "GOOGLE_API_KEY": "must-not-be-consumed",
+        })
+        with self.assertRaisesRegex(self.module.StagingConfigurationError,
+                                    "^invalid_staging_config$"):
+            self.module.build_app(config)
+
+        config["DEVOBS_AI_PROVIDER"] = "unknown"
+        with self.assertRaisesRegex(self.module.StagingConfigurationError,
+                                    "^invalid_staging_config$"):
+            self.module.build_app(config)
+
     def test_missing_or_untrusted_identity_denied(self):
         for key in self.base:
             with self.subTest(missing=key):

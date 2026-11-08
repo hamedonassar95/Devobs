@@ -21,6 +21,7 @@ MAX_OUTPUT_TOKENS = 512
 
 _SECRET_PATTERNS = (
     re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,})\b"),
+    re.compile(r"\bAIza[0-9A-Za-z_-]{20,}\b"),
     re.compile(r"\bsk-(?:proj|svcacct|live)-[A-Za-z0-9_-]{20,}\b|\bsk-[A-Za-z0-9]{40,}\b"),
     re.compile(r"\bsb_secret_[A-Za-z0-9_-]{20,}\b"),
     re.compile(r"\bAKIA[0-9A-Z]{16}\b"),
@@ -116,16 +117,18 @@ def _extract_output_text(document: Any) -> str:
     return text_parts[0]
 
 
-def _validate_diagnosis(value: Any) -> dict[str, str]:
+def validate_diagnosis_result(value: Any) -> dict[str, str]:
     required = {"diagnosis", "recommendation", "severity", "confidence"}
     if type(value) is not dict or set(value) != required:
         raise DiagnosticProviderError("provider_invalid_response")
     if any(type(value[field]) is not str or not value[field].strip()
            or len(value[field]) > 1200 for field in ("diagnosis", "recommendation")):
         raise DiagnosticProviderError("provider_invalid_response")
-    if value["severity"] not in {"low", "medium", "high", "critical", "unknown"}:
+    if (type(value["severity"]) is not str
+            or value["severity"] not in {"low", "medium", "high", "critical", "unknown"}):
         raise DiagnosticProviderError("provider_invalid_response")
-    if value["confidence"] not in {"low", "medium", "high"}:
+    if (type(value["confidence"]) is not str
+            or value["confidence"] not in {"low", "medium", "high"}):
         raise DiagnosticProviderError("provider_invalid_response")
     return value
 
@@ -197,4 +200,4 @@ class OpenAIErrorLogDiagnostician:
             result = json.loads(text, object_pairs_hook=_unique_object)
         except (UnicodeDecodeError, ValueError, TypeError):
             raise DiagnosticProviderError("provider_invalid_response") from None
-        return _validate_diagnosis(result)
+        return validate_diagnosis_result(result)

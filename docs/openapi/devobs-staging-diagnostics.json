@@ -3,7 +3,7 @@
   "info": {
     "title": "Devobs Error Log Diagnosis API",
     "version": "1.0.0",
-    "description": "Opt-in, advisory diagnosis of a redacted service error log. The endpoint makes one non-stored OpenAI Responses API request and does not persist the submitted log."
+    "description": "Opt-in, advisory diagnosis of a redacted service error log using the explicitly configured OpenAI or Gemini provider. The endpoint does not persist submitted logs; provider-side data handling remains provider-specific."
   },
   "paths": {
     "/v1/tenants/{tenant}/projects/{project}/services/{service}/diagnostics": {
