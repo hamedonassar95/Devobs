@@ -15,7 +15,7 @@ class CIReleaseGateContractTests(unittest.TestCase):
         )
         self.assertIn(expected, WORKFLOW)
 
-    def test_pages_deploy_action_timeout_is_below_job_timeout(self):
+    def test_pages_deploy_action_uses_capped_timeout_below_job_timeout(self):
         deploy = re.search(
             r"(?ms)^  deploy:\n(.*?)(?=^  [A-Za-z0-9_-]+:\n|\Z)", PAGES_WORKFLOW
         )
@@ -30,7 +30,7 @@ class CIReleaseGateContractTests(unittest.TestCase):
         self.assertIsNotNone(action_timeout)
         self.assertIsNotNone(job_timeout)
         action_timeout_ms = int(action_timeout.group(1))
-        self.assertGreater(action_timeout_ms, 600_000)
+        self.assertEqual(action_timeout_ms, 600_000)
         self.assertGreater(int(job_timeout.group(1)) * 60_000, action_timeout_ms)
 
 
