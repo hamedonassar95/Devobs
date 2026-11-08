@@ -1026,11 +1026,31 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr483_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr486_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 483)
-        self.assertEqual(result["merged_milestones"], 149)
+        self.assertEqual(result["latest_pr"], 486)
+        self.assertEqual(result["merged_milestones"], 152)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
+        docs_484 = records[484]
+        self.assertEqual(docs_484["pr_head_sha"], "74e5eac7094fa4d5df32c821f9afe6f04c7fae81")
+        self.assertEqual(docs_484["merge_sha"], "b95e06afb300958df12c26ba88e5174a23d2c790")
+        self.assertEqual(docs_484["ci_run_id"], 42519721372)
+        self.assertIn("CodeQL 42519720974 passed", docs_484["verification"])
+        self.assertIn("verify-production passed", docs_484["verification"])
+        docs_485 = records[485]
+        self.assertEqual(docs_485["pr_head_sha"], "bcf184571e9399d9f889da65c3576c24a73d204a")
+        self.assertEqual(docs_485["merge_sha"], "5d5d541e9929eeee6b3789484f1913b25b493c17")
+        self.assertEqual(docs_485["ci_run_id"], 42520693959)
+        self.assertIn("CodeQL 42520693694 passed", docs_485["verification"])
+        self.assertIn("verify-production passed", docs_485["verification"])
+        integration_486 = records[486]
+        self.assertEqual(integration_486["pr_head_sha"], "a9e52e05beca9728ddada58ccfda7c627e55ed18")
+        self.assertEqual(integration_486["merge_sha"], "9bd2030931b1df953bd1005e0b45fc3d12454a41")
+        self.assertEqual(integration_486["ci_run_id"], 42526324255)
+        self.assertIn("CodeQL 42526324165 passed", integration_486["verification"])
+        self.assertIn("LiveOps PR #1", integration_486["verification"])
+        self.assertIn("not configured", integration_486["limitations"])
+        self.assertIn("no dispatch event", integration_486["limitations"])
         monitoring_483 = records[483]
         self.assertEqual(monitoring_483["pr_head_sha"], "046c46838c11a07941f21714f7a4b3a5055ab446")
         self.assertEqual(monitoring_483["merge_sha"], "dadd4b83bf102d8eb232b199e7f7fb603cc20c4d")
