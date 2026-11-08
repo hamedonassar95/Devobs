@@ -1674,6 +1674,17 @@
       "ci_run_id": 42526324255,
       "verification": "VERIFIED 2026-11-08: Devobs PR #486 merged at 9bd2030931b1df953bd1005e0b45fc3d12454a41 from head a9e52e05beca9728ddada58ccfda7c627e55ed18. Exact-head CI 42526105156 and 42526134101, CodeQL 42526130734, and Codex review 42526134019 passed. Main CI 42526324255 and CodeQL 42526324165 passed on the merge SHA, including Pages publication and verify-production. LiveOps PR #1 merged from 6de14c07d7e00e94d4e6b44db6a9ddae943f84cf at fcc6ef5a266de75f7a983cf2d2ba46b783687e33; exact-head CI 42526133650 and post-merge CI 42526563070 passed.",
       "limitations": "The bridge handles only main-push CI metadata; it sends no images, audio, prompts, Gemini content, or application logs. The 2026-11-08 LiveOps run reported DEVOBS_DISPATCH_TOKEN was not configured, and no dispatch event followed; the bridge is merged but inactive until the owner adds that secret manually. No secrets were read or changed. Devobs ingestion is runner-local and temporary; the sender claim is not a signed attestation or release approval. LiveOps has no repository-wide LICENSE, and no project code was copied. Gates remain AI-9 BLOCKED, P01 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "docs-record-liveops-evidence-pr487",
+      "area": "DOCUMENTATION",
+      "title": "Record LiveOps integration evidence synchronization",
+      "pr_number": 487,
+      "pr_head_sha": "a91a8d68fb174d340a242816bbfbf7cf990a2f09",
+      "merge_sha": "06e852b8845a2d8ac1087fbdce2246c3248d8aad",
+      "ci_run_id": 42527292764,
+      "verification": "VERIFIED 2026-11-08: PR #487 merged at 06e852b8845a2d8ac1087fbdce2246c3248d8aad from head a91a8d68fb174d340a242816bbfbf7cf990a2f09. Exact-head CI 42527158616 and 42527177183, CodeQL 42527174614, and advisory Codex review 42527177080 passed. Exact-merge CI 42527292764 and CodeQL 42527292455 passed; Pages publication and verify-production passed.",
+      "limitations": "Documentation and ledger-test synchronization only; no runtime behavior, external data flow, or readiness gates changed. Node tests passed in exact-head CI 42527158616 and were skipped in duplicate PR CI and merge CI by path selection. PR-Agent and controlled incident drill were skipped by conditions. AI-9 BLOCKED, P01 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [

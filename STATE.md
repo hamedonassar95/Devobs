@@ -1,4 +1,12 @@
-## أحدث لقطة موثّقة: تكامل LiveOps — تحقق 2026-11-08
+## أحدث لقطة موثّقة: PR #487 — تحقق 2026-11-08
+
+- **VERIFIED من GitHub:** دُمج PR [#487](https://github.com/hamedonassar95/Devobs/pull/487) على `main` عند `06e852b8845a2d8ac1087fbdce2246c3248d8aad` من الرأس `a91a8d68fb174d340a242816bbfbf7cf990a2f09`. نجحت فحوص الرأس: CI [42527158616](https://github.com/hamedonassar95/Devobs/actions/runs/42527158616) و[42527177183](https://github.com/hamedonassar95/Devobs/actions/runs/42527177183)، وCodeQL [42527174614](https://github.com/hamedonassar95/Devobs/actions/runs/42527174614)، ومراجعة Codex [42527177080](https://github.com/hamedonassar95/Devobs/actions/runs/42527177080). بعد الدمج نجح CI [42527292764](https://github.com/hamedonassar95/Devobs/actions/runs/42527292764) وCodeQL [42527292455](https://github.com/hamedonassar95/Devobs/actions/runs/42527292455)، ونُشرت صفحة Pages واجتاز `verify-production`.
+- يزامن PR #487 أدلة #484 و#485 و#486 وLiveOps #1 في الحالة والجاهزية وسجل الإنجازات واختباره. هو تغيير توثيق واختبار فقط؛ لا يغيّر تشغيل التطبيق أو الربط أو البوابات. اجتاز Node في CI الرأس [42527158616](https://github.com/hamedonassar95/Devobs/actions/runs/42527158616)، وتخطّاه التشغيل المكرر وتشغيل الدمج بمرشح المسارات.
+- السجل يحوي 153 إنجازًا؛ AI-9 **BLOCKED** وP01 **BLOCKED** وCodex runtime **OPEN**. الجسر لا يزال غير مفعّل حتى يضيف المالك سر `DEVOBS_DISPATCH_TOKEN` يدويًا في إعدادات LiveOps.
+
+---
+
+## لقطة سابقة موثّقة: تكامل LiveOps بعد PR #486 — تحقق 2026-11-08
 
 - **VERIFIED من GitHub:** دُمج PR [#486](https://github.com/hamedonassar95/Devobs/pull/486) في Devobs عند `9bd2030931b1df953bd1005e0b45fc3d12454a41` من الرأس `a9e52e05beca9728ddada58ccfda7c627e55ed18`. نجحت فحوص الرأس: CI [42526105156](https://github.com/hamedonassar95/Devobs/actions/runs/42526105156) و[42526134101](https://github.com/hamedonassar95/Devobs/actions/runs/42526134101)، وCodeQL [42526130734](https://github.com/hamedonassar95/Devobs/actions/runs/42526130734). نجح CI بعد الدمج [42526324255](https://github.com/hamedonassar95/Devobs/actions/runs/42526324255) وCodeQL [42526324165](https://github.com/hamedonassar95/Devobs/actions/runs/42526324165) على SHA الدمج، بما فيه Pages و`verify-production`. اجتازت Python وNode وRLS والأمن وCosign/Trivy وTerraform و`validate`.
 - دُمج PR [#1](https://github.com/hamedonassar95/LiveOps-Integration/pull/1) في LiveOps عند `fcc6ef5a266de75f7a983cf2d2ba46b783687e33` من الرأس `6de14c07d7e00e94d4e6b44db6a9ddae943f84cf`. نجح CI على الرأس [42526133650](https://github.com/hamedonassar95/LiveOps-Integration/actions/runs/42526133650) وبعد الدمج [42526563070](https://github.com/hamedonassar95/LiveOps-Integration/actions/runs/42526563070). أصلح PR فحص Vite/Bun، وأضاف README واختبارات للمرسل الاختياري.
