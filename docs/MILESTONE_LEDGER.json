@@ -1531,6 +1531,28 @@
       "ci_run_id": 42505771596,
       "verification": "VERIFIED 2026-11-08: PR #472 merged to main at 5f108923c301a95aea2bb3a93f0985317d090d0f from head c97795d81986f02108a2c10780e3cf30c8640d7a. Exact-head CI 42505232019 and 42505256313 and CodeQL 42505252810 SUCCESS. Exact-merge main CI 42505771596 and CodeQL 42505771116 SUCCESS; Python, RLS, security, container/Trivy, Terraform, site-contract and validate passed. Existing CI published static GitHub Pages and verify-production passed. Node passed on one exact-head CI run and was skipped by path selection on the duplicate head run and merge CI. Controlled incident drill and restoration checks skipped by conditions. The run watcher emitted a non-blocking timeout-cap warning during Pages publication, but the publish and verification jobs passed.",
       "limitations": "Documentation/test synchronization recording PR #471 only; no runtime behavior or gate status changed. Node passed in exact-head CI and was skipped by path selection in merge CI. A non-blocking timeout-cap warning was shown by the run watcher; its source was not identified in the run logs. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr473-record-pr472",
+      "area": "DOCUMENTATION",
+      "title": "Record verified PR #473 merge evidence for PR #472",
+      "pr_number": 473,
+      "pr_head_sha": "fc4bca0fd5da34cd23bde842d287432db56339a3",
+      "merge_sha": "b8bcaaa221e3ac9319d60e9dc84c90314deaebc4",
+      "ci_run_id": 42506762280,
+      "verification": "VERIFIED 2026-11-08: PR #473 merged to main at b8bcaaa221e3ac9319d60e9dc84c90314deaebc4 from head fc4bca0fd5da34cd23bde842d287432db56339a3. Exact-head CI 42505997300 and 42506020779 and CodeQL 42506019062 SUCCESS; postmerge main CI 42506762280 and CodeQL 42506762080 SUCCESS.",
+      "limitations": "Documentation and regression-test synchronization for PR #472 only; no runtime behavior or readiness gate changed. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr474-pages-action-timeout-cap",
+      "area": "RELIABILITY",
+      "title": "Cap the Pages deploy action timeout at its documented maximum",
+      "pr_number": 474,
+      "pr_head_sha": "9f5834d18dee42ea0172b4a049343e1eaf824e9e",
+      "merge_sha": "c07f12ea07ff6ec3efd5f09886fead503e593b69",
+      "ci_run_id": 42507031658,
+      "verification": "VERIFIED 2026-11-08: PR #474 merged to main at c07f12ea07ff6ec3efd5f09886fead503e593b69 from head 9f5834d18dee42ea0172b4a049343e1eaf824e9e. Exact-head CI 42506444249 and 42506468607 and CodeQL 42506465598 SUCCESS; exact-merge main CI 42507031658 and CodeQL 42507031373 SUCCESS. Python, Node, PostgreSQL RLS, security, same-image Trivy, Terraform, site-contract and validate passed; the existing Pages publication and verify-production passed.",
+      "limitations": "A bounded workflow timeout correction and regression test only; the action input is capped at 600000 ms while the job timeout remains 25 minutes. Incident drill and restoration checks skipped by conditions. No service or readiness gate changed; AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
     }
   ],
   "gates": [
