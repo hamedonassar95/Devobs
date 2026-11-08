@@ -1311,6 +1311,28 @@
       "ci_run_id": 42421345704,
       "verification": "VERIFIED 2026-11-07: PR #448 merged at fcffcde2ac65f2affadad808e09c91d248f93734 from head 0f0dd8dfecfa470548d51ce5c838c06af0dc3f97. Exact-head CI 42421203760 and CodeQL 42421222027 SUCCESS. Exact-merge CI 42421345704 and CodeQL 42421344704 SUCCESS; Python, RLS, security, container/Trivy, Terraform, site-contract, validation, Pages publication and verify-production passed. Node, controlled incident drill and restoration checks skipped by conditions.",
       "limitations": "Documentation/test synchronization recording PR #447 only; no runtime behavior or readiness gate changed. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr449-record-pr448",
+      "area": "DOCUMENTATION",
+      "title": "Record verified PR #449 merge evidence synchronization",
+      "pr_number": 449,
+      "pr_head_sha": "423673da4fa8c1754ebf9b6ee94b5d14149e545f",
+      "merge_sha": "0e8c03e5ba4df6e7aa09f63e64918103606d8814",
+      "ci_run_id": 42425213432,
+      "verification": "VERIFIED 2026-11-07: PR #449 merged at 0e8c03e5ba4df6e7aa09f63e64918103606d8814 from head 423673da4fa8c1754ebf9b6ee94b5d14149e545f. Exact-head CI 42421769884 and CodeQL 42421766846 SUCCESS. Exact-merge main CI 42425213432 and Push on main/CodeQL 42425213404 SUCCESS; Python, RLS, security, container/Trivy, Terraform, site-contract, validation, static Pages publication and verify-production passed. Node, controlled incident drill and conditional restoration checks were skipped.",
+      "limitations": "Documentation/test synchronization recording PR #448 evidence only; no runtime behavior or readiness gate changed. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr450-unified-devops-foundation",
+      "area": "PLATFORM",
+      "title": "Record verified PR #450 unified DevOps integration foundation",
+      "pr_number": 450,
+      "pr_head_sha": "adf08378470dc0bf93b286a1a44a981bf1e2cb2e",
+      "merge_sha": "fe19ff799a9eb8d2be42e5ff788b8b1a252f79a3",
+      "ci_run_id": 42425329761,
+      "verification": "VERIFIED 2026-11-07: PR #450 merged to main at fe19ff799a9eb8d2be42e5ff788b8b1a252f79a3 from head adf08378470dc0bf93b286a1a44a981bf1e2cb2e. Exact-head CI 42425248776 and CodeQL 42425246249 SUCCESS. Exact-merge main CI 42425329761 and Push on main/CodeQL 42425329569 SUCCESS; validate, Python, Node, PostgreSQL RLS, security, web-container/Trivy, Terraform, site-contract, static Pages publication and verify-production passed. Controlled incident drill and conditional restoration checks skipped.",
+      "limitations": "Documentation and gated optional PR-Agent workflow foundation only; PR-Agent was skipped by its gates and no model inference is claimed. PR #451 merged only into codex/unified-devobs-foundation-20261107, not main; local model runtime configs remain pending a separate promotion PR. No model weights/images were pulled and no containers started. Existing Trivy scans the Devobs web image, not optional model runtime images. Gates unchanged: AI-9 BLOCKED, P01 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
