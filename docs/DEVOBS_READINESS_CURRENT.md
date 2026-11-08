@@ -1,4 +1,12 @@
-## Current snapshot — 2026-11-08 (main after PR #465)
+## Current snapshot — 2026-11-08 (main after PR #466)
+
+**VERIFIED from GitHub:** PR [#466](https://github.com/hamedonassar95/Devobs/pull/466) merged to `main` at `a753723e72882c089ceb413608b6e2c5d4df6bfb` from head `c626c514b247e0a12953841ae4bb1c21d19373f2`. Exact-head CI [42498866609](https://github.com/hamedonassar95/Devobs/actions/runs/42498866609) and [42498884612](https://github.com/hamedonassar95/Devobs/actions/runs/42498884612), plus CodeQL [42498881082](https://github.com/hamedonassar95/Devobs/actions/runs/42498881082), passed. Exact-merge main CI [42500725685](https://github.com/hamedonassar95/Devobs/actions/runs/42500725685) and CodeQL [42500726405](https://github.com/hamedonassar95/Devobs/actions/runs/42500726405) passed. Python, Node, PostgreSQL RLS, security, container/Trivy, Terraform, site-contract and validate passed. The existing CI published static GitHub Pages and `verify-production` passed. The controlled incident drill and restoration checks were skipped by conditions.
+
+PR #466 synchronizes the verified PR #464 and #465 merge records in state, readiness, milestone ledger and regression tests. It adds no runtime feature and does not change readiness gates. AI-9 remains **BLOCKED**, P01 **BLOCKED**, and Codex runtime **OPEN**.
+
+---
+
+## Previous snapshot — 2026-11-08 (main after PR #465)
 
 **VERIFIED from GitHub:** PR [#464](https://github.com/hamedonassar95/Devobs/pull/464) merged at `413a69eef88f15303b675adcde5da4e14f4c64f0` from head `939e4439068fbe82d06dc492ef9cc61d7051d883`. Exact-head CI [42497592989](https://github.com/hamedonassar95/Devobs/actions/runs/42497592989) and CodeQL [42497590263](https://github.com/hamedonassar95/Devobs/actions/runs/42497590263) passed; push CI [42497564610](https://github.com/hamedonassar95/Devobs/actions/runs/42497564610) passed. Exact-merge main CI [42498146148](https://github.com/hamedonassar95/Devobs/actions/runs/42498146148) and CodeQL [42498145665](https://github.com/hamedonassar95/Devobs/actions/runs/42498145665) passed. This PR synchronizes the verified PR #463 merge evidence in docs and tests.
 

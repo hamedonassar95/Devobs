@@ -1454,6 +1454,17 @@
       "ci_run_id": 42498318610,
       "verification": "VERIFIED 2026-11-08: PR #465 merged to main at bd883cc49e79c461eb616f2d0592718fbd8b5c52 from head e6b0d631620adc28633c25fce2e6baad2f104245. Exact-head PR CI 42498196163 and CodeQL 42498192822 SUCCESS; push CI 42498191501 SUCCESS. Exact-merge main CI 42498318610 and Push on main/CodeQL 42498317559 SUCCESS; Python, RLS, security, container/Trivy, Terraform, site-contract and validate passed. Existing CI published static Pages and verify-production passed. Node, incident drill and restore checks skipped by path filters/conditions.",
       "limitations": "Adds explicitly approved local inference only for staging diagnostics with fixed loopback endpoints. No local model container/image or weights were downloaded or started, and no live inference occurred. The feature does not connect models to AI-1–AI-7 or automate remediation; existing cloud-provider gates remain unchanged. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr466-record-pr464-465",
+      "area": "DOCUMENTATION",
+      "title": "Record verified PR #466 merge evidence for PRs #464 and #465",
+      "pr_number": 466,
+      "pr_head_sha": "c626c514b247e0a12953841ae4bb1c21d19373f2",
+      "merge_sha": "a753723e72882c089ceb413608b6e2c5d4df6bfb",
+      "ci_run_id": 42500725685,
+      "verification": "VERIFIED 2026-11-08: PR #466 merged to main at a753723e72882c089ceb413608b6e2c5d4df6bfb from head c626c514b247e0a12953841ae4bb1c21d19373f2. Exact-head CI 42498866609 and 42498884612 and CodeQL 42498881082 SUCCESS. Exact-merge main CI 42500725685 and CodeQL 42500726405 SUCCESS; Python, Node, RLS, security, container/Trivy, Terraform, site-contract and validate passed. Existing CI published static GitHub Pages and verify-production passed. Controlled incident drill and restoration checks skipped by conditions.",
+      "limitations": "Documentation/test synchronization recording PRs #464 and #465 only; no runtime behavior or gate status changed. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
     }
   ],
   "gates": [
