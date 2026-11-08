@@ -3,7 +3,7 @@
   "info": {
     "title": "Devobs Error Log Diagnosis API",
     "version": "1.0.0",
-    "description": "Opt-in, advisory diagnosis of a redacted service error log using the explicitly configured OpenAI or Gemini provider. The endpoint does not persist submitted logs; provider-side data handling remains provider-specific."
+    "description": "Opt-in, advisory diagnosis of a redacted service error log using an explicitly configured OpenAI, Gemini, Ollama, or LocalAI provider. The endpoint does not persist submitted logs; provider-side data handling remains provider-specific. Local providers are restricted to fixed loopback endpoints."
   },
   "paths": {
     "/v1/tenants/{tenant}/projects/{project}/services/{service}/diagnostics": {
