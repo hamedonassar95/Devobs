@@ -130,6 +130,55 @@ class StagingBootstrapTests(unittest.TestCase):
                                     "^invalid_staging_config$"):
             self.module.build_app(config)
 
+    def test_ollama_requires_local_approval_and_explicit_model_but_not_cloud_budget(self):
+        config = dict(self.base)
+        config.update({
+            "DEVOBS_AI_DIAGNOSTICS_ENABLED": "true",
+            "DEVOBS_AI_PROVIDER": "ollama",
+            "DEVOBS_LOCAL_MODEL": "llama3.2:3b",
+        })
+        with self.assertRaisesRegex(self.module.StagingConfigurationError,
+                                    "^invalid_staging_config$"):
+            self.module.build_app(config)
+
+        config["DEVOBS_AI_LOCAL_INFERENCE_APPROVED"] = "true"
+        with patch.object(self.module, "LocalModelErrorLogDiagnostician") as provider:
+            app = self.module.build_app(config)
+        self.assertIsNotNone(app)
+        provider.assert_called_once_with("ollama", model="llama3.2:3b", api_key="")
+
+    def test_localai_key_is_optional_environment_input_and_render_loopback_is_rejected(self):
+        config = dict(self.base)
+        config.update({
+            "DEVOBS_AI_DIAGNOSTICS_ENABLED": "true",
+            "DEVOBS_AI_PROVIDER": "localai",
+            "DEVOBS_AI_LOCAL_INFERENCE_APPROVED": "true",
+            "DEVOBS_LOCAL_MODEL": "local-model",
+            "LOCALAI_API_KEY": "synthetic-localai-key",
+        })
+        with patch.object(self.module, "LocalModelErrorLogDiagnostician") as provider:
+            app = self.module.build_app(config)
+        self.assertIsNotNone(app)
+        provider.assert_called_once_with(
+            "localai", model="local-model", api_key="synthetic-localai-key")
+
+        config["RENDER"] = "true"
+        with self.assertRaisesRegex(self.module.StagingConfigurationError,
+                                    "^invalid_staging_config$"):
+            self.module.build_app(config)
+
+    def test_local_provider_requires_model_and_does_not_fallback_to_cloud(self):
+        config = dict(self.base)
+        config.update({
+            "DEVOBS_AI_DIAGNOSTICS_ENABLED": "true",
+            "DEVOBS_AI_PROVIDER": "ollama",
+            "DEVOBS_AI_LOCAL_INFERENCE_APPROVED": "true",
+            "OPENAI_API_KEY": "must-not-be-consumed",
+        })
+        with self.assertRaisesRegex(self.module.StagingConfigurationError,
+                                    "^invalid_staging_config$"):
+            self.module.build_app(config)
+
     def test_missing_or_untrusted_identity_denied(self):
         for key in self.base:
             with self.subTest(missing=key):

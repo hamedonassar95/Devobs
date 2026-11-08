@@ -18,6 +18,7 @@ from psycopg.conninfo import conninfo_to_dict, make_conninfo
 
 from .api_app import make_app, reject_request_body
 from .gemini_error_diagnosis import GeminiErrorLogDiagnostician
+from .local_model_error_diagnosis import LocalModelErrorLogDiagnostician
 from .oidc_rotation import RotatingOIDCVerifier
 from .openai_error_diagnosis import DEFAULT_MODEL, OpenAIErrorLogDiagnostician
 from .postgres_store import PostgresTenantStore
@@ -91,16 +92,26 @@ def build_app(settings: Mapping[str, str]) -> Callable:
             raise StagingConfigurationError("invalid_staging_config")
         diagnostician = None
         if enabled == "true":
-            if settings.get("DEVOBS_AI_BUDGET_APPROVED") != "true":
-                raise StagingConfigurationError("invalid_staging_config")
             provider = settings.get("DEVOBS_AI_PROVIDER", "openai")
-            if provider == "openai":
+            if provider in {"ollama", "localai"}:
+                if (settings.get("DEVOBS_AI_LOCAL_INFERENCE_APPROVED") != "true"
+                        or settings.get("RENDER") == "true"):
+                    raise StagingConfigurationError("invalid_staging_config")
+                diagnostician = LocalModelErrorLogDiagnostician(
+                    provider,
+                    model=settings.get("DEVOBS_LOCAL_MODEL", ""),
+                    api_key=settings.get("LOCALAI_API_KEY", "") if provider == "localai" else "",
+                )
+            elif provider == "openai":
+                if settings.get("DEVOBS_AI_BUDGET_APPROVED") != "true":
+                    raise StagingConfigurationError("invalid_staging_config")
                 diagnostician = OpenAIErrorLogDiagnostician(
                     settings.get("OPENAI_API_KEY", ""),
                     model=settings.get("DEVOBS_AI_MODEL", DEFAULT_MODEL),
                 )
             elif provider == "gemini":
-                if settings.get("DEVOBS_AI_GEMINI_DATA_POLICY_APPROVED") != "true":
+                if (settings.get("DEVOBS_AI_BUDGET_APPROVED") != "true"
+                        or settings.get("DEVOBS_AI_GEMINI_DATA_POLICY_APPROVED") != "true"):
                     raise StagingConfigurationError("invalid_staging_config")
                 diagnostician = GeminiErrorLogDiagnostician(
                     settings.get("GEMINI_API_KEY", ""),

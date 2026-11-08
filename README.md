@@ -16,13 +16,13 @@
   → GitHub Actions: اختبارات وفحوص أمنية ومراجعة PR اختيارية
 ```
 
-إضافة PR-Agent اختيارية ومطفأة افتراضيًا، وتعمل كمراجع بديل عن مراجعة Codex حتى لا يتكرر الاستدلال. إعدادا Ollama وLocalAI المحليان موثقان في [`models/docker-compose.yml`](models/docker-compose.yml)، لكنهما لا يعملان تلقائيًا ولا يتضمنان أوزان نماذج، كما أنهما غير موصولين بمراحل AI-1 إلى AI-7. تظل K8sGPT وHolmesGPT وMLflow مرشحة لمراجعات لاحقة منفصلة.
+إضافة PR-Agent اختيارية ومطفأة افتراضيًا، وتعمل كمراجع بديل عن مراجعة Codex حتى لا يتكرر الاستدلال. إعدادا Ollama وLocalAI المحليان موثقان في [`models/docker-compose.yml`](models/docker-compose.yml)، ولا يعملان تلقائيًا ولا يتضمنان أوزان نماذج. يمكن اختيار أحدهما يدويًا لتشخيص السجلات عبر API staging بعد الموافقات الصريحة، لكنهما لا يتصلان تلقائيًا بسلسلة AI-1 إلى AI-7. تظل K8sGPT وHolmesGPT وMLflow مرشحة لمراجعات لاحقة منفصلة.
 
 | المكوّن الخارجي المضاف | الإصدار/البصمة | الرخصة | النطاق |
 | --- | --- | --- | --- |
 | [PR-Agent](https://github.com/The-PR-Agent/pr-agent) | v0.49.0؛ صورة مثبتة على digest موثق في [دليل التكامل](docs/PR_AGENT_INTEGRATION.md) | [MIT](https://github.com/The-PR-Agent/pr-agent/blob/v0.49.0/LICENSE) | مراجعة PR اختيارية؛ غير مفعّلة ما لم تُستوفَ بوابات الاختيار والميزانية والتحقق من المصدر والاعتماد الموجود |
-| [Ollama](https://github.com/ollama/ollama) | v0.40.15؛ digest موثق في [دليل النماذج](models/README.md) | [MIT](https://github.com/ollama/ollama/blob/v0.40.15/LICENSE) | خادم CPU محلي اختياري؛ لا ينزل نموذجًا تلقائيًا ولا يتصل بمراحل AI-1 إلى AI-7 |
-| [LocalAI](https://github.com/mudler/LocalAI) | v4.12.1؛ digest موثق في [دليل النماذج](models/README.md) | [MIT](https://github.com/mudler/LocalAI/blob/v4.12.1/LICENSE) | CPU اختياري خلف profile؛ لا ينزل نموذجًا تلقائيًا ولا يتصل بمراحل AI-1 إلى AI-7 |
+| [Ollama](https://github.com/ollama/ollama) | v0.40.15؛ digest موثق في [دليل النماذج](models/README.md) | [MIT](https://github.com/ollama/ollama/blob/v0.40.15/LICENSE) | خادم CPU محلي اختياري؛ لا ينزل نموذجًا تلقائيًا؛ اختيار يدوي ممكن لـAPI التشخيص فقط |
+| [LocalAI](https://github.com/mudler/LocalAI) | v4.12.1؛ digest موثق في [دليل النماذج](models/README.md) | [MIT](https://github.com/mudler/LocalAI/blob/v4.12.1/LICENSE) | CPU اختياري خلف profile؛ لا ينزل نموذجًا تلقائيًا؛ اختيار يدوي ممكن لـAPI التشخيص فقط |
 
 مجلدات `agents/` و`workflows/` و`models/` و`mlops/` هي فهارس توثيقية لهذه المرحلة؛ ملفات التشغيل الفعلية تبقى في مواقعها الحالية. راجع [خريطة الوكلاء](agents/README.md)، [خريطة سير العمل](workflows/README.md)، [خريطة النماذج](models/README.md)، [تكامل PR-Agent](docs/PR_AGENT_INTEGRATION.md)، [خريطة المراقبة](monitoring/README.md)، و[خريطة MLOps](mlops/README.md).
 
