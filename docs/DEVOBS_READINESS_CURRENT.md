@@ -1,4 +1,16 @@
-## Current snapshot — 2026-11-07 (main at PR #450; latest verification includes PR #451 branch merge)
+## Current snapshot — 2026-11-08 (main at PR #455)
+
+**VERIFIED from GitHub:** PR [#455](https://github.com/hamedonassar95/Devobs/pull/455) merged to `main` at `4d1a4e5c663e69c31964a62afc8417b5a6386e29` from head `2489f919aece388ebe1ca22b4f672d15fa187969`. Exact-head CI [42481909591](https://github.com/hamedonassar95/Devobs/actions/runs/42481909591) and CodeQL [42481906695](https://github.com/hamedonassar95/Devobs/actions/runs/42481906695) passed. Exact-merge main CI [42482486198](https://github.com/hamedonassar95/Devobs/actions/runs/42482486198) and CodeQL [42482485483](https://github.com/hamedonassar95/Devobs/actions/runs/42482485483) passed. Main CI passed validate, Python, Node, PostgreSQL RLS, security, web-container/Trivy, Terraform, site-contract, static GitHub Pages publication and `verify-production`; the controlled incident drill and conditional restoration checks were skipped.
+
+PR #455 adds browser-only AI-7 runbook notes with search, pinning, confirmed archive and restore. Notes stay in browser `localStorage`; they are not sent to the API and are separate from AI-1 events and AI-6 feedback. MIT attribution and license are included. This does not add model inference, a hosted service, or automatic remediation.
+
+**VERIFIED from GitHub:** PR [#454](https://github.com/hamedonassar95/Devobs/pull/454) remains open at head `efc4fd7243b840c0ba3c480a1f6e6c8d64177801`. Its CodeQL gate reports 13 new alerts (3 critical, 8 high, 2 medium) [CodeQL finding summary](https://github.com/hamedonassar95/Devobs/runs/128714877853). The TypeScript/Unit Tests/Vite CI job failed at job setup and the Node 22 matrix job was cancelled; these runs do not establish successful application tests. Do not merge PR #454 until the findings are addressed and required CI passes.
+
+Gate dispositions remain AI-9 **BLOCKED**, P01 **BLOCKED**, and Codex runtime **OPEN**.
+
+---
+
+## Previous snapshot — 2026-11-07 (main at PR #450; superseded by PR #455; latest verification includes PR #451 branch merge)
 
 **VERIFIED from GitHub:** `main` is `fe19ff799a9eb8d2be42e5ff788b8b1a252f79a3`, merged from PR [#450](https://github.com/hamedonassar95/Devobs/pull/450), head `adf08378470dc0bf93b286a1a44a981bf1e2cb2e`. Exact-head CI [42425248776](https://github.com/hamedonassar95/Devobs/actions/runs/42425248776) and CodeQL [42425246249](https://github.com/hamedonassar95/Devobs/actions/runs/42425246249) passed. Exact-merge main CI [42425329761](https://github.com/hamedonassar95/Devobs/actions/runs/42425329761) and CodeQL [42425329569](https://github.com/hamedonassar95/Devobs/actions/runs/42425329569) passed. Main CI passed validation, Python, Node, PostgreSQL RLS, security, web-container/Trivy, Terraform and site-contract checks; it published the existing static GitHub Pages site and `verify-production` passed. The controlled incident drill and conditional restoration checks were skipped.
 
