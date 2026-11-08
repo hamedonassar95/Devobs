@@ -1498,6 +1498,17 @@
       "ci_run_id": 42502967385,
       "verification": "VERIFIED 2026-11-08: PR #469 merged to main at 21f9c8d3f6c2cc7b9e580bfcf8d81121b9e02d4a from head 0d3ef0d808a7c0feae0da074616017bd4fda4288. Exact-head CI 42502821469 and 42502825921 and CodeQL 42502824595 SUCCESS. Exact-merge main CI 42502967385 and CodeQL 42502966485 SUCCESS; Python, RLS, security, container/Trivy, Terraform, site-contract and validate passed. Existing CI published static GitHub Pages and verify-production passed. Node passed on one exact-head CI run and was skipped by path selection on the duplicate head run and merge CI. Controlled incident drill and restoration checks skipped by conditions.",
       "limitations": "Documentation/test synchronization recording PR #468 only; no runtime behavior or gate status changed. Node passed in exact-head CI and was skipped by path selection in merge CI. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr470-record-pr469",
+      "area": "DOCUMENTATION",
+      "title": "Record verified PR #470 merge evidence for PR #469",
+      "pr_number": 470,
+      "pr_head_sha": "88da38a947d3ced13336d7e033928d23f7aa9add",
+      "merge_sha": "a1508d3125b92f529c9dcd30e7e477978660dd0d",
+      "ci_run_id": 42503855396,
+      "verification": "VERIFIED 2026-11-08: PR #470 merged to main at a1508d3125b92f529c9dcd30e7e477978660dd0d from head 88da38a947d3ced13336d7e033928d23f7aa9add. Exact-head CI 42503403042 and 42503430538 and CodeQL 42503427879 SUCCESS. Exact-merge main CI 42503855396 and CodeQL 42503854498 SUCCESS; Python, RLS, security, container/Trivy, Terraform, site-contract and validate passed. Existing CI published static GitHub Pages and verify-production passed. Node passed on one exact-head CI run and was skipped by path selection on the duplicate head run and merge CI. Controlled incident drill and restoration checks skipped by conditions.",
+      "limitations": "Documentation/test synchronization recording PR #469 only; no runtime behavior or gate status changed. Node passed in exact-head CI and was skipped by path selection in merge CI. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
     }
   ],
   "gates": [
