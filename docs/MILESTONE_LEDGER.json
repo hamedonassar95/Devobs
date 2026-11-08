@@ -1366,6 +1366,17 @@
       "ci_run_id": 42484596864,
       "verification": "VERIFIED 2026-11-08: PR #457 merged at b2a5a4feec930cc9e0ca75289f1c9b640ed99cac from head eb2a0e5c94348d3b95517e35780e52968d62d67f. Exact-head CI 42484417443 and 42484419702 and CodeQL 42484418029 SUCCESS. Exact-merge main CI 42484596864 and Push on main 42484596189 SUCCESS. Cosign verification, Trivy, site-contract, Terraform and validate passed; static Pages publication and verify-production passed. Node and controlled incident drill skipped by workflow conditions; path-selected Python validation passed on PR CI.",
       "limitations": "Adds manually started, loopback-bound Ollama and LocalAI Compose services pinned to reviewed image digests. No model weights or images were downloaded and no containers were started. No AI-1 through AI-7 LLM connection or production runtime is established. Existing Trivy scans the Devobs web image, not optional model runtime images. The LocalAI API key is optional; without it, keep LocalAI loopback-bound. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr458-record-pr456-457",
+      "area": "DOCUMENTATION",
+      "title": "Record verified PR #458 merge and post-merge checks",
+      "pr_number": 458,
+      "pr_head_sha": "0803958af80e25ec164de778fded0f14265c390b",
+      "merge_sha": "63895a1159f6867f5becda56f24395ff33f4057f",
+      "ci_run_id": 42486881365,
+      "verification": "VERIFIED 2026-11-08: PR #458 merged to main at 63895a1159f6867f5becda56f24395ff33f4057f from head 0803958af80e25ec164de778fded0f14265c390b. Exact-head CI 42486018274 and CodeQL 42486015475 SUCCESS. Exact-merge main CI 42486881365 and CodeQL 42486880663 SUCCESS; Python, PostgreSQL RLS, security, Trivy container, Terraform, site-contract and validate passed; static Pages publication and verify-production passed. Node skipped on PR and main CI; controlled incident drill and restore checks skipped by conditions.",
+      "limitations": "Documentation/test synchronization only (STATE.md, readiness, ledger and ledger test); no service behavior or gate status changed. The existing CI published static Pages. PR #459 remains open/unmerged with an optional disabled-by-default Gemini diagnostics adapter; no Gemini inference or external log transfer is established. PR #454 remains conflicting with 13 CodeQL alerts. AI-9 BLOCKED, P01 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
