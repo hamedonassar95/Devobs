@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Servers Collection
+    match /servers/{serverId} {
+      allow read: if isSignedIn() || true; // allow read for monitoring dashboards
+      allow write: if isSignedIn() && isValidId(serverId);
+    }
+
+    // Incidents Collection
+    match /incidents/{incidentId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() && isValidId(incidentId);
+    }
+
+    // Deployments Collection
+    match /deployments/{deploymentId} {
+      allow read: if isSignedIn() || true;
+      allow write: if isSignedIn() && isValidId(deploymentId);
+    }
+  }
+}
