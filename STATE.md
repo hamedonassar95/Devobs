@@ -1,4 +1,12 @@
-## أحدث لقطة موثّقة: PR #474 — تحقق 2026-11-08
+## أحدث لقطة موثّقة: PR #475 — تحقق 2026-11-08
+
+- **VERIFIED من GitHub:** دُمج PR [#475](https://github.com/hamedonassar95/Devobs/pull/475) على `main` عند `5cb98322e9a54f0102f2f0ab1df7673de2121b4c` من الرأس `0c643266996a75e40f657b7f8be4ab3f900e2d13`. نجحت فحوص الرأس: CI [42508810489](https://github.com/hamedonassar95/Devobs/actions/runs/42508810489) و[42508814564](https://github.com/hamedonassar95/Devobs/actions/runs/42508814564)، وCodeQL [42508811151](https://github.com/hamedonassar95/Devobs/actions/runs/42508811151) ومراجعة AI [42508814500](https://github.com/hamedonassar95/Devobs/actions/runs/42508814500). بعد الدمج نجح CI [42509038532](https://github.com/hamedonassar95/Devobs/actions/runs/42509038532) وCodeQL [42509038342](https://github.com/hamedonassar95/Devobs/actions/runs/42509038342) على SHA الدمج نفسه. اجتازت Python وRLS والأمن وTrivy للصورة نفسها وTerraform وعقد الموقع والتحقق. نُشرت صفحة Pages الثابتة واجتاز `verify-production`. تخطّى Node مرشح المسارات، وتخطّى تمرين الحادث وفحوص الاستعادة لشروطها.
+- يسجل PR #475 دمج #473 و#474، ويحدّث قرار إغلاق #454 دون دمج. هو توثيق واختبار سجل فقط؛ لا يضيف سلوكًا أو خدمة ولا يغير البوابات. #454 مغلق بلا merge commit، ولم يُنقل منه كود.
+- **البوابات:** AI-9 **BLOCKED** وP01 **BLOCKED** وCodex runtime **OPEN**.
+
+---
+
+## لقطة سابقة موثّقة: PR #474 — تحقق 2026-11-08
 
 - **VERIFIED من GitHub:** دُمج PR [#474](https://github.com/hamedonassar95/Devobs/pull/474) على `main` عند `c07f12ea07ff6ec3efd5f09886fead503e593b69` من الرأس `9f5834d18dee42ea0172b4a049343e1eaf824e9e`. نجحت فحوص الرأس: CI [42506444249](https://github.com/hamedonassar95/Devobs/actions/runs/42506444249) و[42506468607](https://github.com/hamedonassar95/Devobs/actions/runs/42506468607)، وCodeQL [42506465598](https://github.com/hamedonassar95/Devobs/actions/runs/42506465598). بعد الدمج نجح CI [42507031658](https://github.com/hamedonassar95/Devobs/actions/runs/42507031658) وCodeQL [42507031373](https://github.com/hamedonassar95/Devobs/actions/runs/42507031373) على SHA الدمج نفسه. اجتازت Python وNode وPostgreSQL RLS والأمن وTrivy للصورة نفسها وTerraform وعقد الموقع والتحقق. نشر مسار Pages الموجود الموقع الثابت واجتاز `verify-production`. تخطى تمرين الحادث وفحوص الاستعادة شروطها.
 - أصلح PR #474 تحذير Pages: مدخل `timeout` في [البيانات الرسمية للإصدار v5.0.1 من actions/deploy-pages](https://github.com/actions/deploy-pages/blob/v5.0.1/action.yml) حدّه 600000 مللي ثانية؛ كان إعداد المستودع 1200000. ضُبط على 600000 وأُضيف اختبار انحدار، مع بقاء مهلة الوظيفة 25 دقيقة.

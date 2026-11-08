@@ -1,4 +1,12 @@
-## Current snapshot — 2026-11-08 (main after PR #474)
+## Current snapshot — 2026-11-08 (main after PR #475)
+
+**VERIFIED from GitHub:** PR [#475](https://github.com/hamedonassar95/Devobs/pull/475) merged to `main` at `5cb98322e9a54f0102f2f0ab1df7673de2121b4c` from head `0c643266996a75e40f657b7f8be4ab3f900e2d13`. Exact-head CI [42508810489](https://github.com/hamedonassar95/Devobs/actions/runs/42508810489) and [42508814564](https://github.com/hamedonassar95/Devobs/actions/runs/42508814564), CodeQL [42508811151](https://github.com/hamedonassar95/Devobs/actions/runs/42508811151), and AI Code Review [42508814500](https://github.com/hamedonassar95/Devobs/actions/runs/42508814500) passed. Exact-merge main CI [42509038532](https://github.com/hamedonassar95/Devobs/actions/runs/42509038532) and CodeQL [42509038342](https://github.com/hamedonassar95/Devobs/actions/runs/42509038342) passed on the exact merge SHA. Python, PostgreSQL RLS, security, same-image container/Trivy, Terraform, site-contract and validate passed. The existing Pages publication and `verify-production` passed. Node tests were skipped by path filters; the controlled incident drill and restoration checks were skipped by workflow conditions.
+
+PR #475 synchronizes the verified #473/#474 merge evidence and records that #454 was closed without merging after review. It adds documentation and a ledger regression assertion only; no application runtime, permissions or readiness gates changed. PR #454 has no merge commit and no source was transferred. AI-9 remains **BLOCKED**, P01 **BLOCKED**, and Codex runtime **OPEN**.
+
+---
+
+## Previous snapshot — 2026-11-08 (main after PR #474)
 
 **VERIFIED from GitHub:** PR [#474](https://github.com/hamedonassar95/Devobs/pull/474) merged to `main` at `c07f12ea07ff6ec3efd5f09886fead503e593b69` from head `9f5834d18dee42ea0172b4a049343e1eaf824e9e`. Exact-head CI [42506444249](https://github.com/hamedonassar95/Devobs/actions/runs/42506444249) and [42506468607](https://github.com/hamedonassar95/Devobs/actions/runs/42506468607), plus CodeQL [42506465598](https://github.com/hamedonassar95/Devobs/actions/runs/42506465598), passed. Exact-merge main CI [42507031658](https://github.com/hamedonassar95/Devobs/actions/runs/42507031658) and CodeQL [42507031373](https://github.com/hamedonassar95/Devobs/actions/runs/42507031373) passed on the exact merge SHA. Python, Node, PostgreSQL RLS, security, same-image container/Trivy, Terraform, site-contract and validate passed. The existing workflow published static GitHub Pages and `verify-production` passed. The controlled incident drill and restoration checks were skipped by workflow conditions.
 

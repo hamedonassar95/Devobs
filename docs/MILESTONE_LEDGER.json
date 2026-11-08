@@ -1553,6 +1553,17 @@
       "ci_run_id": 42507031658,
       "verification": "VERIFIED 2026-11-08: PR #474 merged to main at c07f12ea07ff6ec3efd5f09886fead503e593b69 from head 9f5834d18dee42ea0172b4a049343e1eaf824e9e. Exact-head CI 42506444249 and 42506468607 and CodeQL 42506465598 SUCCESS; exact-merge main CI 42507031658 and CodeQL 42507031373 SUCCESS. Python, Node, PostgreSQL RLS, security, same-image Trivy, Terraform, site-contract and validate passed; the existing Pages publication and verify-production passed.",
       "limitations": "A bounded workflow timeout correction and regression test only; the action input is capped at 600000 ms while the job timeout remains 25 minutes. Incident drill and restoration checks skipped by conditions. No service or readiness gate changed; AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr475-record-pr473-pr474-and-pr454-disposition",
+      "area": "DOCUMENTATION",
+      "title": "Record verified PR #475 merge evidence and PR #454 closure disposition",
+      "pr_number": 475,
+      "pr_head_sha": "0c643266996a75e40f657b7f8be4ab3f900e2d13",
+      "merge_sha": "5cb98322e9a54f0102f2f0ab1df7673de2121b4c",
+      "ci_run_id": 42509038532,
+      "verification": "VERIFIED 2026-11-08: PR #475 merged to main at 5cb98322e9a54f0102f2f0ab1df7673de2121b4c from head 0c643266996a75e40f657b7f8be4ab3f900e2d13. Exact-head CI 42508810489 and 42508814564, CodeQL 42508811151 and AI Code Review 42508814500 SUCCESS; exact-merge main CI 42509038532 and CodeQL 42509038342 SUCCESS. Python, RLS, security, same-image Trivy, Terraform, site-contract and validate passed. Existing Pages publication and verify-production passed.",
+      "limitations": "Documentation and regression-test synchronization only; PR #475 also records #473/#474 and the no-merge closure of PR #454. Node tests skipped by path selection; incident drill and restoration checks skipped by workflow conditions. No application behavior or gate changed. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
     }
   ],
   "gates": [
