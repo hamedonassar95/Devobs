@@ -1026,11 +1026,19 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr481_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr483_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 481)
-        self.assertEqual(result["merged_milestones"], 148)
+        self.assertEqual(result["latest_pr"], 483)
+        self.assertEqual(result["merged_milestones"], 149)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
+        monitoring_483 = records[483]
+        self.assertEqual(monitoring_483["pr_head_sha"], "046c46838c11a07941f21714f7a4b3a5055ab446")
+        self.assertEqual(monitoring_483["merge_sha"], "dadd4b83bf102d8eb232b199e7f7fb603cc20c4d")
+        self.assertEqual(monitoring_483["ci_run_id"], 42518883043)
+        self.assertIn("CodeQL 42518882082 SUCCESS", monitoring_483["verification"])
+        self.assertIn("verify-production passed", monitoring_483["verification"])
+        self.assertIn("promtool unavailable", monitoring_483["limitations"])
+        self.assertIn("no containers started", monitoring_483["limitations"])
         evidence_sync_480 = records[480]
         self.assertEqual(evidence_sync_480["pr_head_sha"], "b554af6da6fe37e082ae7211580d92ec3010b780")
         self.assertEqual(evidence_sync_480["merge_sha"], "a4667625bbf802db9764ea215ca6754574694d09")
