@@ -1026,11 +1026,23 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr470_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr471_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 470)
-        self.assertEqual(result["merged_milestones"], 137)
+        self.assertEqual(result["latest_pr"], 471)
+        self.assertEqual(result["merged_milestones"], 138)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
+        evidence_sync_471 = records[471]
+        self.assertEqual(
+            evidence_sync_471["pr_head_sha"],
+            "29d5b6866da518b245f1c2d9f06ac1647bf0a9aa",
+        )
+        self.assertEqual(
+            evidence_sync_471["merge_sha"],
+            "c79410f81ebd2c398c9894803d2c494cdcbae509",
+        )
+        self.assertEqual(evidence_sync_471["ci_run_id"], 42504932069)
+        self.assertIn("CodeQL 42504930954 SUCCESS", evidence_sync_471["verification"])
+        self.assertIn("timeout-cap warning", evidence_sync_471["limitations"])
         evidence_sync_470 = records[470]
         self.assertEqual(
             evidence_sync_470["pr_head_sha"],
