@@ -17,6 +17,7 @@ from psycopg import Error as PsycopgError
 from psycopg.conninfo import conninfo_to_dict, make_conninfo
 
 from .api_app import make_app, reject_request_body
+from .gemini_error_diagnosis import GeminiErrorLogDiagnostician
 from .oidc_rotation import RotatingOIDCVerifier
 from .openai_error_diagnosis import DEFAULT_MODEL, OpenAIErrorLogDiagnostician
 from .postgres_store import PostgresTenantStore
@@ -92,10 +93,21 @@ def build_app(settings: Mapping[str, str]) -> Callable:
         if enabled == "true":
             if settings.get("DEVOBS_AI_BUDGET_APPROVED") != "true":
                 raise StagingConfigurationError("invalid_staging_config")
-            diagnostician = OpenAIErrorLogDiagnostician(
-                settings.get("OPENAI_API_KEY", ""),
-                model=settings.get("DEVOBS_AI_MODEL", DEFAULT_MODEL),
-            )
+            provider = settings.get("DEVOBS_AI_PROVIDER", "openai")
+            if provider == "openai":
+                diagnostician = OpenAIErrorLogDiagnostician(
+                    settings.get("OPENAI_API_KEY", ""),
+                    model=settings.get("DEVOBS_AI_MODEL", DEFAULT_MODEL),
+                )
+            elif provider == "gemini":
+                if settings.get("DEVOBS_AI_GEMINI_DATA_POLICY_APPROVED") != "true":
+                    raise StagingConfigurationError("invalid_staging_config")
+                diagnostician = GeminiErrorLogDiagnostician(
+                    settings.get("GEMINI_API_KEY", ""),
+                    model=settings.get("DEVOBS_GEMINI_MODEL", ""),
+                )
+            else:
+                raise StagingConfigurationError("invalid_staging_config")
         api = make_app(verifier, store, diagnostician=diagnostician)
     except (KeyError, ValueError, TypeError):
         raise StagingConfigurationError("invalid_staging_config") from None
