@@ -1026,11 +1026,23 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr479_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr481_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 479)
-        self.assertEqual(result["merged_milestones"], 146)
+        self.assertEqual(result["latest_pr"], 481)
+        self.assertEqual(result["merged_milestones"], 148)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
+        evidence_sync_480 = records[480]
+        self.assertEqual(evidence_sync_480["pr_head_sha"], "b554af6da6fe37e082ae7211580d92ec3010b780")
+        self.assertEqual(evidence_sync_480["merge_sha"], "a4667625bbf802db9764ea215ca6754574694d09")
+        self.assertEqual(evidence_sync_480["ci_run_id"], 42513312273)
+        self.assertIn("CodeQL 42513311805 SUCCESS", evidence_sync_480["verification"])
+        feature_k8s_481 = records[481]
+        self.assertEqual(feature_k8s_481["pr_head_sha"], "a20709defb7cad148f47d7043186df5d5203051e")
+        self.assertEqual(feature_k8s_481["merge_sha"], "85c65afd2ca1018da38a674ee88ea09942170cb9")
+        self.assertEqual(feature_k8s_481["ci_run_id"], 42514879986)
+        self.assertIn("CodeQL 42514879654 SUCCESS", feature_k8s_481["verification"])
+        self.assertIn("No manifests were applied", feature_k8s_481["limitations"])
+        self.assertIn("Apache-2.0", feature_k8s_481["limitations"])
         evidence_sync_479 = records[479]
         self.assertEqual(evidence_sync_479["pr_head_sha"], "5f2d565e179b28a183f5936c7895be4c2f405d5a")
         self.assertEqual(evidence_sync_479["merge_sha"], "e03d8be4a5c1b19e35c31d98339b45e7caf27d9d")
