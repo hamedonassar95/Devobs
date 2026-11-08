@@ -1520,6 +1520,17 @@
       "ci_run_id": 42504932069,
       "verification": "VERIFIED 2026-11-08: PR #471 merged to main at c79410f81ebd2c398c9894803d2c494cdcbae509 from head 29d5b6866da518b245f1c2d9f06ac1647bf0a9aa. Exact-head CI 42504118513 and 42504143077 and CodeQL 42504140393 SUCCESS. Exact-merge main CI 42504932069 and CodeQL 42504930954 SUCCESS; Python, RLS, security, container/Trivy, Terraform, site-contract and validate passed. Existing CI published static GitHub Pages and verify-production passed. Node passed on one exact-head CI run and was skipped by path selection on the duplicate head run and merge CI. Controlled incident drill and restoration checks skipped by conditions. The run watcher emitted a non-blocking timeout-cap warning during Pages publication, but the publish and verification jobs passed.",
       "limitations": "Documentation/test synchronization recording PR #470 only; no runtime behavior or gate status changed. Node passed in exact-head CI and was skipped by path selection in merge CI. A non-blocking timeout-cap warning was shown by the run watcher; its source was not identified in the run logs. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr472-record-pr471",
+      "area": "DOCUMENTATION",
+      "title": "Record verified PR #472 merge evidence for PR #471",
+      "pr_number": 472,
+      "pr_head_sha": "c97795d81986f02108a2c10780e3cf30c8640d7a",
+      "merge_sha": "5f108923c301a95aea2bb3a93f0985317d090d0f",
+      "ci_run_id": 42505771596,
+      "verification": "VERIFIED 2026-11-08: PR #472 merged to main at 5f108923c301a95aea2bb3a93f0985317d090d0f from head c97795d81986f02108a2c10780e3cf30c8640d7a. Exact-head CI 42505232019 and 42505256313 and CodeQL 42505252810 SUCCESS. Exact-merge main CI 42505771596 and CodeQL 42505771116 SUCCESS; Python, RLS, security, container/Trivy, Terraform, site-contract and validate passed. Existing CI published static GitHub Pages and verify-production passed. Node passed on one exact-head CI run and was skipped by path selection on the duplicate head run and merge CI. Controlled incident drill and restoration checks skipped by conditions. The run watcher emitted a non-blocking timeout-cap warning during Pages publication, but the publish and verification jobs passed.",
+      "limitations": "Documentation/test synchronization recording PR #471 only; no runtime behavior or gate status changed. Node passed in exact-head CI and was skipped by path selection in merge CI. A non-blocking timeout-cap warning was shown by the run watcher; its source was not identified in the run logs. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
     }
   ],
   "gates": [
