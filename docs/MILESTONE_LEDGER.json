@@ -1597,6 +1597,17 @@
       "ci_run_id": 42510834635,
       "verification": "VERIFIED 2026-11-08: PR #478 merged to main at 928485b35c549338e81eb7f5892ffadcadd62026 from head ff4a33a66f87b82ad8be2cb6224fdf3bb210f7f9. Exact-head CI 42510576214 and 42510643366, CodeQL 42510640393, and AI Code Review 42510643411 SUCCESS. Exact-merge main CI 42510834635 and CodeQL 42510834600 SUCCESS. Python, PostgreSQL RLS, security, same-image Trivy, Terraform, site-contract and validate passed; static Pages publication and verify-production passed.",
       "limitations": "Documentation and milestone-ledger regression-test synchronization for PR #477 only; no application behavior, permissions or readiness gate changed. Node passed on exact-head push CI 42510576214 and was skipped by path selection on exact-head PR CI 42510643366 and merge CI. The advisory Codex review job completed, but the model review step was skipped because explicit budget approval was absent; no model inference is claimed. PR-Agent, controlled incident drill and restoration checks were skipped by workflow conditions. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr479-record-pr478",
+      "area": "DOCUMENTATION",
+      "title": "Record verified PR #479 merge evidence for PR #478",
+      "pr_number": 479,
+      "pr_head_sha": "5f2d565e179b28a183f5936c7895be4c2f405d5a",
+      "merge_sha": "e03d8be4a5c1b19e35c31d98339b45e7caf27d9d",
+      "ci_run_id": 42512447144,
+      "verification": "VERIFIED 2026-11-08: PR #479 merged to main at e03d8be4a5c1b19e35c31d98339b45e7caf27d9d from head 5f2d565e179b28a183f5936c7895be4c2f405d5a. Exact-head CI 42511074925 and 42511099945 and CodeQL 42511096893 SUCCESS. Exact-merge main CI 42512447144 and CodeQL 42512446957 SUCCESS. Python, PostgreSQL RLS, security, same-image Trivy, Terraform, site-contract and validate passed; static Pages publication and verify-production passed.",
+      "limitations": "Documentation and milestone-ledger regression-test synchronization for PR #478 only; no application behavior, permissions or readiness gate changed. Node passed on exact-head push CI 42511074925 and was skipped by path selection on exact-head PR CI 42511099945 and merge CI. The advisory Codex review job completed, but the model review step was skipped because explicit budget approval was absent; no model inference is claimed. PR-Agent, controlled incident drill and restoration checks were skipped by workflow conditions. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
     }
   ],
   "gates": [
