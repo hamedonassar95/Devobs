@@ -1,4 +1,12 @@
-## Current snapshot — 2026-11-08 (main after PR #469)
+## Current snapshot — 2026-11-08 (main after PR #470)
+
+**VERIFIED from GitHub:** PR [#470](https://github.com/hamedonassar95/Devobs/pull/470) merged to main at `a1508d3125b92f529c9dcd30e7e477978660dd0d` from head `88da38a947d3ced13336d7e033928d23f7aa9add`. Exact-head CI [42503403042](https://github.com/hamedonassar95/Devobs/actions/runs/42503403042) and [42503430538](https://github.com/hamedonassar95/Devobs/actions/runs/42503430538), plus CodeQL [42503427879](https://github.com/hamedonassar95/Devobs/actions/runs/42503427879), passed. Exact-merge main CI [42503855396](https://github.com/hamedonassar95/Devobs/actions/runs/42503855396) and CodeQL [42503854498](https://github.com/hamedonassar95/Devobs/actions/runs/42503854498) passed. Python, PostgreSQL RLS, security, container/Trivy, Terraform, site-contract, validate, static Pages publication and verify-production passed. Node passed in one exact-head CI run and was skipped by path selection on the duplicate head run and merge CI. The controlled incident drill and restoration checks were skipped by workflow conditions.
+
+PR #470 records the verified PR #469 merge in state, readiness, milestone ledger and regression tests. It adds no runtime feature and does not change readiness gates. AI-9 remains **BLOCKED**, P01 **BLOCKED**, and Codex runtime **OPEN**.
+
+---
+
+## Previous snapshot — 2026-11-08 (main after PR #469)
 
 **VERIFIED from GitHub:** PR [#469](https://github.com/hamedonassar95/Devobs/pull/469) merged to main at `21f9c8d3f6c2cc7b9e580bfcf8d81121b9e02d4a` from head `0d3ef0d808a7c0feae0da074616017bd4fda4288`. Exact-head CI [42502821469](https://github.com/hamedonassar95/Devobs/actions/runs/42502821469) and [42502825921](https://github.com/hamedonassar95/Devobs/actions/runs/42502825921), plus CodeQL [42502824595](https://github.com/hamedonassar95/Devobs/actions/runs/42502824595), passed. Exact-merge main CI [42502967385](https://github.com/hamedonassar95/Devobs/actions/runs/42502967385) and CodeQL [42502966485](https://github.com/hamedonassar95/Devobs/actions/runs/42502966485) passed. Python, PostgreSQL RLS, security, container/Trivy, Terraform, site-contract, validate, static Pages publication and verify-production passed. Node passed in one exact-head CI run and was skipped by path selection on the duplicate head run and merge CI. The controlled incident drill and restoration checks were skipped by workflow conditions.
 
