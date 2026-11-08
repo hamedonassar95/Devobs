@@ -1,4 +1,18 @@
-## Current snapshot — 2026-11-08 (main at PR #458; PR #459 open)
+## Current snapshot — 2026-11-08 (main at PR #459; PR #460 evidence recorded)
+
+**VERIFIED from GitHub:** PR [#460](https://github.com/hamedonassar95/Devobs/pull/460) merged to `main` at `418deb79296d44a1f06671287e6aa6798a3305d7` from head `12a6e40ff08ca8334a7425598fddb479d8452e99`. Exact-head CI [42488504758](https://github.com/hamedonassar95/Devobs/actions/runs/42488504758), CodeQL [42488502126](https://github.com/hamedonassar95/Devobs/actions/runs/42488502126), and push CI [42488461904](https://github.com/hamedonassar95/Devobs/actions/runs/42488461904) passed. Exact-merge CI [42489904300](https://github.com/hamedonassar95/Devobs/actions/runs/42489904300) and CodeQL [42489903954](https://github.com/hamedonassar95/Devobs/actions/runs/42489903954) passed. PR #460 is documentation and test synchronization for #458 only. Main CI published the existing static Pages site and `verify-production` succeeded; incident and restoration checks were skipped by conditions.
+
+**VERIFIED from GitHub:** PR [#459](https://github.com/hamedonassar95/Devobs/pull/459) merged to `main` at `0a350672865b1c62f72928fccf078ee5e1bd12c5` from final head `1ba0ed7ae91449e306bd9b065df1b05b5793f679`. Exact-head CI [42489939852](https://github.com/hamedonassar95/Devobs/actions/runs/42489939852), push CI [42489938788](https://github.com/hamedonassar95/Devobs/actions/runs/42489938788), and CodeQL [42489938455](https://github.com/hamedonassar95/Devobs/actions/runs/42489938455) passed. Exact-merge main CI [42490036290](https://github.com/hamedonassar95/Devobs/actions/runs/42490036290) and CodeQL [42490036203](https://github.com/hamedonassar95/Devobs/actions/runs/42490036203) passed; main CI passed Python, PostgreSQL RLS, security, container/Trivy, Terraform, site-contract and `validate`, and published/verified static Pages. Node and conditional incident/restoration jobs were skipped on main.
+
+PR #459 adds an optional Gemini provider for the existing staging diagnostics path. OpenAI remains the default. Activation requires `DEVOBS_AI_PROVIDER=gemini`, `GEMINI_API_KEY`, `DEVOBS_GEMINI_MODEL`, `DEVOBS_AI_GEMINI_DATA_POLICY_APPROVED=true`, and the existing budget acknowledgment. No Gemini inference or external log transfer was performed. The acknowledgment is not a provider-enforced cost cap or data-retention guarantee. This integration is separate from the existing Vertex AI workflow and does not establish a live model runtime.
+
+**VERIFIED from GitHub:** PR [#454](https://github.com/hamedonassar95/Devobs/pull/454) remains open and conflicting with `main`; its CodeQL gate reports 13 alerts (3 critical, 8 high, 2 medium), and its TypeScript/Unit Tests/Vite check failed during job setup. Its Google Workspace and Firebase code was not integrated: it requests broad OAuth scopes and includes Firestore rules that do not enforce tenant-scoped reads. Devobs already has PostgreSQL RLS; revisit only for a narrowly defined use case and reviewed authorization/data policy.
+
+Gate dispositions remain AI-9 **BLOCKED**, P01 **BLOCKED**, and Codex runtime **OPEN**.
+
+---
+
+## Previous snapshot — 2026-11-08 (main at PR #458; superseded by PR #459 and #460)
 
 **VERIFIED from GitHub:** PR [#458](https://github.com/hamedonassar95/Devobs/pull/458) merged to `main` at `63895a1159f6867f5becda56f24395ff33f4057f` from head `0803958af80e25ec164de778fded0f14265c390b`. Exact-head CI [42486018274](https://github.com/hamedonassar95/Devobs/actions/runs/42486018274) and CodeQL [42486015475](https://github.com/hamedonassar95/Devobs/actions/runs/42486015475) passed. Exact-merge main CI [42486881365](https://github.com/hamedonassar95/Devobs/actions/runs/42486881365) and CodeQL [42486880663](https://github.com/hamedonassar95/Devobs/actions/runs/42486880663) passed. PR #458 changes only `STATE.md`, this readiness file, the milestone ledger and its tests.
 
