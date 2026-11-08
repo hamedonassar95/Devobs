@@ -1,4 +1,14 @@
-## Current snapshot — 2026-11-08 (main after PR #479)
+## Current snapshot — 2026-11-08 (main after PR #481)
+
+**VERIFIED from GitHub:** PR [#481](https://github.com/hamedonassar95/Devobs/pull/481) merged to `main` at `85c65afd2ca1018da38a674ee88ea09942170cb9` from head `a20709defb7cad148f47d7043186df5d5203051e`. Exact-head CI [42514673382](https://github.com/hamedonassar95/Devobs/actions/runs/42514673382) and [42514702981](https://github.com/hamedonassar95/Devobs/actions/runs/42514702981), and CodeQL [42514700530](https://github.com/hamedonassar95/Devobs/actions/runs/42514700530) passed. Exact-merge main CI [42514879986](https://github.com/hamedonassar95/Devobs/actions/runs/42514879986) and CodeQL [42514879654](https://github.com/hamedonassar95/Devobs/actions/runs/42514879654) passed on the exact merge SHA. Python, PostgreSQL RLS, security, same-image container/Trivy, Terraform, site-contract and validate passed; the existing static Pages publication and `verify-production` passed.
+
+PR #481 adds optional read-only Kubernetes diagnostics examples for K8sGPT and HolmesGPT. Holmes permissions are limited to selected namespaced workload reads, and its log, live-metrics and Kube-Prometheus toolsets are disabled. The files were not applied to a cluster; no cluster query or model inference occurred. Both upstream projects are Apache-2.0 licensed. Node passed in exact-head push CI 42514673382 and was skipped by path filters in exact-head PR CI 42514702981 and merge CI. PR-Agent, the controlled incident drill and restoration checks were skipped by workflow conditions.
+
+PR #480 records the verified #479 merge. This update records #480 and #481 in the offline milestone ledger and does not change readiness gates. AI-9 remains **BLOCKED**, P01 **BLOCKED**, and Codex runtime **OPEN**. These configuration examples do not establish operational or production readiness.
+
+---
+
+## Previous snapshot — 2026-11-08 (main after PR #479)
 
 **VERIFIED from GitHub:** PR [#479](https://github.com/hamedonassar95/Devobs/pull/479) merged to `main` at `e03d8be4a5c1b19e35c31d98339b45e7caf27d9d` from head `5f2d565e179b28a183f5936c7895be4c2f405d5a`. Exact-head CI [42511074925](https://github.com/hamedonassar95/Devobs/actions/runs/42511074925) and [42511099945](https://github.com/hamedonassar95/Devobs/actions/runs/42511099945), and CodeQL [42511096893](https://github.com/hamedonassar95/Devobs/actions/runs/42511096893) passed. Exact-merge main CI [42512447144](https://github.com/hamedonassar95/Devobs/actions/runs/42512447144) and CodeQL [42512446957](https://github.com/hamedonassar95/Devobs/actions/runs/42512446957) passed on the exact merge SHA. Python, PostgreSQL RLS, security, same-image container/Trivy, Terraform, site-contract and validate passed. The existing Pages publication and `verify-production` passed.
 

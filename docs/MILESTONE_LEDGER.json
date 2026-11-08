@@ -1608,6 +1608,28 @@
       "ci_run_id": 42512447144,
       "verification": "VERIFIED 2026-11-08: PR #479 merged to main at e03d8be4a5c1b19e35c31d98339b45e7caf27d9d from head 5f2d565e179b28a183f5936c7895be4c2f405d5a. Exact-head CI 42511074925 and 42511099945 and CodeQL 42511096893 SUCCESS. Exact-merge main CI 42512447144 and CodeQL 42512446957 SUCCESS. Python, PostgreSQL RLS, security, same-image Trivy, Terraform, site-contract and validate passed; static Pages publication and verify-production passed.",
       "limitations": "Documentation and milestone-ledger regression-test synchronization for PR #478 only; no application behavior, permissions or readiness gate changed. Node passed on exact-head push CI 42511074925 and was skipped by path selection on exact-head PR CI 42511099945 and merge CI. The advisory Codex review job completed, but the model review step was skipped because explicit budget approval was absent; no model inference is claimed. PR-Agent, controlled incident drill and restoration checks were skipped by workflow conditions. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr480-record-pr479",
+      "area": "DOCUMENTATION",
+      "title": "Record verified PR #480 merge evidence for PR #479",
+      "pr_number": 480,
+      "pr_head_sha": "b554af6da6fe37e082ae7211580d92ec3010b780",
+      "merge_sha": "a4667625bbf802db9764ea215ca6754574694d09",
+      "ci_run_id": 42513312273,
+      "verification": "VERIFIED 2026-11-08: PR #480 merged to main at a4667625bbf802db9764ea215ca6754574694d09 from head b554af6da6fe37e082ae7211580d92ec3010b780. Exact-head CI 42513087811 and 42513118352 and CodeQL 42513116046 SUCCESS. Exact-merge main CI 42513312273 and CodeQL 42513311805 SUCCESS. Python, RLS, security, Trivy, Terraform, site-contract and validate passed; Pages publication and verify-production passed.",
+      "limitations": "Documentation and ledger regression-test synchronization recording PR #479 only; no application behavior, permissions or readiness gates changed. Node passed in exact-head CI 42513087811 and was skipped by path selection in exact-head PR CI and merge CI. PR-Agent, incident drill and restoration checks skipped by conditions."
+    },
+    {
+      "id": "k8s-readonly-ai-diagnostics-pr481",
+      "area": "PLATFORM",
+      "title": "Add optional read-only Kubernetes diagnostics examples for K8sGPT and HolmesGPT",
+      "pr_number": 481,
+      "pr_head_sha": "a20709defb7cad148f47d7043186df5d5203051e",
+      "merge_sha": "85c65afd2ca1018da38a674ee88ea09942170cb9",
+      "ci_run_id": 42514879986,
+      "verification": "VERIFIED 2026-11-08: PR #481 merged to main at 85c65afd2ca1018da38a674ee88ea09942170cb9 from head a20709defb7cad148f47d7043186df5d5203051e. Exact-head CI 42514673382 and 42514702981 and CodeQL 42514700530 SUCCESS. Exact-merge main CI 42514879986 and CodeQL 42514879654 SUCCESS. Python, Node (exact-head push CI), RLS, security, Trivy, Terraform, site-contract, validate and Pages verification passed.",
+      "limitations": "Optional example configs only; K8sGPT v0.4.41 and HolmesGPT 0.46.0 are Apache-2.0. Holmes RBAC is namespace-scoped and read-only; sensitive fields may still exist in workload metadata. No manifests were applied, no cluster queried and no model inference run. Node skipped by path filters on PR and merge CI; PR-Agent, incident drill and restoration checks skipped by conditions. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
     }
   ],
   "gates": [
