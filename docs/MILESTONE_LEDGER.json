@@ -1465,6 +1465,17 @@
       "ci_run_id": 42500725685,
       "verification": "VERIFIED 2026-11-08: PR #466 merged to main at a753723e72882c089ceb413608b6e2c5d4df6bfb from head c626c514b247e0a12953841ae4bb1c21d19373f2. Exact-head CI 42498866609 and 42498884612 and CodeQL 42498881082 SUCCESS. Exact-merge main CI 42500725685 and CodeQL 42500726405 SUCCESS; Python, Node, RLS, security, container/Trivy, Terraform, site-contract and validate passed. Existing CI published static GitHub Pages and verify-production passed. Controlled incident drill and restoration checks skipped by conditions.",
       "limitations": "Documentation/test synchronization recording PRs #464 and #465 only; no runtime behavior or gate status changed. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr467-record-pr466",
+      "area": "DOCUMENTATION",
+      "title": "Record verified PR #467 merge evidence for PR #466",
+      "pr_number": 467,
+      "pr_head_sha": "b0337742556937ae8b8fc8090cecadd9c32411fe",
+      "merge_sha": "13ac0a30e819341cf7e9439535d06cf2c8493d6b",
+      "ci_run_id": 42502012924,
+      "verification": "VERIFIED 2026-11-08: PR #467 merged to main at 13ac0a30e819341cf7e9439535d06cf2c8493d6b from head b0337742556937ae8b8fc8090cecadd9c32411fe. Exact-head CI 42501904364 and 42501918946 and CodeQL 42501917087 SUCCESS. Exact-merge main CI 42502012924 and CodeQL 42502012402 SUCCESS; Python, Node, RLS, security, container/Trivy, Terraform, site-contract and validate passed. Existing CI published static GitHub Pages and verify-production passed. Controlled incident drill and restoration checks skipped by conditions.",
+      "limitations": "Documentation/test synchronization recording PR #466 only; no runtime behavior or gate status changed. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
     }
   ],
   "gates": [
