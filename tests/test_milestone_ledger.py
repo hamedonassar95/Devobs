@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr450_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr455_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 450)
-        self.assertEqual(result["merged_milestones"], 121)
+        self.assertEqual(result["latest_pr"], 455)
+        self.assertEqual(result["merged_milestones"], 122)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         evidence_sync_449 = records[449]
         self.assertEqual(
@@ -1056,6 +1056,19 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("Exact-merge main CI 42425329761", foundation_450["verification"])
         self.assertIn("PR #451 merged only into", foundation_450["limitations"])
         self.assertIn("not main", foundation_450["limitations"])
+        runbook_455 = records[455]
+        self.assertEqual(
+            runbook_455["pr_head_sha"],
+            "2489f919aece388ebe1ca22b4f672d15fa187969",
+        )
+        self.assertEqual(
+            runbook_455["merge_sha"],
+            "4d1a4e5c663e69c31964a62afc8417b5a6386e29",
+        )
+        self.assertEqual(runbook_455["ci_run_id"], 42482486198)
+        self.assertIn("Exact-merge main CI 42482486198", runbook_455["verification"])
+        self.assertIn("localStorage", runbook_455["limitations"])
+        self.assertIn("AI-9 BLOCKED", runbook_455["limitations"])
         self.assertEqual(
             {gate["id"]: gate["status"] for gate in self.data["gates"]},
             {

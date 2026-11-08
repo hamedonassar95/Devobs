@@ -1333,6 +1333,17 @@
       "ci_run_id": 42425329761,
       "verification": "VERIFIED 2026-11-07: PR #450 merged to main at fe19ff799a9eb8d2be42e5ff788b8b1a252f79a3 from head adf08378470dc0bf93b286a1a44a981bf1e2cb2e. Exact-head CI 42425248776 and CodeQL 42425246249 SUCCESS. Exact-merge main CI 42425329761 and Push on main/CodeQL 42425329569 SUCCESS; validate, Python, Node, PostgreSQL RLS, security, web-container/Trivy, Terraform, site-contract, static Pages publication and verify-production passed. Controlled incident drill and conditional restoration checks skipped.",
       "limitations": "Documentation and gated optional PR-Agent workflow foundation only; PR-Agent was skipped by its gates and no model inference is claimed. PR #451 merged only into codex/unified-devobs-foundation-20261107, not main; local model runtime configs remain pending a separate promotion PR. No model weights/images were pulled and no containers started. Existing Trivy scans the Devobs web image, not optional model runtime images. Gates unchanged: AI-9 BLOCKED, P01 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "merge-evidence-pr455-ai7-runbook-notes",
+      "area": "PLATFORM",
+      "title": "Record verified PR #455 browser-local AI-7 runbook notes",
+      "pr_number": 455,
+      "pr_head_sha": "2489f919aece388ebe1ca22b4f672d15fa187969",
+      "merge_sha": "4d1a4e5c663e69c31964a62afc8417b5a6386e29",
+      "ci_run_id": 42482486198,
+      "verification": "VERIFIED 2026-11-08: PR #455 merged to main at 4d1a4e5c663e69c31964a62afc8417b5a6386e29 from head 2489f919aece388ebe1ca22b4f672d15fa187969. Exact-head CI 42481909591 and CodeQL 42481906695 SUCCESS; Exact-merge main CI 42482486198 and CodeQL 42482485483 SUCCESS. Main CI passed validation, Python, Node, PostgreSQL RLS, security, Trivy container, Terraform, site contract, static Pages publication and verify-production. Controlled incident drill and conditional restore checks were skipped.",
+      "limitations": "Adds browser-local AI-7 runbook note management only. Notes are stored in localStorage and are not sent to the API, AI-1 event store, or AI-6 feedback ledger. MIT attribution and license are included. No model inference, hosted service, customer telemetry, or autonomous action is established. Gates unchanged: AI-9 BLOCKED, P01 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
