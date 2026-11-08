@@ -1,4 +1,12 @@
-## Current snapshot — 2026-11-08 (main after PR #467)
+## Current snapshot — 2026-11-08 (main after PR #468)
+
+**VERIFIED from GitHub:** PR [#468](https://github.com/hamedonassar95/Devobs/pull/468) merged to `main` at `2783cb7293c6535b0b051cde88d803aaff4df7e3` from head `15b71acbe810988e4b9d3517c2d390664a2bb927`. Exact-head CI [42502245287](https://github.com/hamedonassar95/Devobs/actions/runs/42502245287) and [42502250229](https://github.com/hamedonassar95/Devobs/actions/runs/42502250229), plus CodeQL [42502247039](https://github.com/hamedonassar95/Devobs/actions/runs/42502247039), passed. Exact-merge main CI [42502451903](https://github.com/hamedonassar95/Devobs/actions/runs/42502451903) and CodeQL [42502451386](https://github.com/hamedonassar95/Devobs/actions/runs/42502451386) passed. Python, PostgreSQL RLS, security, container/Trivy, Terraform, site-contract and validate passed. Node, controlled incident drill and restoration checks were skipped by workflow conditions. Existing CI published static GitHub Pages and `verify-production` passed.
+
+PR #468 records the verified PR #467 merge in state, readiness, milestone ledger and regression tests. It adds no runtime feature and does not change readiness gates. AI-9 remains **BLOCKED**, P01 **BLOCKED**, and Codex runtime **OPEN**.
+
+---
+
+## Previous snapshot — 2026-11-08 (main after PR #467)
 
 **VERIFIED from GitHub:** PR [#467](https://github.com/hamedonassar95/Devobs/pull/467) merged to `main` at `13ac0a30e819341cf7e9439535d06cf2c8493d6b` from head `b0337742556937ae8b8fc8090cecadd9c32411fe`. Exact-head CI [42501904364](https://github.com/hamedonassar95/Devobs/actions/runs/42501904364) and [42501918946](https://github.com/hamedonassar95/Devobs/actions/runs/42501918946), plus CodeQL [42501917087](https://github.com/hamedonassar95/Devobs/actions/runs/42501917087), passed. Exact-merge main CI [42502012924](https://github.com/hamedonassar95/Devobs/actions/runs/42502012924) and CodeQL [42502012402](https://github.com/hamedonassar95/Devobs/actions/runs/42502012402) passed. Python, Node, PostgreSQL RLS, security, container/Trivy, Terraform, site-contract and validate passed. Existing CI published static GitHub Pages and `verify-production` passed. The controlled incident drill and restoration checks were skipped by conditions.
 
