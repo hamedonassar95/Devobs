@@ -1,0 +1,78 @@
+name: Dispatch successful build to Devobs
+
+on:
+  workflow_run:
+    workflows: ["Devobs AI Intelligence CI"]
+    branches: [main]
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: devobs-dispatch-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    if: >
+      github.event.workflow_run.name == 'Devobs AI Intelligence CI' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out trusted dispatcher from the default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+      - name: Prepare metadata-only repository dispatch payload
+        env:
+          DISPATCH_EVENT_PATH: ${{ github.event_path }}
+          DISPATCH_PAYLOAD_PATH: ${{ runner.temp }}/devobs-repository-dispatch.json
+        run: node scripts/repository_dispatch.mjs --prepare "$DISPATCH_EVENT_PATH" "$DISPATCH_PAYLOAD_PATH"
+      - name: Send metadata-only repository dispatch
+        env:
+          DEVOBS_REPOSITORY_DISPATCH_TOKEN: ${{ secrets.DEVOBS_REPOSITORY_DISPATCH_TOKEN }}
+          DISPATCH_PAYLOAD_PATH: ${{ runner.temp }}/devobs-repository-dispatch.json
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TOKEN="$DEVOBS_REPOSITORY_DISPATCH_TOKEN"
+          TOKEN="${TOKEN#"${TOKEN%%[!$' \t\r\n']*}"}"
+          TOKEN="${TOKEN%"${TOKEN##*[!$' \t\r\n']}"}"
+          if [[ -z "$TOKEN" ]]; then
+            echo '::error::missing_dispatch_credential' >&2
+            exit 2
+          fi
+          if [[ "$TOKEN" =~ [[:cntrl:]] || "$TOKEN" == *'"'* || "$TOKEN" == *'\'* ]]; then
+            echo '::error::invalid_dispatch_credential_format' >&2
+            exit 2
+          fi
+
+          if ! STATUS="$(
+            printf 'header = "Authorization: Bearer %s"\n' "$TOKEN" |
+              curl --silent --output /dev/null --write-out '%{http_code}' --max-time 10 --config - \
+                --header 'Accept: application/vnd.github+json' \
+                --header 'X-GitHub-Api-Version: 2022-11-28' \
+                --header 'Content-Type: application/json' \
+                --data-binary "@$DISPATCH_PAYLOAD_PATH" \
+                'https://api.github.com/repos/hamedonassar95/Devobs/dispatches'
+          )"; then
+            echo '::error::dispatch_transport_error' >&2
+            exit 2
+          fi
+
+          if [[ "$STATUS" != '204' ]]; then
+            echo "::error::dispatch_http_$STATUS" >&2
+            exit 2
+          fi
+          echo 'GitHub accepted the metadata-only repository_dispatch event.'

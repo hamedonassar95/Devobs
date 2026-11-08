@@ -86,20 +86,20 @@ export const GitHubTab: React.FC<GitHubTabProps> = ({ servers, incidents, deploy
   }>({
     branch: 'main',
     latestCommit: {
-      hash: 'd69579e',
-      author: 'Mohammad Nassar',
-      email: 'mohammadnassar813@gmail.com',
+      hash: 'c30dcc0',
+      author: 'Hamedo Nassar',
+      email: 'hamedonassar95@gmail.com',
       date: new Date().toISOString(),
-      message: 'feat: initial commit of ServerOps Enterprise Console',
+      message: 'feat: initialize Devobs repository with AI intelligence & automated CI/CD',
     },
     status: 'clean',
-    repoName: 'serverops-console',
-    owner: 'mohammadnassar',
+    repoName: 'Devobs',
+    owner: 'hamedonassar95',
   });
 
   // User input for pushing
-  const [customUsername, setCustomUsername] = useState('mohammadnassar');
-  const [customRepoName, setCustomRepoName] = useState('serverops-console');
+  const [customUsername, setCustomUsername] = useState('hamedonassar95');
+  const [customRepoName, setCustomRepoName] = useState('Devobs');
   const [personalAccessToken, setPersonalAccessToken] = useState('');
   const [isTokenSaved, setIsTokenSaved] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
@@ -158,7 +158,7 @@ export const GitHubTab: React.FC<GitHubTabProps> = ({ servers, incidents, deploy
       id: 17,
       number: 17,
       title: 'feat: add GitHub DevOps integration & Actions CI/CD workflows',
-      author: 'mohammadnassar',
+      author: 'hamedonassar95',
       branch: 'feat/github-integration',
       targetBranch: 'main',
       state: 'open',
@@ -171,7 +171,7 @@ export const GitHubTab: React.FC<GitHubTabProps> = ({ servers, incidents, deploy
       id: 16,
       number: 16,
       title: 'feat: Google Workspace Enterprise Integrations & Sync',
-      author: 'mohammadnassar',
+      author: 'hamedonassar95',
       branch: 'feat/workspace-integration',
       targetBranch: 'main',
       state: 'merged',
@@ -184,7 +184,7 @@ export const GitHubTab: React.FC<GitHubTabProps> = ({ servers, incidents, deploy
       id: 15,
       number: 15,
       title: 'feat: Cyber Shield 3D Defense Game against DDoS attacks',
-      author: 'mohammadnassar',
+      author: 'hamedonassar95',
       branch: 'feat/cyber-game',
       targetBranch: 'main',
       state: 'merged',
@@ -197,7 +197,7 @@ export const GitHubTab: React.FC<GitHubTabProps> = ({ servers, incidents, deploy
       id: 14,
       number: 14,
       title: 'feat: Three.js 3D Server Room Virtual Rack Simulator',
-      author: 'mohammadnassar',
+      author: 'hamedonassar95',
       branch: 'feat/3d-server-room',
       targetBranch: 'main',
       state: 'merged',

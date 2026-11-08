@@ -814,11 +814,13 @@ app.get('/api/github/git-info', (req, res) => {
       branch: currentBranch,
       latestCommit,
       status: statusSummary,
-      repoName: 'serverops-console',
-      owner: 'mohammadnassar',
+      repoName: 'Devobs',
+      owner: 'hamedonassar95',
+      repoUrl: 'https://github.com/hamedonassar95/Devobs',
       defaultWorkflows: [
         { name: 'ci.yml', path: '.github/workflows/ci.yml', status: 'active' },
         { name: 'deploy.yml', path: '.github/workflows/deploy.yml', status: 'active' },
+        { name: 'dispatch-to-devobs.yml', path: '.github/workflows/dispatch-to-devobs.yml', status: 'active' },
       ],
     });
   } catch (err: any) {

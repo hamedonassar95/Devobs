@@ -1,7 +1,7 @@
-# 🚀 ServerOps Enterprise Console & SRE Command Center
+# 🚀 Devobs Enterprise Console & SRE Command Center
 ### منظومة رصد وإدارة البنية التحتية، الخوادم، والعمليات السحابية الذكية
 
-[![CI Build](https://github.com/mohammadnassar/serverops-console/actions/workflows/ci.yml/badge.svg)](https://github.com/mohammadnassar/serverops-console/actions)
+[![CI Build](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml/badge.svg)](https://github.com/hamedonassar95/Devobs/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node Version](https://img.shields.io/badge/Node-v20%2B-green.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
@@ -110,10 +110,10 @@ npm start
 
 إذا كنت ترغب في رفع هذا المستودع إلى حسابك الشخصي أو المؤسسي على GitHub:
 
-### الخطوة 1: إنشاء مستودع جديد على GitHub
-قم بالدخول إلى [GitHub New Repository](https://github.com/new) وأنشئ مستودعاً جديداً (مثال: `serverops-console`).
+### الخطوة 1: المستودع على GitHub
+المستودع المستهدف: [https://github.com/hamedonassar95/Devobs](https://github.com/hamedonassar95/Devobs)
 
-### الخطوة 2: ربط المستودع المحلي بالبعيد
+### الخطوة 2: ربط المستودع المحلي بالبعيد ورفع الشيفرة
 ```bash
 # تهيئة مستودع Git محلياً
 git init -b main
@@ -121,11 +121,11 @@ git init -b main
 # إضافة جميع الملفات
 git add .
 
-# إنشاء أول Commit
-git commit -m "feat: initial commit of ServerOps Enterprise Console"
+# إنشاء Commit
+git commit -m "feat: complete Devobs AI Intelligence & automated CI/CD"
 
-# ربط المستودع برابط مستودعك على GitHub
-git remote add origin https://github.com/USERNAME/serverops-console.git
+# ربط المستودع برابط مستودعك Devobs على GitHub
+git remote add origin https://github.com/hamedonassar95/Devobs.git
 
 # دفع الشيفرة المصدرية إلى الفرع الرئيسي
 git push -u origin main
