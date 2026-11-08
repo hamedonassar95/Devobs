@@ -1630,6 +1630,17 @@
       "ci_run_id": 42514879986,
       "verification": "VERIFIED 2026-11-08: PR #481 merged to main at 85c65afd2ca1018da38a674ee88ea09942170cb9 from head a20709defb7cad148f47d7043186df5d5203051e. Exact-head CI 42514673382 and 42514702981 and CodeQL 42514700530 SUCCESS. Exact-merge main CI 42514879986 and CodeQL 42514879654 SUCCESS. Python, Node (exact-head push CI), RLS, security, Trivy, Terraform, site-contract, validate and Pages verification passed.",
       "limitations": "Optional example configs only; K8sGPT v0.4.41 and HolmesGPT 0.46.0 are Apache-2.0. Holmes RBAC is namespace-scoped and read-only; sensitive fields may still exist in workload metadata. No manifests were applied, no cluster queried and no model inference run. Node skipped by path filters on PR and merge CI; PR-Agent, incident drill and restoration checks skipped by conditions. AI-9 remains BLOCKED, P01 BLOCKED, and Codex runtime OPEN."
+    },
+    {
+      "id": "local-monitoring-stack-pr483",
+      "area": "PLATFORM",
+      "title": "Add local Alertmanager and optional Linux host metrics",
+      "pr_number": 483,
+      "pr_head_sha": "046c46838c11a07941f21714f7a4b3a5055ab446",
+      "merge_sha": "dadd4b83bf102d8eb232b199e7f7fb603cc20c4d",
+      "ci_run_id": 42518883043,
+      "verification": "VERIFIED 2026-11-08: PR #483 merged to main at dadd4b83bf102d8eb232b199e7f7fb603cc20c4d from head 046c46838c11a07941f21714f7a4b3a5055ab446. Exact-head CI 42518625745 and 42518630710 and CodeQL 42518626695 SUCCESS. Exact-merge CI 42518883043 and CodeQL 42518882082 SUCCESS; Python, Node, RLS, security, Trivy, Terraform, site-contract, validate, Pages publication and verify-production passed.",
+      "limitations": "Local Compose configuration only; no containers started or host metrics collected. promtool unavailable, so Prometheus rule semantics remain unverified. Alertmanager has no external receiver; optional Node Exporter target is DOWN when its profile is off but excluded from ServiceDown. Superseded head a01669f failed Python due an undeclared PyYAML import; final head passed after removing it. Gates unchanged: AI-9 BLOCKED, P01 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
