@@ -8,6 +8,9 @@ import { normalizeEvent, EventIngestError } from './event_ingest.mjs';
 export const DISPATCH_ACTION = 'devobs_ai_intelligence_ci_passed';
 export const SOURCE_REPOSITORY = 'hamedonassar95/DevObs-ai-Intelligence-';
 export const SOURCE_WORKFLOW = 'Devobs AI Intelligence CI';
+export const LIVEOPS_DISPATCH_ACTION = 'liveops_ci_result';
+export const LIVEOPS_SOURCE_REPOSITORY = 'hamedonassar95/LiveOps-Integration';
+export const LIVEOPS_SOURCE_WORKFLOW = 'LiveOps CI';
 
 const EXPECTED_PAYLOAD_FIELDS = new Set([
   'source_repository',
@@ -20,6 +23,25 @@ const EXPECTED_PAYLOAD_FIELDS = new Set([
   'source_event',
 ]);
 
+const SOURCE_CONTRACTS = new Map([
+  [DISPATCH_ACTION, {
+    repository: SOURCE_REPOSITORY,
+    workflow: SOURCE_WORKFLOW,
+    eventWorkflow: SOURCE_WORKFLOW,
+    job: 'build-and-validate',
+    conclusions: new Set(['success']),
+    severityByConclusion: { success: 'info' },
+  }],
+  [LIVEOPS_DISPATCH_ACTION, {
+    repository: LIVEOPS_SOURCE_REPOSITORY,
+    workflow: LIVEOPS_SOURCE_WORKFLOW,
+    eventWorkflow: 'LiveOps Integration - LiveOps CI',
+    job: 'main build',
+    conclusions: new Set(['success', 'failure', 'cancelled']),
+    severityByConclusion: { success: 'info', failure: 'error', cancelled: 'warning' },
+  }],
+]);
+
 function isPlainObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
     && Object.getPrototypeOf(value) === Object.prototype;
@@ -29,36 +51,43 @@ function isPositiveInteger(value) {
   return Number.isSafeInteger(value) && value > 0;
 }
 
-/** Validate a GitHub dispatch and map only approved metadata into AI-1's event schema. */
-export function dispatchToAiEvent(dispatch, occurredAt = new Date().toISOString()) {
-  if (!isPlainObject(dispatch) || dispatch.action !== DISPATCH_ACTION
+function validateDispatch(dispatch) {
+  if (!isPlainObject(dispatch) || !SOURCE_CONTRACTS.has(dispatch.action)
     || !isPlainObject(dispatch.client_payload)) {
     throw new EventIngestError('invalid_repository_dispatch');
   }
 
+  const contract = SOURCE_CONTRACTS.get(dispatch.action);
   const payload = dispatch.client_payload;
   const keys = Object.keys(payload);
   if (keys.length !== EXPECTED_PAYLOAD_FIELDS.size || keys.some(key => !EXPECTED_PAYLOAD_FIELDS.has(key))) {
     throw new EventIngestError('invalid_repository_dispatch_fields');
   }
-  if (payload.source_repository !== SOURCE_REPOSITORY || payload.source_branch !== 'main'
-    || payload.source_workflow !== SOURCE_WORKFLOW || payload.source_conclusion !== 'success'
+  if (payload.source_repository !== contract.repository || payload.source_branch !== 'main'
+    || payload.source_workflow !== contract.workflow || !contract.conclusions.has(payload.source_conclusion)
     || payload.source_event !== 'push' || !isPositiveInteger(payload.source_run_id)
     || !isPositiveInteger(payload.source_run_attempt)
     || typeof payload.source_sha !== 'string' || !/^[0-9a-f]{40}$/.test(payload.source_sha)) {
     throw new EventIngestError('repository_dispatch_out_of_scope');
   }
 
+  return { contract, payload };
+}
+
+/** Validate a GitHub dispatch and map only allowlisted CI metadata into AI-1's event schema. */
+export function dispatchToAiEvent(dispatch, occurredAt = new Date().toISOString()) {
+  const { contract, payload } = validateDispatch(dispatch);
+
   return normalizeEvent({
     schema_version: 1,
     occurred_at: occurredAt,
     source: 'github_actions',
     kind: 'ci_result',
-    severity: 'info',
+    severity: contract.severityByConclusion[payload.source_conclusion],
     data: {
-      workflow: SOURCE_WORKFLOW,
-      job: 'build-and-validate',
-      conclusion: 'success',
+      workflow: contract.eventWorkflow,
+      job: contract.job,
+      conclusion: payload.source_conclusion,
       commit_sha: payload.source_sha,
     },
   });
@@ -67,10 +96,10 @@ export function dispatchToAiEvent(dispatch, occurredAt = new Date().toISOString(
 /** Render only the validated, public CI provenance fields for a GitHub job summary. */
 export function renderDispatchSummary(dispatch) {
   dispatchToAiEvent(dispatch);
-  const payload = dispatch.client_payload;
-  const sourceBaseUrl = `https://github.com/${SOURCE_REPOSITORY}`;
+  const { contract, payload } = validateDispatch(dispatch);
+  const sourceBaseUrl = `https://github.com/${contract.repository}`;
   return [
-    '## Validated AI CI dispatch metadata',
+    '## Validated external CI dispatch metadata',
     '',
     `- Source repository: [\`${payload.source_repository}\`](${sourceBaseUrl})`,
     `- Source workflow: \`${payload.source_workflow}\``,

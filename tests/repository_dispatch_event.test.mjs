@@ -9,6 +9,9 @@ import { readEventStore } from '../scripts/ai_intelligence/event_ingest.mjs';
 import {
   dispatchToAiEvent,
   DISPATCH_ACTION,
+  LIVEOPS_DISPATCH_ACTION,
+  LIVEOPS_SOURCE_REPOSITORY,
+  LIVEOPS_SOURCE_WORKFLOW,
   renderDispatchSummary,
   SOURCE_REPOSITORY,
   SOURCE_WORKFLOW,
@@ -26,6 +29,20 @@ const validDispatch = () => ({
     source_run_attempt: 1,
     source_workflow: SOURCE_WORKFLOW,
     source_conclusion: 'success',
+    source_event: 'push',
+  },
+});
+
+const validLiveOpsDispatch = (conclusion = 'success') => ({
+  action: LIVEOPS_DISPATCH_ACTION,
+  client_payload: {
+    source_repository: LIVEOPS_SOURCE_REPOSITORY,
+    source_branch: 'main',
+    source_sha: sha,
+    source_run_id: 789012,
+    source_run_attempt: 2,
+    source_workflow: LIVEOPS_SOURCE_WORKFLOW,
+    source_conclusion: conclusion,
     source_event: 'push',
   },
 });
@@ -52,7 +69,7 @@ test('approved dispatch becomes a synthetic CI metadata event', () => {
 test('dispatch summary exposes only validated source provenance', () => {
   const summary = renderDispatchSummary(validDispatch());
 
-  assert.match(summary, /Validated AI CI dispatch metadata/);
+  assert.match(summary, /Validated external CI dispatch metadata/);
   assert.match(summary, /Source run: \[123456\].*attempt 1/);
   assert.ok(summary.includes(`Source commit: [\`${sha}\`](https://github.com/${SOURCE_REPOSITORY}/commit/${sha})`));
   assert.match(summary, /not independent cryptographic authentication/);
@@ -60,6 +77,43 @@ test('dispatch summary exposes only validated source provenance', () => {
   assert.throws(() => renderDispatchSummary({
     ...validDispatch(), client_payload: { ...validDispatch().client_payload, source_run_id: '123456' },
   }), { code: 'repository_dispatch_out_of_scope' });
+});
+
+test('LiveOps dispatch accepts only bounded main-push build results', () => {
+  const expected = [
+    ['success', 'info'],
+    ['failure', 'error'],
+    ['cancelled', 'warning'],
+  ];
+
+  for (const [conclusion, severity] of expected) {
+    const event = dispatchToAiEvent(validLiveOpsDispatch(conclusion), '2026-11-08T20:00:00Z');
+    assert.equal(event.source, 'github_actions');
+    assert.equal(event.kind, 'ci_result');
+    assert.equal(event.severity, severity);
+    assert.deepEqual(event.data, {
+      workflow: 'LiveOps Integration - LiveOps CI',
+      job: 'main build',
+      conclusion,
+      commit_sha: sha,
+    });
+  }
+
+  const summary = renderDispatchSummary(validLiveOpsDispatch('failure'));
+  assert.ok(summary.includes(`https://github.com/${LIVEOPS_SOURCE_REPOSITORY}/actions/runs/789012`));
+  assert.match(summary, /LiveOps-Integration/);
+  assert.throws(() => dispatchToAiEvent(validLiveOpsDispatch('skipped')), { code: 'repository_dispatch_out_of_scope' });
+  for (const changes of [
+    { source_repository: 'someone/other' },
+    { source_branch: 'feature/private' },
+    { source_workflow: 'unapproved workflow' },
+    { source_event: 'pull_request' },
+  ]) {
+    assert.throws(() => dispatchToAiEvent({
+      ...validLiveOpsDispatch(),
+      client_payload: { ...validLiveOpsDispatch().client_payload, ...changes },
+    }), { code: 'repository_dispatch_out_of_scope' });
+  }
 });
 
 test('dispatch rejects wrong action, extra fields, and out-of-scope source metadata', () => {
@@ -81,6 +135,12 @@ test('dispatch rejects wrong action, extra fields, and out-of-scope source metad
       ...validDispatch(), client_payload: { ...validDispatch().client_payload, ...changes },
     }), { code: 'repository_dispatch_out_of_scope' });
   }
+});
+
+test('repository dispatch workflow subscribes to both approved source actions', async () => {
+  const workflow = await readFile(path.join(ROOT, '.github/workflows/repository-dispatch.yml'), 'utf8');
+  assert.match(workflow, /repository_dispatch:\s*\n\s*types:\s*\[[^\]]*devobs_ai_intelligence_ci_passed/);
+  assert.match(workflow, /types:\s*\[[^\]]*liveops_ci_result/);
 });
 
 test('receiver CLI validates and ingests only bounded CI metadata locally', async t => {

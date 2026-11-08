@@ -2,7 +2,7 @@ name: "Repository Dispatch: Devobs AI Intelligence CI"
 
 on:
   repository_dispatch:
-    types: [devobs_ai_intelligence_ci_passed]
+    types: [devobs_ai_intelligence_ci_passed, liveops_ci_result]
 
 permissions:
   contents: read

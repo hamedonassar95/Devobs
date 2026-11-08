@@ -28,6 +28,8 @@
 
 مجلدات `agents/` و`workflows/` و`models/` و`mlops/` هي فهارس توثيقية لهذه المرحلة؛ ملفات التشغيل الفعلية تبقى في مواقعها الحالية. راجع [خريطة الوكلاء](agents/README.md)، [خريطة سير العمل](workflows/README.md)، [خريطة النماذج](models/README.md)، [أمثلة Kubernetes الاختيارية](k8s/README.md)، [تكامل PR-Agent](docs/PR_AGENT_INTEGRATION.md)، [خريطة المراقبة](monitoring/README.md)، و[خريطة MLOps](mlops/README.md).
 
+لتسجيل نتيجة CI من مستودع LiveOps دون إرسال محتوى التطبيق أو بيانات Gemini، راجع [جسر LiveOps الاختياري](docs/LIVEOPS_CI_INTEGRATION.md). يسجل الجسر بيانات تشغيل فقط ولا يفعّل استدلالًا أو إصلاحًا تلقائيًا.
+
 ## مركز الأتمتة
 
 - **ابدأ من هنا:** [مركز الأتمتة وسير التشغيل الموحد](docs/AUTOMATION_HUB.md)
