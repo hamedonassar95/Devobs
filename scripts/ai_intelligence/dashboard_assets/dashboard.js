@@ -1,3 +1,15 @@
+import {
+  MAX_RUNBOOK_NOTES,
+  readRunbookNotes,
+  setRunbookNoteArchived,
+  setRunbookNotePinned,
+} from './runbook_notes.mjs';
+
+const RUNBOOK_STORAGE_KEY = 'devobs_ai7_runbook_notes';
+let runbookNotes = [];
+let showArchivedRunbookNotes = false;
+let pendingRunbookArchiveId = null;
+
 const labels = {
   event_count: 'الأحداث',
   log_event_count: 'سجلات',
@@ -68,6 +80,159 @@ function element(tag, className, text) {
   if (className) node.className = className;
   if (text !== undefined) node.textContent = String(text);
   return node;
+}
+
+function renderRunbookNotes() {
+  const container = document.querySelector('#runbook-notes');
+  const query = document.querySelector('#runbook-note-search').value.trim().toLocaleLowerCase('ar');
+  const activeCount = runbookNotes.filter(note => !note.isArchived).length;
+  document.querySelector('#runbook-active-count').textContent = String(activeCount);
+  document.querySelector('#runbook-archived-count').textContent = String(runbookNotes.length - activeCount);
+  document.querySelector('#runbook-active-tab').setAttribute('aria-pressed', String(!showArchivedRunbookNotes));
+  document.querySelector('#runbook-archived-tab').setAttribute('aria-pressed', String(showArchivedRunbookNotes));
+  container.replaceChildren();
+
+  const notes = runbookNotes
+    .filter(note => note.isArchived === showArchivedRunbookNotes)
+    .filter(note => !query || `${note.title} ${note.content}`.toLocaleLowerCase('ar').includes(query))
+    .sort((left, right) => {
+      if (!showArchivedRunbookNotes && left.isPinned !== right.isPinned) return left.isPinned ? -1 : 1;
+      return right.updatedAt.localeCompare(left.updatedAt);
+    });
+
+  if (notes.length === 0) {
+    const message = query ? 'لا توجد مذكرات تطابق البحث.' : showArchivedRunbookNotes ? 'الأرشيف فارغ.' : 'لا توجد مذكرات نشطة بعد.';
+    container.append(element('p', 'empty', message));
+    return;
+  }
+
+  for (const note of notes) {
+    const card = element('article', 'card runbook-card');
+    const heading = element('div', 'runbook-heading');
+    const title = element('h3', '', note.title);
+    heading.append(title);
+    if (note.isPinned && !note.isArchived) heading.append(element('span', 'runbook-pinned', 'مثبتة'));
+    card.append(heading);
+    card.append(element('p', 'muted runbook-date', `آخر تحديث: ${new Intl.DateTimeFormat('ar', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(note.updatedAt))}`));
+    card.append(element('p', 'runbook-content', note.content));
+
+    const actions = element('div', 'runbook-actions');
+    if (!note.isArchived) {
+      const pin = element('button', 'runbook-action', note.isPinned ? 'إلغاء التثبيت' : 'تثبيت');
+      pin.type = 'button';
+      pin.dataset.runbookAction = 'pin';
+      pin.dataset.noteId = note.id;
+      pin.setAttribute('aria-label', `${pin.textContent} المذكرة ${note.title}`);
+      actions.append(pin);
+    }
+    const archive = element('button', 'runbook-action', note.isArchived ? 'استعادة' : 'أرشفة');
+    archive.type = 'button';
+    archive.dataset.runbookAction = 'archive';
+    archive.dataset.noteId = note.id;
+    archive.setAttribute('aria-label', `${archive.textContent} المذكرة ${note.title}`);
+    actions.append(archive);
+    card.append(actions);
+    container.append(card);
+  }
+}
+
+function saveRunbookNotes(nextNotes, successMessage) {
+  try {
+    localStorage.setItem(RUNBOOK_STORAGE_KEY, JSON.stringify(nextNotes));
+    runbookNotes = nextNotes;
+    document.querySelector('#runbook-note-status').textContent = successMessage;
+    renderRunbookNotes();
+    return true;
+  } catch {
+    document.querySelector('#runbook-note-status').textContent = 'تعذر الحفظ في تخزين المتصفح؛ لم يتغير السجل.';
+    return false;
+  }
+}
+
+function initializeRunbookNotes() {
+  const status = document.querySelector('#runbook-note-status');
+  try {
+    runbookNotes = readRunbookNotes(localStorage.getItem(RUNBOOK_STORAGE_KEY));
+  } catch {
+    status.textContent = 'تخزين المتصفح غير متاح؛ لن تُحفظ المذكرات في هذه الجلسة.';
+  }
+  renderRunbookNotes();
+}
+
+function requestRunbookArchive(noteId) {
+  const note = runbookNotes.find(item => item.id === noteId);
+  if (!note) return;
+  pendingRunbookArchiveId = noteId;
+  const restoring = note.isArchived;
+  document.querySelector('#runbook-archive-title').textContent = restoring ? 'تأكيد استعادة المذكرة' : 'تأكيد أرشفة المذكرة';
+  document.querySelector('#runbook-archive-description').textContent = restoring
+    ? `هل تريد استعادة المذكرة «${note.title}» إلى المذكرات النشطة؟`
+    : `هل تريد أرشفة المذكرة «${note.title}»؟ ستبقى محفوظة ويمكنك استعادتها لاحقًا.`;
+  document.querySelector('#runbook-archive-confirm').textContent = restoring ? 'تأكيد الاستعادة' : 'تأكيد الأرشفة';
+  document.querySelector('#runbook-archive-dialog').showModal();
+}
+
+function bindRunbookNotes() {
+  const form = document.querySelector('#runbook-note-form');
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    const title = document.querySelector('#runbook-note-title').value.trim();
+    const content = document.querySelector('#runbook-note-content').value.trim();
+    if (!title || !content) return;
+    if (runbookNotes.length >= MAX_RUNBOOK_NOTES) {
+      document.querySelector('#runbook-note-status').textContent = `وصلت إلى الحد المحلي البالغ ${MAX_RUNBOOK_NOTES} مذكرة.`;
+      return;
+    }
+    const now = new Date().toISOString();
+    const randomId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    const note = { id: `note-${randomId}`, title, content, isArchived: false, isPinned: false, createdAt: now, updatedAt: now };
+    if (saveRunbookNotes([note, ...runbookNotes], 'حُفظت المذكرة في هذا المتصفح فقط.')) form.reset();
+  });
+
+  document.querySelector('#runbook-notes').addEventListener('click', event => {
+    const button = event.target.closest('button[data-runbook-action]');
+    if (!button) return;
+    const note = runbookNotes.find(item => item.id === button.dataset.noteId);
+    if (!note) return;
+    if (button.dataset.runbookAction === 'archive') {
+      requestRunbookArchive(note.id);
+      return;
+    }
+    if (button.dataset.runbookAction === 'pin') {
+      const nextNotes = setRunbookNotePinned(runbookNotes, note.id, !note.isPinned);
+      saveRunbookNotes(nextNotes, note.isPinned ? 'أُلغي تثبيت المذكرة محليًا.' : 'ثُبتت المذكرة محليًا.');
+    }
+  });
+
+  document.querySelector('#runbook-archive-confirm').addEventListener('click', () => {
+    const note = runbookNotes.find(item => item.id === pendingRunbookArchiveId);
+    if (!note) return;
+    const restoring = note.isArchived;
+    const nextNotes = setRunbookNoteArchived(runbookNotes, note.id, !note.isArchived);
+    if (saveRunbookNotes(nextNotes, restoring ? 'استُعيدت المذكرة محليًا.' : 'أُرشفت المذكرة محليًا.')) {
+      pendingRunbookArchiveId = null;
+      document.querySelector('#runbook-archive-dialog').close();
+    }
+  });
+
+  document.querySelector('#runbook-archive-cancel').addEventListener('click', () => {
+    pendingRunbookArchiveId = null;
+    document.querySelector('#runbook-archive-dialog').close();
+  });
+  document.querySelector('#runbook-archive-dialog').addEventListener('cancel', () => {
+    pendingRunbookArchiveId = null;
+  });
+  document.querySelector('#runbook-active-tab').addEventListener('click', () => {
+    showArchivedRunbookNotes = false;
+    renderRunbookNotes();
+  });
+  document.querySelector('#runbook-archived-tab').addEventListener('click', () => {
+    showArchivedRunbookNotes = true;
+    renderRunbookNotes();
+  });
+  document.querySelector('#runbook-note-search').addEventListener('input', renderRunbookNotes);
 }
 
 function renderSummary(summary) {
@@ -225,4 +390,6 @@ async function render() {
   }
 }
 
+initializeRunbookNotes();
+bindRunbookNotes();
 void render();

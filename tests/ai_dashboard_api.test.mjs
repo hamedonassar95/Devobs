@@ -164,17 +164,27 @@ test('server is loopback-only, same-origin, read-only, and emits browser hardeni
   assert.equal(page.headers['access-control-allow-origin'], undefined);
   assert.match(page.body, /lang="ar" dir="rtl"/);
   assert.match(page.body, /dashboard\.js/);
+  assert.match(page.body, /مذكرات المشغّل المحلية/);
 
   const script = await request(port, '/dashboard.js', { origin });
   assert.equal(script.status, 200);
+  assert.match(script.headers['content-type'], /javascript/);
   assert.match(script.body, /textContent/);
+  assert.match(script.body, /localStorage/);
+  assert.match(script.body, /runbook_notes\.mjs/);
   assert.doesNotMatch(script.body, /innerHTML/);
   assert.doesNotMatch(script.body, /https?:\/\//);
+
+  const noteModule = await request(port, '/runbook_notes.mjs', { origin });
+  assert.equal(noteModule.status, 200);
+  assert.match(noteModule.headers['content-type'], /javascript/);
+  assert.doesNotMatch(noteModule.body, /https?:\/\//);
 
   assert.equal((await request(port, '/api/v1/summary', { host: `localhost:${port}` })).status, 421);
   assert.equal((await request(port, '/api/v1/summary', { origin: 'https://untrusted.example' })).status, 403);
   assert.equal((await request(port, '/api/v1/summary?extra=1', { origin })).status, 404);
   assert.equal((await request(port, '/api/v1/summary', { method: 'POST', origin })).status, 405);
+  assert.equal((await request(port, '/runbook_notes.mjs', { method: 'POST', origin })).status, 405);
   assert.equal((await request(port, '/unknown', { origin })).status, 404);
 });
 
