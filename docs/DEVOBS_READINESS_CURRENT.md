@@ -1,4 +1,16 @@
-## Current snapshot — 2026-11-09 (Devobs main after PR #495; LiveOps after PR #2)
+## Current snapshot — 2026-11-09 (Devobs main after PR #498)
+
+**VERIFIED from GitHub:** Dependabot PRs [#493](https://github.com/hamedonassar95/Devobs/pull/493) and [#494](https://github.com/hamedonassar95/Devobs/pull/494) lacked matching hash-lock updates. Their replacement fixes merged as PR [#497](https://github.com/hamedonassar95/Devobs/pull/497) at `b53fa0b35b718d4003a5d22a690cc0a04bd47553` (head `4ab2ebdbb3dc9e63e7eb007a072062635c07fcd7`) and PR [#498](https://github.com/hamedonassar95/Devobs/pull/498) at `08963d4e3e342e0093d6d90d14fce861aa8a9695` (head `ac84b25511bb405863dbe8a893e1e25235ec6e0b`). The original bot PRs are closed; the replacement PRs are the merged fixes.
+
+PR #497 updates the development lock for pip 26.3. PR #498 updates the API lock for psycopg and psycopg-binary 3.3.8. Hash-locked local dry-run installs and the full Python suite passed on the isolated fix branches (970 tests, 22 skipped, 0 failed). PR CI and CodeQL passed for both fixes.
+
+**Post-merge verification:** CI [42601549598](https://github.com/hamedonassar95/Devobs/actions/runs/42601549598) and CodeQL [42601548178](https://github.com/hamedonassar95/Devobs/actions/runs/42601548178) passed on #497's merge SHA. CI [42602416866](https://github.com/hamedonassar95/Devobs/actions/runs/42602416866) and CodeQL [42602416548](https://github.com/hamedonassar95/Devobs/actions/runs/42602416548) passed on #498's merge SHA. The latest CI passed Python, PostgreSQL RLS, security, same-image container/Trivy, Terraform, site-contract, `validate`, static GitHub Pages publication and `verify-production`. Node was skipped by path selection; incident and restoration checks were skipped by conditions. This verifies the repository workflows and static site only, not an AI service or SaaS readiness.
+
+The ledger contains 156 merged milestones. AI-9 remains **BLOCKED**, P01 remains **BLOCKED**, and Codex runtime acceptance remains **OPEN**; dependency-lock fixes do not change those gates.
+
+---
+
+## Previous snapshot — 2026-11-09 (Devobs main after PR #495; LiveOps after PR #2)
 
 **VERIFIED from GitHub:** Devobs PR [#495](https://github.com/hamedonassar95/Devobs/pull/495) merged at `4611ef6aa24bc9d9d4d08475a09dc761a32684ab` from head `21b913e5d67950038eeea4a1638f3efd6f217d9d`. Main CI [42595730920](https://github.com/hamedonassar95/Devobs/actions/runs/42595730920) and CodeQL [42595729760](https://github.com/hamedonassar95/Devobs/actions/runs/42595729760) passed on the merge SHA. RLS, Terraform, security, container/Trivy, `validate`, static Pages publication and `verify-production` passed. Python and Node were skipped by path filters on merge CI and passed in exact-head push CI [42594735353](https://github.com/hamedonassar95/Devobs/actions/runs/42594735353); incident and restoration checks were skipped by conditions.
 
