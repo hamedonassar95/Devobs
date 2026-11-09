@@ -37,9 +37,14 @@ processors:
     metric_conditions:
       - 'resource.attributes["service.name"] != "devobs"'
       - >-
-        not (metric.name == "error_rate_pct" or metric.name == "capacity_pct" or
-        metric.name == "failed_checks" or metric.name == "devobs_otel_smoke")
-      - 'metric.type != METRIC_DATA_TYPE_GAUGE'
+        not (
+          (metric.type == METRIC_DATA_TYPE_GAUGE and
+            (metric.name == "error_rate_pct" or metric.name == "capacity_pct" or
+             metric.name == "failed_checks" or
+             metric.name == "devobs_otel_smoke")) or
+          (metric.type == METRIC_DATA_TYPE_HISTOGRAM and
+            metric.name == "devobs.api.request.duration")
+        )
   transform/privacy:
     error_mode: propagate
     metric_statements:
