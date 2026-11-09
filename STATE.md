@@ -1,9 +1,12 @@
-## أحدث لقطة موثّقة: Devobs #488 وLiveOps #2 — تحقق 2026-11-09
+## أحدث لقطة موثّقة: Devobs #495 وLiveOps #2 — تحقق 2026-11-09
+
+- **VERIFIED من GitHub:** دُمج Devobs PR [#495](https://github.com/hamedonassar95/Devobs/pull/495) على `main` عند `4611ef6aa24bc9d9d4d08475a09dc761a32684ab` من الرأس `21b913e5d67950038eeea4a1638f3efd6f217d9d`. نجح CI بعد الدمج [42595730920](https://github.com/hamedonassar95/Devobs/actions/runs/42595730920) وCodeQL [42595729760](https://github.com/hamedonassar95/Devobs/actions/runs/42595729760). اجتازت فحوص RLS وTerraform والأمن والحاوية/Trivy و`validate` ونشر Pages والتحقق `verify-production`. تخطّت Python وNode فلاتر المسارات على الدمج؛ اجتازتا في CI على رأس PR [42594735353](https://github.com/hamedonassar95/Devobs/actions/runs/42594735353). تمرين الحادث والاستعادة تخطّيا شروطهما.
+- سجّل PR #495 تقييمًا بحثيًا تكميليًا لمجموعة RCAEval RE1-OB فقط: 125 حالة أعطال محقونة، 123 قابلة للتقييم، Top-1 99/123 وTop-3 114/123 لخوارزمية قياس عامة تستخدم وقت الحقن المعروف. هذا لا يختبر كاشف Devobs الإنتاجي ولا يثبت حوادث إنتاج طبيعية؛ لا يغيّر بوابات الإصدار. لم تُحفظ البيانات الخام في المستودع. التفاصيل في [تقييم المصادر](docs/AI9_EXTERNAL_DATASET_ASSESSMENT.md).
 
 - **VERIFIED من GitHub:** دُمج Devobs PR [#488](https://github.com/hamedonassar95/Devobs/pull/488) على `main` عند `71269ed4cb717922b782826c5a0251a78fd5ccbd` من الرأس `ac3b4bfa1bbbdc0bd7baff42563e7bc7a8800990`. نجح CI بعد الدمج [42527765351](https://github.com/hamedonassar95/Devobs/actions/runs/42527765351) وCodeQL [42527764971](https://github.com/hamedonassar95/Devobs/actions/runs/42527764971)، ونُشرت Pages واجتاز `verify-production`.
 - **VERIFIED من GitHub:** دُمج LiveOps PR [#2](https://github.com/hamedonassar95/LiveOps-Integration/pull/2) عند `aad4da29725dee05686089dd98e97e2198e64d63` من الرأس `7243cedefa294d5bbef649f37aae0c1ca1e17706`. نجح فحص PR في التشغيل [42539350904](https://github.com/hamedonassar95/LiveOps-Integration/actions/runs/42539350904)، ونجح CI بعد الدمج على SHA الدمج في [42539421276](https://github.com/hamedonassar95/LiveOps-Integration/actions/runs/42539421276). حدّث التغيير `actions/checkout` إلى v5.0.0، مثبتًا على SHA كامل ومرخصًا بـMIT، لإزالة تحذير Node.js 20.
 - **الجسر غير مفعّل بعد:** أظهر فحص تشغيل LiveOps بعد الدمج [42539421276](https://github.com/hamedonassar95/LiveOps-Integration/actions/runs/42539421276) أن `DEVOBS_DISPATCH_TOKEN` غير مضبوط. لم يظهر حدث `repository_dispatch` جديد بعد هذا التشغيل؛ لا توجد بيانات حالة وصلت من LiveOps. أستطيع إعادة تشغيل CI بعد أن يضيف المالك السر يدويًا؛ لا يلزم commit جديد، ولم أقرأ أو أنشئ أو أغير أي سر.
-- سجل Devobs يحوي 153 إنجازًا؛ AI-9 **BLOCKED** وP01 **BLOCKED** وCodex runtime **OPEN**. PR #488 كان مزامنة توثيق ولا يغيّر حالات البوابات أو سلوك التطبيق.
+- سجل Devobs يحوي 154 إنجازًا؛ AI-9 **BLOCKED** وP01 **BLOCKED** وCodex runtime **OPEN**. PR #495 توثيق وتقييم بحثي فقط ولا يغيّر حالات البوابات أو سلوك التطبيق.
 
 ---
 

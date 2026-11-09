@@ -1685,6 +1685,17 @@
       "ci_run_id": 42527292764,
       "verification": "VERIFIED 2026-11-08: PR #487 merged at 06e852b8845a2d8ac1087fbdce2246c3248d8aad from head a91a8d68fb174d340a242816bbfbf7cf990a2f09. Exact-head CI 42527158616 and 42527177183, CodeQL 42527174614, and advisory Codex review 42527177080 passed. Exact-merge CI 42527292764 and CodeQL 42527292455 passed; Pages publication and verify-production passed.",
       "limitations": "Documentation and ledger-test synchronization only; no runtime behavior, external data flow, or readiness gates changed. Node tests passed in exact-head CI 42527158616 and were skipped in duplicate PR CI and merge CI by path selection. PR-Agent and controlled incident drill were skipped by conditions. AI-9 BLOCKED, P01 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "docs-record-rcaeval-evaluation-pr495",
+      "area": "DOCUMENTATION",
+      "title": "Record supplemental RCAEval RE1-OB evaluation without gate promotion",
+      "pr_number": 495,
+      "pr_head_sha": "21b913e5d67950038eeea4a1638f3efd6f217d9d",
+      "merge_sha": "4611ef6aa24bc9d9d4d08475a09dc761a32684ab",
+      "ci_run_id": 42595730920,
+      "verification": "VERIFIED 2026-11-09: PR #495 merged at 4611ef6aa24bc9d9d4d08475a09dc761a32684ab from head 21b913e5d67950038eeea4a1638f3efd6f217d9d. Exact-head push CI 42594735353 and PR CI 42594786478 passed; CodeQL 42594783182 passed. Exact-merge main CI 42595730920 and CodeQL 42595729760 passed. Main CI passed RLS, Terraform, security, container/Trivy, validate, Pages publication and verify-production; static Pages only.",
+      "limitations": "Documentation and supplemental evaluation record only. The one-time RCAEval RE1-OB metric-shift baseline used injected testbed failures and known injection times; it did not run Devobs' production detector and is not natural-incident evidence. Result: 99/123 Top-1 and 114/123 Top-3; two cases were not evaluable. Raw data was not committed. Python/Node passed on exact-head push CI and were skipped by path filters on PR/merge CI; controlled incident drill and restoration checks were skipped. AI-9 remains BLOCKED, P01 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
@@ -1692,8 +1703,8 @@
       "id": "ai9-detection-quality",
       "status": "BLOCKED",
       "source": "docs/AI9_V3_INDEPENDENT_EVAL_GATE.md",
-      "reason": "VERIFIED 2026-11-01: the preregistered four-seed v3 synthetic holdout produced ALL_FROZEN_WINDOW_GATES_PASS on the approved SHA. It uses seed draws from the existing synthetic generator, not independent labeled incident data or real-world evidence. Official AI-9 remains FAIL / NOT AUTHORIZED for production.",
-      "next_action": "Review docs/AI9_EXTERNAL_DATASET_ASSESSMENT.md and obtain owner approval for one exact no-cost local source inspection/evaluation using independently sourced, privacy/provenance-reviewed labeled incident evidence. Preregister the corpus, adapter, labels and unchanged gates before scoring. Keep consumed synthetic seeds closed, retain AI-9 FAIL, and require a separate owner release decision."
+      "reason": "VERIFIED 2026-11-01: the preregistered four-seed v3 synthetic holdout produced ALL_FROZEN_WINDOW_GATES_PASS on the approved SHA. It uses seed draws from the existing synthetic generator, not independent labeled incident data or real-world evidence. VERIFIED 2026-11-09: the supplemental RCAEval RE1-OB baseline scored 99/123 Top-1 and 114/123 Top-3 on fault-injected testbed cases using known injection times; it did not run the Devobs production detector and is not natural-incident evidence. Neither result establishes production quality. Official AI-9 remains FAIL / NOT AUTHORIZED for production.",
+      "next_action": "Obtain independently sourced, naturally occurring, privacy/provenance-reviewed labeled incident records from production, including service, time and confirmed root cause; confirm permission and a deterministic mapping to the unchanged AI-9 contract. Preregister the exact corpus and run before scoring. Do not use fault-injected RCAEval as production evidence, keep consumed synthetic seeds closed, retain AI-9 FAIL, and require a separate owner release decision."
     },
     {
       "id": "p01-managed-saas",
