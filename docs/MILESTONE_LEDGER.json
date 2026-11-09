@@ -1718,6 +1718,17 @@
       "ci_run_id": 42602416866,
       "verification": "VERIFIED 2026-11-09: replacement PR #498 merged at 08963d4e3e342e0093d6d90d14fce861aa8a9695 from head ac84b25511bb405863dbe8a893e1e25235ec6e0b. Exact-head CI 42602121681 and 42602129848 and CodeQL 42602123043 passed; advisory review comment publication passed after one retry. Exact-merge main CI 42602416866 and CodeQL 42602416548 passed, including Pages publication and verify-production.",
       "limitations": "Dependency-lock synchronization only; closes original Dependabot PR #494. psycopg and psycopg-binary hashes, hash-locked dry-run install and Python suite (970 tests, 22 skipped) passed. Node was skipped by path filtering; incident/restoration checks skipped by conditions. A transient JSON response broke advisory comment publication once; one rerun passed. Static Pages only; no service readiness claim. AI-9 remains BLOCKED, P01 remains BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "otel-local-collector-integration-pr500",
+      "area": "PLATFORM",
+      "title": "Add opt-in local OpenTelemetry Collector metrics path",
+      "pr_number": 500,
+      "pr_head_sha": "5ad401c6baa2a9fbe33acc50afbbd33954afcef7",
+      "merge_sha": "6d56eabbc758b79faeda026c29c6372cd5989df4",
+      "ci_run_id": 42667080164,
+      "verification": "VERIFIED 2026-11-09: PR #500 merged at 6d56eabbc758b79faeda026c29c6372cd5989df4 from head 5ad401c6baa2a9fbe33acc50afbbd33954afcef7. Exact-head CI checks passed; post-merge CI 42667080164 and CodeQL 42667079871 passed on the merge SHA.",
+      "limitations": "Optional local OpenTelemetry Collector Contrib metrics receiver only; reuses existing Prometheus and binds OTLP ingress to loopback with local TLS and token. At merge time no Devobs application emitted telemetry; no real/customer/production data, external backend, or hosted receiver was added. No production or P02 acceptance evidence. AI-9 remains BLOCKED, P01 remains BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [

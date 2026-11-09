@@ -1026,11 +1026,18 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr498_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr500_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 498)
-        self.assertEqual(result["merged_milestones"], 156)
+        self.assertEqual(result["latest_pr"], 500)
+        self.assertEqual(result["merged_milestones"], 157)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
+        otel_500 = records[500]
+        self.assertEqual(otel_500["pr_head_sha"], "5ad401c6baa2a9fbe33acc50afbbd33954afcef7")
+        self.assertEqual(otel_500["merge_sha"], "6d56eabbc758b79faeda026c29c6372cd5989df4")
+        self.assertEqual(otel_500["ci_run_id"], 42667080164)
+        self.assertIn("CodeQL 42667079871 passed", otel_500["verification"])
+        self.assertIn("AI-9 remains BLOCKED", otel_500["limitations"])
+        self.assertIn("P01 remains BLOCKED", otel_500["limitations"])
         docs_484 = records[484]
         self.assertEqual(docs_484["pr_head_sha"], "74e5eac7094fa4d5df32c821f9afe6f04c7fae81")
         self.assertEqual(docs_484["merge_sha"], "b95e06afb300958df12c26ba88e5174a23d2c790")

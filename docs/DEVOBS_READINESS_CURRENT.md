@@ -1,4 +1,14 @@
-## Current snapshot — 2026-11-09 (Devobs main after PR #498)
+## Current snapshot — 2026-11-09 (Devobs main after PR #500)
+
+**VERIFIED from GitHub:** PR [#500](https://github.com/hamedonassar95/Devobs/pull/500) merged at `6d56eabbc758b79faeda026c29c6372cd5989df4` from head `5ad401c6baa2a9fbe33acc50afbbd33954afcef7`. Post-merge CI [42667080164](https://github.com/hamedonassar95/Devobs/actions/runs/42667080164) and CodeQL [42667079871](https://github.com/hamedonassar95/Devobs/actions/runs/42667079871) passed.
+
+PR #500 adds an opt-in local OpenTelemetry Collector Contrib metrics path using the existing Prometheus deployment. The Collector is not application instrumentation: no Devobs service sends telemetry yet. This is local plumbing only and is not production, P02, AI-9, or P01 evidence. The readiness gates remain unchanged: AI-9 **BLOCKED**, P01 **BLOCKED**, Codex runtime **OPEN**.
+
+The ledger contains 157 merged milestones. The CI workflow's static Pages result does not establish a hosted telemetry service or SaaS readiness.
+
+---
+
+## Previous snapshot — 2026-11-09 (Devobs main after PR #498)
 
 **VERIFIED from GitHub:** Dependabot PRs [#493](https://github.com/hamedonassar95/Devobs/pull/493) and [#494](https://github.com/hamedonassar95/Devobs/pull/494) lacked matching hash-lock updates. Their replacement fixes merged as PR [#497](https://github.com/hamedonassar95/Devobs/pull/497) at `b53fa0b35b718d4003a5d22a690cc0a04bd47553` (head `4ab2ebdbb3dc9e63e7eb007a072062635c07fcd7`) and PR [#498](https://github.com/hamedonassar95/Devobs/pull/498) at `08963d4e3e342e0093d6d90d14fce861aa8a9695` (head `ac84b25511bb405863dbe8a893e1e25235ec6e0b`). The original bot PRs are closed; the replacement PRs are the merged fixes.
 
@@ -7,8 +17,6 @@ PR #497 updates the development lock for pip 26.3. PR #498 updates the API lock 
 **Post-merge verification:** CI [42601549598](https://github.com/hamedonassar95/Devobs/actions/runs/42601549598) and CodeQL [42601548178](https://github.com/hamedonassar95/Devobs/actions/runs/42601548178) passed on #497's merge SHA. CI [42602416866](https://github.com/hamedonassar95/Devobs/actions/runs/42602416866) and CodeQL [42602416548](https://github.com/hamedonassar95/Devobs/actions/runs/42602416548) passed on #498's merge SHA. The latest CI passed Python, PostgreSQL RLS, security, same-image container/Trivy, Terraform, site-contract, `validate`, static GitHub Pages publication and `verify-production`. Node was skipped by path selection; incident and restoration checks were skipped by conditions. This verifies the repository workflows and static site only, not an AI service or SaaS readiness.
 
 The ledger contains 156 merged milestones. AI-9 remains **BLOCKED**, P01 remains **BLOCKED**, and Codex runtime acceptance remains **OPEN**; dependency-lock fixes do not change those gates.
-
----
 
 ## Previous snapshot — 2026-11-09 (Devobs main after PR #495; LiveOps after PR #2)
 
