@@ -1696,6 +1696,28 @@
       "ci_run_id": 42595730920,
       "verification": "VERIFIED 2026-11-09: PR #495 merged at 4611ef6aa24bc9d9d4d08475a09dc761a32684ab from head 21b913e5d67950038eeea4a1638f3efd6f217d9d. Exact-head push CI 42594735353 and PR CI 42594786478 passed; CodeQL 42594783182 passed. Exact-merge main CI 42595730920 and CodeQL 42595729760 passed. Main CI passed RLS, Terraform, security, container/Trivy, validate, Pages publication and verify-production; static Pages only.",
       "limitations": "Documentation and supplemental evaluation record only. The one-time RCAEval RE1-OB metric-shift baseline used injected testbed failures and known injection times; it did not run Devobs' production detector and is not natural-incident evidence. Result: 99/123 Top-1 and 114/123 Top-3; two cases were not evaluable. Raw data was not committed. Python/Node passed on exact-head push CI and were skipped by path filters on PR/merge CI; controlled incident drill and restoration checks were skipped. AI-9 remains BLOCKED, P01 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "requirements-dev-pip-lock-sync-pr497",
+      "area": "CI_SECURITY",
+      "title": "Synchronize pip 26.3 development dependency hash lock",
+      "pr_number": 497,
+      "pr_head_sha": "4ab2ebdbb3dc9e63e7eb007a072062635c07fcd7",
+      "merge_sha": "b53fa0b35b718d4003a5d22a690cc0a04bd47553",
+      "ci_run_id": 42601549598,
+      "verification": "VERIFIED 2026-11-09: replacement PR #497 merged at b53fa0b35b718d4003a5d22a690cc0a04bd47553 from head 4ab2ebdbb3dc9e63e7eb007a072062635c07fcd7. Exact-head CI 42601149724 and 42601185292 passed; CodeQL 42601182819 passed. Exact-merge main CI 42601549598 and CodeQL 42601548178 passed; security, RLS, container/Trivy, Terraform, site-contract, validate and Pages verification passed.",
+      "limitations": "Dependency-lock synchronization only; fixes original Dependabot PR #493 whose pip==26.3 pin lacked an updated hash lock. PyPI hashes, hash-locked dry-run install and Python suite (970 tests, 22 skipped) passed. Node was skipped in a duplicate CI run by path filtering; incident/restoration checks skipped by conditions. Static Pages only; no SaaS readiness. AI-9 remains BLOCKED, P01 remains BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "requirements-api-psycopg-lock-sync-pr498",
+      "area": "CI_SECURITY",
+      "title": "Synchronize psycopg 3.3.8 API dependency hash lock",
+      "pr_number": 498,
+      "pr_head_sha": "ac84b25511bb405863dbe8a893e1e25235ec6e0b",
+      "merge_sha": "08963d4e3e342e0093d6d90d14fce861aa8a9695",
+      "ci_run_id": 42602416866,
+      "verification": "VERIFIED 2026-11-09: replacement PR #498 merged at 08963d4e3e342e0093d6d90d14fce861aa8a9695 from head ac84b25511bb405863dbe8a893e1e25235ec6e0b. Exact-head CI 42602121681 and 42602129848 and CodeQL 42602123043 passed; advisory review comment publication passed after one retry. Exact-merge main CI 42602416866 and CodeQL 42602416548 passed, including Pages publication and verify-production.",
+      "limitations": "Dependency-lock synchronization only; closes original Dependabot PR #494. psycopg and psycopg-binary hashes, hash-locked dry-run install and Python suite (970 tests, 22 skipped) passed. Node was skipped by path filtering; incident/restoration checks skipped by conditions. A transient JSON response broke advisory comment publication once; one rerun passed. Static Pages only; no service readiness claim. AI-9 remains BLOCKED, P01 remains BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [

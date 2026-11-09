@@ -1,3 +1,12 @@
+## أحدث لقطة موثّقة: إصلاح قفلي الاعتماديات #493 و#494 — تحقق 2026-11-09
+
+- **VERIFIED من GitHub:** دُمج PR البديل [#497](https://github.com/hamedonassar95/Devobs/pull/497) عند `b53fa0b35b718d4003a5d22a690cc0a04bd47553` من الرأس `4ab2ebdbb3dc9e63e7eb007a072062635c07fcd7`. أصلح قفل اعتماديات التطوير بتحديث `pip` إلى `26.3` داخل `requirements-dev.lock` مع بقاء التجزئات. نجحت فحوص رأس PR وCodeQL `42601182819`؛ ونجح CI بعد الدمج `42601549598` وCodeQL `42601548178`. أُغلق PR الأصلي #493 عند دمج الإصلاح البديل.
+- **VERIFIED من GitHub:** دُمج PR البديل [#498](https://github.com/hamedonassar95/Devobs/pull/498) عند `08963d4e3e342e0093d6d90d14fce861aa8a9695` من الرأس المحدّث `ac84b25511bb405863dbe8a893e1e25235ec6e0b`. أصلح قفل API بإضافة `psycopg==3.3.8` و`psycopg-binary==3.3.8` وتجزيئاتهما في `requirements-api.lock`. نجحت فحوص رأس PR وCodeQL `42602123043`؛ ونجح CI بعد الدمج `42602416866` وCodeQL `42602416548`. أُغلق PR الأصلي #494 عند دمج الإصلاح البديل.
+- **VERIFIED محليًا على فرعي الإصلاح:** نجح تثبيت تجريبي باستخدام `--require-hashes` ونجحت مجموعة Python الكاملة: 970 اختبارًا، 22 تخطيًا، دون فشل. فحوص PR وبعد الدمج اجتازت Python وRLS والأمن والحاوية/Trivy وTerraform و`validate`. نُشرت صفحة GitHub Pages الثابتة واجتازت `verify-production`؛ هذا لا يثبت جاهزية خدمة SaaS. تخطّى Node حسب فلتر المسارات في بعض التشغيلات، كما تخطّى تمرين الحادث وفحوص الاستعادة لشروطها.
+- سجل الإنجازات الحالي يحوي 156 مدخلًا. بوابات AI-9 **BLOCKED** وP01 **BLOCKED** وCodex runtime **OPEN** بقيت كما هي؛ إصلاح قفلي الاعتماديات لا يغيّر تقييم الجاهزية.
+
+---
+
 ## أحدث لقطة موثّقة: Devobs #495 وLiveOps #2 — تحقق 2026-11-09
 
 - **VERIFIED من GitHub:** دُمج Devobs PR [#495](https://github.com/hamedonassar95/Devobs/pull/495) على `main` عند `4611ef6aa24bc9d9d4d08475a09dc761a32684ab` من الرأس `21b913e5d67950038eeea4a1638f3efd6f217d9d`. نجح CI بعد الدمج [42595730920](https://github.com/hamedonassar95/Devobs/actions/runs/42595730920) وCodeQL [42595729760](https://github.com/hamedonassar95/Devobs/actions/runs/42595729760). اجتازت فحوص RLS وTerraform والأمن والحاوية/Trivy و`validate` ونشر Pages والتحقق `verify-production`. تخطّت Python وNode فلاتر المسارات على الدمج؛ اجتازتا في CI على رأس PR [42594735353](https://github.com/hamedonassar95/Devobs/actions/runs/42594735353). تمرين الحادث والاستعادة تخطّيا شروطهما.

@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr495_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr498_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 495)
-        self.assertEqual(result["merged_milestones"], 154)
+        self.assertEqual(result["latest_pr"], 498)
+        self.assertEqual(result["merged_milestones"], 156)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         docs_484 = records[484]
         self.assertEqual(docs_484["pr_head_sha"], "74e5eac7094fa4d5df32c821f9afe6f04c7fae81")
@@ -1084,6 +1084,19 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("CodeQL 42595729760 passed", evidence_sync_495["verification"])
         self.assertIn("not natural-incident evidence", evidence_sync_495["limitations"])
         self.assertIn("AI-9 remains BLOCKED", evidence_sync_495["limitations"])
+        pip_lock_497 = records[497]
+        self.assertEqual(pip_lock_497["pr_head_sha"], "4ab2ebdbb3dc9e63e7eb007a072062635c07fcd7")
+        self.assertEqual(pip_lock_497["merge_sha"], "b53fa0b35b718d4003a5d22a690cc0a04bd47553")
+        self.assertEqual(pip_lock_497["ci_run_id"], 42601549598)
+        self.assertIn("CodeQL 42601548178 passed", pip_lock_497["verification"])
+        self.assertIn("pip==26.3", pip_lock_497["limitations"])
+        psycopg_lock_498 = records[498]
+        self.assertEqual(psycopg_lock_498["pr_head_sha"], "ac84b25511bb405863dbe8a893e1e25235ec6e0b")
+        self.assertEqual(psycopg_lock_498["merge_sha"], "08963d4e3e342e0093d6d90d14fce861aa8a9695")
+        self.assertEqual(psycopg_lock_498["ci_run_id"], 42602416866)
+        self.assertIn("CodeQL 42602416548 passed", psycopg_lock_498["verification"])
+        self.assertIn("22 skipped", psycopg_lock_498["limitations"])
+        self.assertIn("P01 remains BLOCKED", psycopg_lock_498["limitations"])
         evidence_sync_479 = records[479]
         self.assertEqual(evidence_sync_479["pr_head_sha"], "5f2d565e179b28a183f5936c7895be4c2f405d5a")
         self.assertEqual(evidence_sync_479["merge_sha"], "e03d8be4a5c1b19e35c31d98339b45e7caf27d9d")
