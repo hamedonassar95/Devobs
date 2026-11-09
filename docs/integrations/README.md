@@ -9,6 +9,7 @@
 - `service-inventory.json` is the machine-readable evidence and decision ledger for the seven named integrations.
 - `RUNBOOK.md` defines the human approval gates and next diagnostic steps. The read-only validator is `scripts/check_integration_catalog.py`.
 - Existing documentation remains authoritative for the CI/automation architecture: [Automation Hub](../AUTOMATION_HUB.md), [integration workflow](../INTEGRATION_WORKFLOW.md), [AI DevKit](../AI_DEVKIT.md), and [SaaS readiness](../PRODUCT_SAAS_READINESS.md).
+- The optional local OpenTelemetry Collector is documented in the [OpenTelemetry integration guide](opentelemetry.md). It reuses the existing Prometheus stack and is not a hosted provider connection or production-readiness claim.
 - GitBook's existing three-page Git-sync import under `docs/gitbook-sync-prep/` is a **separate content pipeline**. Do not copy private GitBook backup pages into this public repository.
 
 ## Provider snapshot
