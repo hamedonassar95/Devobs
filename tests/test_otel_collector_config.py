@@ -46,14 +46,16 @@ class OTelCollectorConfigTests(unittest.TestCase):
         self.assertNotIn("traces:", COLLECTOR_CONFIG)
         self.assertNotIn("logs:", COLLECTOR_CONFIG)
 
-    def test_only_the_existing_safe_metric_contract_and_smoke_metric_are_allowed(self):
+    def test_only_existing_metrics_and_one_no_label_api_histogram_are_allowed(self):
         for name in (
             'metric.name == "error_rate_pct"',
             'metric.name == "capacity_pct"',
             'metric.name == "failed_checks"',
             'metric.name == "devobs_otel_smoke"',
+            'metric.name == "devobs.api.request.duration"',
             'resource.attributes["service.name"] != "devobs"',
-            "metric.type != METRIC_DATA_TYPE_GAUGE",
+            "metric.type == METRIC_DATA_TYPE_GAUGE",
+            "metric.type == METRIC_DATA_TYPE_HISTOGRAM",
         ):
             self.assertIn(name, COLLECTOR_CONFIG)
 
@@ -85,7 +87,7 @@ class OTelCollectorRuntimeTests(unittest.TestCase):
         cls.cert = cls.secret_dir / "server.crt"
         cls.key = cls.secret_dir / "server.key"
         cls.token_file = cls.secret_dir / "token"
-        cls.token = secrets.token_urlsafe(32)
+        cls.token = secrets.token_hex(32)
         cls.token_file.write_text(cls.token + "\n", encoding="utf-8")
         cls.token_file.chmod(0o444)
         subprocess.run(
@@ -260,7 +262,7 @@ class OTelCollectorRuntimeTests(unittest.TestCase):
         self.assertTrue(collector_id)
         self.assertTrue(prometheus_id)
         sender_script = r'''
-import json, ssl, sys, time
+import json, ssl, time
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -276,6 +278,17 @@ payload = {"resourceMetrics": [{"resource": {"attributes": [
      "gauge": {"dataPoints": [{"timeUnixNano": stamp, "asInt": "1", "attributes": [
          {"key": "user.email", "value": {"stringValue": "synthetic-private@example.invalid"}}
      ]}]}},
+    {"name": "devobs.api.request.duration", "description": "synthetic-description-marker", "unit": "s",
+     "histogram": {"aggregationTemporality": 2, "dataPoints": [{
+         "startTimeUnixNano": stamp, "timeUnixNano": stamp, "count": "1", "sum": 0.125,
+         "explicitBounds": [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30],
+         "bucketCounts": ["0", "0", "0", "0", "0", "1", "0", "0", "0", "0", "0", "0", "0"],
+         "attributes": [
+             {"key": "http.route", "value": {"stringValue": "api/private-route-marker"}},
+             {"key": "user.email", "value": {"stringValue": "private-email-marker@example.invalid"}},
+             {"key": "tenant.id", "value": {"stringValue": "tenant-marker"}}
+         ]
+     }]}},
     {"name": "unapproved_metric_name", "gauge": {"dataPoints": [{"timeUnixNano": stamp, "asInt": "1"}]}}
 ]}]}]}
 body = json.dumps(payload).encode()
@@ -302,19 +315,24 @@ exported = ""
 for _ in range(15):
     with urlopen("http://127.0.0.1:8889/metrics", timeout=5) as response:
         exported = response.read().decode()
-    if "devobs_otel_smoke" in exported:
+    if "devobs_otel_smoke" in exported and "devobs_api_request_duration_count" in exported:
         break
     time.sleep(1)
-if "devobs_otel_smoke" not in exported or "unapproved_metric_name" in exported:
+if ("devobs_otel_smoke" not in exported or "devobs_api_request_duration_count" not in exported
+        or "unapproved_metric_name" in exported):
     raise SystemExit(
         "Collector exporter allowlist check failed: "
-        f"expected_metric={('devobs_otel_smoke' in exported)} "
+        f"api_histogram={('devobs_api_request_duration_count' in exported)} "
         f"disallowed_metric={('unapproved_metric_name' in exported)}"
     )
-for marker in ("synthetic-customer-marker", "synthetic-private@example.invalid", "synthetic-description-marker", "synthetic-test-scope"):
+for marker in (
+    "synthetic-customer-marker", "synthetic-private@example.invalid",
+    "private-email-marker@example.invalid", "tenant-marker",
+    "api/private-route-marker", "synthetic-description-marker", "synthetic-test-scope"
+):
     if marker in exported:
         raise SystemExit("synthetic free-form data escaped Collector sanitization")
-print("synthetic OTLP accepted; unauthenticated request rejected; attributes and unknown metric filtered")
+print("synthetic OTLP gauge and histogram accepted; unauthenticated request rejected; attributes and unknown metric filtered")
 '''
         def run_in_namespace(container_id, script, *, mount_secrets=False):
             command = ["docker", "run", "--rm", "--network", f"container:{container_id}"]
@@ -350,12 +368,14 @@ def query(name):
         return json.load(response).get("data", {}).get("result", [])
 
 samples = []
+histogram_samples = []
 for _ in range(40):
     samples = query("devobs_otel_smoke")
-    if samples:
+    histogram_samples = query("devobs_api_request_duration_count")
+    if samples and histogram_samples:
         break
     time.sleep(1)
-if len(samples) != 1:
+if len(samples) != 1 or len(histogram_samples) != 1:
     with urlopen("http://127.0.0.1:9090/api/v1/targets?state=active", timeout=5) as response:
         targets = json.load(response).get("data", {}).get("activeTargets", [])
     otel_targets = [
@@ -367,7 +387,7 @@ if len(samples) != 1:
         metric_names = json.load(response).get("data", [])
     devobs_names = [name for name in metric_names if name.startswith("devobs")]
     raise SystemExit(
-        f"synthetic OTLP gauge query was empty; target status={otel_targets!r}; "
+        f"synthetic OTLP histogram query was empty; target status={otel_targets!r}; "
         f"Devobs metric names={devobs_names!r}"
     )
 labels = json.dumps(samples[0]["metric"])
@@ -376,7 +396,13 @@ for marker in ("synthetic-customer-marker", "synthetic-private@example.invalid",
         raise SystemExit("synthetic free-form attribute reached Prometheus")
 if query("unapproved_metric_name"):
     raise SystemExit("unapproved metric reached Prometheus")
-print("synthetic OTLP gauge reached existing Prometheus with safe labels only")
+histogram_labels = json.dumps(histogram_samples[0]["metric"])
+for marker in ("api/private-route-marker", "private-email-marker@example.invalid", "tenant-marker"):
+    if marker in histogram_labels:
+        raise SystemExit("request-specific marker reached Prometheus")
+if histogram_samples[0]["metric"].get("service_name") != "devobs":
+    raise SystemExit("API histogram did not retain its bounded service identity")
+print("synthetic OTLP gauge and API histogram reached existing Prometheus with safe labels only")
 '''
         prometheus_smoke = run_in_namespace(prometheus_id, prometheus_script)
         client = prometheus_smoke
@@ -399,7 +425,15 @@ print("synthetic OTLP gauge reached existing Prometheus with safe labels only")
         )
 
         logs = self.run_compose("logs", "--no-color", "otel-collector")
-        for marker in ("synthetic-customer-marker", "synthetic-private@example.invalid", "synthetic-description-marker", self.token):
+        for marker in (
+            "synthetic-customer-marker",
+            "synthetic-private@example.invalid",
+            "synthetic-description-marker",
+            "api/private-route-marker",
+            "private-email-marker@example.invalid",
+            "tenant-marker",
+            self.token,
+        ):
             self.assertNotIn(marker, logs.stdout + logs.stderr)
 
 

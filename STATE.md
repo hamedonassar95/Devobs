@@ -1,3 +1,11 @@
+## أحدث لقطة موثّقة: OpenTelemetry Collector المحلي #500 — تحقق 2026-11-09
+
+- **VERIFIED من GitHub:** دُمج PR [#500](https://github.com/hamedonassar95/Devobs/pull/500) على `main` عند `6d56eabbc758b79faeda026c29c6372cd5989df4` من الرأس `5ad401c6baa2a9fbe33acc50afbbd33954afcef7`. نجح CI بعد الدمج [42667080164](https://github.com/hamedonassar95/Devobs/actions/runs/42667080164) وCodeQL [42667079871](https://github.com/hamedonassar95/Devobs/actions/runs/42667079871).
+- أضاف #500 Collector محليًا اختياريًا ومحصورًا على loopback، يعيد استخدام Prometheus القائم. لم تُضف خدمة إنتاج، ولم يُرسل قياس تطبيق؛ هذا لا يحقق P02 ولا يغيّر بوابات الإصدار.
+- السجل صار 157 إنجازًا. AI-9 **BLOCKED** وP01 **BLOCKED** وCodex runtime **OPEN** كما هي.
+
+---
+
 ## أحدث لقطة موثّقة: إصلاح قفلي الاعتماديات #493 و#494 — تحقق 2026-11-09
 
 - **VERIFIED من GitHub:** دُمج PR البديل [#497](https://github.com/hamedonassar95/Devobs/pull/497) عند `b53fa0b35b718d4003a5d22a690cc0a04bd47553` من الرأس `4ab2ebdbb3dc9e63e7eb007a072062635c07fcd7`. أصلح قفل اعتماديات التطوير بتحديث `pip` إلى `26.3` داخل `requirements-dev.lock` مع بقاء التجزئات. نجحت فحوص رأس PR وCodeQL `42601182819`؛ ونجح CI بعد الدمج `42601549598` وCodeQL `42601548178`. أُغلق PR الأصلي #493 عند دمج الإصلاح البديل.

@@ -65,6 +65,38 @@ class StagingBootstrapTests(unittest.TestCase):
         app = self.module.build_app(self.base)
         self.assertIsNotNone(app)
 
+    def test_local_metrics_fail_closed_without_both_explicit_flags(self):
+        config = {**self.base, "DEVOBS_OTEL_METRICS_ENABLED": "true"}
+        with self.assertRaisesRegex(
+                self.module.StagingConfigurationError, "^invalid_staging_config$"):
+            self.module.build_app(config)
+
+    def test_explicit_local_metrics_wrap_the_complete_wsgi_application(self):
+        class FakeMetrics:
+            def __init__(self):
+                self.application = None
+
+            def instrument(self, application):
+                self.application = application
+                return wrapped
+
+            def shutdown(self):
+                pass
+
+        wrapped = object()
+        metrics = FakeMetrics()
+        config = {
+            **self.base,
+            "DEVOBS_OTEL_METRICS_ENABLED": "true",
+            "DEVOBS_OTEL_METRICS_LOCAL_ONLY": "true",
+        }
+        with patch.object(self.module, "create_local_metrics", return_value=metrics), \
+                patch.object(self.module.atexit, "register") as register:
+            app = self.module.build_app(config)
+        self.assertIs(app, wrapped)
+        self.assertTrue(callable(metrics.application))
+        register.assert_called_once_with(metrics.shutdown)
+
     def test_model_diagnostics_require_budget_acknowledgment_and_provider_key(self):
         config = dict(self.base)
         config["DEVOBS_AI_DIAGNOSTICS_ENABLED"] = "true"

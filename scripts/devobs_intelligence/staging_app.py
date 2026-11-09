@@ -8,6 +8,7 @@ mode requires TLS encryption but cannot verify Render's self-signed peer cert.
 """
 from __future__ import annotations
 
+import atexit
 import json
 import os
 from collections.abc import Mapping
@@ -21,6 +22,7 @@ from .gemini_error_diagnosis import GeminiErrorLogDiagnostician
 from .local_model_error_diagnosis import LocalModelErrorLogDiagnostician
 from .oidc_rotation import RotatingOIDCVerifier
 from .openai_error_diagnosis import DEFAULT_MODEL, OpenAIErrorLogDiagnostician
+from .otel_metrics import create_local_metrics
 from .postgres_store import PostgresTenantStore
 
 
@@ -120,6 +122,7 @@ def build_app(settings: Mapping[str, str]) -> Callable:
             else:
                 raise StagingConfigurationError("invalid_staging_config")
         api = make_app(verifier, store, diagnostician=diagnostician)
+        local_metrics = create_local_metrics(settings)
     except (KeyError, ValueError, TypeError):
         raise StagingConfigurationError("invalid_staging_config") from None
 
@@ -158,6 +161,10 @@ def build_app(settings: Mapping[str, str]) -> Callable:
                             ("Content-Length", "0")])
             return [b""]
         return api(environ, start_response)
+
+    if local_metrics is not None:
+        atexit.register(local_metrics.shutdown)
+        application = local_metrics.instrument(application)
 
     return application
 
