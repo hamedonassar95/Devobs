@@ -1,4 +1,14 @@
-## Current snapshot — 2026-11-09 (Devobs main after PR #500)
+## Current snapshot — 2026-11-09 (Devobs main after PR #501)
+
+**VERIFIED from GitHub:** PR [#501](https://github.com/hamedonassar95/Devobs/pull/501) merged at `4382e364e8d67ef70425e5fe35473aac0f5a8272` from head `5dc875a27c2a127a80248bc34414b6d12f86b4f0`. Exact-head CI [42678759476](https://github.com/hamedonassar95/Devobs/actions/runs/42678759476) and CodeQL [42678752841](https://github.com/hamedonassar95/Devobs/actions/runs/42678752841) passed. Post-merge CI [42688136804](https://github.com/hamedonassar95/Devobs/actions/runs/42688136804) and CodeQL [42688135345](https://github.com/hamedonassar95/Devobs/actions/runs/42688135345) passed on the merge SHA.
+
+PR #501 adds one optional, local-only request-duration histogram to the staging WSGI API, reusing the Collector and existing Prometheus deployment. The Collector smoke test delivered synthetic metrics to Prometheus; no production/customer data was used. Existing main CI published and verified the static Pages site; it did not deploy the API or establish a hosted service. Incident and restore jobs were skipped by their conditions.
+
+The ledger contains 158 merged milestones. Readiness gates remain unchanged: AI-9 **BLOCKED**, P01 **BLOCKED**, and Codex runtime acceptance **OPEN**. Passing CI, local metrics, and static Pages do not establish production SaaS readiness.
+
+---
+
+## Previous snapshot — 2026-11-09 (Devobs main after PR #500)
 
 **VERIFIED from GitHub:** PR [#500](https://github.com/hamedonassar95/Devobs/pull/500) merged at `6d56eabbc758b79faeda026c29c6372cd5989df4` from head `5ad401c6baa2a9fbe33acc50afbbd33954afcef7`. Post-merge CI [42667080164](https://github.com/hamedonassar95/Devobs/actions/runs/42667080164) and CodeQL [42667079871](https://github.com/hamedonassar95/Devobs/actions/runs/42667079871) passed.
 

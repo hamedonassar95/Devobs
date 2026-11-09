@@ -1,4 +1,12 @@
-## أحدث لقطة موثّقة: OpenTelemetry Collector المحلي #500 — تحقق 2026-11-09
+## أحدث لقطة موثّقة: قياس API المحلي #501 — تحقق 2026-11-09
+
+- **VERIFIED من GitHub:** دُمج PR [#501](https://github.com/hamedonassar95/Devobs/pull/501) على `main` عند `4382e364e8d67ef70425e5fe35473aac0f5a8272` من الرأس `5dc875a27c2a127a80248bc34414b6d12f86b4f0`. نجح CI على رأس PR [42678759476](https://github.com/hamedonassar95/Devobs/actions/runs/42678759476) وCodeQL [42678752841](https://github.com/hamedonassar95/Devobs/actions/runs/42678752841). نجح CI بعد الدمج [42688136804](https://github.com/hamedonassar95/Devobs/actions/runs/42688136804) وCodeQL [42688135345](https://github.com/hamedonassar95/Devobs/actions/runs/42688135345) على SHA الدمج.
+- أضاف #501 قياسًا محليًا اختياريًا واحدًا لزمن طلب WSGI، يعيد استخدام Collector وPrometheus. نشر سير Pages الموقع الثابت وتحقق منه؛ هذا لا يعني نشر API أو خدمة SaaS. فحوص الحادث والاستعادة تخطّت شروطها.
+- السجل صار 158 إنجازًا. AI-9 **BLOCKED** وP01 **BLOCKED** وCodex runtime **OPEN** كما هي.
+
+---
+
+## اللقطة السابقة: OpenTelemetry Collector المحلي #500 — تحقق 2026-11-09
 
 - **VERIFIED من GitHub:** دُمج PR [#500](https://github.com/hamedonassar95/Devobs/pull/500) على `main` عند `6d56eabbc758b79faeda026c29c6372cd5989df4` من الرأس `5ad401c6baa2a9fbe33acc50afbbd33954afcef7`. نجح CI بعد الدمج [42667080164](https://github.com/hamedonassar95/Devobs/actions/runs/42667080164) وCodeQL [42667079871](https://github.com/hamedonassar95/Devobs/actions/runs/42667079871).
 - أضاف #500 Collector محليًا اختياريًا ومحصورًا على loopback، يعيد استخدام Prometheus القائم. لم تُضف خدمة إنتاج، ولم يُرسل قياس تطبيق؛ هذا لا يحقق P02 ولا يغيّر بوابات الإصدار.
