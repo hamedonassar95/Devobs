@@ -1,4 +1,8 @@
-## Current snapshot — 2026-11-09 (Devobs main after PR #488; LiveOps after PR #2)
+## Current snapshot — 2026-11-09 (Devobs main after PR #495; LiveOps after PR #2)
+
+**VERIFIED from GitHub:** Devobs PR [#495](https://github.com/hamedonassar95/Devobs/pull/495) merged at `4611ef6aa24bc9d9d4d08475a09dc761a32684ab` from head `21b913e5d67950038eeea4a1638f3efd6f217d9d`. Main CI [42595730920](https://github.com/hamedonassar95/Devobs/actions/runs/42595730920) and CodeQL [42595729760](https://github.com/hamedonassar95/Devobs/actions/runs/42595729760) passed on the merge SHA. RLS, Terraform, security, container/Trivy, `validate`, static Pages publication and `verify-production` passed. Python and Node were skipped by path filters on merge CI and passed in exact-head push CI [42594735353](https://github.com/hamedonassar95/Devobs/actions/runs/42594735353); incident and restoration checks were skipped by conditions.
+
+PR #495 records one supplemental RCAEval RE1-OB benchmark on injected testbed failures. A generic post-injection metric-shift baseline ranked 99/123 eligible root services Top-1 and 114/123 Top-3; two cases lacked the preregistered windows. It did not run Devobs' production detector and does not validate natural production incidents. No dataset files were committed. AI-9 remains **BLOCKED**, P01 remains **BLOCKED**, and Codex runtime acceptance remains **OPEN**.
 
 **VERIFIED from GitHub:** Devobs PR [#488](https://github.com/hamedonassar95/Devobs/pull/488) merged at `71269ed4cb717922b782826c5a0251a78fd5ccbd` from head `ac3b4bfa1bbbdc0bd7baff42563e7bc7a8800990`. Main CI [42527765351](https://github.com/hamedonassar95/Devobs/actions/runs/42527765351) and CodeQL [42527764971](https://github.com/hamedonassar95/Devobs/actions/runs/42527764971) passed on the merge SHA; Pages publication and `verify-production` passed. PR #488 is documentation and ledger-test synchronization only.
 
@@ -9,10 +13,10 @@ The Devobs bridge remains inactive. LiveOps CI [42539421276](https://github.com/
 ## Remediation sequence and gates
 
 1. **LiveOps → Devobs status bridge:** owner adds `DEVOBS_DISPATCH_TOKEN` (fine-grained access limited to the Devobs repository with the required Contents write permission). Then rerun the existing LiveOps main CI and verify a new Devobs `repository_dispatch`. The event carries build metadata only.
-2. **AI-9 external quality evidence:** keep AI-9 blocked. The frozen synthetic seeds are already consumed; Ollama/LocalAI are optional local diagnostic providers and cannot replace independent, provenance-reviewed labeled incident data. The AI-9 plan requires a separately approved, exact, one-time local dataset evaluation and unchanged metrics. See [AI-9 dataset assessment](AI9_EXTERNAL_DATASET_ASSESSMENT.md).
+2. **AI-9 external quality evidence:** keep AI-9 blocked. The frozen synthetic seeds are already consumed; Ollama/LocalAI and the supplemental RCAEval fault-injection baseline cannot replace independently sourced, provenance-reviewed labels from naturally occurring production incidents. Any qualifying corpus needs an exact preregistered local evaluation using unchanged metrics. See [AI-9 dataset assessment](AI9_EXTERNAL_DATASET_ASSESSMENT.md).
 3. **P01 activation:** keep P01 NO-GO. Fixing malformed evidence URLs does not establish an enforceable all-in monthly cap, identity/OIDC, tenant isolation, network/TLS, restore evidence, or owner GO. Do not provision or publish production resources until these controls are evidenced and explicitly approved. See [P01 activation readiness](P01_ACTIVATION_READINESS.md).
 
-The ledger remains at 153 Devobs milestones. AI-9 is **BLOCKED**, P01 is **BLOCKED**, and Codex runtime acceptance is **OPEN**. The LiveOps checkout maintenance did not change application behavior or any readiness gate.
+The ledger contains 154 Devobs milestones. AI-9 is **BLOCKED**, P01 is **BLOCKED**, and Codex runtime acceptance is **OPEN**. PR #495 did not change application behavior or any readiness gate. The LiveOps checkout maintenance did not change application behavior or any readiness gate.
 
 ---
 

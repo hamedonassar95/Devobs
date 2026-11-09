@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr487_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr495_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 487)
-        self.assertEqual(result["merged_milestones"], 153)
+        self.assertEqual(result["latest_pr"], 495)
+        self.assertEqual(result["merged_milestones"], 154)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         docs_484 = records[484]
         self.assertEqual(docs_484["pr_head_sha"], "74e5eac7094fa4d5df32c821f9afe6f04c7fae81")
@@ -1077,6 +1077,13 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("CodeQL 42514879654 SUCCESS", feature_k8s_481["verification"])
         self.assertIn("No manifests were applied", feature_k8s_481["limitations"])
         self.assertIn("Apache-2.0", feature_k8s_481["limitations"])
+        evidence_sync_495 = records[495]
+        self.assertEqual(evidence_sync_495["pr_head_sha"], "21b913e5d67950038eeea4a1638f3efd6f217d9d")
+        self.assertEqual(evidence_sync_495["merge_sha"], "4611ef6aa24bc9d9d4d08475a09dc761a32684ab")
+        self.assertEqual(evidence_sync_495["ci_run_id"], 42595730920)
+        self.assertIn("CodeQL 42595729760 passed", evidence_sync_495["verification"])
+        self.assertIn("not natural-incident evidence", evidence_sync_495["limitations"])
+        self.assertIn("AI-9 remains BLOCKED", evidence_sync_495["limitations"])
         evidence_sync_479 = records[479]
         self.assertEqual(evidence_sync_479["pr_head_sha"], "5f2d565e179b28a183f5936c7895be4c2f405d5a")
         self.assertEqual(evidence_sync_479["merge_sha"], "e03d8be4a5c1b19e35c31d98339b45e7caf27d9d")
