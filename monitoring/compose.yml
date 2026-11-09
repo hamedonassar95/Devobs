@@ -60,6 +60,38 @@ services:
     networks:
       - monitoring
 
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.165.0@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea
+    profiles:
+      - otel
+    command:
+      - --config=/etc/otelcol-contrib/config.yaml
+    ports:
+      - "127.0.0.1:4317:4317"
+      - "127.0.0.1:4318:4318"
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
+    secrets:
+      - source: otel-server-certificate
+        target: otel-server.crt
+      - source: otel-server-private-key
+        target: otel-server.key
+      - source: otel-bearer-token
+        target: otel-bearer-token
+    networks:
+      - monitoring
+    user: "10001:10001"
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    mem_limit: 160m
+    cpus: 0.50
+    pids_limit: 64
+
   grafana:
     image: grafana/grafana:13.2.4@sha256:dbbc38ea21103cefb50396340cd88afec779c7e070b0a7bf5a75b4ce46651d3f
     environment:
@@ -78,6 +110,15 @@ services:
 networks:
   monitoring:
     internal: true
+
+secrets:
+  otel-server-certificate:
+    # The fallback keeps the disabled profile parseable; /dev/null cannot form a valid TLS certificate.
+    file: ${DEVOBS_OTEL_TLS_CERT_FILE:-/dev/null}
+  otel-server-private-key:
+    file: ${DEVOBS_OTEL_TLS_KEY_FILE:-/dev/null}
+  otel-bearer-token:
+    file: ${DEVOBS_OTEL_TOKEN_FILE:-/dev/null}
 
 volumes:
   prometheus-data:

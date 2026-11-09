@@ -22,8 +22,12 @@ class MonitoringConfigContractTests(unittest.TestCase):
         self.assertIn("${GRAFANA_ADMIN_PASSWORD:?", COMPOSE)
         self.assertRegex(COMPOSE, r"networks:\n  monitoring:\n    internal: true")
         images = re.findall(r"^\s+image:\s+(.+)$", COMPOSE, flags=re.MULTILINE)
-        self.assertEqual(len(images), 4)
+        self.assertEqual(len(images), 5)
         self.assertTrue(all(re.search(r"@sha256:[0-9a-f]{64}$", image) for image in images))
+        self.assertIn(
+            "otel/opentelemetry-collector-contrib:0.165.0@sha256:e40d61f10c9a617cca1ffd1be4d7e2b3a4b0f0001798ff07e58cabe82e618cea",
+            images,
+        )
 
     def test_exporter_is_optional_and_has_only_read_only_host_access(self):
         match = re.search(r"  node-exporter:\n(?P<service>.*?)(?=\n  [a-z-]+:\n|\nnetworks:)", COMPOSE, re.DOTALL)

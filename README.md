@@ -119,14 +119,14 @@ pip-audit --requirement requirements-dev.txt
 
 ## المراقبة المحلية الاختيارية
 
-يتضمن المستودع إعدادًا محليًا لـPrometheus وGrafana وAlertmanager. Node Exporter اختياري لمضيف Linux، والموقع الثابت لا يوفّر مقاييس تطبيق.
+يتضمن المستودع إعدادًا محليًا لـPrometheus وGrafana وAlertmanager. Node Exporter اختياري لمضيف Linux، كما تتوفر إضافة OpenTelemetry Collector محلية اختيارية لتحويل مجموعة ضيقة من مقاييس OTLP إلى Prometheus الموجود. الموقع الثابت لا يوفّر مقاييس تطبيق. راجع [دليل OpenTelemetry](docs/integrations/opentelemetry.md) قبل تشغيل ملف تعريف `otel`.
 
 ```sh
 export GRAFANA_ADMIN_PASSWORD="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
 docker compose -f monitoring/compose.yml up --detach
 ```
 
-الواجهات المحلية: Prometheus <http://127.0.0.1:9090>، Grafana <http://127.0.0.1:3000>، Alertmanager <http://127.0.0.1:9093>. لإضافة مقاييس Linux:
+الواجهات المحلية: Prometheus <http://127.0.0.1:9090>، Grafana <http://127.0.0.1:3000>، Alertmanager <http://127.0.0.1:9093>. تهيئة OpenTelemetry TLS ورمز الوصول المحلي وبدء الملف الاختياري موضحة في [الدليل](docs/integrations/opentelemetry.md). لإضافة مقاييس Linux:
 
 ```sh
 docker compose --profile linux-host -f monitoring/compose.yml up --detach
