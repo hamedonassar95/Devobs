@@ -1,0 +1,85 @@
+---
+# Local, metrics-only OTLP ingress. No logs or traces pipeline is enabled.
+extensions:
+  bearertokenauth:
+    scheme: Bearer
+    filename: /run/secrets/otel-bearer-token
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+        max_recv_msg_size_mib: 1
+        auth:
+          authenticator: bearertokenauth
+        tls:
+          cert_file: /run/secrets/otel-server.crt
+          key_file: /run/secrets/otel-server.key
+          min_version: "1.2"
+      http:
+        endpoint: 0.0.0.0:4318
+        max_request_body_size: 8388608
+        auth:
+          authenticator: bearertokenauth
+        tls:
+          cert_file: /run/secrets/otel-server.crt
+          key_file: /run/secrets/otel-server.key
+          min_version: "1.2"
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 96
+    spike_limit_mib: 20
+  filter/safe_metrics:
+    error_mode: propagate
+    metric_conditions:
+      - 'resource.attributes["service.name"] != "devobs"'
+      - >-
+        not (metric.name == "error_rate_pct" or metric.name == "capacity_pct" or
+        metric.name == "failed_checks" or metric.name == "devobs_otel_smoke")
+      - 'metric.type != METRIC_DATA_TYPE_GAUGE'
+  transform/privacy:
+    error_mode: propagate
+    metric_statements:
+      - context: resource
+        statements:
+          - keep_keys(attributes, ["service.name"])
+      - context: datapoint
+        statements:
+          - keep_keys(attributes, [])
+      - context: metric
+        statements:
+          - set(description, "")
+  batch:
+    timeout: 5s
+    send_batch_size: 128
+    send_batch_max_size: 256
+
+exporters:
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    metric_expiration: 5m
+    send_timestamps: false
+    enable_open_metrics: false
+    without_scope_info: true
+    translation_strategy: UnderscoreEscapingWithoutSuffixes
+    resource_constant_labels:
+      included:
+        - service.name
+
+service:
+  extensions:
+    - bearertokenauth
+  pipelines:
+    metrics:
+      receivers:
+        - otlp
+      processors:
+        - memory_limiter
+        - filter/safe_metrics
+        - transform/privacy
+        - batch
+      exporters:
+        - prometheus
