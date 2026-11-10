@@ -23,6 +23,13 @@ This is **database-only runtime evidence**. It does not prove an application/API
 - `oidc_metadata.py` validates already authenticated issuer metadata against a configured HTTPS issuer and same-origin JWKS URI, then constructs the existing signature-verifying access-token reader. No arbitrary remote requests, unsigned token acceptance, runtime key rotation or live provider onboarding are enabled.
 - The existing GitHub `validate` check now requires a **real PostgreSQL service-container isolation integration suite** on normal checks, not merely SQLite mocks. Rollback compatibility deliberately skips this extra gate, retaining the existing rollback test contract.
 
+
+## Readiness probe cost and rate-limit boundary — source review 2026-11-10
+
+`GET /readyz` is unauthenticated in `scripts/devobs_intelligence/staging_app.py`. Each accepted request calls `PostgresTenantStore.probe_readiness()`, which opens a fresh PostgreSQL connection (`connect_timeout=2`), starts a read-only transaction, applies a 1.5-second statement timeout and 0.5-second lock timeout, locks the three policy tables, and verifies the role, grants, RLS and reviewed predicates. The route has no application-level rate limiter or connection pool. No request-rate limit at the hosting edge, load test, latency distribution, or database connection-capacity measurement has been verified.
+
+Therefore, the source gives bounded per-request database work but does **not** demonstrate protection from repeated public probes or acceptable staging performance. Before exposing an authorized staging service, measure the probe and connection behavior under a controlled load and configure any rate control at a trusted ingress/provider boundary; do not trust client-supplied forwarding headers as identity. The PostgreSQL regression suite now explicitly checks transaction-local tenant context across simulated reuse of one connection; the runtime adapter itself continues to open one fresh connection per API read.
+
 ## Ephemeral test-only authentication
 
 The integration service image uses `POSTGRES_HOST_AUTH_METHOD=trust` strictly inside a disposable GitHub Actions runner with no customer data or persistent storage. This must NEVER be copied to a real deployment. Test roles are created on the disposable instance and have no production credentials. Exposing such a service publicly would be unsafe.

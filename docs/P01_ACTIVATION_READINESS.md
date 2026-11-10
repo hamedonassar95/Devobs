@@ -1,3 +1,13 @@
+## Latest repository checkpoint — PR #508 and #237 (2026-11-10)
+
+**VERIFIED from GitHub:** PR [#508](https://github.com/hamedonassar95/Devobs/pull/508) merged at `57b256f21215a66bab9754e3f4f60ab8e6118ede` from head `2e1a3fb3235e1a529e9a286d9290d8adae124480`; post-merge CI [42800093891](https://github.com/hamedonassar95/Devobs/actions/runs/42800093891) and CodeQL [42800092231](https://github.com/hamedonassar95/Devobs/actions/runs/42800092231) passed. The CI RLS fixture passed. Node tests were skipped by path selection and incident/recovery checks skipped their conditions; static Pages is not an API deployment.
+
+Issue #237 was automatically closed during #506 merge because GitHub interpreted negated issue-state wording as a closing reference. It was reopened at `2026-11-10 10:50:06 UTC`, and the #506 description was edited. The issue remains open with its original acceptance criteria. The count of open issues returned to 40.
+
+The source review confirms `/readyz` is unauthenticated and invokes a fresh PostgreSQL readiness probe on each GET. The probe opens a database connection with bounded connect, lock and statement timeouts, but the application has no route-level rate limiter or pooling; no load measurement or provider-edge rate control has been verified. This is documented as an outstanding staging control, not a passing test.
+
+**P01 remains NO-GO / BLOCKED.** Repository CI does not prove a hosted staging service, provider-enforced all-in spend ceiling, live OIDC identity, production tenant isolation, TLS/network boundary, restore evidence, or release approval.
+
 # P01 Managed Staging: Owner Activation Decision
 
 ## P01 evidence SHA binding — PR #507 (merged 2026-11-10)

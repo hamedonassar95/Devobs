@@ -1,4 +1,14 @@
-## Main after PR #507 — 2026-11-10 (VERIFIED)
+## Main after PR #508; Issue #237 reopened — 2026-11-10 (VERIFIED)
+
+- PR [#508](https://github.com/hamedonassar95/Devobs/pull/508) merged at `57b256f21215a66bab9754e3f4f60ab8e6118ede` from head `2e1a3fb3235e1a529e9a286d9290d8adae124480`. Main CI [42800093891](https://github.com/hamedonassar95/Devobs/actions/runs/42800093891) and CodeQL [42800092231](https://github.com/hamedonassar95/Devobs/actions/runs/42800092231) succeeded on the exact merge SHA. PostgreSQL RLS, Python validation, security, container/Trivy, Terraform, `validate`, static Pages publication and `verify-production` passed. Node was skipped by path selection; incident and recovery checks were skipped by their conditions. Static Pages does not establish an API deployment.
+- **VERIFIED:** PR #506's negated issue-state wording was interpreted as a closing reference, and #237 was automatically closed when #506 merged. The issue was reopened at `2026-11-10 10:50:06 UTC`; `open_issues_count` returned to 40. The #506 description was corrected. The accidental state change did not satisfy or waive any #237 acceptance criterion.
+- PRs #236, #238 and #240 already contain the RLS policy-drift, per-read policy verification, and schema-lock fixes. PR #507 binds the advisory P01 evidence request to the exact checked-out `main` SHA. Main CI now passes these repository checks; independent hosted staging evidence remains absent.
+- This review adds disposable-PostgreSQL regressions for immediate membership revocation, transaction-local context when a connection is reused, and rollback of partial service-registry DDL. These additions are on the review branch and are not main evidence until their exact-head CI completes.
+- **Gate status unchanged:** AI-9 is **FAIL / BLOCKED** without independently sourced, naturally occurring, privacy-reviewed incidents with confirmed root causes and an authorized evaluation. P01 is **NO-GO / BLOCKED** without verified hosted staging, all-in budget enforcement, live identity, tenant isolation, TLS/network, recovery, and owner release approval. No AI-9 holdout seed was run or consumed.
+
+---
+
+## Previous main snapshot after PR #507 — 2026-11-10 (VERIFIED at the time)
 
 - PR [#507](https://github.com/hamedonassar95/Devobs/pull/507) merged at `71c79115e5a75f5b6629a5c1eaacbba0c2113233` from head `902d2f735d2b2ee0f649218cd824b2417bc2284d`. Exact-head CI [42797785104](https://github.com/hamedonassar95/Devobs/actions/runs/42797785104) and [42797796859](https://github.com/hamedonassar95/Devobs/actions/runs/42797796859) and CodeQL [42797786816](https://github.com/hamedonassar95/Devobs/actions/runs/42797786816) passed. Post-merge CI [42798389835](https://github.com/hamedonassar95/Devobs/actions/runs/42798389835) and CodeQL [42798388830](https://github.com/hamedonassar95/Devobs/actions/runs/42798388830) passed on the merge SHA.
 - PR #507 binds the P01 advisory evidence check to the exact checked-out SHA and requires a `main` dispatch. It does not change acceptance criteria or authenticate evidence contents.
