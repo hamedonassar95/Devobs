@@ -1,4 +1,13 @@
-## أحدث لقطة موثّقة: دمج PR #508 وإعادة فتح #237 — تحقق 2026-11-10
+## أحدث لقطة موثّقة: دمج PR #509 — تحقق 2026-11-10
+
+- **VERIFIED من GitHub:** دُمج PR [#509](https://github.com/hamedonassar95/Devobs/pull/509) من الرأس `015f8b84d1e4233beb2cb7e03082267cd4dba5ed` إلى `main` عند `2ea1f58a6323f4ccc0e6553be4b2fb61e6017c99` بواسطة مالك المستودع. نجح CI بعد الدمج [42805723188](https://github.com/hamedonassar95/Devobs/actions/runs/42805723188) وCodeQL [42805723573](https://github.com/hamedonassar95/Devobs/actions/runs/42805723573) على SHA الدمج. اجتازت PostgreSQL RLS وPython والأمن والحاوية/Trivy وTerraform وsite-contract و`validate` ونشر Pages الثابت والتحقق منه؛ تخطى Node بعد الدمج لاختيار المسارات، لكنه نجح في CI على رأس PR [42804796252](https://github.com/hamedonassar95/Devobs/actions/runs/42804796252). تخطت تمارين الحوادث والاستعادة شروطها.
+- #509 أضاف اختبارات PostgreSQL لسحب العضوية فورًا، وعدم بقاء سياق المستأجر عند إعادة استخدام الاتصال، والتراجع عن ترحيل جزئي. #237 ما زالت مفتوحة لأن دليل الاستضافة المستقلة غير موجود؛ لا يعني نجاح RLS في CI تحقق staging أو نجاح `/readyz` الحي.
+- **Render — تحقق قراءة فقط بتاريخ 2026-11-10:** الخدمة ما زالت بلا نشر ناجح؛ النشر الوحيد `dep-dbm5mtm1egvs73be49a0` على SHA `5b75be633b4fd5c797d9e4fdc1e960fd0d68e07e` انتهى بـ`invalid_staging_config`، وauto-deploy معطل. إعداد allowlist لخدمة الويب يسمح بالوصول من أي عنوان، لكن التطبيق لم يبدأ بنجاح. لم تُظهر Render مقاييس CPU أو الذاكرة أو HTTP أو instances للخدمة في الفترة التي فُحصت. قاعدة PostgreSQL حالتها `available` لكنها على خطة مجانية مؤقتة وبها استثناء وصول خارجي موسوم `temporary-migration`؛ لم يُقرأ أو يُغيّر أي سر أو إعداد.
+- **الحالة لم تتغير:** AI-9 **FAIL / BLOCKED** بلا حوادث إنتاج طبيعية موسومة ومراجعة وتقييم مستقل. P01 **NO-GO / BLOCKED** بلا staging ناجح وضوابط الإنفاق والهوية والعزل وTLS والاستعادة وموافقة الإطلاق. لم تُستهلك بذور AI-9 جديدة ولم يُنشر API. سجل الإنجازات أصبح 166 عنصرًا وآخر PR موثق #509.
+
+---
+
+## لقطة سابقة: دمج PR #508 وإعادة فتح #237 — تحقق 2026-11-10
 
 - **VERIFIED من GitHub:** دُمج PR [#508](https://github.com/hamedonassar95/Devobs/pull/508) عند `57b256f21215a66bab9754e3f4f60ab8e6118ede` من الرأس `2e1a3fb3235e1a529e9a286d9290d8adae124480`. نجح CI بعد الدمج [42800093891](https://github.com/hamedonassar95/Devobs/actions/runs/42800093891) وCodeQL [42800092231](https://github.com/hamedonassar95/Devobs/actions/runs/42800092231) على SHA الدمج. اجتازت PostgreSQL RLS وPython وsecurity وcontainer/Trivy وTerraform و`validate` ونشر Pages الثابت والتحقق منه؛ تخطى Node حسب اختيار المسارات، وتخطت تمارين الحوادث والاستعادة لشروطها.
 - **VERIFIED:** اندمج #508 لتسجيل #506 و#507؛ فحوصه على الرأس كانت CI [42799559074](https://github.com/hamedonassar95/Devobs/actions/runs/42799559074) و[42799566771](https://github.com/hamedonassar95/Devobs/actions/runs/42799566771) وCodeQL [42799560170](https://github.com/hamedonassar95/Devobs/actions/runs/42799560170). لم يغير كود الخدمة أو شروط البوابات.
