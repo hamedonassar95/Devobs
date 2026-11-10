@@ -1026,11 +1026,27 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr501_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr505_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 501)
-        self.assertEqual(result["merged_milestones"], 158)
+        self.assertEqual(result["latest_pr"], 505)
+        self.assertEqual(result["merged_milestones"], 162)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
+        expected_recent = {
+            502: ("0f6168681b08f687bc7a3aefa8238c0a7f3de691", "917b481694c4e3607f93890681e39c23e5dcad21", 42689426462),
+            503: ("dd7a59bc3cf68070cfde419c442bdc7c2c52eb8f", "8b1ad57f5761fa86b6e606b8610ca3d643a8c0c6", 42737489501),
+            504: ("babf6a5ed5c5edb935f6b4462563370801b68b81", "ada7d5519d11c2dada6b0e2096d535a99629098d", 42737545038),
+            505: ("083ec1b6d6c3b576b8ec48b4cb82cd9dbe106b13", "13d6bc70d679e57ab6a5a09cf41690cdb21cfd97", 42739143583),
+        }
+        for number, (head_sha, merge_sha, ci_run_id) in expected_recent.items():
+            with self.subTest(pr=number):
+                self.assertEqual(records[number]["pr_head_sha"], head_sha)
+                self.assertEqual(records[number]["merge_sha"], merge_sha)
+                self.assertEqual(records[number]["ci_run_id"], ci_run_id)
+        self.assertIn("natural incident labels", records[504]["limitations"])
+        self.assertIn("No Actions run was found on the merge SHA", records[505]["limitations"])
+        gates = {item["id"]: item["status"] for item in self.data["gates"]}
+        self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
+        self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
         otel_api_501 = records[501]
         self.assertEqual(otel_api_501["pr_head_sha"], "5dc875a27c2a127a80248bc34414b6d12f86b4f0")
         self.assertEqual(otel_api_501["merge_sha"], "4382e364e8d67ef70425e5fe35473aac0f5a8272")
