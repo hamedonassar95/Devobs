@@ -35,6 +35,7 @@
 ## مركز الأتمتة
 
 - **ابدأ من هنا:** [مركز الأتمتة وسير التشغيل الموحد](docs/AUTOMATION_HUB.md)
+- **جاهزية إصدارات المشاريع:** [Portfolio v1 release-readiness tracker](docs/portfolio/PORTFOLIO_V1_READINESS.md) — لقطة موثقة بالأدلة لمستودعات المالك الخمسة؛ تميّز نجاح CI عن النشر والتشغيل الفعلي، ولا تغيّر حالة أي بوابة.
 - **سجل الإنجازات والبوابات:** [Milestone Ledger](docs/MILESTONE_LEDGER.md) — فحص دون شبكة يربط كل إنجاز موثق برقم PR وSHA ودليل CI، ويعرض النواقص دون تغيير حالة جاهزيتها.
 - **تكامل OpenArt الاختياري:** [حوكمة طلبات الصور والفيديو عبر MCP](docs/OPENART_MCP_INTEGRATION.md) — صيغة طلب خاصة آمنة دون شبكة أو كلفة، مع موافقة منفصلة قبل أي توليد.
 - [Devobs AI DevOps Control Room](docs/AI_DEVOPS_CONTROL_ROOM.md): توثيق مسارات AI وCI وحالة التحقق من المصدر مقابل التشغيل.
