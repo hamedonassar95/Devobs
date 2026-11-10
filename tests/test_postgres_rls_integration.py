@@ -333,14 +333,85 @@ class PostgresTenantRLSTests(unittest.TestCase):
                         self.store.authorize_service(subject, tenant, project, service_id)
         connect.assert_not_called()
 
-    def test_context_does_not_survive_read_transaction(self):
-        # Two identities are served by separate short-lived transactions.
+    def test_context_does_not_survive_pooled_connection_reuse(self):
+        # Simulate two requests borrowing one connection from a pool. The
+        # transaction-local GUCs used by PostgresTenantStore must reset before
+        # the next borrower can observe rows under a stale tenant context.
+        with psycopg.connect(READER_DSN, autocommit=True) as conn:
+            with conn.transaction():
+                conn.execute("SET TRANSACTION READ ONLY")
+                conn.execute(
+                    "SELECT set_config('devobs_ai.tenant_id', %s, true), "
+                    "set_config('devobs_ai.subject_id', %s, true)",
+                    ("alpha", "alice"),
+                )
+                self.assertEqual(
+                    conn.execute("SELECT count(*) FROM devobs_ai.project_ci").fetchone(),
+                    (1,),
+                )
+            with conn.transaction():
+                conn.execute("SET TRANSACTION READ ONLY")
+                self.assertEqual(
+                    conn.execute("SELECT count(*) FROM devobs_ai.project_ci").fetchone(),
+                    (0,),
+                )
+
+    def test_revoked_membership_denies_reads_and_service_access_immediately(self):
         self.assertIs(self.store.authorize_service(
             "alice", "alpha", "shared", "collector"), True)
-        self.store.read_status("alice","alpha","shared")
-        self.store.read_status("bob","beta","shared")
-        with psycopg.connect(READER_DSN, autocommit=True) as conn:
-            self.assertEqual(conn.execute("SELECT count(*) FROM devobs_ai.project_ci").fetchone(), (0,))
+        self.assertEqual(
+            self.store.read_status("alice", "alpha", "shared")["source_sha"],
+            "a" * 40,
+        )
+        self.admin.execute(
+            "DELETE FROM devobs_ai.memberships "
+            "WHERE tenant_id=%s AND project_id=%s AND subject_id=%s",
+            ("alpha", "shared", "alice"),
+        )
+        try:
+            with self.assertRaisesRegex(ValueError, "^access_denied$"):
+                self.store.read_status("alice", "alpha", "shared")
+            self.assertIs(
+                self.store.authorize_service("alice", "alpha", "shared", "collector"),
+                False,
+            )
+        finally:
+            self.admin.execute(
+                "INSERT INTO devobs_ai.memberships (tenant_id, project_id, subject_id) "
+                "VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
+                ("alpha", "shared", "alice"),
+            )
+        self.assertIs(self.store.authorize_service(
+            "alice", "alpha", "shared", "collector"), True)
+
+    def test_service_registry_migration_rolls_back_partial_ddl(self):
+        migration = (ROOT / "deploy/postgres/002_service_registry.sql").read_text()
+        self.admin.execute("DROP TABLE devobs_ai.service_registry")
+        # Inject a duplicate CREATE after the migration's DDL but before COMMIT.
+        # PostgreSQL must roll back the complete transaction on this failure.
+        broken_migration = migration.replace(
+            "COMMIT;",
+            "CREATE TABLE devobs_ai.service_registry (rollback_probe integer);\nCOMMIT;",
+        )
+        self.assertNotEqual(broken_migration, migration)
+        try:
+            with self.assertRaises(psycopg.errors.DuplicateTable):
+                self.admin.execute(broken_migration)
+            self.admin.execute("ROLLBACK")
+            self.assertIsNone(
+                self.admin.execute(
+                    "SELECT to_regclass('devobs_ai.service_registry')"
+                ).fetchone()[0]
+            )
+        finally:
+            self.admin.execute("ROLLBACK")
+            self.admin.execute(migration)
+            self.admin.execute(
+                "INSERT INTO devobs_ai.service_registry VALUES "
+                "(%s,%s,%s),(%s,%s,%s),(%s,%s,%s)",
+                ("alpha", "shared", "collector", "beta", "shared", "collector",
+                 "alpha", "hidden", "private-service"),
+            )
 
     def test_admin_connection_refused_by_read_adapter(self):
         with self.assertRaisesRegex(StorageUnavailable,"^unsafe_database_role$"):

@@ -1806,6 +1806,17 @@
       "ci_run_id": 42798389835,
       "verification": "VERIFIED 2026-11-10: PR #507 merged at 71c79115e5a75f5b6629a5c1eaacbba0c2113233 from head 902d2f735d2b2ee0f649218cd824b2417bc2284d. Exact-head CI 42797785104 and 42797796859 and CodeQL 42797786816 passed; post-merge main CI 42798389835 and CodeQL 42798388830 passed on the merge SHA.",
       "limitations": "Fail-closed checkout/source SHA and main-ref binding for the advisory evidence workflow only. Does not authenticate evidence URLs or reviewer claims or prove live provider, spend cap, identity, tenant isolation, TLS or recovery. Static Pages only; incident/recovery checks skipped. AI-9 and P01 remain BLOCKED."
+    },
+    {
+      "id": "docs-main-pr508-issue237-reopen",
+      "area": "DOCUMENTATION",
+      "title": "Record PR #508 exact-main evidence and reopen issue #237 after accidental auto-close",
+      "pr_number": 508,
+      "pr_head_sha": "2e1a3fb3235e1a529e9a286d9290d8adae124480",
+      "merge_sha": "57b256f21215a66bab9754e3f4f60ab8e6118ede",
+      "ci_run_id": 42800093891,
+      "verification": "VERIFIED 2026-11-10: PR #508 merged at 57b256f21215a66bab9754e3f4f60ab8e6118ede from head 2e1a3fb3235e1a529e9a286d9290d8adae124480. Exact-head CI 42799559074 and 42799566771 and CodeQL 42799560170 passed; post-merge main CI 42800093891 and CodeQL 42800092231 passed on the merge SHA. PostgreSQL RLS, Python validation, security, container/Trivy, Terraform, validate, static Pages publication and verify-production passed. Node skipped by path selection; incident and recovery checks skipped by conditions. GitHub timeline verified issue #237 reopened at 2026-11-10 10:50:06 UTC; open issue count returned to 40.",
+      "limitations": "Documentation and ledger-test synchronization only. The #237 state correction does not satisfy its acceptance criteria. Static Pages is not a hosted API. No provider configuration, live identity, all-in spend cap, hosted tenant isolation, TLS/network posture or restore evidence was added. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex runtime acceptance remains OPEN."
     }
   ],
   "gates": [
