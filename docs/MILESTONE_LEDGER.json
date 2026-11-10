@@ -1740,6 +1740,50 @@
       "ci_run_id": 42688136804,
       "verification": "VERIFIED 2026-11-09: PR #501 merged at 4382e364e8d67ef70425e5fe35473aac0f5a8272 from head 5dc875a27c2a127a80248bc34414b6d12f86b4f0. Exact-head CI 42678759476 and CodeQL 42678752841 passed; post-merge CI 42688136804 and CodeQL 42688135345 passed on the merge SHA. Main CI published and verified the static Pages site.",
       "limitations": "One opt-in, local-only staging WSGI histogram reuses the existing Collector and Prometheus. Local synthetic smoke delivered metrics to Prometheus; no production/customer data or hosted API instrumentation was used. The Pages deployment is a static site only; incident and restore checks skipped their conditions. AI-9 remains BLOCKED, P01 remains BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "docs-api-metrics-merge-pr502",
+      "area": "DOCUMENTATION",
+      "title": "Record owner-merged API metrics PR #501 evidence",
+      "pr_number": 502,
+      "pr_head_sha": "0f6168681b08f687bc7a3aefa8238c0a7f3de691",
+      "merge_sha": "917b481694c4e3607f93890681e39c23e5dcad21",
+      "ci_run_id": 42689426462,
+      "verification": "VERIFIED 2026-11-10: PR #502 merged at 917b481694c4e3607f93890681e39c23e5dcad21 from head 0f6168681b08f687bc7a3aefa8238c0a7f3de691. Exact-head CI 42689426462 passed; post-merge CI 42698243446 and CodeQL 42698241934 passed on the merge SHA.",
+      "limitations": "Documentation-only record of PR #501. Static Pages is not a hosted API or SaaS service. AI-9 remains BLOCKED, P01 remains BLOCKED, and Codex runtime acceptance remains OPEN."
+    },
+    {
+      "id": "p01-render-live-state-pr503",
+      "area": "PLATFORM",
+      "title": "Record the existing Render staging failure and recovery boundary",
+      "pr_number": 503,
+      "pr_head_sha": "dd7a59bc3cf68070cfde419c442bdc7c2c52eb8f",
+      "merge_sha": "8b1ad57f5761fa86b6e606b8610ca3d643a8c0c6",
+      "ci_run_id": 42737489501,
+      "verification": "VERIFIED 2026-11-10: PR #503 merged at 8b1ad57f5761fa86b6e606b8610ca3d643a8c0c6 from head dd7a59bc3cf68070cfde419c442bdc7c2c52eb8f. Exact-head CI 42737489501 passed. No post-merge Actions run was found on the merge SHA at review time.",
+      "limitations": "Read-only documentation of an existing Render service whose build completed but startup failed with invalid_staging_config; the specific setting is unknown. Database access-list mismatch and expiry remain. No settings or data were changed; P01 remains BLOCKED."
+    },
+    {
+      "id": "ai9-evidence-intake-pr504",
+      "area": "AI_GOVERNANCE",
+      "title": "Add an offline structural AI-9 evidence intake checker",
+      "pr_number": 504,
+      "pr_head_sha": "babf6a5ed5c5edb935f6b4462563370801b68b81",
+      "merge_sha": "ada7d5519d11c2dada6b0e2096d535a99629098d",
+      "ci_run_id": 42737545038,
+      "verification": "VERIFIED 2026-11-10: PR #504 merged at ada7d5519d11c2dada6b0e2096d535a99629098d from head babf6a5ed5c5edb935f6b4462563370801b68b81. Exact-head CI 42737545038 passed 998 Python tests with 23 skipped; validate, security, container/Trivy, PostgreSQL RLS and Terraform passed.",
+      "limitations": "The checker validates evidence-document structure and references, not linked artifact truth, reviewer authority, natural incident labels, run IDs, seed freshness or detector metrics. Default evidence remains unverified. AI-9 remains BLOCKED and P01 remains BLOCKED; PR-Agent and billable AI review were skipped."
+    },
+    {
+      "id": "p01-keycloak-profile-pr505",
+      "area": "PLATFORM",
+      "title": "Document offline Keycloak OIDC claim-profile preflight",
+      "pr_number": 505,
+      "pr_head_sha": "083ec1b6d6c3b576b8ec48b4cb82cd9dbe106b13",
+      "merge_sha": "13d6bc70d679e57ab6a5a09cf41690cdb21cfd97",
+      "ci_run_id": 42739143583,
+      "verification": "VERIFIED 2026-11-10: PR #505 merged at 13d6bc70d679e57ab6a5a09cf41690cdb21cfd97 from head 083ec1b6d6c3b576b8ec48b4cb82cd9dbe106b13. Exact-head CI 42739143583 passed. Nine offline OIDC verifier tests use temporary in-memory keys.",
+      "limitations": "No live identity provider, real issuer/JWKS/token, runtime DB role, end-to-end tenant isolation, or provider-enforced all-in cap was tested. No Actions run was found on the merge SHA; the available combined status showed Vercel only. AI-9 remains BLOCKED and P01 remains BLOCKED; PR-Agent and billable AI review were skipped."
     }
   ],
   "gates": [
@@ -1747,15 +1791,15 @@
       "id": "ai9-detection-quality",
       "status": "BLOCKED",
       "source": "docs/AI9_V3_INDEPENDENT_EVAL_GATE.md",
-      "reason": "VERIFIED 2026-11-01: the preregistered four-seed v3 synthetic holdout produced ALL_FROZEN_WINDOW_GATES_PASS on the approved SHA. It uses seed draws from the existing synthetic generator, not independent labeled incident data or real-world evidence. VERIFIED 2026-11-09: the supplemental RCAEval RE1-OB baseline scored 99/123 Top-1 and 114/123 Top-3 on fault-injected testbed cases using known injection times; it did not run the Devobs production detector and is not natural-incident evidence. Neither result establishes production quality. Official AI-9 remains FAIL / NOT AUTHORIZED for production.",
+      "reason": "VERIFIED 2026-11-01: the preregistered four-seed v3 synthetic holdout produced ALL_FROZEN_WINDOW_GATES_PASS on the approved SHA. It uses seed draws from the existing synthetic generator, not independent labeled incident data or real-world evidence. VERIFIED 2026-11-09: the supplemental RCAEval RE1-OB baseline scored 99/123 Top-1 and 114/123 Top-3 on fault-injected testbed cases using known injection times; it did not run the Devobs production detector and is not natural-incident evidence. Neither result establishes production quality. Official AI-9 remains FAIL / NOT AUTHORIZED for production. VERIFIED 2026-11-10: PR #504 added a structural evidence-intake checker; it does not authenticate linked evidence or supply real-incident labels, run/seed-level evaluation, or independent approval. No natural production incident corpus has been independently verified; AI-9 remains FAIL / NOT AUTHORIZED.",
       "next_action": "Obtain independently sourced, naturally occurring, privacy/provenance-reviewed labeled incident records from production, including service, time and confirmed root cause; confirm permission and a deterministic mapping to the unchanged AI-9 contract. Preregister the exact corpus and run before scoring. Do not use fault-injected RCAEval as production evidence, keep consumed synthetic seeds closed, retain AI-9 FAIL, and require a separate owner release decision."
     },
     {
       "id": "p01-managed-saas",
       "status": "BLOCKED",
       "source": "docs/P01_ACTIVATION_READINESS.md",
-      "reason": "VERIFIED 2026-11-04: an existing Supabase Free database candidate has forced RLS and a restricted read-only role; synthetic tenant/subject/missing-context/write-denial behavior passed and fixtures were rolled back. This proves only database-layer behavior. No P01 API service, runtime identity, approved all-in provider cap, production residency decision, backup/restore proof, or owner activation GO is established.",
-      "next_action": "Keep P01 BLOCKED and do not create more resources. Obtain evidence for one provider and region whose enforceable total monthly invoice covers every in-scope fee, tax, database, storage, backup and overrun; then separately prove OIDC/JWKS, API runtime, network/TLS, end-to-end tenant isolation, monitoring, restore/deletion, and obtain explicit owner activation approval."
+      "reason": "VERIFIED 2026-11-10: Render web service and PostgreSQL exist, but the first app deployment failed with invalid_staging_config and no live /readyz success has been observed; a temporary external DB allowlist entry differs from the reviewed private-only Blueprint. PR #505 adds only an offline Keycloak profile and verifier tests; no real issuer/JWKS/token, runtime DB identity, end-to-end tenant isolation, verified TLS, restore evidence, provider-enforced all-in USD 100 cap, or owner GO is established.",
+      "next_action": "Keep P01 BLOCKED and do not recreate resources or run migrations blindly. After an owner-approved exact scope, resolve the existing staging configuration and access-list mismatch; then prove real OIDC/JWKS and least-privilege runtime DB identity, TLS certificate identity, end-to-end tenant isolation, recovery, and a provider-enforced complete monthly invoice ceiling including taxes, storage, backup, bandwidth and overrun; obtain explicit owner activation approval."
     },
     {
       "id": "codex-agent-runtime-acceptance",

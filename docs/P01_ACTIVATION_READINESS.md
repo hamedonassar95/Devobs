@@ -6,9 +6,15 @@
 
 **P01 remains NO-GO / BLOCKED.** This corrects outdated below-the-line pre-provisioning snapshots; none of the unresolved identity, least-privilege application runtime, certificate identity, recovery, real tenant, provider cost enforcement, or final human release evidence becomes VERIFIED simply because resources now exist.
 
+## Keycloak OIDC preflight — PR #505 (offline only)
+
+**VERIFIED from GitHub:** PR [#505](https://github.com/hamedonassar95/Devobs/pull/505) merged at `13d6bc70d679e57ab6a5a09cf41690cdb21cfd97` from head `083ec1b6d6c3b576b8ec48b4cb82cd9dbe106b13`; exact-head CI [42739143583](https://github.com/hamedonassar95/Devobs/actions/runs/42739143583) passed. It adds a Keycloak claim-profile document and nine offline verifier tests using temporary in-memory keys. It does not provision an identity provider or establish a real issuer, JWKS, token, runtime DB role, or end-to-end tenant isolation. No Actions run was found on the merge SHA; the combined status available at review time showed Vercel only.
+
+**P01 remains NO-GO / BLOCKED.** The profile is preparation for a future owner-authorized nonproduction test, not an activation decision or proof of a complete USD 100 cap.
+
 **Decision status: OWNER-SIGNED NO-GO / BLOCKED (2026-10-30); conditional P01 approval is pending enforcement proof.** The owner approved the bounded P01 scope with a USD 100 total monthly ceiling only if verifiable automatic enforcement covers every P01 resource. Railway Support confirmed in writing that Compute and Agent limits are separate, subscription fees are outside both, storage continues billing after workload shutdown, and no maximum overrun is guaranteed. Railway therefore does not meet the approved cap. An AWS new-experience project limit is a research candidate only: it applies pre-tax, has a region restriction, and has unresolved fee, storage, and overrun details. No P01 application service or new cloud resource was created under that decision. See the [Railway evidence and alternative-provider review](P01_RAILWAY_SPEND_ENFORCEMENT_EVIDENCE.md). Decision-time `main` was [`4ec9fd138f004498827b5c3b903a78971a8e6706`](https://github.com/hamedonassar95/Devobs/commit/4ec9fd138f004498827b5c3b903a78971a8e6706), with required `validate` passing in [CI run 40991673938](https://github.com/hamedonassar95/Devobs/actions/runs/40991673938). Repository checks do not establish provider settings or service health.
 
-## Latest checkpoint — 2026-11-05 (provider decision; deployment not performed)
+## Historical checkpoint — 2026-11-05 (provider decision; deployment not performed at that time)
 
 **VERIFIED (owner direction):** the owner selected Render to host the synthetic staging API and OpenAI as the diagnosis provider. PR #440, which introduced the API source baseline, is merged. Follow-up branch `feat/render-openai-staging` prepares a Render Free web service and private Render Free Postgres in Frankfurt, based on the earlier Frankfurt planning selection. The implementation draft defaults to `gpt-6-luna`; the owner selected OpenAI but did not separately approve a model or spending amount. No Render resource was created, no API key was received or written, and no OpenAI request was made.
 

@@ -2,6 +2,12 @@
 
 **Evidence reviewed:** updated 2026-11-01 UTC. This is an **offline evidence and decision document**, not a production release or an AI-9 production PASS.
 
+## Evidence-intake checker — PR #504 (2026-11-10)
+
+**VERIFIED from GitHub:** PR [#504](https://github.com/hamedonassar95/Devobs/pull/504) merged at `ada7d5519d11c2dada6b0e2096d535a99629098d` from head `babf6a5ed5c5edb935f6b4462563370801b68b81`; exact-head CI [42737545038](https://github.com/hamedonassar95/Devobs/actions/runs/42737545038) passed 998 Python tests with 23 skipped. It adds [`scripts/check_ai9_evidence.py`](../scripts/check_ai9_evidence.py), an offline structural intake checker that never returns AI-9 GO.
+
+**Evidence limit:** the checker validates schema, declared status, SHA strings, timestamps and clean HTTPS reference shape. It does not fetch or authenticate linked evidence, establish reviewer authority, or verify incident labels, evaluation run IDs, per-seed results or holdout freshness. The checked-in evidence entries remain unverified. This improves fail-closed intake hygiene; it does not satisfy AI-9's independent natural-incident evaluation. AI-9 remains **FAIL / NOT AUTHORIZED**.
+
 ## Frozen holdout execution — completed once
 
 - **VERIFIED:** The owner authorized the exact one-time, no-fee synthetic run on PR [#357](https://github.com/hamedonassar95/Devobs/pull/357), bound to evaluated `main` SHA `80dbcb3466c1368662190736a442d1082e7f2b54`, registration `ai9-coherent-onset-v3`, and seeds `20270601`–`20270604`. Each reserved seed was consumed once, in registered order; do not rerun or substitute seeds.

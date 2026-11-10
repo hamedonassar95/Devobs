@@ -1,4 +1,15 @@
-## أحدث لقطة موثّقة: قياس API المحلي #501 — تحقق 2026-11-09
+## أحدث لقطة موثّقة: دمج PRs #502–#505 — تحقق 2026-11-10
+
+- **VERIFIED من GitHub:** دُمج #502 عند `917b481694c4e3607f93890681e39c23e5dcad21` من الرأس `0f6168681b08f687bc7a3aefa8238c0a7f3de691`. نجح CI على الرأس [42689426462](https://github.com/hamedonassar95/Devobs/actions/runs/42689426462)، ثم نجح CI وCodeQL على SHA الدمج [42698243446](https://github.com/hamedonassar95/Devobs/actions/runs/42698243446) و[42698241934](https://github.com/hamedonassar95/Devobs/actions/runs/42698241934).
+- **VERIFIED من GitHub:** دُمج #503 عند `8b1ad57f5761fa86b6e606b8610ca3d643a8c0c6` من الرأس `dd7a59bc3cf68070cfde419c442bdc7c2c52eb8f`؛ CI على الرأس [42737489501](https://github.com/hamedonassar95/Devobs/actions/runs/42737489501) نجح. وثّق حالة Render الفاشلة؛ لم يغيّر إعدادات الخدمة.
+- **VERIFIED من GitHub:** دُمج #504 عند `ada7d5519d11c2dada6b0e2096d535a99629098d` من الرأس `babf6a5ed5c5edb935f6b4462563370801b68b81`؛ CI على الرأس [42737545038](https://github.com/hamedonassar95/Devobs/actions/runs/42737545038) نجح، مع 998 اختبار Python و23 تخطيًا. أضاف مدقّقًا بنيويًا لأدلة AI-9؛ لا يثبت صحة محتوى الأدلة ولا يفتح البوابة.
+- **VERIFIED من GitHub:** دُمج #505 عند `13d6bc70d679e57ab6a5a09cf41690cdb21cfd97` من الرأس `083ec1b6d6c3b576b8ec48b4cb82cd9dbe106b13`؛ CI على الرأس [42739143583](https://github.com/hamedonassar95/Devobs/actions/runs/42739143583) نجح. اختبارات OIDC محلية بمفاتيح مؤقتة فقط؛ لا مزود هوية حي ولا token/JWKS حقيقي. لم أجد تشغيل Actions بعد الدمج على SHA `13d6bc7`؛ الحالة المجمعة المتاحة تعرض Vercel فقط.
+- سجّل التشغيلات الدقيقة أن PR-Agent تخطّى شروطه، ومراجعة AI المدفوعة لم تُشغّل لغياب موافقة الميزانية. لم تُسجّل نتائج CodeQL على رؤوس #503–#505. لا أعدّ أيًا من هذه الخطوات دليلًا على AI-9 أو P01.
+- سجل الإنجازات قبل هذا التوثيق ما زال عند 158 مدخلًا وPR #501. حالات البوابات لم تتغير: AI-9 **BLOCKED** وP01 **BLOCKED** وCodex runtime **OPEN**. لا بذور AI-9 جديدة استُهلكت.
+
+---
+
+## لقطة سابقة موثّقة: قياس API المحلي #501 — تحقق 2026-11-09
 
 - **VERIFIED من GitHub:** دُمج PR [#501](https://github.com/hamedonassar95/Devobs/pull/501) على `main` عند `4382e364e8d67ef70425e5fe35473aac0f5a8272` من الرأس `5dc875a27c2a127a80248bc34414b6d12f86b4f0`. نجح CI على رأس PR [42678759476](https://github.com/hamedonassar95/Devobs/actions/runs/42678759476) وCodeQL [42678752841](https://github.com/hamedonassar95/Devobs/actions/runs/42678752841). نجح CI بعد الدمج [42688136804](https://github.com/hamedonassar95/Devobs/actions/runs/42688136804) وCodeQL [42688135345](https://github.com/hamedonassar95/Devobs/actions/runs/42688135345) على SHA الدمج.
 - أضاف #501 قياسًا محليًا اختياريًا واحدًا لزمن طلب WSGI، يعيد استخدام Collector وPrometheus. نشر سير Pages الموقع الثابت وتحقق منه؛ هذا لا يعني نشر API أو خدمة SaaS. فحوص الحادث والاستعادة تخطّت شروطها.
