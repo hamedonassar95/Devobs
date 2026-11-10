@@ -112,7 +112,10 @@ class RenderFreeStagingBlueprintTests(unittest.TestCase):
             "5 diagnoses",
             "verify-full",
             "run each migration exactly once",
-            "No hosted API request or live model call has run",
+            "No successful hosted API request or live model call has been verified",
+            "Do not import the Blueprint again",
+            "temporary-migration",
+            "invalid_staging_config",
         ):
             with self.subTest(required=required):
                 if required not in self.runbook:
