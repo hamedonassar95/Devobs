@@ -85,19 +85,19 @@ class AI9EvidenceTests(unittest.TestCase):
 
     def test_untrusted_url_rejected(self):
         obj = verified()
-        obj["controls"]["owner_approval"]["evidence_url"] = "https://x.example/item?token=hidden"
+        obj["controls"]["independent_release_approval"]["evidence_url"] = "https://x.example/item?token=hidden"
         self.assert_invalid(obj, "clean HTTPS")
 
     def test_malformed_ipv6_url_is_rejected_as_invalid_evidence(self):
         obj = verified()
-        obj["controls"]["owner_approval"]["evidence_url"] = "https://[::1"
+        obj["controls"]["independent_release_approval"]["evidence_url"] = "https://[::1"
         self.assert_invalid(obj, "invalid evidence reference")
 
     def test_url_control_characters_are_rejected(self):
         for control in ("\x7f", "\x85"):
             with self.subTest(control=ord(control)):
                 obj = verified()
-                obj["controls"]["owner_approval"]["evidence_url"] = (
+                obj["controls"]["independent_release_approval"]["evidence_url"] = (
                     "https://example.com/evidence" + control
                 )
                 self.assert_invalid(obj, "invalid evidence reference")
