@@ -1784,6 +1784,28 @@
       "ci_run_id": 42739143583,
       "verification": "VERIFIED 2026-11-10: PR #505 merged at 13d6bc70d679e57ab6a5a09cf41690cdb21cfd97 from head 083ec1b6d6c3b576b8ec48b4cb82cd9dbe106b13. Exact-head CI 42739143583 passed. Nine offline OIDC verifier tests use temporary in-memory keys.",
       "limitations": "No live identity provider, real issuer/JWKS/token, runtime DB role, end-to-end tenant isolation, or provider-enforced all-in cap was tested. No Actions run was found on the merge SHA; the available combined status showed Vercel only. AI-9 remains BLOCKED and P01 remains BLOCKED; PR-Agent and billable AI review were skipped."
+    },
+    {
+      "id": "docs-main-pr506-postmerge-evidence",
+      "area": "DOCUMENTATION",
+      "title": "Record PR #506 merge and exact-main verification evidence",
+      "pr_number": 506,
+      "pr_head_sha": "fcc9ae0eb8a6a3e8d5f695f4624c5bb78514175b",
+      "merge_sha": "d395168a4b031e6b4614d653c89caeb4d366b6f1",
+      "ci_run_id": 42796420402,
+      "verification": "VERIFIED 2026-11-10: PR #506 merged at d395168a4b031e6b4614d653c89caeb4d366b6f1 from head fcc9ae0eb8a6a3e8d5f695f4624c5bb78514175b. Exact-head CI 42793458988 and 42793522335 and CodeQL 42793516972 passed; post-merge main CI 42796420402 and CodeQL 42796417098 passed on the merge SHA.",
+      "limitations": "Documentation-only merge record. Main CI published and verified static Pages; Node skipped by path selection and incident/recovery checks skipped by conditions. No hosted API/SaaS proof. AI-9 remains BLOCKED, P01 remains BLOCKED, Codex runtime acceptance remains OPEN."
+    },
+    {
+      "id": "p01-checkout-sha-binding-pr507",
+      "area": "PLATFORM",
+      "title": "Bind advisory P01 evidence checks to the checked-out main SHA",
+      "pr_number": 507,
+      "pr_head_sha": "902d2f735d2b2ee0f649218cd824b2417bc2284d",
+      "merge_sha": "71c79115e5a75f5b6629a5c1eaacbba0c2113233",
+      "ci_run_id": 42798389835,
+      "verification": "VERIFIED 2026-11-10: PR #507 merged at 71c79115e5a75f5b6629a5c1eaacbba0c2113233 from head 902d2f735d2b2ee0f649218cd824b2417bc2284d. Exact-head CI 42797785104 and 42797796859 and CodeQL 42797786816 passed; post-merge main CI 42798389835 and CodeQL 42798388830 passed on the merge SHA.",
+      "limitations": "Fail-closed checkout/source SHA and main-ref binding for the advisory evidence workflow only. Does not authenticate evidence URLs or reviewer claims or prove live provider, spend cap, identity, tenant isolation, TLS or recovery. Static Pages only; incident/recovery checks skipped. AI-9 and P01 remain BLOCKED."
     }
   ],
   "gates": [

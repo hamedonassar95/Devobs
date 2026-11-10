@@ -1026,16 +1026,18 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr505_merges_are_recorded_without_gate_promotion(self):
+    def test_pr420_through_pr507_merges_are_recorded_without_gate_promotion(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 505)
-        self.assertEqual(result["merged_milestones"], 162)
+        self.assertEqual(result["latest_pr"], 507)
+        self.assertEqual(result["merged_milestones"], 164)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         expected_recent = {
             502: ("0f6168681b08f687bc7a3aefa8238c0a7f3de691", "917b481694c4e3607f93890681e39c23e5dcad21", 42689426462),
             503: ("dd7a59bc3cf68070cfde419c442bdc7c2c52eb8f", "8b1ad57f5761fa86b6e606b8610ca3d643a8c0c6", 42737489501),
             504: ("babf6a5ed5c5edb935f6b4462563370801b68b81", "ada7d5519d11c2dada6b0e2096d535a99629098d", 42737545038),
             505: ("083ec1b6d6c3b576b8ec48b4cb82cd9dbe106b13", "13d6bc70d679e57ab6a5a09cf41690cdb21cfd97", 42739143583),
+            506: ("fcc9ae0eb8a6a3e8d5f695f4624c5bb78514175b", "d395168a4b031e6b4614d653c89caeb4d366b6f1", 42796420402),
+            507: ("902d2f735d2b2ee0f649218cd824b2417bc2284d", "71c79115e5a75f5b6629a5c1eaacbba0c2113233", 42798389835),
         }
         for number, (head_sha, merge_sha, ci_run_id) in expected_recent.items():
             with self.subTest(pr=number):
@@ -1044,6 +1046,10 @@ class MilestoneLedgerTests(unittest.TestCase):
                 self.assertEqual(records[number]["ci_run_id"], ci_run_id)
         self.assertIn("natural incident labels", records[504]["limitations"])
         self.assertIn("No Actions run was found on the merge SHA", records[505]["limitations"])
+        self.assertIn("CodeQL 42796417098 passed", records[506]["verification"])
+        self.assertIn("static Pages", records[506]["limitations"])
+        self.assertIn("CodeQL 42798388830 passed", records[507]["verification"])
+        self.assertIn("Does not authenticate evidence", records[507]["limitations"])
         gates = {item["id"]: item["status"] for item in self.data["gates"]}
         self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
