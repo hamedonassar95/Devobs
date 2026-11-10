@@ -1,5 +1,15 @@
 # P01 Managed Staging: Owner Activation Decision
 
+## P01 evidence SHA binding — PR #507 (merged 2026-11-10)
+
+**VERIFIED from GitHub:** PR [#507](https://github.com/hamedonassar95/Devobs/pull/507) merged at `71c79115e5a75f5b6629a5c1eaacbba0c2113233` from head `902d2f735d2b2ee0f649218cd824b2417bc2284d`; exact-head CI [42797796859](https://github.com/hamedonassar95/Devobs/actions/runs/42797796859) and CodeQL [42797786816](https://github.com/hamedonassar95/Devobs/actions/runs/42797786816) passed. It checks that the workflow's requested source SHA matches the checked-out SHA and that dispatch originates from `main`, failing closed on mismatch. Post-merge CI [42798389835](https://github.com/hamedonassar95/Devobs/actions/runs/42798389835) and CodeQL [42798388830](https://github.com/hamedonassar95/Devobs/actions/runs/42798388830) passed on the merge SHA.
+
+This is a repository evidence-integrity fix only. It does not establish a provider-enforced spend ceiling, live identity/JWKS, tenant isolation, TLS/network posture, backup restoration, or owner GO. **P01 remains NO-GO / BLOCKED.**
+
+## Previous repository CI checkpoint — PR #506 (2026-11-10)
+
+**VERIFIED from GitHub:** PR [#506](https://github.com/hamedonassar95/Devobs/pull/506) merged at `d395168a4b031e6b4614d653c89caeb4d366b6f1` from head `fcc9ae0eb8a6a3e8d5f695f4624c5bb78514175b`. Post-merge CI [42796420402](https://github.com/hamedonassar95/Devobs/actions/runs/42796420402) and CodeQL [42796417098](https://github.com/hamedonassar95/Devobs/actions/runs/42796417098) passed on the merge SHA. CI published and verified the static Pages site; Node, controlled incident, and recovery checks were skipped by path/condition. These results do not prove a live API, provider-enforced spend cap, identity, tenant isolation, TLS, or restore operation. **P01 remains NO-GO / BLOCKED.**
+
 ## Live provider correction — 2026-11-10 (read-only)
 
 **VERIFIED:** The Render web service and PostgreSQL Free instance were created on 2026-11-05. The service's initial build succeeded but its deployment failed with `StagingConfigurationError: invalid_staging_config`; no live `/readyz` success has been observed. The database is listed as available, but its external `temporary-migration` allowlist entry differs from the Blueprint's `ipAllowList: []`. The ephemeral database is scheduled to expire on 2026-12-05. Do not re-import the Blueprint, re-run migrations blindly, publish access details, enable inference or redeploy without an explicit owner-approved SHA and scope. Actual environment values, credentials and deployment settings were not inspected or changed. See [current Render runtime checkpoint](RENDER_OPENAI_STAGING_RUNBOOK.md).

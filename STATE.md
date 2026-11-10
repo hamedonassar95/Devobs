@@ -1,3 +1,22 @@
+## أحدث لقطة موثّقة: دمج PR #507 — تحقق 2026-11-10
+
+- **VERIFIED من GitHub:** دُمج PR [#507](https://github.com/hamedonassar95/Devobs/pull/507) عند `71c79115e5a75f5b6629a5c1eaacbba0c2113233` من الرأس `902d2f735d2b2ee0f649218cd824b2417bc2284d`. نجحت فحوص الرأس في CI [42797785104](https://github.com/hamedonassar95/Devobs/actions/runs/42797785104) و[42797796859](https://github.com/hamedonassar95/Devobs/actions/runs/42797796859) وCodeQL [42797786816](https://github.com/hamedonassar95/Devobs/actions/runs/42797786816). نجح CI بعد الدمج [42798389835](https://github.com/hamedonassar95/Devobs/actions/runs/42798389835) وCodeQL [42798388830](https://github.com/hamedonassar95/Devobs/actions/runs/42798388830) على SHA الدمج.
+- **VERIFIED:** يربط #507 إدخال `source_sha` في فحص P01 الاستشاري بالـSHA الذي تم checkout فعليًا، ويتطلب التشغيل من `main` ويفشل عند عدم التطابق. لا يغيّر شروط القبول أو الحقول، ولا يثبت صحة الروابط أو الأدلة الخارجية.
+- CI على SHA الدمج اجتاز Python وNode وPostgreSQL RLS والأمن والحاوية/Trivy وTerraform والتحقق ونشر Pages الثابت والتحقق من الموقع. تخطى تمرين الحوادث وفحوص الاستعادة لشروطها. نشر Pages الثابت لا يثبت تشغيل API.
+- **الحالة:** AI-9 **FAIL / BLOCKED**، وP01 **NO-GO / BLOCKED**، وقبول تشغيل Codex **OPEN**. إصلاح ربط SHA لا يثبت حد إنفاق مزود الخدمة أو الهوية الحية أو عزل المستأجرين أو TLS أو الاستعادة؛ لم تتغير البوابات.
+- سجل هذا الفرع يوثق #506 و#507 ويصبح 164 إنجازًا عند دمجه. PR #508 هو طلب التوثيق الحالي، وما زال Draft وغير مدموج.
+
+---
+
+## لقطة سابقة: دمج PR #506 — تحقق 2026-11-10
+
+- **VERIFIED من GitHub:** دُمج PR [#506](https://github.com/hamedonassar95/Devobs/pull/506) عند `d395168a4b031e6b4614d653c89caeb4d366b6f1` من الرأس `fcc9ae0eb8a6a3e8d5f695f4624c5bb78514175b`. فحوص رأس PR نجحت في CI [42793458988](https://github.com/hamedonassar95/Devobs/actions/runs/42793458988) و[42793522335](https://github.com/hamedonassar95/Devobs/actions/runs/42793522335)، وCodeQL [42793516972](https://github.com/hamedonassar95/Devobs/actions/runs/42793516972).
+- **VERIFIED من GitHub على SHA الدمج:** CI [42796420402](https://github.com/hamedonassar95/Devobs/actions/runs/42796420402) وCodeQL [42796417098](https://github.com/hamedonassar95/Devobs/actions/runs/42796417098) نجحا على `d395168a4b031e6b4614d653c89caeb4d366b6f1`. اجتازت Python وPostgreSQL RLS والأمن والحاوية/Trivy وTerraform والتحقق ونشر Pages الثابت والتحقق من الموقع. تخطى Node حسب اختيار المسارات، وتخطى تمرين الحوادث وفحوص الاستعادة لشروطها.
+- #506 وثّق دمج #502–#505 فقط. النشر تحقق لصفحة Pages الثابتة، ولا يثبت تشغيل API أو خدمة SaaS أو ضوابط P01 الخارجية.
+- **الحالة وقت تسجيل هذه اللقطة:** AI-9 **BLOCKED**، وP01 **NO-GO / BLOCKED**، وقبول تشغيل Codex **OPEN**؛ لم تتغير البوابات. بعد ذلك دُمج #507 لإصلاح ربط SHA، كما هو موثق في أحدث لقطة أعلاه.
+
+---
+
 ## أحدث لقطة موثّقة: دمج PRs #502–#505 — تحقق 2026-11-10
 
 - **VERIFIED من GitHub:** دُمج #502 عند `917b481694c4e3607f93890681e39c23e5dcad21` من الرأس `0f6168681b08f687bc7a3aefa8238c0a7f3de691`. نجح CI على الرأس [42689426462](https://github.com/hamedonassar95/Devobs/actions/runs/42689426462)، ثم نجح CI وCodeQL على SHA الدمج [42698243446](https://github.com/hamedonassar95/Devobs/actions/runs/42698243446) و[42698241934](https://github.com/hamedonassar95/Devobs/actions/runs/42698241934).
