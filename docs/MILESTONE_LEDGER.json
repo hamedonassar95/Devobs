@@ -1817,6 +1817,17 @@
       "ci_run_id": 42800093891,
       "verification": "VERIFIED 2026-11-10: PR #508 merged at 57b256f21215a66bab9754e3f4f60ab8e6118ede from head 2e1a3fb3235e1a529e9a286d9290d8adae124480. Exact-head CI 42799559074 and 42799566771 and CodeQL 42799560170 passed; post-merge main CI 42800093891 and CodeQL 42800092231 passed on the merge SHA. PostgreSQL RLS, Python validation, security, container/Trivy, Terraform, validate, static Pages publication and verify-production passed. Node skipped by path selection; incident and recovery checks skipped by conditions. GitHub timeline verified issue #237 reopened at 2026-11-10 10:50:06 UTC; open issue count returned to 40.",
       "limitations": "Documentation and ledger-test synchronization only. The #237 state correction does not satisfy its acceptance criteria. Static Pages is not a hosted API. No provider configuration, live identity, all-in spend cap, hosted tenant isolation, TLS/network posture or restore evidence was added. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex runtime acceptance remains OPEN."
+    },
+    {
+      "id": "p01-issue237-rls-regressions-pr509",
+      "area": "PLATFORM",
+      "title": "Add revocation, pooled-context, and migration-rollback RLS regressions for issue #237",
+      "pr_number": 509,
+      "pr_head_sha": "015f8b84d1e4233beb2cb7e03082267cd4dba5ed",
+      "merge_sha": "2ea1f58a6323f4ccc0e6553be4b2fb61e6017c99",
+      "ci_run_id": 42805723188,
+      "verification": "VERIFIED 2026-11-10: PR #509 was merged by the repository owner at 2ea1f58a6323f4ccc0e6553be4b2fb61e6017c99 from head 015f8b84d1e4233beb2cb7e03082267cd4dba5ed. Exact-head push CI 42804796252 and PR CI 42804804948 passed; CodeQL 42804800023 passed. Post-merge main CI 42805723188 and CodeQL 42805723573 passed on the merge SHA. PostgreSQL RLS, Python, security, container/Trivy, Terraform, site-contract, validate, static Pages publication and verify-production passed. Node passed on the exact-head push run and was skipped on the post-merge run by path selection. Incident and recovery jobs skipped their conditions. Issue #237 remains open.",
+      "limitations": "Adds repository-level PostgreSQL regressions for immediate membership revocation, transaction-local context across pooled connection reuse, and rollback after partial migration failure. It does not provide independent hosted staging evidence, a live /readyz request, provider-enforced all-in spend cap, real OIDC identity, deployed tenant-isolation proof, verified TLS/network controls, recovery evidence, or owner release authorization. No AI-9 holdout seed was run or consumed. AI-9 remains FAIL/BLOCKED and P01 remains NO-GO/BLOCKED; static Pages is not an API deployment."
     }
   ],
   "gates": [
