@@ -74,6 +74,16 @@ python3 -m http.server 8000 --bind 127.0.0.1
 
 من جذر المستودع:
 
+لتشغيل مجموعة اختبارات Python كاملة في بيئة محلية جديدة، ثبّت الاعتماديات المقفلة في بيئة افتراضية. بعض اختبارات عقود YAML تستخدم PyYAML، أو Ruby/Psych إذا كان متاحًا:
+
+```sh
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install --disable-pip-version-check --require-hashes -r requirements-api.lock -r requirements-dev.lock
+```
+
+بعدها شغّل الأوامر التالية. اختبارات PostgreSQL تتخطى نفسها ما لم تُضبط قواعد بيانات اختبار معزولة عبر متغيرات DSN الموثقة في CI.
+
 ```sh
 python3 -m compileall -q scripts tests
 python3 -m unittest discover -s tests -v
