@@ -7,6 +7,7 @@ import time
 import unittest
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from unittest.mock import patch
 from wsgiref.util import setup_testing_defaults
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"scripts"))
@@ -56,6 +57,20 @@ class AuthAndTenantAPITests(unittest.TestCase):
         responses=[]
         body=b"".join((app or self.app)(env,lambda status,headers:responses.append((status,dict(headers)))))
         return responses[0][0],responses[0][1],json.loads(body)
+
+    def send_service_authorization(self,tenant="alpha",project="shared",service="collector",
+                                   token=None,method="GET",extra=None,app=None):
+        env={};setup_testing_defaults(env)
+        env["PATH_INFO"]=(f"/v1/tenants/{tenant}/projects/{project}/services/"
+                          f"{service}/authorization")
+        env["REQUEST_METHOD"]=method
+        env["wsgi.input"]=io.BytesIO(b"")
+        if token:env["HTTP_AUTHORIZATION"]="Bearer "+token
+        if extra:env.update(extra)
+        responses=[]
+        body=b"".join((app or self.app)(env,
+                    lambda status,headers:responses.append((status,dict(headers)))))
+        return responses[0][0],responses[0][1],body
 
     def test_rate_limit_is_scoped_to_subject_and_tenant_and_refills(self):
         now = [100]
@@ -109,6 +124,45 @@ class AuthAndTenantAPITests(unittest.TestCase):
             with self.subTest(options=options), self.assertRaises(ValueError):
                 make_app(self.verifier, self.store, **options)
 
+    def test_declared_request_body_is_rejected_before_auth_or_storage(self):
+        app = make_app(self.verifier, self.store)
+        with patch.object(self.verifier, "verify", wraps=self.verifier.verify) as verify, \
+                patch.object(self.store, "read_status", wraps=self.store.read_status) as read_status:
+            status, headers, body = self.send(
+                token=self.token(), app=app,
+                extra={"CONTENT_LENGTH": "20000", "wsgi.input": io.BytesIO(b"x" * 20000)})
+        self.assertEqual(status, "400 Bad Request")
+        self.assertEqual(body, {"error": "request_body_not_allowed"})
+        self.assertEqual(headers["Cache-Control"], "no-store")
+        verify.assert_not_called()
+        read_status.assert_not_called()
+
+    def test_transfer_encoded_request_is_rejected_before_auth_or_storage(self):
+        app = make_app(self.verifier, self.store)
+        with patch.object(self.verifier, "verify", wraps=self.verifier.verify) as verify, \
+                patch.object(self.store, "read_status", wraps=self.store.read_status) as read_status:
+            status, headers, body = self.send(
+                token=self.token(), app=app, extra={"HTTP_TRANSFER_ENCODING": "chunked"})
+        self.assertEqual(status, "400 Bad Request")
+        self.assertEqual(body, {"error": "request_body_not_allowed"})
+        self.assertEqual(headers["Cache-Control"], "no-store")
+        verify.assert_not_called()
+        read_status.assert_not_called()
+
+    def test_wsgi_terminated_request_body_is_rejected_before_auth_or_storage(self):
+        app = make_app(self.verifier, self.store)
+        with patch.object(self.verifier, "verify", wraps=self.verifier.verify) as verify, \
+                patch.object(self.store, "read_status", wraps=self.store.read_status) as read_status:
+            status, headers, body = self.send(
+                token=self.token(), app=app,
+                extra={"CONTENT_LENGTH": "", "wsgi.input_terminated": True,
+                       "wsgi.input": io.BytesIO(b"x")})
+        self.assertEqual(status, "400 Bad Request")
+        self.assertEqual(body, {"error": "request_body_not_allowed"})
+        self.assertEqual(headers["Cache-Control"], "no-store")
+        verify.assert_not_called()
+        read_status.assert_not_called()
+
     def test_valid_signature_and_read_only_endpoint(self):
         principal=self.verifier.verify(self.token())
         self.assertEqual(principal.subject,"alice")
@@ -160,6 +214,27 @@ class AuthAndTenantAPITests(unittest.TestCase):
         with self.assertRaises(ValueError):
             AccessTokenVerifier("http://insecure.test","devobs-api","devobs-cli",{"keys":[self.jwk]})
 
+    def test_private_rsa_key_material_is_rejected_in_public_jwks(self):
+        private_jwk = json.loads(jwt.algorithms.RSAAlgorithm.to_jwk(self.private))
+        private_jwk.update(kid="rsa-private", alg="RS256", use="sig")
+        with self.assertRaisesRegex(ValueError, "invalid_auth_config"):
+            AccessTokenVerifier(ISS, "devobs-api", "devobs-cli",
+                                {"keys": [private_jwk]})
+
+    def test_public_jwk_key_operations_are_limited_to_verification(self):
+        for key_ops in (["sign"], ["encrypt"], ["verify", "sign"], [],
+                        ["verify", "verify"], "verify"):
+            bad_jwk = dict(self.jwk, key_ops=key_ops)
+            with self.subTest(key_ops=key_ops), self.assertRaisesRegex(
+                    ValueError, "^invalid_auth_config$"):
+                AccessTokenVerifier(ISS, "devobs-api", "devobs-cli",
+                                    {"keys": [bad_jwk]})
+
+        verifier = AccessTokenVerifier(
+            ISS, "devobs-api", "devobs-cli",
+            {"keys": [dict(self.jwk, key_ops=["verify"])]})
+        self.assertEqual(verifier.verify(self.token()).subject, "alice")
+
     def test_missing_database_membership_denied(self):
         for tenant,project in (("alpha","other"),("beta","shared"),("unknown","shared")):
             with self.assertRaises(TenantDenied):
@@ -170,6 +245,96 @@ class AuthAndTenantAPITests(unittest.TestCase):
             self.store.add_project("alpha","shared","a"*40,"success")
         with self.assertRaises(TenantDenied):
             self.store.read_status("alice","invalid tenant!","shared")
+
+    def test_service_authorization_route_uses_verified_subject_and_exact_scope(self):
+        class ServiceStore:
+            calls=[]
+            def authorize_service(inner_self,subject,tenant,project,service):
+                inner_self.calls.append((subject,tenant,project,service))
+                return (subject,tenant,project,service)==(
+                    "alice","alpha","shared","collector")
+
+        store=ServiceStore()
+        app=make_app(self.verifier,store)
+        status,headers,body=self.send_service_authorization(
+            token=self.token(),app=app,
+            extra={"HTTP_X_SUBJECT":"bob","QUERY_STRING":"subject=bob&tenant=beta"})
+        self.assertEqual(status,"204 No Content")
+        self.assertEqual(body,b"")
+        self.assertEqual(headers["Cache-Control"],"no-store")
+        self.assertEqual(store.calls,[ ("alice","alpha","shared","collector") ])
+
+    def test_service_authorization_denials_do_not_reveal_registry_or_membership(self):
+        class DenyStore:
+            def authorize_service(inner_self,subject,tenant,project,service):
+                return False
+
+        app=make_app(self.verifier,DenyStore())
+        requests=[
+            ("alpha","shared","collector",self.token(subject="bob")),
+            ("beta","shared","collector",self.token()),
+            ("alpha","other","collector",self.token()),
+            ("alpha","shared","missing-service",self.token()),
+        ]
+        results=[self.send_service_authorization(tenant,project,service,token,app=app)
+                 for tenant,project,service,token in requests]
+        self.assertTrue(all(status=="403 Forbidden" for status,_,_ in results))
+        self.assertEqual({body for _,_,body in results}, {b'{"error":"access_denied"}'})
+        self.assertTrue(all(headers["Cache-Control"]=="no-store"
+                            for _,headers,_ in results))
+
+    def test_service_authorization_rejects_invalid_token_before_store_call(self):
+        class CountingStore:
+            calls=0
+            def authorize_service(inner_self,*_):
+                inner_self.calls+=1
+                return True
+
+        store=CountingStore()
+        app=make_app(self.verifier,store)
+        for token in (None,"malformed.token","secret-not-echoed"):
+            status,_,body=self.send_service_authorization(token=token,app=app)
+            self.assertEqual(status,"401 Unauthorized")
+            self.assertIn(b"invalid_token",body)
+            self.assertNotIn(b"secret-not-echoed",body)
+        self.assertEqual(store.calls,0)
+
+    def test_service_authorization_route_method_and_path_are_bounded(self):
+        class CountingStore:
+            calls=0
+            def authorize_service(inner_self,*_):
+                inner_self.calls+=1
+                return True
+
+        store=CountingStore()
+        app=make_app(self.verifier,store)
+        status,headers,_=self.send_service_authorization(token=self.token(),method="POST",app=app)
+        self.assertEqual(status,"405 Method Not Allowed")
+        self.assertEqual(headers["Allow"],"GET")
+        env={};setup_testing_defaults(env)
+        env["PATH_INFO"]="/v1/tenants/alpha/projects/shared/services/collector/unexpected"
+        env["REQUEST_METHOD"]="GET"
+        responses=[]
+        body=b"".join(app(env,lambda code,headers:responses.append(code)))
+        self.assertEqual(responses,["404 Not Found"])
+        self.assertEqual(store.calls,0)
+
+    def test_service_authorization_store_errors_and_non_boolean_fail_closed(self):
+        class ResultStore:
+            def __init__(inner_self,result):
+                inner_self.result=result
+            def authorize_service(inner_self,*_):
+                if isinstance(inner_self.result,BaseException):
+                    raise inner_self.result
+                return inner_self.result
+
+        for result in (RuntimeError("private database detail"),None,1):
+            with self.subTest(result=type(result).__name__):
+                app=make_app(self.verifier,ResultStore(result))
+                status,_,body=self.send_service_authorization(token=self.token(),app=app)
+                self.assertEqual(status,"503 Service Unavailable")
+                self.assertEqual(body,b'{"error":"backend_unavailable"}')
+                self.assertNotIn(b"private database detail",body)
 
 
 if __name__=="__main__": unittest.main()

@@ -1,5 +1,7 @@
 # P01 Render + Supabase Region, Budget, and Security Decision
 
+> **Superseded planning snapshot (2026-10-30):** this document's USD 10/month planning target and Render + Supabase preference are historical, not the current owner budget/provider decision. The owner has conditionally approved a USD 100/month total ceiling with P01 **NO-GO / BLOCKED** pending enforcement evidence; Railway in Amsterdam is under evaluation only. See [P01_ACTIVATION_READINESS.md](P01_ACTIVATION_READINESS.md) and the [Railway spend-enforcement evidence](P01_RAILWAY_SPEND_ENFORCEMENT_EVIDENCE.md). No resource creation or spend is authorized.
+
 **Evidence checked:** repository source at main `1eaad2c95da559095aa2160f81bdda62d064dcee`; public provider documentation checked 2026-10-27. Public prices and product limits may change. Prior owner-provided read-only Render workspace evidence is summarized below. No billing console, service settings, secrets, or environment settings were accessed.
 
 ## Decision boundary

@@ -1,0 +1,5 @@
+# OPTIONAL OpenArt MCP example. NOT loaded by Devobs by default.
+# Add to your trusted user or project Codex config only after owner review.
+# OAuth must be completed by the user; no credentials belong in Git.
+[mcp_servers.openart]
+url = "https://mcp.openart.ai/mcp"

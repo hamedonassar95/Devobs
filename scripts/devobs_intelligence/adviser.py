@@ -7,6 +7,7 @@ from dataclasses import dataclass, asdict
 from typing import Callable
 
 from .contracts import EventEnvelopeV1
+from .runbook_catalog import RUNBOOK_CATALOG
 
 
 class AdvisoryError(ValueError):
@@ -30,13 +31,6 @@ class ProposalV1:
 
 
 _CATEGORIES = frozenset({"ci_failure", "high_error_rate", "capacity_pressure", "unknown"})
-_RUNBOOKS = {
-    "ci_failure": ("RB-CI-01", "Check the failing CI job and compare the pinned source SHA"),
-    "high_error_rate": ("RB-SLO-01", "Check recent error-rate changes against approved SLO windows"),
-    "capacity_pressure": ("RB-CAP-01", "Review resource saturation and capacity forecasts without changing resources"),
-}
-
-
 def propose(event: EventEnvelopeV1, signals: dict, *, model: Callable | None = None,
             model_enabled: bool = False, kill_switch: bool = False,
             max_model_calls: int = 1) -> ProposalV1:
@@ -73,8 +67,9 @@ def propose(event: EventEnvelopeV1, signals: dict, *, model: Callable | None = N
         if type(response) is not str or response not in _CATEGORIES:
             raise AdvisoryError("invalid_model_output")
         category = response
-    runbook_ids = (_RUNBOOKS[category][0],) if category in _RUNBOOKS else ()
-    test_plan = (_RUNBOOKS[category][1],) if category in _RUNBOOKS else ("Gather more verified operational evidence",)
+    runbook = RUNBOOK_CATALOG.get(category)
+    runbook_ids = (runbook[0],) if runbook is not None else ()
+    test_plan = (runbook[1],) if runbook is not None else ("Gather more verified operational evidence",)
     confidence = 0.55 if category != "unknown" else 0.0  # Heuristic, not calibrated accuracy.
     canonical = {"event_id": event.event_id, "source_sha": event.source_sha,
                  "category": category, "evidence_digests": event.evidence_digests,

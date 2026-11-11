@@ -1,6 +1,9 @@
 """Offline behavioral tests: numeric telemetry, graph, isolation, bounded retrieval."""
+import hashlib
+import json
 import sys
 import unittest
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/"scripts"))
 from devobs_intelligence.context import ContextError,normalize_telemetry,ServiceTopology
@@ -18,6 +21,12 @@ def sample(**overrides):
 def memory(tenant="alpha",service="api",digest="c"*64,outcome="resolved"):
     return IncidentRecord(tenant,"platform",service,"high_error_rate",
                           "RB-SLO-01",outcome,digest)
+
+
+def provenanced_memory(*, tenant="alpha", digest="c"*64, source_sha="a"*40,
+                       recorded_at="2026-10-25T00:00:00Z"):
+    return IncidentRecord(tenant, "platform", "api", "high_error_rate",
+                          "RB-SLO-01", "resolved", digest, source_sha, recorded_at)
 
 
 class ContextTests(unittest.TestCase):
@@ -89,11 +98,177 @@ class ContextTests(unittest.TestCase):
         with self.assertRaises(ContextError):
             IncidentMemory([{"sample":"not-schema"}])
 
+    def test_incident_records_require_the_catalog_runbook_for_their_category(self):
+        cases = (
+            ("ci_failure", "RB-CI-01"),
+            ("high_error_rate", "RB-SLO-01"),
+            ("capacity_pressure", "RB-CAP-01"),
+        )
+        for category, runbook_id in cases:
+            with self.subTest(category=category):
+                row = IncidentRecord(
+                    "alpha", "platform", "api", category, runbook_id,
+                    "resolved", "c" * 64,
+                )
+                self.assertEqual(row.runbook_id, runbook_id)
+        for category, runbook_id in (
+                ("high_error_rate", "RB-CI-01"),
+                ("ci_failure", "RB-SEC-99")):
+            with self.subTest(category=category, runbook_id=runbook_id):
+                with self.assertRaisesRegex(ContextError, "invalid_memory"):
+                    IncidentRecord(
+                        "alpha", "platform", "api", category, runbook_id,
+                        "resolved", "d" * 64,
+                    )
+
+    def test_wire_record_rejects_rehashed_category_runbook_mismatch(self):
+        original = provenanced_memory().to_record()
+        for category, runbook_id in (
+                ("high_error_rate", "RB-CI-01"),
+                ("ci_failure", "RB-SEC-99")):
+            changed = json.loads(json.dumps(original))
+            changed["category"] = category
+            changed["runbook_id"] = runbook_id
+            unsigned = dict(changed)
+            unsigned.pop("record_digest")
+            changed["record_digest"] = hashlib.sha256(json.dumps(
+                unsigned, sort_keys=True, separators=(",", ":"),
+                ensure_ascii=False, allow_nan=False,
+            ).encode("utf-8")).hexdigest()
+            with self.subTest(category=category, runbook_id=runbook_id):
+                with self.assertRaisesRegex(ContextError, "invalid_memory_record"):
+                    IncidentRecord.from_record(changed)
+
     def test_memory_results_are_bounded(self):
         m=IncidentMemory([memory(digest=chr(97+i)*64) for i in range(5)])
         self.assertEqual(len(m.retrieve("alpha","platform","api","high_error_rate",2)),2)
         with self.assertRaises(ContextError):
             m.retrieve("alpha","platform","api","high_error_rate",99)
+
+    def test_memory_defensively_copies_input_and_returned_records(self):
+        original = memory()
+        store = IncidentMemory([original])
+        object.__setattr__(original, "tenant", "beta")
+        found = store.retrieve("alpha", "platform", "api", "high_error_rate")
+        self.assertEqual(found[0].tenant, "alpha")
+        object.__setattr__(found[0], "runbook_id", "RB-SEC-99")
+        again = store.retrieve("alpha", "platform", "api", "high_error_rate")
+        self.assertEqual(again[0].runbook_id, "RB-SLO-01")
+
+    def test_provenanced_memory_requires_source_and_freshness_and_is_tenant_scoped(self):
+        now = datetime(2026, 10, 25, 0, 5, tzinfo=timezone.utc)
+        store = IncidentMemory([
+            provenanced_memory(digest="c" * 64),
+            provenanced_memory(digest="d" * 64, tenant="beta"),
+            memory(digest="e" * 64),
+            provenanced_memory(digest="f" * 64,
+                               recorded_at=(now - timedelta(hours=2)).isoformat()),
+            provenanced_memory(digest="1" * 64,
+                               recorded_at=(now + timedelta(seconds=1)).isoformat()),
+        ])
+        fresh = store.retrieve_provenanced(
+            "alpha", "platform", "api", "high_error_rate", now=now,
+            max_age_seconds=600,
+        )
+        self.assertEqual([row.evidence_digest for row in fresh], ["c" * 64])
+        self.assertEqual(fresh[0].source_sha, "a" * 40)
+        self.assertEqual(fresh[0].recorded_at, "2026-10-25T00:00:00.000000Z")
+
+    def test_memory_provenance_fields_are_an_all_or_nothing_valid_pair(self):
+        for source_sha, recorded_at in (("a" * 40, None), (None, "2026-10-25T00:00:00Z"),
+                                         ("short", "2026-10-25T00:00:00Z"),
+                                         ("a" * 40, "2026-10-25T00:00:00")):
+            with self.subTest(source_sha=source_sha, recorded_at=recorded_at):
+                with self.assertRaises(ContextError):
+                    provenanced_memory(source_sha=source_sha, recorded_at=recorded_at)
+
+    def test_incident_record_wire_contract_roundtrips_legacy_and_provenanced_records(self):
+        for original in (memory(), provenanced_memory()):
+            with self.subTest(provenanced=original.source_sha is not None):
+                to_record = getattr(original, "to_record", None)
+                if not callable(to_record):
+                    self.fail("IncidentRecord must expose a JSON-compatible record contract")
+                wire_record = to_record()
+                self.assertEqual(wire_record["schema_version"], 1)
+                self.assertEqual(wire_record["record_digest"], original.record_digest)
+                restored = IncidentRecord.from_record(json.loads(json.dumps(wire_record)))
+                self.assertEqual(restored, original)
+
+    def test_incident_record_wire_contract_rejects_tampering_and_unknown_shapes(self):
+        original = provenanced_memory()
+        record = original.to_record()
+        for changed in (
+                {**record, "runbook_id": "RB-SEC-01"},
+                {**record, "schema_version": True},
+                {**record, "unknown": "value"},
+                {key: value for key, value in record.items() if key != "record_digest"},
+                {**record, "schema_version": 2},
+        ):
+            with self.subTest(record=changed), self.assertRaises(ContextError):
+                IncidentRecord.from_record(changed)
+
+    def test_incident_memory_bundle_roundtrips_deterministically(self):
+        records = [memory(digest="d" * 64), provenanced_memory(),
+                   memory(tenant="beta", digest="e" * 64)]
+        first = IncidentMemory(records).to_bundle()
+        second = IncidentMemory(list(reversed(records))).to_bundle()
+        self.assertEqual(first, second)
+        self.assertEqual(first["schema_version"], 1)
+        self.assertEqual(len(first["records"]), 3)
+        restored = IncidentMemory.from_bundle(json.loads(json.dumps(first)))
+        self.assertEqual(restored.to_bundle(), first)
+        self.assertEqual(
+            [row.evidence_digest for row in restored.retrieve(
+                "alpha", "platform", "api", "high_error_rate")],
+            ["c" * 64, "d" * 64],
+        )
+        noncanonical = json.loads(json.dumps(first))
+        noncanonical["records"].reverse()
+        payload = {"schema_version": noncanonical["schema_version"],
+                   "records": noncanonical["records"]}
+        noncanonical["bundle_digest"] = hashlib.sha256(json.dumps(
+            payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
+            allow_nan=False,
+        ).encode("utf-8")).hexdigest()
+        with self.assertRaisesRegex(ContextError, "noncanonical_memory_bundle"):
+            IncidentMemory.from_bundle(noncanonical)
+
+    def test_incident_memory_bundle_rejects_corruption_and_unknown_shapes(self):
+        bundle = IncidentMemory([provenanced_memory()]).to_bundle()
+        tampered = json.loads(json.dumps(bundle))
+        tampered["records"][0]["outcome"] = "false_positive"
+        with self.assertRaisesRegex(ContextError, "memory_record_digest_mismatch"):
+            IncidentMemory.from_bundle(tampered)
+
+        tampered = json.loads(json.dumps(bundle))
+        tampered["bundle_digest"] = "0" * 64
+        with self.assertRaisesRegex(ContextError, "memory_bundle_digest_mismatch"):
+            IncidentMemory.from_bundle(tampered)
+
+        for changed in (
+                {**bundle, "unexpected": True},
+                {**bundle, "schema_version": 2},
+                {**bundle, "schema_version": True},
+                {**bundle, "records": "not-a-list"},
+        ):
+            with self.subTest(bundle=changed), self.assertRaises(ContextError):
+                IncidentMemory.from_bundle(changed)
+
+    def test_incident_memory_bundle_rejects_invalid_or_duplicate_members_atomically(self):
+        record = memory().to_record()
+        for records in ([record, {"invalid": True}], [record, record]):
+            payload = {"schema_version": 1, "records": records}
+            bundle = {**payload, "bundle_digest": hashlib.sha256(json.dumps(
+                payload, sort_keys=True, separators=(",", ":"),
+                ensure_ascii=False, allow_nan=False,
+            ).encode("utf-8")).hexdigest()}
+            with self.subTest(records=records), self.assertRaises(ContextError):
+                IncidentMemory.from_bundle(bundle)
+
+        too_many = {"schema_version": 1, "records": [record] * 1001,
+                    "bundle_digest": "0" * 64}
+        with self.assertRaisesRegex(ContextError, "invalid_memory_bundle"):
+            IncidentMemory.from_bundle(too_many)
 
 
 if __name__=="__main__": unittest.main()

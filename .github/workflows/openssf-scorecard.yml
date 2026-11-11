@@ -1,0 +1,22 @@
+name: OpenSSF Scorecard report
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: openssf-scorecard-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scorecard:
+    name: Report Devobs repository posture
+    permissions:
+      checks: read
+      contents: read
+      issues: read
+      pull-requests: read
+    uses: ./.github/workflows/reusable-openssf-scorecard.yml
+    with:
+      upload_report_artifact: false

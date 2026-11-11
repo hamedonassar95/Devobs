@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: devobs-diagnostics-readonly
+  namespace: devobs-diagnostics
+automountServiceAccountToken: true
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: devobs-diagnostics-readonly
+  namespace: devobs-diagnostics
+rules:
+  - apiGroups: [""]
+    resources:
+      - pods
+      - events
+      - services
+      - persistentvolumeclaims
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+      - replicasets
+      - statefulsets
+      - daemonsets
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - batch
+    resources:
+      - jobs
+      - cronjobs
+    verbs:
+      - get
+      - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: devobs-diagnostics-readonly
+  namespace: devobs-diagnostics
+subjects:
+  - kind: ServiceAccount
+    name: devobs-diagnostics-readonly
+    namespace: devobs-diagnostics
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: devobs-diagnostics-readonly

@@ -1,0 +1,32 @@
+# AI Intelligence — incident finding audit binding
+
+**Scope:** local, offline linkage between a validated `IncidentFinding` v1 record and the existing SQLite audit hash chain.
+
+## Behavior
+
+`AuditStore.append_finding(event, finding)` validates the finding through its v1 serializer and reconstructs the source event contract. The source event must be an incident whose canonical project reference is exactly `tenant/project`, and whose source SHA and evidence digests exactly match the finding. This qualifies the project key with the tenant so two tenants using the same project name do not share the same binding.
+
+The audit entry remains a scoped `read_evidence` decision. It carries only the finding's `finding_digest` as `subject_digest`; service names and the full finding payload are not copied into the audit table. Repeated delivery of the same event and digest is idempotent. A different digest for the same event/action is rejected as a conflict.
+
+`AuditStore.record_topology_drift(event, before, after)` reconstructs the source incident and both topology snapshots, recomputes the same-scope drift report, and appends its digest as a second read-only audit reference. The row stores the report digest and source SHA, not the topology graph, service names, tenant name, or project name. Repeating the same report is idempotent. This is still a local hash-chain record; it does not authenticate a topology producer or create an external immutable anchor.
+
+`AuditStore.create_checkpoint()` returns the verified chain record count and head hash as a versioned `AuditCheckpointV1` record. A caller can retain that record separately and later pass it to `verify_checkpoint(...)`; verification allows valid appends after the checkpoint, but detects a changed or truncated anchored prefix. The store does not archive or sign the checkpoint. See [the checkpoint v1 contract](AI_INTELLIGENCE_AUDIT_CHECKPOINT_V1.md).
+
+Generic `AuditStore.append(...)` now verifies that the supplied policy evaluation is the exact result for the action being recorded. For example, an `ALLOW_READ` evaluation cannot be recorded as a `deploy` action.
+
+The SQLite schema adds a `subject_digest` column with an empty-string default for existing rows. Opening a legacy database adds the column without rewriting old entries; verification omits the digest field for those legacy hashes, preserving their original chain.
+
+## Synthetic offline pipeline
+
+The credential-free demo in `scripts/intelligence_demo.py` builds one synthetic API snapshot containing an elevated error rate and a failed-check count through `from_trusted_metric_batch(...)` before correlation. The adapter-generated evidence digests are placed in the source event, and `append_finding(...)` checks that the finding carries the same evidence and source SHA before recording its finding digest. Malformed or stale batch evidence stops the demo before correlation or audit writes.
+
+The demo uses a versioned, source-bound topology snapshot and enforces a 24-hour memory-age window. It also compares two fixed synthetic snapshots and returns a bounded topology-drift report for service/edge changes, cycles, and isolated nodes. Correlation requires verified approval provenance before any matching incident-memory row can contribute a runbook. The command-line demo defaults to empty memory. Contract tests create a synthetic Ed25519 approval using a process-local ephemeral key; this does not represent a real curator identity or authorization.
+
+This is an offline synthetic integration only. The batch adapter receives tenant, project, source SHA, and clock values from its caller; it is not an authenticated collector, an independent telemetry source, or proof of live provenance. The demo still makes no provider calls and performs no production mutations.
+
+## Limits
+
+- This is local logical audit evidence, not a tamper-proof hosted service. A privileged writer can still rewrite the whole database and recompute the chain. A checkpoint helps only if the caller keeps it separately and protects that copy; it is unsigned and has no authenticated timestamp.
+- A content digest binds bytes but does not authenticate the producer or prove the underlying evidence is true.
+- The source envelope and finding are supplied by the caller. This method verifies their declared scope and digests; it does not verify an external provider signature or tenant authorization.
+- No endpoint, live provider, database service, customer data, model inference, or external action is added.

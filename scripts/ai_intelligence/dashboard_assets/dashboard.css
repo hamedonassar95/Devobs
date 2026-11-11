@@ -21,6 +21,7 @@ h2 { margin: 2rem 0 1rem; font-size: 1.35rem; }
 .metric-card dt, .muted, footer, .notice { color: var(--muted); }
 .metric-card dd { margin: .35rem 0 0; font-size: 1.7rem; font-weight: 700; }
 .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 310px), 1fr)); gap: .8rem; }
+.stage-card { border-inline-start: 3px solid var(--accent); }
 .card h3 { margin: 0 0 .5rem; }
 .card p { margin: .4rem 0; }
 .compact-list { margin: .5rem 0; padding-inline-start: 1.25rem; }
@@ -28,3 +29,32 @@ h2 { margin: 2rem 0 1rem; font-size: 1.35rem; }
 .empty, .notice { padding: .8rem 1rem; border-inline-start: 3px solid var(--accent); background: #121c24; }
 footer { margin-top: 2.5rem; font-size: .92rem; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+.note-form { display: grid; gap: .55rem; margin-bottom: 1rem; }
+.note-form label { font-weight: 700; }
+.note-form input, .note-form textarea, .note-toolbar input { width: 100%; min-width: 0; padding: .7rem .8rem; border: 1px solid var(--line); border-radius: .65rem; background: #0c1218; color: var(--ink); font: inherit; }
+.note-form textarea { resize: vertical; }
+.note-form button, .note-toolbar button, .runbook-action, .note-dialog-actions button { padding: .55rem .8rem; border: 1px solid var(--line); border-radius: .65rem; background: #202d38; color: var(--ink); font: inherit; font-weight: 700; }
+.note-form button:hover, .note-toolbar button:hover, .runbook-action:hover, .note-dialog-actions button:hover { border-color: var(--accent); }
+.note-form button[type="submit"] { justify-self: start; color: #071c18; background: var(--accent); border-color: var(--accent); }
+.note-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; margin: 1rem 0; }
+.note-toolbar label { margin-inline-start: auto; font-size: .9rem; }
+.note-toolbar input { width: min(100%, 18rem); }
+.note-toolbar button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.runbook-card { min-width: 0; }
+.runbook-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: .6rem; }
+.runbook-heading h3 { overflow-wrap: anywhere; }
+.runbook-pinned { flex-shrink: 0; padding: .1rem .5rem; border: 1px solid #806a38; border-radius: 999px; color: #f1d28b; font-size: .75rem; }
+.runbook-date { font-size: .78rem; }
+.runbook-content { white-space: pre-wrap; overflow-wrap: anywhere; }
+.runbook-actions, .note-dialog-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .8rem; }
+#runbook-archive-dialog { width: min(32rem, calc(100% - 2rem)); border: 1px solid var(--line); border-radius: 1rem; background: var(--panel); color: var(--ink); padding: 1.25rem; }
+#runbook-archive-dialog::backdrop { background: #000b; }
+#runbook-archive-dialog h2 { margin: 0; }
+#runbook-archive-description { color: var(--muted); }
+
+@media (max-width: 560px) {
+  .note-toolbar label { margin-inline-start: 0; width: 100%; }
+  .note-toolbar input { width: 100%; }
+  .note-form button[type="submit"] { width: 100%; }
+}

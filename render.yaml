@@ -1,5 +1,6 @@
-# Proposed P01 staging only. Creating this public service can start an initial build/deploy.
-# Free plan usage may still incur build/egress charges; no provider action is authorized here.
+# Proposed temporary P01 staging only. Importing this Blueprint creates resources and
+# starts an initial build/deploy. Free Postgres expires after 30 days.
+# No provider action is performed by this file or authorized by a repository check.
 previews:
   generation: off
 services:
@@ -9,19 +10,24 @@ services:
     plan: free
     region: frankfurt
     autoDeployTrigger: off
-    buildCommand: python3 -m pip install --disable-pip-version-check -r requirements-api.txt
-    startCommand: gunicorn --chdir scripts --workers 1 --bind 0.0.0.0:10000 --timeout 30 devobs_intelligence.staging_app:application
+    buildCommand: python3 -m pip install --disable-pip-version-check --require-hashes -r requirements-api.lock
+    startCommand: gunicorn --chdir scripts --workers 1 --bind 0.0.0.0:$PORT --timeout 30 devobs_intelligence.staging_app:application
     healthCheckPath: /readyz
     envVars:
-      - key: DEVOBS_PG_DSN
-        sync: false
-      - key: DEVOBS_OIDC_ISSUER
-        sync: false
-      - key: DEVOBS_OIDC_AUDIENCE
-        sync: false
-      - key: DEVOBS_OIDC_CLIENT_ID
-        sync: false
-      - key: DEVOBS_OIDC_METADATA_JSON
-        sync: false
-      - key: DEVOBS_OIDC_JWKS_JSON
-        sync: false
+      - key: DEVOBS_PG_TLS_MODE
+        value: render-internal-require
+      - key: DEVOBS_AI_DIAGNOSTICS_ENABLED
+        value: "false"
+      - key: DEVOBS_AI_BUDGET_APPROVED
+        value: "false"
+      - key: DEVOBS_AI_MODEL
+        value: gpt-6-luna
+
+databases:
+  - name: devobs-ai-staging-db
+    databaseName: devobs_ai_staging
+    user: devobs_ai_staging_admin
+    postgresMajorVersion: "17"
+    plan: free
+    region: frankfurt
+    ipAllowList: []

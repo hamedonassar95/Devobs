@@ -295,10 +295,15 @@ class TrivyWorkflowContractTests(unittest.TestCase):
     def test_scan_is_single_run_all_severities_and_fail_closed_policy_follows(self):
         workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
         job = container_build_job(workflow)
-        scan_step = job.split("      - name: Scan the exact image that passed the smoke test\n", 1)[1].split("      - name: Upload Trivy report\n", 1)[0]
-        scan_at = job.index("trivy image")
+        scan_start = job.index("      - name: Scan the exact image that passed the smoke test\n")
+        scan_step = job[scan_start:].split("      - name: Upload Trivy report\n", 1)[0]
+        sbom_step = job.split("      - name: Generate CycloneDX SBOM for the exact Trivy-scanned image\n", 1)[1].split("      - name: Scan the exact image that passed the smoke test\n", 1)[0]
+        scan_at = job.index("trivy image", scan_start)
         parser_at = job.index("scripts/trivy_report_policy.py")
-        self.assertEqual(job.count("trivy image"), 1)
+        self.assertEqual(sbom_step.count("trivy image"), 1)
+        self.assertEqual(scan_step.count("trivy image"), 1)
+        self.assertEqual(job.count("trivy image"), 2)
+        self.assertLess(job.index("trivy image"), scan_at)
         self.assertLess(scan_at, parser_at)
         self.assertLess(scan_step.index("set -euo pipefail"), scan_step.index("trivy image"))
         for option in (
@@ -308,7 +313,7 @@ class TrivyWorkflowContractTests(unittest.TestCase):
             "--exit-code 0",
             "--format json",
         ):
-            self.assertIn(option, job)
+            self.assertIn(option, scan_step)
         self.assertIn("set -euo pipefail", job)
         self.assertIn("if-no-files-found: error", job)
         self.assertIn("retention-days: 7", job)

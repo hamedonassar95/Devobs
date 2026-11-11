@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "job_id": "devobs-launch-visual-01",
+  "project": "Devobs AI Intelligence",
+  "state": "DRAFT",
+  "visibility": "private",
+  "deliverables": [
+    {
+      "id": "devobs-control-room-hero",
+      "media_type": "image",
+      "aspect_ratio": "16:9",
+      "language": "ar",
+      "prompt": "Create a sophisticated cinematic visual for Devobs AI Intelligence: a believable dark professional DevOps control room with legible code-like dashboards, CI signals and human approval status, minimalist black and gold accents. Do not depict invented performance statistics, third-party logos, user secrets, real incidents, or claims that the production SaaS is live. Leave text space for an Arabic headline; make no actual Arabic text in the image."
+    }
+  ]
+}

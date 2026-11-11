@@ -30,6 +30,15 @@ _PG17_POLICY_QUALS = {
         "AND (m.subject_id = NULLIF(current_setting("
         "'devobs_ai.subject_id'::text, true), ''::text))))))"
     ),
+    ("service_registry", "devobs_service_member_read"): (
+        "((tenant_id = NULLIF(current_setting('devobs_ai.tenant_id'::text, true), "
+        "''::text)) AND (EXISTS ( SELECT 1\n"
+        "   FROM devobs_ai.memberships m\n"
+        "  WHERE ((m.tenant_id = service_registry.tenant_id) "
+        "AND (m.project_id = service_registry.project_id) "
+        "AND (m.subject_id = NULLIF(current_setting("
+        "'devobs_ai.subject_id'::text, true), ''::text))))))"
+    ),
 }
 
 _ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}\Z")
@@ -50,17 +59,22 @@ class PostgresTenantStore:
         # Preserve a fixed fail-closed schema error when SELECT privilege has
         # been revoked: LOCK TABLE requires table SELECT for ACCESS SHARE.
         privileges = conn.execute(
-            """SELECT has_table_privilege(current_user,
-                       'devobs_ai.memberships', 'SELECT'),
-                      has_table_privilege(current_user,
-                       'devobs_ai.project_ci', 'SELECT')"""
+            """SELECT COUNT(*),
+                      COALESCE(BOOL_AND(has_table_privilege(
+                          current_user, c.oid, 'SELECT')), FALSE)
+                 FROM pg_class AS c
+                 JOIN pg_namespace AS n ON n.oid = c.relnamespace
+                WHERE n.nspname = 'devobs_ai'
+                  AND c.relname IN ('project_ci', 'memberships', 'service_registry')
+                  AND c.relkind = 'r'"""
         ).fetchone()
-        if privileges != (True, True):
+        if privileges != (3, True):
             raise StorageUnavailable("unsafe_database_schema")
         # ACCESS SHARE prevents concurrent ALTER POLICY or table DDL until
         # this short-lived transaction finishes, without blocking SELECTs.
         conn.execute(
-            "LOCK TABLE devobs_ai.memberships, devobs_ai.project_ci "
+            "LOCK TABLE devobs_ai.memberships, devobs_ai.project_ci, "
+            "devobs_ai.service_registry "
             "IN ACCESS SHARE MODE"
         )
 
@@ -88,10 +102,10 @@ class PostgresTenantStore:
                  FROM pg_class AS c
                  JOIN pg_namespace AS n ON n.oid = c.relnamespace
                 WHERE n.nspname = 'devobs_ai'
-                  AND c.relname IN ('project_ci', 'memberships')
+                  AND c.relname IN ('project_ci', 'memberships', 'service_registry')
                   AND c.relkind = 'r'"""
         ).fetchone()
-        if tables != (2, True):
+        if tables != (3, True):
             raise StorageUnavailable("unsafe_database_schema")
         # PostgreSQL permissive SELECT policies are OR-combined.
         # RLS enabled+forced is insufficient when an extra policy
@@ -107,7 +121,7 @@ class PostgresTenantStore:
                       permissive, cmd, roles, qual, with_check
                  FROM pg_policies
                 WHERE schemaname = 'devobs_ai'
-                  AND tablename IN ('project_ci', 'memberships')"""
+                  AND tablename IN ('project_ci', 'memberships', 'service_registry')"""
         ).fetchall()
         # Compare full approved predicates, not just policy names:
         # PostgreSQL OR-combines permissive policies, and ALTER
@@ -172,6 +186,47 @@ class PostgresTenantStore:
             if row is None:
                 raise AccessDenied("access_denied")
             return {"ci_state": row[0], "source_sha": row[1]}
+        except (AccessDenied, StorageUnavailable):
+            raise
+        except (psycopg.Error, OSError, UnicodeError):
+            raise StorageUnavailable("storage_unavailable") from None
+
+    def authorize_service(
+        self, subject: str, tenant: str, project: str, service_id: str
+    ) -> bool:
+        """Return whether this authenticated subject may address this registered service.
+
+        Identity is supplied by the trusted application layer. The database
+        query is fixed-shape and scoped by transaction-local subject and tenant
+        settings plus the exact project/service tuple.
+        """
+        if any(type(value) is not str or _ID.fullmatch(value) is None
+               for value in (subject, tenant, project, service_id)):
+            raise AccessDenied("access_denied")
+        try:
+            with psycopg.connect(self._dsn, autocommit=True, connect_timeout=5) as conn:
+                with conn.transaction():
+                    conn.execute("SET TRANSACTION READ ONLY")
+                    conn.execute("SET LOCAL statement_timeout = '1500ms'")
+                    conn.execute("SET LOCAL lock_timeout = '500ms'")
+                    self._lock_policy_tables(conn)
+                    self._verify_readonly_contract(conn)
+                    conn.execute(
+                        """SELECT set_config('devobs_ai.tenant_id', %s, true),
+                                  set_config('devobs_ai.subject_id', %s, true)""",
+                        (tenant, subject),
+                    )
+                    row = conn.execute(
+                        """SELECT EXISTS (
+                               SELECT 1 FROM devobs_ai.service_registry
+                                WHERE tenant_id = %s AND project_id = %s
+                                  AND service_id = %s
+                           )""",
+                        (tenant, project, service_id),
+                    ).fetchone()
+            if row is None or type(row[0]) is not bool:
+                raise StorageUnavailable("unsafe_database_schema")
+            return row[0]
         except (AccessDenied, StorageUnavailable):
             raise
         except (psycopg.Error, OSError, UnicodeError):

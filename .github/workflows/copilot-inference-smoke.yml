@@ -62,7 +62,8 @@ jobs:
             rm -rf "$smoke_dir" "$COPILOT_HOME"
           }
           trap cleanup EXIT
-          mkdir -m 700 -p "$smoke_dir" "$COPILOT_HOME"
+          mkdir -m 700 "$smoke_dir"
+          mkdir -m 700 "$COPILOT_HOME"
 
           # Keep the session local and its CLI home disposable. First-party
           # client telemetry is also disabled for this one invocation.

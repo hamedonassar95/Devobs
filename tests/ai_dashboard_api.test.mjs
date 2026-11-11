@@ -116,19 +116,25 @@ test('read-only local API returns bounded aggregates and hides raw log/path/hash
   const port = await listen(server);
   t.after(() => new Promise(resolve => server.close(resolve)));
 
-  const [summaryResponse, incidentsResponse, recommendationsResponse] = await Promise.all([
+  const [intelligenceResponse, summaryResponse, incidentsResponse, recommendationsResponse] = await Promise.all([
+    request(port, '/api/v1/intelligence'),
     request(port, '/api/v1/summary'),
     request(port, '/api/v1/incidents'),
     request(port, '/api/v1/recommendations'),
   ]);
+  assert.equal(intelligenceResponse.status, 200);
   assert.equal(summaryResponse.status, 200);
   assert.equal(incidentsResponse.status, 200);
   assert.equal(recommendationsResponse.status, 200);
+  const intelligence = JSON.parse(intelligenceResponse.body);
   const summary = JSON.parse(summaryResponse.body);
   const incidents = JSON.parse(incidentsResponse.body);
   const recommendations = JSON.parse(recommendationsResponse.body);
   assert.equal(summary.event_count, events.length);
   assert.equal(summary.kind_counts.log, events.length);
+  assert.deepEqual(intelligence.pipeline.stages.map(stage => stage.id), ['AI-1', 'AI-2', 'AI-3', 'AI-4', 'AI-5', 'AI-6', 'AI-7']);
+  assert.equal(intelligence.pipeline.mode, 'local_advisory_only');
+  assert.equal(intelligence.pipeline.stages[0].count, events.length);
   assert.ok(incidents.incidents.length > 0);
   assert.ok(recommendations.recommendations.some(item => item.cause_id === 'timeout'));
   const timeout = recommendations.recommendations.find(item => item.cause_id === 'timeout');
@@ -136,7 +142,7 @@ test('read-only local API returns bounded aggregates and hides raw log/path/hash
   assert.equal(timeout.requires_human_approval, true);
   assert.equal(timeout.automatic_execution, false);
 
-  const combined = `${summaryResponse.body}\n${incidentsResponse.body}\n${recommendationsResponse.body}`;
+  const combined = `${intelligenceResponse.body}\n${summaryResponse.body}\n${incidentsResponse.body}\n${recommendationsResponse.body}`;
   for (const forbidden of [RAW_MARKER, storePath, 'cluster_fingerprint', 'feedback_key', 'commit_sha', 'occurred_at']) {
     assert.equal(combined.includes(forbidden), false, `leaked ${forbidden}`);
   }
@@ -158,17 +164,27 @@ test('server is loopback-only, same-origin, read-only, and emits browser hardeni
   assert.equal(page.headers['access-control-allow-origin'], undefined);
   assert.match(page.body, /lang="ar" dir="rtl"/);
   assert.match(page.body, /dashboard\.js/);
+  assert.match(page.body, /مذكرات المشغّل المحلية/);
 
   const script = await request(port, '/dashboard.js', { origin });
   assert.equal(script.status, 200);
+  assert.match(script.headers['content-type'], /javascript/);
   assert.match(script.body, /textContent/);
+  assert.match(script.body, /localStorage/);
+  assert.match(script.body, /runbook_notes\.mjs/);
   assert.doesNotMatch(script.body, /innerHTML/);
   assert.doesNotMatch(script.body, /https?:\/\//);
+
+  const noteModule = await request(port, '/runbook_notes.mjs', { origin });
+  assert.equal(noteModule.status, 200);
+  assert.match(noteModule.headers['content-type'], /javascript/);
+  assert.doesNotMatch(noteModule.body, /https?:\/\//);
 
   assert.equal((await request(port, '/api/v1/summary', { host: `localhost:${port}` })).status, 421);
   assert.equal((await request(port, '/api/v1/summary', { origin: 'https://untrusted.example' })).status, 403);
   assert.equal((await request(port, '/api/v1/summary?extra=1', { origin })).status, 404);
   assert.equal((await request(port, '/api/v1/summary', { method: 'POST', origin })).status, 405);
+  assert.equal((await request(port, '/runbook_notes.mjs', { method: 'POST', origin })).status, 405);
   assert.equal((await request(port, '/unknown', { origin })).status, 404);
 });
 
@@ -187,4 +203,30 @@ test('dashboard snapshot never embeds event messages or source identifiers', () 
   assert.equal(output.includes('fingerprint'), false);
   assert.equal(output.includes('feedback_key'), false);
   assert.match(output, /heuristic/);
+});
+
+test('unified snapshot composes AI-2 anomaly candidates and AI-5 forecasts without timestamps', () => {
+  const metrics = [50, 60, 70, 80, 90, 100].map((value, index) => normalizeEvent({
+    schema_version: 1,
+    occurred_at: new Date(Date.UTC(2026, 9, 20 + index, 12)).toISOString(),
+    source: 'server',
+    kind: 'server_metric',
+    severity: 'info',
+    data: { name: 'memory_percent', value, unit: 'percent' },
+  }));
+  const snapshot = buildDashboardSnapshot(metrics);
+  const memoryAnomaly = snapshot.anomaly_analysis.metrics.find(item => item.metric === 'memory_percent');
+  const memoryForecast = snapshot.trend_analysis.metric_forecasts.find(item => item.metric === 'memory_percent');
+  assert.equal(snapshot.summary.metric_series_count, 1);
+  assert.equal(snapshot.summary.anomaly_candidate_count, 1);
+  assert.equal(memoryAnomaly.status, 'anomaly_candidate');
+  assert.ok(memoryAnomaly.signals.length > 0);
+  assert.equal(memoryForecast.status, 'range_warning');
+  assert.equal(snapshot.summary.trend_range_warning_count, 1);
+  assert.equal(snapshot.pipeline.stages.find(stage => stage.id === 'AI-2').status, 'ready');
+  assert.equal(snapshot.pipeline.stages.find(stage => stage.id === 'AI-5').status, 'report_available');
+  const output = JSON.stringify(snapshot);
+  for (const forbidden of ['occurred_at', 'event_id', 'source', 'memory_percent\u0000percent']) {
+    assert.equal(output.includes(forbidden), false, `leaked ${forbidden}`);
+  }
 });

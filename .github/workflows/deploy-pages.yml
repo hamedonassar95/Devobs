@@ -52,7 +52,10 @@ jobs:
       pages: write
       id-token: write
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    # The action caps its timeout at 600000 ms; larger values are clamped.
+    # Keep the job timeout longer so deployments reach that timeout explicitly.
+    # https://github.com/actions/deploy-pages/blob/v5.0.1/action.yml
+    timeout-minutes: 25
     outputs:
       page_url: ${{ steps.deployment.outputs.page_url }}
       previous_sha: ${{ steps.previous.outputs.previous_sha }}
@@ -191,6 +194,8 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+        with:
+          timeout: 600000
 
   verify:
     needs: deploy

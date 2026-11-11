@@ -1,0 +1,16 @@
+# Merge into ~/.holmes/config.yaml for a local Holmes CLI setup.
+# Kubernetes RBAC, not these model instructions, enforces the read boundary.
+toolsets:
+  kubernetes/core:
+    enabled: true
+    llm_instructions: |
+      Scope every Kubernetes query to the explicit devobs-diagnostics namespace.
+      Do not request secrets, pod logs, or cluster-scoped resources. Provide
+      read-only diagnostic findings and suggested checks only; do not attempt
+      remediation or changes.
+  kubernetes/logs:
+    enabled: false
+  kubernetes/live-metrics:
+    enabled: false
+  kubernetes/kube-prometheus-stack:
+    enabled: false

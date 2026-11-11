@@ -1,0 +1,224 @@
+{
+  "schema_version": 1,
+  "repository": "hamedonassar95/Devobs",
+  "phase": "P01",
+  "task": "T07",
+  "source_main_sha": "a7eeafcb88f06f6afac10bf8a9dbd22ad6d22c84",
+  "decision": "NO-GO",
+  "evidence_scope": "OFFLINE_THREAT_MODEL_ONLY",
+  "owner_approval_required": true,
+  "budget": {
+    "all_in_monthly_ceiling_usd": 100,
+    "enforcement_verified": false
+  },
+  "actions": {
+    "staging_provisioning_authorized": false,
+    "paid_inference_authorized": false,
+    "production_release_authorized": false,
+    "autonomous_changes_authorized": false
+  },
+  "zones": [
+    {
+      "id": "network",
+      "role": "Untrusted public and edge network"
+    },
+    {
+      "id": "service",
+      "role": "Bounded staging WSGI API"
+    },
+    {
+      "id": "identity",
+      "role": "External OIDC issuer and JWKS"
+    },
+    {
+      "id": "tenant",
+      "role": "Authenticated tenant and subject scope"
+    },
+    {
+      "id": "database",
+      "role": "PostgreSQL with forced RLS"
+    },
+    {
+      "id": "telemetry",
+      "role": "Untrusted future OTLP and change events"
+    },
+    {
+      "id": "connector",
+      "role": "GitHub and external read-only connectors"
+    },
+    {
+      "id": "ai",
+      "role": "Advisory evidence and AI interpretation"
+    },
+    {
+      "id": "approval",
+      "role": "Independent authenticated human review"
+    },
+    {
+      "id": "provider",
+      "role": "Cloud region, cost and service account"
+    },
+    {
+      "id": "ci",
+      "role": "GitHub workflow inputs and artifacts"
+    },
+    {
+      "id": "release",
+      "role": "Protected reviewed publication"
+    }
+  ],
+  "boundaries": [
+    {
+      "id": "B01",
+      "from": "network",
+      "to": "service",
+      "control": "TLS, authentication and rate/request bounds"
+    },
+    {
+      "id": "B02",
+      "from": "identity",
+      "to": "service",
+      "control": "Strict signed access-token claims and JWKS rotation"
+    },
+    {
+      "id": "B03",
+      "from": "service",
+      "to": "tenant",
+      "control": "Bind subject and tenant to verified principal, never request claims"
+    },
+    {
+      "id": "B04",
+      "from": "tenant",
+      "to": "database",
+      "control": "Non-owner reader, exact force-RLS policies and pooled context isolation"
+    },
+    {
+      "id": "B05",
+      "from": "telemetry",
+      "to": "service",
+      "control": "Allowlisted metric schema, tenant/source SHA and freshness"
+    },
+    {
+      "id": "B06",
+      "from": "connector",
+      "to": "ai",
+      "control": "Untrusted content is evidence only, never executable authority"
+    },
+    {
+      "id": "B07",
+      "from": "ai",
+      "to": "approval",
+      "control": "Proposals only; independent authenticated reviewer, no self-approval"
+    },
+    {
+      "id": "B08",
+      "from": "ci",
+      "to": "release",
+      "control": "Reviewed SHA and artifact provenance, gated publication"
+    },
+    {
+      "id": "B09",
+      "from": "provider",
+      "to": "service",
+      "control": "Human provider/region decision and enforced total $100 cost ceiling"
+    }
+  ],
+  "abuse_cases": [
+    {
+      "id": "AC01",
+      "boundary": "B01",
+      "scenario": "Unauthenticated or oversized public request",
+      "negative_expectation": "Refuse access or bound request before expensive work",
+      "test_reference": "tests/test_intelligence_staging_app.py",
+      "status": "NOT_ACCEPTED"
+    },
+    {
+      "id": "AC02",
+      "boundary": "B02",
+      "scenario": "Invalid issuer, audience, token kind or signature",
+      "negative_expectation": "Return denial without fallback identity",
+      "test_reference": "tests/test_intelligence_api_security.py",
+      "status": "NOT_ACCEPTED"
+    },
+    {
+      "id": "AC03",
+      "boundary": "B02",
+      "scenario": "Stale JWKS or invalid rotation",
+      "negative_expectation": "Reject unknown key and fail closed on fetch failure",
+      "test_reference": "tests/test_intelligence_oidc_rotation.py",
+      "status": "NOT_ACCEPTED"
+    },
+    {
+      "id": "AC04",
+      "boundary": "B03",
+      "scenario": "Caller attempts cross-tenant principal substitution",
+      "negative_expectation": "Reject tenant not authorized for verified subject",
+      "test_reference": "tests/test_intelligence_tenant_scope.py",
+      "status": "NOT_ACCEPTED"
+    },
+    {
+      "id": "AC05",
+      "boundary": "B04",
+      "scenario": "Permissive RLS-policy drift",
+      "negative_expectation": "Readiness fails and cross-tenant read remains denied",
+      "test_reference": "tests/test_postgres_rls_integration.py",
+      "status": "NOT_ACCEPTED"
+    },
+    {
+      "id": "AC06",
+      "boundary": "B04",
+      "scenario": "Pooled DB connection retains prior tenant context",
+      "negative_expectation": "Second subject cannot read previous tenant",
+      "test_reference": "tests/test_postgres_rls_integration.py",
+      "status": "NOT_ACCEPTED"
+    },
+    {
+      "id": "AC07",
+      "boundary": "B05",
+      "scenario": "Forged, stale or cross-tenant telemetry source SHA",
+      "negative_expectation": "Reject untrusted metric batch, never infer trusted evidence",
+      "test_reference": "tests/test_intelligence_metric_adapter.py",
+      "status": "NOT_ACCEPTED"
+    },
+    {
+      "id": "AC08",
+      "boundary": "B06",
+      "scenario": "Malicious text in connector output asks agent to execute commands",
+      "negative_expectation": "Treat as untrusted data, no execution or approval",
+      "test_reference": "tests/test_incident_guard.py",
+      "status": "NOT_ACCEPTED"
+    },
+    {
+      "id": "AC09",
+      "boundary": "B07",
+      "scenario": "Agent generates unreviewed production mutation",
+      "negative_expectation": "Hold at human review, deny autonomous mutation",
+      "test_reference": "tests/test_intelligence_policy.py",
+      "status": "NOT_ACCEPTED"
+    },
+    {
+      "id": "AC10",
+      "boundary": "B08",
+      "scenario": "PR or artifact substituted for validated release source",
+      "negative_expectation": "Fail artifact/SHA mismatch and do not promote",
+      "test_reference": "tests/test_stage_site.py",
+      "status": "NOT_ACCEPTED"
+    },
+    {
+      "id": "AC11",
+      "boundary": "B09",
+      "scenario": "Vendor cap excludes taxes, egress or storage fees",
+      "negative_expectation": "Do not provision until all-in enforcement verified",
+      "test_reference": "tests/test_intelligence_staging_smoke.py",
+      "status": "NOT_ACCEPTED"
+    },
+    {
+      "id": "AC12",
+      "boundary": "B09",
+      "scenario": "Provider outage or missing configured identity/DB",
+      "negative_expectation": "Fail readiness closed, no fake successful staging",
+      "test_reference": "tests/test_intelligence_staging_app.py",
+      "status": "NOT_ACCEPTED"
+    }
+  ]
+}

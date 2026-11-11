@@ -24,6 +24,18 @@ EXPECTED_PAGE_TEXT = (
     'DevOps automation with GitHub Actions and CI/CD',
     'مراجعة الشيفرة وفرز الحوادث بمساندة الذكاء الاصطناعي',
     'AI-assisted code review and incident triage',
+    'عروض الخدمات',
+    'Service offers',
+    'تطوير موقع أو تطبيق',
+    'Website &amp; mobile app development',
+    'إصلاح وصيانة المواقع والأنظمة',
+    'Website &amp; systems repair and maintenance',
+    'تحسين DevOps ومراجعة هندسية',
+    'DevOps &amp; AI-assisted engineering',
+    'مخرجات مقترحة',
+    'Proposed deliverables',
+    'لا ترسل كلمات مرور أو مفاتيح',
+    'Do not send passwords or keys',
     'أرسل موجز مشروعك',
     'Send us your project brief',
     'نراجعه',
@@ -58,6 +70,17 @@ class SiteChecks(unittest.TestCase):
         for expected_text in EXPECTED_PAGE_TEXT:
             with self.subTest(expected_text=expected_text):
                 self.assertIn(expected_text, SOURCE, f'index.html is missing required landing page text: {expected_text}')
+
+        self.assertEqual(
+            SOURCE.count('class="offer-card"'),
+            3,
+            'index.html must present exactly three scoped service offers',
+        )
+        self.assertEqual(
+            SOURCE.count('class="offer-link"'),
+            3,
+            'each service offer must link to the existing project brief steps',
+        )
 
         email_addresses = re.findall(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', SOURCE)
         self.assertEqual(

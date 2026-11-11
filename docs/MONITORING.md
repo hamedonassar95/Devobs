@@ -1,23 +1,47 @@
-# Local Prometheus and Grafana starter
+# Local monitoring starter
 
-This optional local stack checks Prometheus and provisions a small Grafana dashboard. The current Devobs product is a static HTML site and does not expose an application metrics endpoint; the dashboard therefore reports Prometheus' own scrape target and process memory, not website availability or Devobs service health. Prometheus loads two starter alerts for its own scrape target being down or missing. They appear in the Prometheus Alerts page; no Alertmanager is configured, so they do not send notifications.
+Devobs provides a local Compose stack with Prometheus, Alertmanager, and Grafana. Node Exporter is opt-in through the `linux-host` profile and is intended for Docker Engine running directly on Linux. The static Devobs site has no application `/metrics` endpoint, so this stack does not report site availability or application health.
 
-## Run locally
+## Start and stop
 
-From the repository root, create an uncommitted local admin password and start the stack:
+From the repository root, set a temporary local Grafana password and start the core services:
 
 ```sh
 export GRAFANA_ADMIN_PASSWORD="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
 docker compose -f monitoring/compose.yml up --detach
 ```
 
-Open Prometheus at <http://127.0.0.1:9090> and Grafana at <http://127.0.0.1:3000>. Sign in to Grafana as `admin` using the password in the current shell. The Prometheus datasource and dashboard are provisioned automatically. Stop the local containers with:
+To include host CPU, memory, filesystem, and network metrics on a Linux host:
 
 ```sh
-docker compose -f monitoring/compose.yml down
+docker compose --profile linux-host -f monitoring/compose.yml up --detach
+```
+
+The optional exporter has no published port, runs as uid/gid 65534, drops Linux capabilities, and reads host `/`, `/proc`, and `/sys` through read-only mounts. Review those mounts before enabling the profile. Docker Desktop on Windows or macOS runs Docker inside a Linux VM, so this profile reports the VM rather than the physical workstation. See the official [Node Exporter container guidance](https://github.com/prometheus/node_exporter#using-docker), [procfs/sysfs/rootfs flags](https://github.com/prometheus/node_exporter/blob/v1.12.1/collector/paths.go), and [filesystem exclusion flag](https://github.com/prometheus/node_exporter/blob/v1.12.1/collector/filesystem_common.go).
+
+Open Prometheus at <http://127.0.0.1:9090>, Alertmanager at <http://127.0.0.1:9093>, and Grafana at <http://127.0.0.1:3000>. The UIs bind to loopback and share an internal Compose network. Grafana provisions the Prometheus datasource and the overview dashboard. Prometheus retention is capped at 15 days or 5 GB. Named volumes keep monitoring data when containers stop.
+
+Stop the services and remove the temporary password from the current shell:
+
+```sh
+docker compose --profile linux-host -f monitoring/compose.yml down
 unset GRAFANA_ADMIN_PASSWORD
 ```
 
-The ports bind to loopback, the Compose network is internal, images are pinned by registry digest, and the configuration contains no credentials. The generated password is passed to the local container environment; do not reuse it or use this local setup as a production credential design. Production monitoring needs application instrumentation, authenticated access, TLS, retention, and a secrets-management plan.
+## Alerts and boundaries
 
-References: [Prometheus configuration](https://prometheus.io/docs/prometheus/latest/configuration/configuration/), [Prometheus alerting rules](https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/), [Grafana dashboard provisioning](https://grafana.com/docs/grafana/latest/administration/provisioning/), [Docker Compose environment interpolation](https://docs.docker.com/compose/how-tos/environment-variables/variable-interpolation/), and [`docker compose config`](https://docs.docker.com/reference/cli/docker/compose/config/).
+Prometheus keeps its existing self-scrape alerts and adds `HighCpuUsage`, `HighMemoryUsage`, `DiskSpaceRunningLow`, and `ServiceDown`. When the `linux-host` profile is off, the optional Node Exporter scrape target appears as down in Prometheus; the `ServiceDown` alert intentionally excludes it, and host metric panels remain empty. Alertmanager groups alerts into a local-only receiver with no email, Slack, Telegram, or webhook integration; no alert data leaves this local Compose network. This stack is a development starter, not a production monitoring service.
+
+The pinned component licenses are listed in [monitoring/README.md](../monitoring/README.md). Production use requires a separately reviewed authentication and TLS design, secret handling, alert delivery, retention policy, and application instrumentation.
+
+## Validation
+
+Validate Compose interpolation and resolved configuration without starting containers:
+
+```sh
+GRAFANA_ADMIN_PASSWORD=contract-only docker compose -f monitoring/compose.yml config --quiet
+```
+
+The repository's monitoring configuration contract tests parse the YAML and dashboard JSON, and verify the local-only scope, image digests, mounts, retention, alert names, and dashboard panels. A successful config check does not prove that containers have been started or that host metrics are being collected.
+
+References: [Prometheus v3.15.1 TSDB retention configuration](https://github.com/prometheus/prometheus/blob/v3.15.1/docs/configuration/configuration.md), [Prometheus configuration](https://prometheus.io/docs/prometheus/latest/configuration/configuration/), [Prometheus alerting rules](https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/), [Alertmanager configuration](https://prometheus.io/docs/alerting/latest/configuration/), [Grafana dashboard provisioning](https://grafana.com/docs/grafana/latest/administration/provisioning/), [Docker Compose profiles](https://docs.docker.com/compose/how-tos/profiles/), and [`docker compose config`](https://docs.docker.com/reference/cli/docker/compose/config/).

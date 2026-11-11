@@ -4,9 +4,40 @@
 
 مشروع عملي لتعلّم DevOps وCI/CD باستخدام GitHub Actions وGitHub Pages. تتضمن المستودع أتمتة إضافية موثقة؛ الصفحة المنشورة حاليًا صفحة HTML ثابتة ولا تحتاج خادم تطبيق أو قاعدة بيانات.
 
+## DevOps AI Intelligence — مصدر موحّد
+
+هذا المستودع `Devobs` هو المصدر الأساسي للمشروعين. مراحل الذكاء التشغيلي المحلية AI-1 إلى AI-7 ولوحة AI-7 مدمجة هنا بالفعل؛ نضيف فقط ما يسد فجوة واضحة بدل نسخ مكونات مكررة. المحركات الحالية محلية وحتمية/إحصائية ولا تستدعي نموذجًا لغويًا.
+
+لتمييز الموجود والمتحقق من التجريبي والمحجوب قبل أي إضافة، راجع [مواءمة أبحاث Devobs AI لعام 2026](docs/strategy/DEVOBS_AI_RESEARCH_ALIGNMENT_2026.md)، و[مراجعة منظومة DevOps والذكاء الاصطناعي](docs/AI_DEVOPS_ECOSYSTEM_REVIEW_2026-11-11.md)، و[خارطة التنفيذ المرحلية](docs/strategy/DEVOBS_AI_ROADMAP_2026.md). هذه المستندات تخطط للعمل ولا تفتح AI-9 أو P01 أو تجيز نشرًا.
+
+```text
+بيانات تشغيل اصطناعية محلية
+  → AI-1 استقبال وتحقق
+  → AI-2 كشف شذوذ → AI-3 تحليل → AI-4 توصيات runbook
+  → AI-5 اتجاهات → AI-6 تغذية راجعة اختيارية → AI-7 لوحة/API للقراءة فقط
+  → GitHub Actions: اختبارات وفحوص أمنية ومراجعة PR اختيارية
+```
+
+إضافة PR-Agent اختيارية ومطفأة افتراضيًا، وتعمل كمراجع بديل عن مراجعة Codex حتى لا يتكرر الاستدلال. إعدادا Ollama وLocalAI المحليان موثقان في [`models/docker-compose.yml`](models/docker-compose.yml)، ولا يعملان تلقائيًا ولا يتضمنان أوزان نماذج. يمكن اختيار أحدهما يدويًا لتشخيص السجلات عبر API staging بعد الموافقات الصريحة، لكنهما لا يتصلان تلقائيًا بسلسلة AI-1 إلى AI-7. أمثلة K8sGPT وHolmesGPT اختيارية ومحدودة للقراءة في [`k8s/`](k8s/README.md)، ولا تثبّت الأدوات ولا تطبق إعدادات على عنقود. يظل MLflow مرشحًا لمراجعة منفصلة.
+
+| المكوّن الخارجي المضاف أو الموثق | الإصدار/البصمة | الرخصة | النطاق |
+| --- | --- | --- | --- |
+| [PR-Agent](https://github.com/The-PR-Agent/pr-agent) | v0.49.0؛ صورة مثبتة على digest موثق في [دليل التكامل](docs/PR_AGENT_INTEGRATION.md) | [MIT](https://github.com/The-PR-Agent/pr-agent/blob/v0.49.0/LICENSE) | مراجعة PR اختيارية؛ غير مفعّلة ما لم تُستوفَ بوابات الاختيار والميزانية والتحقق من المصدر والاعتماد الموجود |
+| [Ollama](https://github.com/ollama/ollama) | v0.40.15؛ digest موثق في [دليل النماذج](models/README.md) | [MIT](https://github.com/ollama/ollama/blob/v0.40.15/LICENSE) | خادم CPU محلي اختياري؛ لا ينزل نموذجًا تلقائيًا؛ اختيار يدوي ممكن لـAPI التشخيص فقط |
+| [LocalAI](https://github.com/mudler/LocalAI) | v4.12.1؛ digest موثق في [دليل النماذج](models/README.md) | [MIT](https://github.com/mudler/LocalAI/blob/v4.12.1/LICENSE) | CPU اختياري خلف profile؛ لا ينزل نموذجًا تلقائيًا؛ اختيار يدوي ممكن لـAPI التشخيص فقط |
+| [K8sGPT](https://github.com/k8sgpt-ai/k8sgpt) | v0.4.41؛ أمثلة CLI فقط | [Apache-2.0](https://github.com/k8sgpt-ai/k8sgpt/blob/v0.4.41/LICENSE) | فحص يدوي محدود بالـnamespace؛ أمر المثال لا يطلب شرحًا من نموذج |
+| [HolmesGPT](https://github.com/HolmesGPT/holmesgpt) | 0.46.0؛ أمثلة إعداد فقط | [Apache-2.0](https://github.com/HolmesGPT/holmesgpt/blob/0.46.0/LICENSE) | إعداد toolset وصلاحيات قراءة فقط؛ لا تثبيت أو استدلال تلقائي |
+
+مجلدات `agents/` و`workflows/` و`models/` و`mlops/` هي فهارس توثيقية لهذه المرحلة؛ ملفات التشغيل الفعلية تبقى في مواقعها الحالية. راجع [خريطة الوكلاء](agents/README.md)، [خريطة سير العمل](workflows/README.md)، [خريطة النماذج](models/README.md)، [أمثلة Kubernetes الاختيارية](k8s/README.md)، [تكامل PR-Agent](docs/PR_AGENT_INTEGRATION.md)، [خريطة المراقبة](monitoring/README.md)، و[خريطة MLOps](mlops/README.md).
+
+لتسجيل نتيجة CI من مستودع LiveOps دون إرسال محتوى التطبيق أو بيانات Gemini، راجع [جسر LiveOps الاختياري](docs/LIVEOPS_CI_INTEGRATION.md). يسجل الجسر بيانات تشغيل فقط ولا يفعّل استدلالًا أو إصلاحًا تلقائيًا.
+
 ## مركز الأتمتة
 
 - **ابدأ من هنا:** [مركز الأتمتة وسير التشغيل الموحد](docs/AUTOMATION_HUB.md)
+- **جاهزية إصدارات المشاريع:** [Portfolio v1 release-readiness tracker](docs/portfolio/PORTFOLIO_V1_READINESS.md) — لقطة موثقة بالأدلة لمستودعات المالك الخمسة؛ تميّز نجاح CI عن النشر والتشغيل الفعلي، ولا تغيّر حالة أي بوابة.
+- **سجل الإنجازات والبوابات:** [Milestone Ledger](docs/MILESTONE_LEDGER.md) — فحص دون شبكة يربط كل إنجاز موثق برقم PR وSHA ودليل CI، ويعرض النواقص دون تغيير حالة جاهزيتها.
+- **تكامل OpenArt الاختياري:** [حوكمة طلبات الصور والفيديو عبر MCP](docs/OPENART_MCP_INTEGRATION.md) — صيغة طلب خاصة آمنة دون شبكة أو كلفة، مع موافقة منفصلة قبل أي توليد.
 - [Devobs AI DevOps Control Room](docs/AI_DEVOPS_CONTROL_ROOM.md): توثيق مسارات AI وCI وحالة التحقق من المصدر مقابل التشغيل.
 - [استقبال أحداث AI-1 محليًا](docs/AI_EVENT_INGESTION.md): صيغة موحّدة وملف JSONL محلي؛ بلا اتصالات أو خدمات خارجية.
 - [كشف الشذوذ AI-2 محليًا](docs/AI_ANOMALY_DETECTION.md): مؤشرات إحصائية قابلة للتفسير على أحداث مقاييس محلية اصطناعية.
@@ -43,6 +74,16 @@ python3 -m http.server 8000 --bind 127.0.0.1
 
 من جذر المستودع:
 
+لتشغيل مجموعة اختبارات Python كاملة في بيئة محلية جديدة، ثبّت الاعتماديات المقفلة في بيئة افتراضية. بعض اختبارات عقود YAML تستخدم PyYAML، أو Ruby/Psych إذا كان متاحًا:
+
+```sh
+python3 -m venv .venv
+. .venv/bin/activate
+python -m pip install --disable-pip-version-check --require-hashes -r requirements-api.lock -r requirements-dev.lock
+```
+
+بعدها شغّل الأوامر التالية. اختبارات PostgreSQL تتخطى نفسها ما لم تُضبط قواعد بيانات اختبار معزولة عبر متغيرات DSN الموثقة في CI.
+
 ```sh
 python3 -m compileall -q scripts tests
 python3 -m unittest discover -s tests -v
@@ -62,7 +103,7 @@ python3 scripts/check_site.py
 
 لتسجيل قبول/رفض توصية بموافقة المشغّل وترتيب الاقتراحات وفق سجل محلي اختياري، اتبع [دليل AI-6](docs/AI_FEEDBACK_LEARNING.md). لا تُجمع ملاحظات نصية، ولا يتصل النظام بالشبكة؛ المعدل إشارة تفضيل محدودة وليس قياسًا لدقة الأسباب.
 
-لتشغيل لوحة AI-7 محليًا مع API للقراءة فقط، اتبع [دليل اللوحة المحلية](docs/AI_LOCAL_DASHBOARD.md). لا تنشرها أو تعرضها عبر نفق؛ الموقع المنشور يبقى صفحة ثابتة بلا API.
+لتشغيل لوحة AI-7 محليًا مع API للقراءة فقط، اتبع [دليل اللوحة المحلية](docs/AI_LOCAL_DASHBOARD.md). تدعم اللوحة أيضًا مذكرات مشغّل محلية في تخزين المتصفح مع البحث والتثبيت والأرشفة والاستعادة المؤكدة؛ لا تُرسل المذكرات إلى الخادم أو AI-6. لا تنشر اللوحة أو تعرضها عبر نفق؛ الموقع المنشور يبقى صفحة ثابتة بلا API.
 
 يفحص CI شيفرة Python باستخدام Bandit، والاعتماديات باستخدام `pip-audit`. لتشغيل الفحوص محليًا:
 
@@ -91,21 +132,27 @@ pip-audit --requirement requirements-dev.txt
 
 ## المراقبة المحلية الاختيارية
 
-يتضمن المستودع إعدادًا محليًا لـPrometheus وGrafana. حاليًا يراقب Prometheus نفسه فقط؛ الموقع الثابت لا يوفّر endpoint لمقاييس التطبيق. شغّل المكونات من جذر المستودع بكلمة مرور Grafana محلية مؤقتة:
+يتضمن المستودع إعدادًا محليًا لـPrometheus وGrafana وAlertmanager. Node Exporter اختياري لمضيف Linux، كما تتوفر إضافة OpenTelemetry Collector محلية اختيارية لتحويل مجموعة ضيقة من مقاييس OTLP إلى Prometheus الموجود. خدمة WSGI يمكنها إرسال Histogram واحد لزمن الطلب محليًا بعد تفعيل صريح؛ القياس معطّل افتراضيًا وبلا تسميات للطلب. الموقع الثابت لا يوفّر نقطة `/metrics`. راجع [دليل OpenTelemetry](docs/integrations/opentelemetry.md) قبل تشغيل ملف تعريف `otel`.
 
 ```sh
 export GRAFANA_ADMIN_PASSWORD="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
 docker compose -f monitoring/compose.yml up --detach
 ```
 
-افتح Prometheus على <http://127.0.0.1:9090> وGrafana على <http://127.0.0.1:3000>، ثم أوقف الحاويات ونظّف متغير كلمة المرور:
+الواجهات المحلية: Prometheus <http://127.0.0.1:9090>، Grafana <http://127.0.0.1:3000>، Alertmanager <http://127.0.0.1:9093>. تهيئة OpenTelemetry TLS ورمز الوصول المحلي وبدء الملف الاختياري موضحة في [الدليل](docs/integrations/opentelemetry.md). لإضافة مقاييس Linux:
 
 ```sh
-docker compose -f monitoring/compose.yml down
-unset GRAFANA_ADMIN_PASSWORD
+docker compose --profile linux-host -f monitoring/compose.yml up --detach
 ```
 
-تظهر قواعد التنبيه في Prometheus، لكنها لا ترسل إشعارات لعدم إعداد Alertmanager. لا يفعّل هذا الإعداد مراقبة إنتاجية أو يرسل بيانات إلى خدمة خارجية. راجع [دليل المراقبة](docs/MONITORING.md) للتفاصيل والقيود.
+على Docker Desktop في Windows أو macOS يقيس Node Exporter آلة Docker الافتراضية. لا يرسل Alertmanager تنبيهات لخدمات خارجية. راجع [دليل المراقبة](docs/MONITORING.md) للتفاصيل والقيود والتراخيص.
+
+لإيقاف جميع المكونات وتنظيف متغير كلمة المرور:
+
+```sh
+docker compose --profile linux-host -f monitoring/compose.yml down
+unset GRAFANA_ADMIN_PASSWORD
+```
 
 ## النشر
 
@@ -141,3 +188,5 @@ unset GRAFANA_ADMIN_PASSWORD
 - [Stable baseline: v1.0.0](https://github.com/hamedonassar95/Devobs/releases/tag/v1.0.0)
 
 إعداد AI DevKit للمساهمين ومراحل العمل موثق في [دليل AI DevKit](docs/AI_DEVKIT.md). هذا الإعداد منفصل عن تشغيل CI/CD؛ مركز وحدات الأتمتة القابلة لإعادة الاستخدام موجود في [مركز الأتمتة](docs/AUTOMATION_HUB.md).
+
+- [Manual P01 evidence completeness gate](docs/P01_ACTIVATION_READINESS.md#p01-offline-evidence-gate-review-only): fails closed on missing or stale launch evidence, but cannot approve P01, launch SaaS, or access provider accounts.

@@ -66,6 +66,37 @@ class IntegrationCatalogTests(unittest.TestCase):
         data["services"][4]["evidence"] = []
         self.invalid(data, "evidence must contain")
 
+    def test_openart_draft_cannot_be_promoted_to_live_connector(self):
+        data = copy.deepcopy(self.inventory)
+        record = next(s for s in data["services"] if s["id"] == "openart")
+        record["integration_status"] = "import_confirmed"
+        self.invalid(data, "only a draft handoff")
+
+    def test_docs_mcp_must_not_claim_live_handshake(self):
+        data = copy.deepcopy(self.inventory)
+        record = next(s for s in data["services"] if s["id"] == "openai-docs-mcp")
+        record["runtime_verified"] = True
+        self.invalid(data, "runtime handshake is not verified")
+
+    def test_docs_mcp_must_keep_source_path(self):
+        data = copy.deepcopy(self.inventory)
+        record = next(s for s in data["services"] if s["id"] == "openai-docs-mcp")
+        record["observed_directory"] = "unknown.toml"
+        self.invalid(data, "source path is not verified")
+
+    def test_no_provider_can_claim_cost_authorization(self):
+        for index in range(len(self.inventory["services"])):
+            data = copy.deepcopy(self.inventory)
+            data["services"][index]["cost_authorized"] = True
+            self.invalid(data, "paid operations require")
+
+    def test_aictrl_repository_denial_is_not_runtime_proof(self):
+        record = next(s for s in self.inventory["services"] if s["id"] == "aictrl")
+        self.assertEqual(record["integration_status"], "account_connected_unlinked")
+        self.assertIs(record["runtime_verified"], False)
+        self.assertIn("not found", record["verified_capability"].lower())
+        self.assertIn("authorize that exact repository", record["blocker"])
+
     def test_non_object_rejected(self):
         self.invalid([], "Catalog must be a JSON object")
 

@@ -1,15 +1,25 @@
 """Synthetic tampering/idempotency/metadata-only audit tests."""
+import hashlib
+import json
+import sqlite3
 import sys
 import tempfile
+from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
 import unittest
 from pathlib import Path
 from unittest.mock import patch
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
+from devobs_intelligence.context import ServiceTopologySnapshot
 from devobs_intelligence.contracts import parse_event
 from devobs_intelligence.policy import evaluate_action
 from devobs_intelligence.audit_store import AuditStore, AuditError
+
+_TOPOLOGY_ATTESTATION_DOMAIN = b'devobs-topology-attestation-v1\n'
+_AUDIT_TEST_NOW = datetime(2026, 10, 25, 12, 1, tzinfo=timezone.utc)
 
 
 def event(event_id='example-01', sha='a'*40):
@@ -17,6 +27,69 @@ def event(event_id='example-01', sha='a'*40):
                         'project_ref':'SENSITIVE_REPOSITORY','source_sha':sha,
                         'kind':'incident','observed_at':'2026-10-25T12:00:00Z',
                         'evidence_digests':['b'*64]})
+
+
+def topology_pair():
+    before = ServiceTopologySnapshot(
+        'alpha', 'platform', ['api', 'db'], [('api', 'db')],
+        'a' * 40, '2026-10-25T11:59:00Z',
+    )
+    after = ServiceTopologySnapshot(
+        'alpha', 'platform', ['api', 'db', 'web'],
+        [('api', 'db'), ('web', 'api')],
+        'b' * 40, '2026-10-25T12:00:00Z',
+    )
+    source = parse_event({
+        'schema_version': 1, 'event_id': 'source-incident-01',
+        'provider': 'github', 'project_ref': 'alpha/platform',
+        'source_sha': 'b' * 40, 'kind': 'incident',
+        'observed_at': '2026-10-25T12:00:00Z',
+        'evidence_digests': ['c' * 64],
+    })
+    return source, before, after
+
+
+def sign_topology(topology, private_key):
+    payload = {
+        'schema_version': 1,
+        'key_id': 'collector-1',
+        'snapshot': topology.to_record(),
+    }
+    signed_bytes = json.dumps(
+        payload, sort_keys=True, separators=(',', ':'), ensure_ascii=False,
+        allow_nan=False,
+    ).encode('utf-8')
+    return {
+        **payload,
+        'signature': private_key.sign(
+            _TOPOLOGY_ATTESTATION_DOMAIN + signed_bytes,
+        ).hex(),
+    }
+
+
+def recompute_chain_hashes(store):
+    previous = '0' * 64
+    rows = store.connection.execute(
+        'SELECT seq,event_id,source_sha,policy_version,decision,action,subject_digest '
+        'FROM audit ORDER BY seq',
+    ).fetchall()
+    for seq, event_id, source_sha, policy_version, decision, action, subject_digest in rows:
+        item = {
+            'event_id': event_id,
+            'source_sha': source_sha,
+            'policy_version': policy_version,
+            'decision': decision,
+            'action': action,
+        }
+        if subject_digest:
+            item['subject_digest'] = subject_digest
+        payload = json.dumps(item, sort_keys=True, separators=(',', ':'), ensure_ascii=True)
+        record_hash = hashlib.sha256((previous + '\n' + payload).encode('utf-8')).hexdigest()
+        store.connection.execute(
+            'UPDATE audit SET previous_hash=?,record_hash=? WHERE seq=?',
+            (previous, record_hash, seq),
+        )
+        previous = record_hash
 
 
 class AuditStoreTests(unittest.TestCase):
@@ -80,6 +153,198 @@ class AuditStoreTests(unittest.TestCase):
         self.addCleanup(second.close)
         self.assertEqual(second.verify(),1)
 
+    def test_checkpoint_verifies_an_independently_retained_prefix_after_appends(self):
+        first = event('checkpoint-first')
+        self.store.append(first, evaluate_action(first, 'read_evidence'), 'read_evidence')
+        checkpoint = self.store.create_checkpoint()
+        self.assertEqual(checkpoint.to_record(), {
+            'schema_version': 1,
+            'record_count': 1,
+            'head_hash': self.store.summary()['last_record_hash'],
+        })
+
+        later = event('checkpoint-later')
+        self.store.append(later, evaluate_action(later, 'read_evidence'), 'read_evidence')
+        self.assertEqual(self.store.verify_checkpoint(checkpoint.to_record()), 2)
+
+    def test_checkpoint_detects_a_validly_rehashed_rewrite(self):
+        original = event('checkpoint-rewrite', sha='a' * 40)
+        self.store.append(original, evaluate_action(original, 'read_evidence'), 'read_evidence')
+        checkpoint = self.store.create_checkpoint().to_record()
+
+        self.store.connection.execute(
+            "UPDATE audit SET source_sha=? WHERE event_id=?",
+            ('c' * 40, original.event_id),
+        )
+        recompute_chain_hashes(self.store)
+
+        self.assertEqual(self.store.verify(), 1)
+        with self.assertRaisesRegex(AuditError, '^checkpoint_mismatch$'):
+            self.store.verify_checkpoint(checkpoint)
+
+    def test_checkpoint_parser_rejects_noncanonical_or_malformed_records(self):
+        for record in (
+            {'schema_version': True, 'record_count': 0, 'head_hash': '0' * 64},
+            {'schema_version': 1, 'record_count': True, 'head_hash': '0' * 64},
+            {'schema_version': 1, 'record_count': 0, 'head_hash': 'a' * 64},
+            {'schema_version': 1, 'record_count': 1, 'head_hash': '0' * 64},
+            {'schema_version': 1, 'record_count': 0, 'head_hash': '0' * 64, 'extra': 1},
+        ):
+            with self.subTest(record=record), self.assertRaisesRegex(
+                    AuditError, '^invalid_checkpoint$'):
+                self.store.verify_checkpoint(record)
+
+    def test_signed_checkpoint_round_trip_and_stable_signature(self):
+        current = event('signed-checkpoint-first')
+        self.store.append(current, evaluate_action(current, 'read_evidence'), 'read_evidence')
+        private_key = Ed25519PrivateKey.from_private_bytes(bytes(range(32)))
+        signed = self.store.create_signed_checkpoint(private_key)
+        self.assertEqual(signed, self.store.create_signed_checkpoint(private_key))
+        self.assertEqual(set(signed), {
+            'schema_version', 'algorithm', 'key_id', 'checkpoint', 'signature',
+        })
+        self.assertEqual(signed['algorithm'], 'ed25519')
+        public_bytes = private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        self.assertNotIn('private_key', signed)
+        self.assertEqual(self.store.verify_signed_checkpoint(
+            signed, private_key.public_key()), 1,
+        )
+
+        later = event('signed-checkpoint-later')
+        self.store.append(later, evaluate_action(later, 'read_evidence'), 'read_evidence')
+        self.assertEqual(self.store.verify_signed_checkpoint(signed, public_bytes), 2)
+
+    def test_signed_checkpoint_detects_validly_rehashed_prefix_rewrite(self):
+        original = event('signed-checkpoint-rewrite', sha='a' * 40)
+        self.store.append(original, evaluate_action(original, 'read_evidence'), 'read_evidence')
+        private_key = Ed25519PrivateKey.from_private_bytes(bytes(range(32)))
+        signed = self.store.create_signed_checkpoint(private_key)
+        public_bytes = private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        self.store.connection.execute(
+            'UPDATE audit SET source_sha=? WHERE event_id=?',
+            ('c' * 40, original.event_id),
+        )
+        recompute_chain_hashes(self.store)
+        self.assertEqual(self.store.verify(), 1)
+        with self.assertRaisesRegex(AuditError, '^checkpoint_mismatch$'):
+            self.store.verify_signed_checkpoint(signed, public_bytes)
+
+    def test_signed_checkpoint_rejects_wrong_key_tampering_and_malformed_envelopes(self):
+        current = event('signed-checkpoint-invalid')
+        self.store.append(current, evaluate_action(current, 'read_evidence'), 'read_evidence')
+        private_key = Ed25519PrivateKey.from_private_bytes(bytes(range(32)))
+        wrong_key = Ed25519PrivateKey.from_private_bytes(bytes(reversed(range(32))))
+        signed = self.store.create_signed_checkpoint(private_key)
+        public_bytes = private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        wrong_public_bytes = wrong_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        with self.assertRaisesRegex(AuditError, '^checkpoint_key_mismatch$'):
+            self.store.verify_signed_checkpoint(signed, wrong_public_bytes)
+
+        bad_signature = {**signed, 'signature': 'A' + signed['signature'][1:]}
+        with self.assertRaisesRegex(AuditError, '^checkpoint_signature_invalid$'):
+            self.store.verify_signed_checkpoint(bad_signature, public_bytes)
+
+        changed_checkpoint = {
+            **signed,
+            'checkpoint': {**signed['checkpoint'], 'head_hash': 'd' * 64},
+        }
+        with self.assertRaisesRegex(AuditError, '^checkpoint_signature_invalid$'):
+            self.store.verify_signed_checkpoint(changed_checkpoint, public_bytes)
+
+        for malformed in (
+            {**signed, 'algorithm': 'unknown'},
+            {**signed, 'schema_version': True},
+            {**signed, 'signature': signed['signature'] + '='},
+            {**signed, 'unexpected': 'field'},
+            {**signed, 'checkpoint': {**signed['checkpoint'], 'schema_version': True}},
+        ):
+            with self.subTest(malformed=malformed), self.assertRaisesRegex(
+                    AuditError, '^invalid_signed_checkpoint$'):
+                self.store.verify_signed_checkpoint(malformed, public_bytes)
+
+    def test_signed_checkpoint_rejects_invalid_key_types(self):
+        with self.assertRaisesRegex(AuditError, '^invalid_signing_key$'):
+            self.store.create_signed_checkpoint(b'not-a-key')
+        private_key = Ed25519PrivateKey.from_private_bytes(bytes(range(32)))
+        signed = self.store.create_signed_checkpoint(private_key)
+        with self.assertRaisesRegex(AuditError, '^invalid_verification_key$'):
+            self.store.verify_signed_checkpoint(signed, b'short')
+
+    def test_readonly_open_verifies_signed_checkpoint_without_mutating_file(self):
+        current = event('readonly-checkpoint')
+        self.store.append(current, evaluate_action(current, 'read_evidence'), 'read_evidence')
+        private_key = Ed25519PrivateKey.from_private_bytes(bytes(range(32)))
+        signed = self.store.create_signed_checkpoint(private_key)
+        public_bytes = private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        self.store.close()
+        before = Path(self.path).read_bytes()
+
+        readonly = AuditStore.open_readonly(self.path)
+        self.addCleanup(readonly.close)
+        self.assertEqual(readonly.connection.execute('PRAGMA query_only').fetchone()[0], 1)
+        self.assertEqual(readonly.verify_signed_checkpoint(signed, public_bytes), 1)
+        self.assertEqual(Path(self.path).read_bytes(), before)
+        with self.assertRaisesRegex(AuditError, '^read_only_store$'):
+            readonly.append(
+                event('readonly-write'),
+                evaluate_action(event('readonly-write'), 'read_evidence'),
+                'read_evidence',
+            )
+        for sql in (
+            "INSERT INTO audit (event_id,source_sha,policy_version,decision,action,"
+            "previous_hash,record_hash,subject_digest) VALUES ('x','x','x','x','x','x','x','x')",
+            "UPDATE audit SET decision='DENY' WHERE seq=1",
+            'DELETE FROM audit WHERE seq=1',
+        ):
+            with self.subTest(sql=sql), self.assertRaises(sqlite3.OperationalError):
+                readonly.connection.execute(sql)
+        self.assertEqual(Path(self.path).read_bytes(), before)
+
+    def test_readonly_open_does_not_create_missing_database(self):
+        missing = str(Path(self.temp.name) / 'missing.sqlite3')
+        with self.assertRaisesRegex(AuditError, '^storage_unavailable$'):
+            AuditStore.open_readonly(missing)
+        self.assertFalse(Path(missing).exists())
+
+    def test_readonly_open_rejects_incompatible_schema_without_migration(self):
+        legacy = Path(self.temp.name) / 'legacy.sqlite3'
+        connection = sqlite3.connect(legacy)
+        try:
+            connection.execute('CREATE TABLE audit (seq INTEGER PRIMARY KEY, event_id TEXT)')
+        finally:
+            connection.close()
+        before = legacy.read_bytes()
+        with self.assertRaisesRegex(AuditError, '^unsupported_schema$'):
+            AuditStore.open_readonly(str(legacy))
+        self.assertEqual(legacy.read_bytes(), before)
+        with sqlite3.connect(legacy) as connection:
+            self.assertEqual(
+                {row[1] for row in connection.execute('PRAGMA table_info(audit)')},
+                {'seq', 'event_id'},
+            )
+
+    def test_readonly_open_rejects_unsafe_paths_and_non_files(self):
+        for path in (None, '', 'file:shared?mode=memory&cache=shared', 'bad\x00path'):
+            with self.subTest(path=path), self.assertRaisesRegex(AuditError, '^invalid_path$'):
+                AuditStore.open_readonly(path)
+
+        symlink = Path(self.temp.name) / 'audit-link.sqlite3'
+        symlink.symlink_to(Path(self.path))
+        with self.assertRaisesRegex(AuditError, '^invalid_path$'):
+            AuditStore.open_readonly(str(symlink))
+        with self.assertRaisesRegex(AuditError, '^storage_unavailable$'):
+            AuditStore.open_readonly(self.temp.name)
+
     def test_append_reserves_write_transaction_before_reading_chain(self):
         statements=[]
         self.store.connection.set_trace_callback(statements.append)
@@ -132,6 +397,131 @@ class AuditStoreTests(unittest.TestCase):
     def test_invalid_database_uri_is_rejected(self):
         with self.assertRaisesRegex(AuditError,'invalid_path'):
             AuditStore('file:shared?mode=memory&cache=shared')
+
+    def test_topology_drift_digest_is_linked_idempotently_without_graph_data(self):
+        source, before, after = topology_pair()
+        report, entry = self.store.record_topology_drift(source, before, after)
+        self.assertEqual(entry.action, 'read_evidence')
+        self.assertEqual(entry.source_sha, 'b' * 40)
+        self.assertEqual(entry.subject_digest, report.to_record()['report_digest'])
+        self.assertEqual(self.store.verify(), 1)
+        persisted = self.store.connection.execute(
+            'SELECT event_id,source_sha,policy_version,decision,action,previous_hash,'
+            'record_hash,subject_digest FROM audit',
+        ).fetchone()
+        self.assertNotIn('api', repr(persisted))
+        self.assertNotIn('platform', repr(persisted))
+        self.assertNotIn('alpha', repr(persisted))
+        self.assertNotIn('platform', str(self.store.summary()))
+
+        repeated_report, repeated_entry = self.store.record_topology_drift(
+            source, before, after,
+        )
+        self.assertEqual(repeated_report, report)
+        self.assertEqual(repeated_entry, entry)
+        self.assertEqual(self.store.verify(), 1)
+
+    def test_topology_drift_audit_rejects_scope_or_source_mismatch_before_write(self):
+        source, before, after = topology_pair()
+        mismatched_scope = parse_event({
+            'schema_version': 1, 'event_id': 'wrong-scope',
+            'provider': 'github', 'project_ref': 'other/platform',
+            'source_sha': 'b' * 40, 'kind': 'incident',
+            'observed_at': '2026-10-25T12:00:00Z',
+            'evidence_digests': ['c' * 64],
+        })
+        mismatched_sha = parse_event({
+            'schema_version': 1, 'event_id': 'wrong-sha',
+            'provider': 'github', 'project_ref': 'alpha/platform',
+            'source_sha': 'a' * 40, 'kind': 'incident',
+            'observed_at': '2026-10-25T12:00:00Z',
+            'evidence_digests': ['c' * 64],
+        })
+        for candidate in (mismatched_scope, mismatched_sha):
+            with self.subTest(event_id=candidate.event_id), self.assertRaisesRegex(
+                    AuditError, 'invalid_topology_binding'):
+                self.store.record_topology_drift(candidate, before, after)
+        self.assertEqual(self.store.verify(), 0)
+
+    def test_attested_topology_drift_is_bound_idempotently_without_graph_or_key_data(self):
+        source, before, after = topology_pair()
+        private_key = Ed25519PrivateKey.generate()
+        public_key = private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        keyring = {('alpha', 'platform', 'collector-1'): public_key}
+        before_attestation = sign_topology(before, private_key)
+        after_attestation = sign_topology(after, private_key)
+
+        report, entry = self.store.record_attested_topology_drift(
+            source, before_attestation, after_attestation, keyring,
+            expected_tenant='alpha', expected_project='platform',
+            expected_before_source_sha='a' * 40,
+            expected_after_source_sha='b' * 40,
+            now=_AUDIT_TEST_NOW, max_age_seconds=300,
+        )
+        record = report.to_record()
+        self.assertEqual(entry.action, 'read_evidence')
+        self.assertEqual(entry.source_sha, 'b' * 40)
+        self.assertEqual(entry.subject_digest, record['attested_report_digest'])
+        self.assertEqual(self.store.verify(), 1)
+
+        persisted = self.store.connection.execute(
+            'SELECT event_id,source_sha,policy_version,decision,action,previous_hash,'
+            'record_hash,subject_digest FROM audit',
+        ).fetchone()
+        for private_value in ('api', 'platform', 'alpha', 'collector-1',
+                              public_key.hex(),
+                              before_attestation['signature'],
+                              after_attestation['signature']):
+            self.assertNotIn(private_value, repr(persisted))
+
+        repeated_report, repeated_entry = self.store.record_attested_topology_drift(
+            source, before_attestation, after_attestation, keyring,
+            expected_tenant='alpha', expected_project='platform',
+            expected_before_source_sha='a' * 40,
+            expected_after_source_sha='b' * 40,
+            now=_AUDIT_TEST_NOW, max_age_seconds=300,
+        )
+        self.assertEqual(repeated_report, report)
+        self.assertEqual(repeated_entry, entry)
+        self.assertEqual(self.store.verify(), 1)
+
+    def test_attested_drift_rejects_bad_signature_scope_or_source_before_write(self):
+        source, before, after = topology_pair()
+        private_key = Ed25519PrivateKey.generate()
+        public_key = private_key.public_key().public_bytes(
+            serialization.Encoding.Raw, serialization.PublicFormat.Raw,
+        )
+        keyring = {('alpha', 'platform', 'collector-1'): public_key}
+        before_attestation = sign_topology(before, private_key)
+        after_attestation = sign_topology(after, private_key)
+        bad_signature = {**after_attestation, 'signature': '0' * 128}
+        wrong_scope = parse_event({
+            'schema_version': 1, 'event_id': 'wrong-attested-scope',
+            'provider': 'github', 'project_ref': 'other/platform',
+            'source_sha': 'b' * 40, 'kind': 'incident',
+            'observed_at': '2026-10-25T12:00:00Z',
+            'evidence_digests': ['c' * 64],
+        })
+
+        cases = (
+            (source, before_attestation, bad_signature, 'a' * 40, 'b' * 40),
+            (source, before_attestation, after_attestation, 'c' * 40, 'b' * 40),
+            (source, before_attestation, after_attestation, 'a' * 40, 'c' * 40),
+            (wrong_scope, before_attestation, after_attestation, 'a' * 40, 'b' * 40),
+        )
+        for candidate, first, second, before_sha, after_sha in cases:
+            with self.subTest(event_id=candidate.event_id), self.assertRaisesRegex(
+                    AuditError, 'invalid_topology_binding'):
+                self.store.record_attested_topology_drift(
+                    candidate, first, second, keyring,
+                    expected_tenant='alpha', expected_project='platform',
+                    expected_before_source_sha=before_sha,
+                    expected_after_source_sha=after_sha,
+                    now=_AUDIT_TEST_NOW, max_age_seconds=300,
+                )
+        self.assertEqual(self.store.verify(), 0)
 
 
 if __name__=='__main__': unittest.main()

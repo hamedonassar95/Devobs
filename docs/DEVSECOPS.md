@@ -13,9 +13,20 @@ This page describes the security checks configured for the original Devobs repos
 | Secret scanning | Gitleaks GitHub Action | Scans repository history during CI. |
 | Workflow supply-chain check | `scripts/check_action_pins.py` | Requires third-party GitHub Actions to use full commit SHAs. |
 | Dependency updates | `.github/dependabot.yml` | Opens weekly update pull requests for Python packages and GitHub Actions. |
+| OpenSSF repository posture | `.github/workflows/reusable-openssf-scorecard.yml` | Checksum-pinned CLI, read-only token, informational report; called manually for Devobs. |
 | Security reporting | `SECURITY.md` | Describes private vulnerability reporting and response expectations. |
 
-These checks run in the existing required `security` job and feed the existing `validate` check. They use the repository's current workflow permissions; this change does not add deployment permissions, credentials, or new Actions.
+The CI controls above run in the existing required `security` job and feed the existing `validate` check. The manual OpenSSF workflow below is separate and is not a required check. It adds no deployment permissions or stored secrets; its GitHub token is read-only.
+
+## OpenSSF Scorecard report
+
+The manual `.github/workflows/openssf-scorecard.yml` workflow calls a reusable workflow that installs the official OpenSSF Scorecard CLI v5.6.0 from a SHA-256-pinned release archive and scans the caller repository with read-only GitHub token permissions. Run the Devobs entrypoint from `main`; its summary records the scanned repository, ref, and full source SHA. It is not a merge gate, does not publish to the Scorecard API, and does not call an AI provider. The full JSON artifact is opt-in and defaults off; the Devobs caller leaves it off because this repository is public. Other callers should opt in only when artifact visibility and retention fit that repository.
+
+This repository's P04 offline evaluation scorecard is a separate feature that measures a deterministic synthetic adviser fixture. OpenSSF Scorecard measures repository security practices; neither score substitutes for the other or establishes hosted runtime readiness.
+
+The same reusable workflow can be called by another repository at a reviewed immutable Devobs commit. The [GitHub reusable workflow documentation](https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations) describes caller permissions and access rules; the caller must allow reusable workflows in its Actions settings, and the called workflow cannot elevate the caller's `GITHUB_TOKEN` permissions. The phone-repair repository already has its own Scorecard CLI report in [PR #156](https://github.com/hamedonassar95/phone-repair-assistant-v2/pull/156); converting that report to this shared workflow is a separate follow-up after this workflow is merged and its caller settings are confirmed.
+
+The [OpenSSF Scorecard CLI](https://github.com/ossf/scorecard) is used instead of its GitHub Action so the workflow remains usable for private callers without requiring GitHub Advanced Security. Its score and findings are repository-posture signals only; findings still need human review.
 
 ## Run the Python checks locally
 

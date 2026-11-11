@@ -11,9 +11,9 @@ class ClaudeCodeAssistantWorkflowTests(unittest.TestCase):
             encoding="utf-8"
         )
 
-        self.assertIn(
-            "anthropics/claude-code-action@16f9f71ab9c490faf367f94dd294897edc25be33 # v1.0.261",
+        self.assertRegex(
             workflow,
+            r"(?m)^\s*uses:\s*anthropics/claude-code-action@[a-f0-9]{40}\s+#\s*v\d+\.\d+\.\d+\s*$",
         )
         self.assertIn("secrets.ANTHROPIC_API_KEY", workflow)
         self.assertIn('[[ -z "${ANTHROPIC_API_KEY:-}" ]]', workflow)

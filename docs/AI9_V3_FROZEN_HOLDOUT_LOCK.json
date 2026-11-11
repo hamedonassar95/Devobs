@@ -1,0 +1,12 @@
+{
+  "status": "STARTED",
+  "approved_sha": "80dbcb3466c1368662190736a442d1082e7f2b54",
+  "registration": "ai9-coherent-onset-v3",
+  "seeds": [
+    20270601,
+    20270602,
+    20270603,
+    20270604
+  ],
+  "warning": "Do not rerun or remove this lock. Preserve INVALID if evaluation fails."
+}
