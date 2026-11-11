@@ -1,4 +1,15 @@
-## أحدث لقطة موثّقة: دمج PR #514 و#515 — تحقق 2026-11-11
+## أحدث لقطة موثّقة: دمج PR #517 — تحقق 2026-11-11
+
+- **VERIFIED من GitHub:** دمج مالك المستودع PR [#517](https://github.com/hamedonassar95/Devobs/pull/517) عند `cad4ad1dfc15061ec05c03ef04d10b01013a804a` من رأس `67842c5fba8645c72cf060a7c5088ab6408d5ca5`. نجح CI على الرأس [42981513825](https://github.com/hamedonassar95/Devobs/actions/runs/42981513825) وCodeQL [42981509634](https://github.com/hamedonassar95/Devobs/actions/runs/42981509634)، ونجح CI بعد الدمج [42997342707](https://github.com/hamedonassar95/Devobs/actions/runs/42997342707) وCodeQL [42997340873](https://github.com/hamedonassar95/Devobs/actions/runs/42997340873) على SHA الدمج.
+- **VERIFIED:** اجتازت Python validation وsite-contract وsecurity وTrivy/container وTerraform و`validate` ونشر GitHub Pages الثابت و`verify-production`. تخطّى Node الاختبار بسبب فلتر المسارات، وتخطّى incident drill والاستعادة شروطها. فحص Codex advisory لم يستدعِ النموذج؛ خطوة inference تخطّاها حاجز موافقة الميزانية.
+- **VERIFIED:** أضاف PR ثلاثة عروض خدمات ثنائية اللغة بنطاق ومخرجات مقترحة إلى الموقع الثابت، دون أسعار أو مواعيد أو التزامات تعاقدية.
+- **ASSUMED:** صياغة العروض ومخرجاتها إطار أولي؛ لا يوجد اعتماد من عميل على نطاق عمل أو سعر.
+- **UNVERIFIED:** معاينة Vercel احتاجت تسجيل دخول ولم تُراجع بصريًا.
+- **الحالة لم تتغير:** AI-9 **FAIL / BLOCKED**، P01 **NO-GO / BLOCKED**، وقبول تشغيل Codex **OPEN**. سجل الإنجازات يحتوي الآن 169 عنصرًا وآخر PR موثق #517.
+
+---
+
+## لقطة سابقة موثّقة: دمج PR #514 و#515 — تحقق 2026-11-11
 
 - **VERIFIED من GitHub:** دُمج PR [#515](https://github.com/hamedonassar95/Devobs/pull/515) عند `c8a99533a671438d6e6d2858b47124c3eaff138b` من الرأس `85f806759a4d2c055e6ffaa418fd5c4c0b1eb2e2`. نجح CI على الرأس [42977296953](https://github.com/hamedonassar95/Devobs/actions/runs/42977296953) وCodeQL [42977292836](https://github.com/hamedonassar95/Devobs/actions/runs/42977292836). نجح CI بعد الدمج [42977569032](https://github.com/hamedonassar95/Devobs/actions/runs/42977569032) وCodeQL [42977568207](https://github.com/hamedonassar95/Devobs/actions/runs/42977568207) على SHA الدمج. شمل CI اختبار سياسة Conftest في `terraform-validate` ونشر Pages الثابت والتحقق منه.
 - **VERIFIED من GitHub:** دُمج PR [#514](https://github.com/hamedonassar95/Devobs/pull/514) عند `700cea42f876a1d9748ba86371dfbfdccef27942` من الرأس المحدّث `fbfb8598bbada7e829bc87227f7a94ef68baaa98`. نجح CI على الرأس [42978098373](https://github.com/hamedonassar95/Devobs/actions/runs/42978098373) وCodeQL [42978099240](https://github.com/hamedonassar95/Devobs/actions/runs/42978099240). نجح CI بعد الدمج [42978420012](https://github.com/hamedonassar95/Devobs/actions/runs/42978420012) وCodeQL [42978419022](https://github.com/hamedonassar95/Devobs/actions/runs/42978419022)، وشمل نشر Pages الثابت والتحقق منه.

@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_latest_recorded_merges_through_pr515_do_not_promote_gates(self):
+    def test_latest_recorded_merges_through_pr517_do_not_promote_gates(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 515)
-        self.assertEqual(result["merged_milestones"], 168)
+        self.assertEqual(result["latest_pr"], 517)
+        self.assertEqual(result["merged_milestones"], 169)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         expected_recent = {
             502: ("0f6168681b08f687bc7a3aefa8238c0a7f3de691", "917b481694c4e3607f93890681e39c23e5dcad21", 42689426462),
@@ -1042,6 +1042,7 @@ class MilestoneLedgerTests(unittest.TestCase):
             509: ("015f8b84d1e4233beb2cb7e03082267cd4dba5ed", "2ea1f58a6323f4ccc0e6553be4b2fb61e6017c99", 42805723188),
             514: ("fbfb8598bbada7e829bc87227f7a94ef68baaa98", "700cea42f876a1d9748ba86371dfbfdccef27942", 42978420012),
             515: ("85f806759a4d2c055e6ffaa418fd5c4c0b1eb2e2", "c8a99533a671438d6e6d2858b47124c3eaff138b", 42977569032),
+            517: ("67842c5fba8645c72cf060a7c5088ab6408d5ca5", "cad4ad1dfc15061ec05c03ef04d10b01013a804a", 42997342707),
         }
         for number, (head_sha, merge_sha, ci_run_id) in expected_recent.items():
             with self.subTest(pr=number):
