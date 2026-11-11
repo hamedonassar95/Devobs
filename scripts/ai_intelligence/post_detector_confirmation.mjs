@@ -269,6 +269,7 @@ function interruptMetric(metric, reason) {
   metric.activeIncident = null;
   metric.quietWindows = 0;
   metric.history = [];
+  metric.lastObservedAt = null;
   return interrupted;
 }
 

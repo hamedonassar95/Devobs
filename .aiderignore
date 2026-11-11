@@ -1,0 +1,24 @@
+# Never include local credentials or private runtime data in the model context.
+.env
+.env.*
+**/.env
+**/.env.*
+**/secrets/**
+**/*credentials*.json
+**/*credential*.json
+**/service-account*.json
+**/terraform.tfvars
+**/terraform.tfvars.json
+**/*.tfstate
+**/*.tfstate.*
+**/*.tfplan
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/*.log
+**/logs/**
+**/model_weights/**
+**/models/**/blobs/**
+**/*.gguf
+**/*.safetensors

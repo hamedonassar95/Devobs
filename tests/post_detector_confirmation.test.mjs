@@ -130,6 +130,18 @@ test('service time gaps interrupt open incidents and reset evidence', () => {
   assert.equal(layer.getSnapshot().interrupted_incidents, 1);
 });
 
+test('checkpoint remains valid after a service gap omits a previously observed metric', () => {
+  const layer = createPostDetectorConfirmationLayer();
+  layer.processServiceWindow(window(0, [{ metric: 'cpu_percent', channels: ['ewma'] }]));
+  layer.processServiceWindow(window(1, [{ metric: 'cpu_percent', channels: ['ewma'] }]));
+  layer.processServiceWindow(window(3, []));
+
+  const checkpoint = layer.getCheckpoint();
+  const restored = createPostDetectorConfirmationLayer({ checkpoint });
+
+  assert.deepEqual(restored.getCheckpoint(), checkpoint);
+});
+
 test('exact duplicate windows are idempotent while out-of-order and sub-cadence windows fail closed', () => {
   const layer = createPostDetectorConfirmationLayer();
   const first = layer.processServiceWindow(window(1, []));

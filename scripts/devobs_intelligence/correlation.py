@@ -448,7 +448,7 @@ def _find_declared_impact_paths(topology, impacted, root):
 
 def validate_impact_paths_against_snapshot(
         finding_record: dict, topology_snapshot: ServiceTopologySnapshot, *,
-        now_utc: datetime) -> IncidentFinding:
+        now_utc: datetime, max_age_seconds: int = 900) -> IncidentFinding:
     """Check an offline finding's paths against its exact fresh topology snapshot.
 
     This checks consistency only. The caller remains responsible for verifying
@@ -463,7 +463,8 @@ def validate_impact_paths_against_snapshot(
 
     snapshot = _revalidate_snapshot(topology_snapshot)
     now = now_utc.astimezone(timezone.utc)
-    snapshot.validate(finding.tenant, finding.project, now=now)
+    snapshot.validate(finding.tenant, finding.project, now=now,
+                      max_age_seconds=max_age_seconds)
     if (finding.topology_snapshot_digest != snapshot.snapshot_digest
             or finding.topology_captured_at != snapshot.captured_at
             or finding.source_sha != snapshot.source_sha):
@@ -475,7 +476,7 @@ def validate_impact_paths_against_snapshot(
     root = finding.ranked_services[0]
     impacted = snapshot.affected_by(
         finding.tenant, finding.project, root, now=now,
-        depth=_IMPACT_PATH_DEPTH,
+        max_age_seconds=max_age_seconds, depth=_IMPACT_PATH_DEPTH,
     )
     if finding.impacted_services != impacted:
         raise ContextError("incident_finding_topology_mismatch")
@@ -528,6 +529,7 @@ def validate_attested_impact_finding(
     )
     validated = validate_impact_paths_against_snapshot(
         finding.to_record(), attestation.snapshot, now_utc=now_utc,
+        max_age_seconds=max_age_seconds,
     )
     memory_approvals = ()
     if memory_approval_envelopes is not None:

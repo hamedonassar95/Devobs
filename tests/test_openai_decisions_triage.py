@@ -266,8 +266,13 @@ class OpenAIDecisionsTriageTests(unittest.TestCase):
         send_request.assert_not_called()
 
     def test_explicit_redaction_marker_is_not_treated_as_a_secret(self):
-        self.input_path.write_text("Authorization: Bearer <REDACTED>", encoding="utf-8")
-        self.assertEqual(decisions._read_input(str(self.input_path)), "Authorization: Bearer <REDACTED>")
+        for value in (
+            "Authorization: Bearer <REDACTED>",
+            "api_key=<REDACTED>",
+        ):
+            with self.subTest(value=value):
+                self.input_path.write_text(value, encoding="utf-8")
+                self.assertEqual(decisions._read_input(str(self.input_path)), value)
 
 
 if __name__ == "__main__":
