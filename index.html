@@ -56,6 +56,8 @@
     .service-list li{min-width:0;padding:21px;border:1px solid #364969;border-radius:15px;background:linear-gradient(160deg,#1b2b45,#142239)}
     .service-icon{display:grid;place-items:center;width:43px;height:43px;border:1px solid #5074a6;border-radius:12px;background:#263d63;color:#9ce1ff;font-size:1.15rem;margin-bottom:23px}
     .service-list h3{margin:0;font-size:1.02rem}.english-copy{display:block;margin-top:5px;direction:ltr;text-align:left;color:#9fb5d3;font-size:.78rem;font-weight:500;line-height:1.65}.service-list p{color:#b3c3d8;margin:12px 0 0;font-size:.83rem}
+    .offer-card{display:flex;flex-direction:column;min-height:100%;padding:22px;border-color:#405a7c;background:linear-gradient(155deg,#1c2d49,#142239);box-shadow:0 15px 32px #03071338}.offer-card .service-icon{width:44px;height:44px;margin-bottom:12px}
+    .offer-kicker{margin:0 0 8px!important;color:#83dff4!important;font-size:.68rem!important;font-weight:850;letter-spacing:.09em}.offer-card h4{margin:18px 0 0;color:#e2ebf9;font-size:.81rem}.offer-points{display:grid;gap:8px;margin:9px 0 0;padding-inline-start:1.2rem;color:#c1d0e3;font-size:.78rem}.offer-points li{min-width:0;padding:0;border:0;background:none}.offer-points .english-copy{margin-top:2px}.offer-note{padding:10px 12px;border-inline-start:3px solid #6cddf5;border-radius:8px;background:#16253b;color:#cfdae9!important;font-size:.74rem!important}.offer-link{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:48px;margin-top:auto;padding:8px 12px;border:1px solid #52759c;border-radius:10px;background:#1d3554;color:#e5f7ff;text-align:center;text-decoration:none;font-size:.82rem;font-weight:800}.offer-link:hover{background:#25446c}.offer-link .english-copy{margin:0;font-size:.7rem}
     .features{display:grid;grid-template-columns:1fr 1fr;gap:16px}.feature{display:flex;align-items:start;gap:14px;padding:18px;border:1px solid #334862;border-radius:14px;background:#19263d}.feature b{display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;border:1px solid #4c6893;border-radius:11px;background:#263853;color:#9ddcff}.feature strong{display:block;font-size:.87rem}.feature p{margin:4px 0 0;color:#acbed6;font-size:.79rem}
     .download-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.download-card{display:flex;flex-direction:column;gap:12px;padding:22px;border:1px solid #39506e;border-radius:17px;background:linear-gradient(140deg,#1d304b,#16243b)}
     .download-top{display:flex;align-items:center;gap:12px}.os-symbol{display:grid;place-items:center;flex:none;width:48px;height:48px;border:1px solid #52739b;border-radius:13px;background:#263f60;color:#d0f3ff;font-weight:900;font-size:1.2rem}
@@ -106,14 +108,48 @@
     <div class="trustline" aria-label="خصائص التصميم"><span>واجهة عربية RTL</span><span>CI/CD &amp; DevSecOps</span><span>مراجعة بشرية للتغييرات</span><span>لا خدمات مدفوعة مفعلة من الموقع</span></div>
     <main id="content">
       <section id="services" class="section-box" aria-labelledby="services-title">
-        <div class="section-head"><p class="section-kicker">OUR SERVICES</p><h2 id="services-title">الخدمات <span class="english-copy" lang="en">Services</span></h2><p class="section-intro">خدمات محددة يمكن مناقشة نطاقها قبل أي تكاليف أو تشغيل. التنفيذ التجاري يُحدد باتفاق مستقل.</p></div>
+        <div class="section-head"><p class="section-kicker">SERVICE OFFERS</p><h2 id="services-title">عروض الخدمات <span class="english-copy" lang="en">Service offers</span></h2><p class="section-intro">ثلاثة عروض أولية بنطاق ومخرجات قابلة للتحديد بعد مراجعة موجز المشروع. لا توجد أسعار أو مواعيد ثابتة قبل الاتفاق. <span class="english-copy" lang="en">Scope, pricing, and schedule are agreed after reviewing your project brief.</span></p></div>
         <ul class="service-list">
-          <li><span class="service-icon" aria-hidden="true">▣</span><h3>إنشاء تطبيقات الويب والمواقع الإلكترونية <span class="english-copy" lang="en">Build web applications and websites</span></h3><p>واجهات واضحة وتجارب مناسبة للجوال.</p></li>
-          <li><span class="service-icon" aria-hidden="true">◇</span><h3>إنشاء تطبيقات الهواتف المحمولة <span class="english-copy" lang="en">Build mobile applications</span></h3><p>تخطيط وتطوير التطبيقات حسب نطاق المشروع.</p></li>
-          <li><span class="service-icon" aria-hidden="true">⌁</span><h3>إصلاح المواقع والأنظمة وصيانتها <span class="english-copy" lang="en">Repair and maintain websites and systems</span></h3><p>تحليل الأعطال وإصلاحها مع اختبارات واضحة.</p></li>
-          <li><span class="service-icon" aria-hidden="true">⟳</span><h3>أتمتة DevOps باستخدام GitHub Actions وCI/CD <span class="english-copy" lang="en">DevOps automation with GitHub Actions and CI/CD</span></h3><p>فحوص وبوابات مراجعة ضمن سير تطوير قابل للتتبع.</p></li>
-          <li><span class="service-icon" aria-hidden="true">✦</span><h3>مراجعة الشيفرة وفرز الحوادث بمساندة الذكاء الاصطناعي <span class="english-copy" lang="en">AI-assisted code review and incident triage</span></h3><p>التوصيات استشارية ولا تنفذ تغييرات إنتاجية تلقائيًا.</p></li>
-          <li><span class="service-icon" aria-hidden="true">↗</span><h3>خدمات مخصصة وتكاملات برمجية <span class="english-copy" lang="en">Custom integrations and automation</span></h3><p>نحدد الاحتياج والمتطلبات والمخاطر قبل تقديم عرض عمل.</p></li>
+          <li class="offer-card">
+            <span class="service-icon" aria-hidden="true">▣</span><p class="offer-kicker">DIGITAL PRODUCT DELIVERY</p>
+            <h3>تطوير موقع أو تطبيق <span class="english-copy" lang="en">Website &amp; mobile app development</span></h3>
+            <p>نحوّل موجز المشروع إلى نطاق واضح لتطوير موقع أو تطبيق، بعد الاتفاق على المتطلبات.</p>
+            <h4>يشمل حسب الاتفاق <span class="english-copy" lang="en">Possible agreed scope</span></h4>
+            <ul class="offer-points">
+              <li>إنشاء تطبيقات الويب والمواقع الإلكترونية <span class="english-copy" lang="en">Build web applications and websites</span></li>
+              <li>إنشاء تطبيقات الهواتف المحمولة <span class="english-copy" lang="en">Build mobile applications</span></li>
+            </ul>
+            <h4>مخرجات مقترحة <span class="english-copy" lang="en">Proposed deliverables</span></h4>
+            <ul class="offer-points"><li>نطاق متفق عليه، تغييرات قابلة للمراجعة، وملخص للفحوص والتسليم. <span class="english-copy" lang="en">An agreed scope, reviewable changes, and a concise check and handoff summary.</span></li></ul>
+            <p class="offer-note">الاستضافة ورسوم متاجر التطبيقات وخدمات الطرف الثالث ليست مشمولة تلقائيًا. <span class="english-copy" lang="en">Hosting, app-store fees, and third-party services are excluded unless agreed separately.</span></p>
+            <a class="offer-link" href="#start">ابدأ بموجز المشروع <span class="english-copy" lang="en">Start with your project brief</span></a>
+          </li>
+          <li class="offer-card">
+            <span class="service-icon" aria-hidden="true">⌁</span><p class="offer-kicker">REPAIR &amp; MAINTENANCE</p>
+            <h3>إصلاح وصيانة المواقع والأنظمة <span class="english-copy" lang="en">Website &amp; systems repair and maintenance</span></h3>
+            <p>نراجع وصف المشكلة ونحدّد نطاق التشخيص والإصلاح قبل بدء العمل.</p>
+            <h4>يشمل حسب الاتفاق <span class="english-copy" lang="en">Possible agreed scope</span></h4>
+            <ul class="offer-points"><li>إصلاح المواقع والأنظمة وصيانتها <span class="english-copy" lang="en">Repair and maintain websites and systems</span></li></ul>
+            <h4>مخرجات مقترحة <span class="english-copy" lang="en">Proposed deliverables</span></h4>
+            <ul class="offer-points"><li>ملخص للمشكلة والأولويات، إصلاحات متفق عليها، ونتيجة الفحوص. <span class="english-copy" lang="en">An issue and priority summary, agreed fixes, and check results.</span></li></ul>
+            <p class="offer-note">لا يتضمن العرض تلقائيًا دعمًا مستمرًا أو اتفاقية مستوى خدمة؛ تُناقش منفصلة عند الحاجة. <span class="english-copy" lang="en">Ongoing support or an SLA is not included by default and can be discussed separately.</span></p>
+            <a class="offer-link" href="#start">ابدأ بموجز المشروع <span class="english-copy" lang="en">Start with your project brief</span></a>
+          </li>
+          <li class="offer-card">
+            <span class="service-icon" aria-hidden="true">✦</span><p class="offer-kicker">DELIVERY AUTOMATION &amp; AI-ASSISTED REVIEW</p>
+            <h3>تحسين DevOps ومراجعة هندسية <span class="english-copy" lang="en">DevOps &amp; AI-assisted engineering</span></h3>
+            <p>نراجع الاحتياج وسير العمل، ثم نقترح تحسينات قابلة للمراجعة ضمن صلاحيات ونطاق متفق عليه.</p>
+            <h4>يشمل حسب الاتفاق <span class="english-copy" lang="en">Possible agreed scope</span></h4>
+            <ul class="offer-points">
+              <li>أتمتة DevOps باستخدام GitHub Actions وCI/CD <span class="english-copy" lang="en">DevOps automation with GitHub Actions and CI/CD</span></li>
+              <li>مراجعة الشيفرة وفرز الحوادث بمساندة الذكاء الاصطناعي <span class="english-copy" lang="en">AI-assisted code review and incident triage</span></li>
+              <li>خدمات مخصصة وتكاملات برمجية <span class="english-copy" lang="en">Custom integrations and automation</span></li>
+            </ul>
+            <h4>مخرجات مقترحة <span class="english-copy" lang="en">Proposed deliverables</span></h4>
+            <ul class="offer-points"><li>مراجعة أولية، وخطة تغييرات قابلة للمراجعة، وملاحظات تسليم. <span class="english-copy" lang="en">An initial review, a reviewable change plan, and handoff notes.</span></li></ul>
+            <p class="offer-note">استخدام أدوات AI يتطلب اتفاقًا مسبقًا؛ التوصيات استشارية وتحتاج مراجعة بشرية، ولا تُنفذ تغييرات إنتاجية تلقائيًا. لا ترسل كلمات مرور أو مفاتيح. <span class="english-copy" lang="en">AI tools require prior agreement. Recommendations remain advisory and need human review; no production changes run automatically. Do not send passwords or keys.</span></p>
+            <a class="offer-link" href="#start">ابدأ بموجز المشروع <span class="english-copy" lang="en">Start with your project brief</span></a>
+          </li>
         </ul>
       </section>
       <section id="capabilities" class="section-box" aria-labelledby="capabilities-title">
