@@ -1850,6 +1850,17 @@
       "ci_run_id": 42977569032,
       "verification": "VERIFIED 2026-11-11: PR #515 merged at c8a99533a671438d6e6d2858b47124c3eaff138b from exact head 85f806759a4d2c055e6ffaa418fd5c4c0b1eb2e2. Exact-head PR CI 42977296953 and CodeQL 42977292836 passed; post-merge main CI 42977569032 and CodeQL 42977568207 passed. Conftest policy tests passed in terraform-validate; static Pages published and verify-production passed.",
       "limitations": "Narrow static HCL policy only; no Terraform plan/apply, Google Cloud call, resource provisioning, secret access, or runtime policy enforcement. Does not establish P01 readiness or change AI-9/P01 gates. Local full unittest discovery lacked psycopg and opentelemetry; hosted exact-head and post-merge CI passed."
+    },
+    {
+      "id": "service-offers-static-site-pr517",
+      "area": "DOCUMENTATION",
+      "title": "Publish three scoped Devobs service offers on the static site",
+      "pr_number": 517,
+      "pr_head_sha": "67842c5fba8645c72cf060a7c5088ab6408d5ca5",
+      "merge_sha": "cad4ad1dfc15061ec05c03ef04d10b01013a804a",
+      "ci_run_id": 42997342707,
+      "verification": "VERIFIED 2026-11-11: owner merged PR #517 at cad4ad1dfc15061ec05c03ef04d10b01013a804a from head 67842c5fba8645c72cf060a7c5088ab6408d5ca5. Exact-head CI 42981513825 and CodeQL 42981509634 passed. Post-merge main CI 42997342707 and CodeQL 42997340873 passed on the merge SHA. Python validation, site-contract, security, Trivy/container, Terraform, validate, static Pages publication, and verify-production passed; Node tests, incident drill, and restoration steps skipped by path or workflow conditions. Codex inference step skipped by explicit budget gate.",
+      "limitations": "Static-site offer copy and content tests only. The offers are draft scope, not a client contract or proof of delivery capacity; exact scope, price, schedule, and legal terms require agreement. No hosted SaaS, cloud resource, secret change, or AI inference was introduced. The Vercel preview required authentication and was not visually reviewed. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex runtime remains OPEN."
     }
   ],
   "gates": [
