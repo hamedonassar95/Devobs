@@ -430,6 +430,29 @@ class RotatingTopologyKeyringTests(unittest.TestCase):
                     "^invalid_topology_keyring_store$"):
                 self.persistent_keyring(path)
 
+    def test_oversized_persistent_state_is_rejected_without_bootstrap_overwrite(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "topology-trust.sqlite3"
+            self.persistent_keyring(path)
+            oversized_state = "x" * (
+                topology_attestation._MAX_PERSISTED_STATE_BYTES + 1)
+            with sqlite3.connect(path) as connection:
+                connection.execute(
+                    "UPDATE topology_keyring_state SET state_json = ? "
+                    "WHERE singleton = 1", (oversized_state,),
+                )
+
+            with self.assertRaisesRegex(
+                    topology_attestation.TopologyKeyringRotationRejected,
+                    "^invalid_topology_keyring_store$"):
+                self.persistent_keyring(path)
+
+            with sqlite3.connect(path) as connection:
+                stored_state = connection.execute(
+                    "SELECT state_json FROM topology_keyring_state "
+                    "WHERE singleton = 1").fetchone()[0]
+            self.assertEqual(stored_state, oversized_state)
+
     def test_invalid_update_signature_does_not_change_trust(self):
         old_envelope = self.envelope(self.old_private_key, "collector-1")
         new_scope = ("alpha", "platform", "collector-2")

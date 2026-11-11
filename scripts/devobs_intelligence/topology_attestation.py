@@ -240,7 +240,8 @@ class RotatingTopologyKeyring:
                     "invalid_topology_keyring_store")
             row = connection.execute(
                 "SELECT state_json, state_digest FROM topology_keyring_state "
-                "WHERE singleton = 1 AND length(state_json) <= ?",
+                "WHERE singleton = 1 "
+                "AND length(CAST(state_json AS BLOB)) <= ?",
                 (_MAX_PERSISTED_STATE_BYTES,),
             ).fetchone()
             if row is None:
@@ -282,16 +283,26 @@ class RotatingTopologyKeyring:
             if columns != ("singleton", "state_json", "state_digest"):
                 raise TopologyKeyringRotationRejected(
                     "invalid_topology_keyring_store")
-            row = connection.execute(
-                "SELECT state_json, state_digest FROM topology_keyring_state "
-                "WHERE singleton = 1 AND length(state_json) <= ?",
-                (_MAX_PERSISTED_STATE_BYTES,),
+            size_row = connection.execute(
+                "SELECT length(CAST(state_json AS BLOB)) "
+                "FROM topology_keyring_state WHERE singleton = 1"
             ).fetchone()
-            if row is None:
+            if size_row is None:
                 self._write_state(
                     connection, self._revision, self._current, self._revoked,
                 )
             else:
+                if (type(size_row[0]) is not int or size_row[0] < 0
+                        or size_row[0] > _MAX_PERSISTED_STATE_BYTES):
+                    raise TopologyKeyringRotationRejected(
+                        "invalid_topology_keyring_store")
+                row = connection.execute(
+                    "SELECT state_json, state_digest "
+                    "FROM topology_keyring_state WHERE singleton = 1"
+                ).fetchone()
+                if row is None:
+                    raise TopologyKeyringRotationRejected(
+                        "invalid_topology_keyring_store")
                 self._revision, self._current, self._revoked = (
                     _decode_keyring_state(row[0], row[1]))
             connection.execute("COMMIT")

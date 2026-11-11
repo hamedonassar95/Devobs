@@ -1,0 +1,9 @@
+# Project defaults for the optional local code assistant.
+# The launcher still requires an explicit local model and Ollama endpoint.
+auto-commits: false
+dirty-commits: false
+analytics: false
+check-update: false
+gitignore: false
+subtree-only: true
+aiderignore: .aiderignore

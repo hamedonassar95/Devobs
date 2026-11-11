@@ -1,6 +1,6 @@
 # Local model runtimes
 
-[`docker-compose.yml`](docker-compose.yml) provides optional, local-only Ollama and LocalAI containers. Repository setup does not start them, pull their images, or download model weights. The staging diagnostics adapter can use these runtimes as explicitly selected local providers; it is disabled by default and accepts only fixed loopback endpoints. This does not replace or alter deterministic/statistical AI-1 through AI-7.
+[`docker-compose.yml`](docker-compose.yml) provides optional, local-only Ollama and LocalAI containers. Repository setup does not start them, pull their images, or download model weights. The Ollama container disables cloud models using `OLLAMA_NO_CLOUD=1`. Ollama can support both the optional staging diagnostics adapter and a local interactive code assistant; see [مساعد البرمجة المحلي](../docs/LOCAL_AI_CODE_ASSISTANT.md). Neither path replaces or alters deterministic/statistical AI-1 through AI-7.
 
 ## Reviewed images
 

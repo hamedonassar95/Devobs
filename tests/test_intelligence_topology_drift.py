@@ -106,6 +106,21 @@ class TopologyDriftTests(unittest.TestCase):
         self.assertEqual(record["reconnected_services"], ["worker"])
         self.assertEqual(record["introduced_cycles"], [])
 
+    def test_removed_isolated_service_is_not_reported_as_reconnected(self):
+        before = snapshot(
+            services=["api", "db", "retired"], edges=[("api", "db")],
+            source_sha="a" * 40, captured_at="2026-11-01T00:00:00Z",
+        )
+        after = snapshot(
+            services=["api", "db"], edges=[("api", "db")],
+            source_sha="b" * 40, captured_at="2026-11-02T00:00:00Z",
+        )
+
+        report = compare_topology_snapshots(before, after)
+
+        self.assertEqual(report.removed_services, ("retired",))
+        self.assertEqual(report.reconnected_services, ())
+
     def test_empty_current_graph_has_no_unverifiable_edges(self):
         before = snapshot(
             services=["api"], edges=[], source_sha="a" * 40,

@@ -31,7 +31,7 @@ _SECRET_PATTERNS = (
     re.compile(r"(?i)-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
     re.compile(
         r"(?i)\b(?:api[_-]?key|access[_-]?token|client[_-]?secret|password)\b"
-        r"[\"']?\s*[:=]\s*[\"']?(?!<redacted>\b|redacted\b)[^\s\"'`,;]{8,}"
+        r"[\"']?\s*[:=]\s*[\"']?(?!<redacted>|redacted\b)[^\s\"'`,;]{8,}"
     ),
 )
 _MODEL_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}\Z")

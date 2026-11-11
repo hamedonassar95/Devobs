@@ -200,7 +200,8 @@ def compare_topology_snapshots(
         introduced_cycles=tuple(sorted(new_cycles - old_cycles)),
         resolved_cycles=tuple(sorted(old_cycles - new_cycles)),
         newly_isolated_services=tuple(sorted(new_isolated - old_isolated)),
-        reconnected_services=tuple(sorted(old_isolated - new_isolated)),
+        reconnected_services=tuple(sorted(
+            (old_isolated & new_services) - new_isolated)),
         unverifiable_edges=tuple(sorted(new_edges)),
     )
 

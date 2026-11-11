@@ -143,6 +143,28 @@ class AttestedImpactFindingTests(unittest.TestCase):
             result.topology_snapshot_digest, self.snapshot.snapshot_digest,
         )
 
+    def test_custom_attestation_freshness_limit_is_used_for_impact_paths(self):
+        capture_time = NOW - timedelta(seconds=1100)
+        topology = make_snapshot(captured_at=capture_time.isoformat(
+            timespec="microseconds").replace("+00:00", "Z"))
+        finding_time = NOW - timedelta(seconds=200)
+        telemetry = normalize_telemetry({
+            "tenant": "alpha", "project": "platform", "service": "db",
+            "source_sha": SOURCE_SHA, "observed_at": finding_time.isoformat(),
+            "metric": "error_rate_pct", "value": 8,
+            "evidence_digest": "c" * 64,
+        })
+        finding = correlate(
+            topology, [telemetry], IncidentMemory([]), finding_time,
+        )
+
+        result = self.validate(
+            finding=finding, attestation=self.envelope(topology),
+            max_age_seconds=1200,
+        )
+
+        self.assertEqual(result.finding, finding)
+
     def test_finding_gate_accepts_rotated_key_and_rejects_revoked_key(self):
         new_private_key = Ed25519PrivateKey.generate()
         new_public_key = new_private_key.public_key().public_bytes(

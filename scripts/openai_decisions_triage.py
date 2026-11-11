@@ -45,7 +45,7 @@ SENSITIVE_PATTERNS = (
     re.compile(r"(?i)\b(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?)://[^/\s:@]+:[^@\s/]+@"),
     re.compile(
         r"(?i)\b(?:api[_-]?key|access[_-]?token|client[_-]?secret|password)\b"
-        r"[\"']?\s*[:=]\s*[\"']?(?!<redacted>\b|redacted\b)[^\s\"'`,;]{8,}"
+        r"[\"']?\s*[:=]\s*[\"']?(?!<redacted>|redacted\b)[^\s\"'`,;]{8,}"
     ),
 )
 

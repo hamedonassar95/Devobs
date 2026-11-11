@@ -29,6 +29,10 @@ RESULT = {
 class OpenAIErrorLogDiagnosticianTests(unittest.TestCase):
     def test_validates_redacted_input_and_rejects_credential_like_values(self):
         self.assertEqual(validate_error_log(LOG), LOG)
+        self.assertEqual(
+            validate_error_log("api_key=<redacted>"),
+            "api_key=<redacted>",
+        )
         for value in (
             "",
             "x" * 8193,
