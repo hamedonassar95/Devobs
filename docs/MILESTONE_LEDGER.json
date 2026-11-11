@@ -1861,6 +1861,17 @@
       "ci_run_id": 42997342707,
       "verification": "VERIFIED 2026-11-11: owner merged PR #517 at cad4ad1dfc15061ec05c03ef04d10b01013a804a from head 67842c5fba8645c72cf060a7c5088ab6408d5ca5. Exact-head CI 42981513825 and CodeQL 42981509634 passed. Post-merge main CI 42997342707 and CodeQL 42997340873 passed on the merge SHA. Python validation, site-contract, security, Trivy/container, Terraform, validate, static Pages publication, and verify-production passed; Node tests, incident drill, and restoration steps skipped by path or workflow conditions. Codex inference step skipped by explicit budget gate.",
       "limitations": "Static-site offer copy and content tests only. The offers are draft scope, not a client contract or proof of delivery capacity; exact scope, price, schedule, and legal terms require agreement. No hosted SaaS, cloud resource, secret change, or AI inference was introduced. The Vercel preview required authentication and was not visually reviewed. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex runtime remains OPEN."
+    },
+    {
+      "id": "ledger-sync-pr518",
+      "area": "DOCUMENTATION",
+      "title": "Record PR 518 merge evidence for the service-offers milestone",
+      "pr_number": 518,
+      "pr_head_sha": "f6ecfe35115e39f5969e483e7c53007637bd5139",
+      "merge_sha": "918946615a19f4bec31490d52d8a1125b522d9ad",
+      "ci_run_id": 42999814862,
+      "verification": "VERIFIED 2026-11-11: owner merged PR #518 at 918946615a19f4bec31490d52d8a1125b522d9ad from exact head f6ecfe35115e39f5969e483e7c53007637bd5139. Exact-head CI 42998094232 and CodeQL 42998090503 passed; post-merge main CI 42999814862 and CodeQL 42999813426 passed on the merge SHA. Post-merge Python validation, site-contract, security, Trivy/container, Terraform, validate, static Pages publication, and verify-production passed. Node tests, incident drill, and restoration steps skipped by path or workflow conditions. Codex inference step skipped by explicit AI budget gate.",
+      "limitations": "Ledger, STATE, and ledger-test synchronization only; no application behavior or readiness gate changed. CI evidence does not establish any customer delivery, hosted SaaS readiness, or service-level agreement. No cloud resource, secret change, or AI inference was introduced. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex runtime remains OPEN."
     }
   ],
   "gates": [

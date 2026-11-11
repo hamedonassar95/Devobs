@@ -1,4 +1,13 @@
-## أحدث لقطة موثّقة: دمج PR #517 — تحقق 2026-11-11
+## أحدث لقطة موثّقة: دمج PR #518 — تحقق 2026-11-11
+
+- **VERIFIED من GitHub:** دمج مالك المستودع PR [#518](https://github.com/hamedonassar95/Devobs/pull/518) عند `918946615a19f4bec31490d52d8a1125b522d9ad` من رأس `f6ecfe35115e39f5969e483e7c53007637bd5139`. نجح CI على الرأس [42998094232](https://github.com/hamedonassar95/Devobs/actions/runs/42998094232) وCodeQL [42998090503](https://github.com/hamedonassar95/Devobs/actions/runs/42998090503)، ونجح CI بعد الدمج [42999814862](https://github.com/hamedonassar95/Devobs/actions/runs/42999814862) وCodeQL [42999813426](https://github.com/hamedonassar95/Devobs/actions/runs/42999813426) على SHA الدمج.
+- **VERIFIED:** اجتازت Python validation وsite-contract وsecurity وTrivy/container وTerraform و`validate` ونشر GitHub Pages الثابت و`verify-production`. تخطّى Node الاختبار وincident drill والاستعادة شروط المسارات أو التشغيل. مراجعة Codex لم تُرسل طلبًا للنموذج؛ حاجز موافقة الميزانية تخطّى خطوة inference.
+- **VERIFIED:** سجّل PR #518 أدلة دمج PR #517 في `MILESTONE_LEDGER.json` وحدّث `STATE.md` واختبار عقد السجل فقط؛ لم يغيّر سلوك التطبيق أو حالات الجاهزية.
+- **الحالة لم تتغير:** AI-9 **FAIL / BLOCKED**، P01 **NO-GO / BLOCKED**، وقبول تشغيل Codex **OPEN**. سجل الإنجازات يحتوي الآن 170 عنصرًا وآخر PR موثق #518.
+
+---
+
+## لقطة سابقة موثّقة: دمج PR #517 — تحقق 2026-11-11
 
 - **VERIFIED من GitHub:** دمج مالك المستودع PR [#517](https://github.com/hamedonassar95/Devobs/pull/517) عند `cad4ad1dfc15061ec05c03ef04d10b01013a804a` من رأس `67842c5fba8645c72cf060a7c5088ab6408d5ca5`. نجح CI على الرأس [42981513825](https://github.com/hamedonassar95/Devobs/actions/runs/42981513825) وCodeQL [42981509634](https://github.com/hamedonassar95/Devobs/actions/runs/42981509634)، ونجح CI بعد الدمج [42997342707](https://github.com/hamedonassar95/Devobs/actions/runs/42997342707) وCodeQL [42997340873](https://github.com/hamedonassar95/Devobs/actions/runs/42997340873) على SHA الدمج.
 - **VERIFIED:** اجتازت Python validation وsite-contract وsecurity وTrivy/container وTerraform و`validate` ونشر GitHub Pages الثابت و`verify-production`. تخطّى Node الاختبار بسبب فلتر المسارات، وتخطّى incident drill والاستعادة شروطها. فحص Codex advisory لم يستدعِ النموذج؛ خطوة inference تخطّاها حاجز موافقة الميزانية.
