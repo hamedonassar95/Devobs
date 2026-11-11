@@ -48,6 +48,7 @@ test('payload preparation errors never surface input contents', () => {
 });
 
 test('dispatch body contains only bounded source build metadata', () => {
+  assert.equal(SOURCE_REPOSITORY, 'hamedonassar95/DevObs-ai-Intelligence-');
   assert.deepEqual(createDispatchBody(validRun()), {
     event_type: DISPATCH_EVENT_TYPE,
     client_payload: {
