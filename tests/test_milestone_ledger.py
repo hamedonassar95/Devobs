@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_pr420_through_pr509_merges_are_recorded_without_gate_promotion(self):
+    def test_latest_recorded_merges_through_pr515_do_not_promote_gates(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 509)
-        self.assertEqual(result["merged_milestones"], 166)
+        self.assertEqual(result["latest_pr"], 515)
+        self.assertEqual(result["merged_milestones"], 168)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         expected_recent = {
             502: ("0f6168681b08f687bc7a3aefa8238c0a7f3de691", "917b481694c4e3607f93890681e39c23e5dcad21", 42689426462),
@@ -1040,6 +1040,8 @@ class MilestoneLedgerTests(unittest.TestCase):
             507: ("902d2f735d2b2ee0f649218cd824b2417bc2284d", "71c79115e5a75f5b6629a5c1eaacbba0c2113233", 42798389835),
             508: ("2e1a3fb3235e1a529e9a286d9290d8adae124480", "57b256f21215a66bab9754e3f4f60ab8e6118ede", 42800093891),
             509: ("015f8b84d1e4233beb2cb7e03082267cd4dba5ed", "2ea1f58a6323f4ccc0e6553be4b2fb61e6017c99", 42805723188),
+            514: ("fbfb8598bbada7e829bc87227f7a94ef68baaa98", "700cea42f876a1d9748ba86371dfbfdccef27942", 42978420012),
+            515: ("85f806759a4d2c055e6ffaa418fd5c4c0b1eb2e2", "c8a99533a671438d6e6d2858b47124c3eaff138b", 42977569032),
         }
         for number, (head_sha, merge_sha, ci_run_id) in expected_recent.items():
             with self.subTest(pr=number):
@@ -1061,6 +1063,10 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("Issue #237 remains open", records[509]["verification"])
         self.assertIn("No AI-9 holdout seed was run or consumed", records[509]["limitations"])
         self.assertIn("independent hosted staging evidence", records[509]["limitations"])
+        self.assertIn("No Terra/Copilot/OpenAI inference", records[514]["limitations"])
+        self.assertIn("Static Pages published and verify-production passed", records[514]["verification"])
+        self.assertIn("no Terraform plan/apply", records[515]["limitations"])
+        self.assertIn("Conftest policy tests passed", records[515]["verification"])
         gates = {item["id"]: item["status"] for item in self.data["gates"]}
         self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
