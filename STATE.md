@@ -1,3 +1,12 @@
+## أحدث لقطة موثّقة: دمج PR #514 و#515 — تحقق 2026-11-11
+
+- **VERIFIED من GitHub:** دُمج PR [#515](https://github.com/hamedonassar95/Devobs/pull/515) عند `c8a99533a671438d6e6d2858b47124c3eaff138b` من الرأس `85f806759a4d2c055e6ffaa418fd5c4c0b1eb2e2`. نجح CI على الرأس [42977296953](https://github.com/hamedonassar95/Devobs/actions/runs/42977296953) وCodeQL [42977292836](https://github.com/hamedonassar95/Devobs/actions/runs/42977292836). نجح CI بعد الدمج [42977569032](https://github.com/hamedonassar95/Devobs/actions/runs/42977569032) وCodeQL [42977568207](https://github.com/hamedonassar95/Devobs/actions/runs/42977568207) على SHA الدمج. شمل CI اختبار سياسة Conftest في `terraform-validate` ونشر Pages الثابت والتحقق منه.
+- **VERIFIED من GitHub:** دُمج PR [#514](https://github.com/hamedonassar95/Devobs/pull/514) عند `700cea42f876a1d9748ba86371dfbfdccef27942` من الرأس المحدّث `fbfb8598bbada7e829bc87227f7a94ef68baaa98`. نجح CI على الرأس [42978098373](https://github.com/hamedonassar95/Devobs/actions/runs/42978098373) وCodeQL [42978099240](https://github.com/hamedonassar95/Devobs/actions/runs/42978099240). نجح CI بعد الدمج [42978420012](https://github.com/hamedonassar95/Devobs/actions/runs/42978420012) وCodeQL [42978419022](https://github.com/hamedonassar95/Devobs/actions/runs/42978419022)، وشمل نشر Pages الثابت والتحقق منه.
+- **VERIFIED:** PR #514 يوثق جاهزية Terra وتخطيط P13–P19 فقط؛ PR #515 يضيف فحص HCL ثابتًا محدودًا. لم يُنفذ Terraform plan/apply أو استدعاء Google Cloud. مسار مراجعة Codex في PRين تخطّى خطوة الاستدلال لغياب موافقة الميزانية الصريحة؛ لم تُرسل طلبات نموذج.
+- **الحالة لم تتغير:** AI-9 **FAIL / BLOCKED**، P01 **NO-GO / BLOCKED**، وقبول تشغيل Codex **OPEN**. سجل الإنجازات يحتوي الآن 168 عنصرًا وآخر PR موثق #515.
+
+---
+
 ## أحدث لقطة موثّقة: دمج PR #509 — تحقق 2026-11-10
 
 - **VERIFIED من GitHub:** دُمج PR [#509](https://github.com/hamedonassar95/Devobs/pull/509) من الرأس `015f8b84d1e4233beb2cb7e03082267cd4dba5ed` إلى `main` عند `2ea1f58a6323f4ccc0e6553be4b2fb61e6017c99` بواسطة مالك المستودع. نجح CI بعد الدمج [42805723188](https://github.com/hamedonassar95/Devobs/actions/runs/42805723188) وCodeQL [42805723573](https://github.com/hamedonassar95/Devobs/actions/runs/42805723573) على SHA الدمج. اجتازت PostgreSQL RLS وPython والأمن والحاوية/Trivy وTerraform وsite-contract و`validate` ونشر Pages الثابت والتحقق منه؛ تخطى Node بعد الدمج لاختيار المسارات، لكنه نجح في CI على رأس PR [42804796252](https://github.com/hamedonassar95/Devobs/actions/runs/42804796252). تخطت تمارين الحوادث والاستعادة شروطها.

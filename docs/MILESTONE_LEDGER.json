@@ -1828,6 +1828,28 @@
       "ci_run_id": 42805723188,
       "verification": "VERIFIED 2026-11-10: PR #509 was merged by the repository owner at 2ea1f58a6323f4ccc0e6553be4b2fb61e6017c99 from head 015f8b84d1e4233beb2cb7e03082267cd4dba5ed. Exact-head push CI 42804796252 and PR CI 42804804948 passed; CodeQL 42804800023 passed. Post-merge main CI 42805723188 and CodeQL 42805723573 passed on the merge SHA. PostgreSQL RLS, Python, security, container/Trivy, Terraform, site-contract, validate, static Pages publication and verify-production passed. Node passed on the exact-head push run and was skipped on the post-merge run by path selection. Incident and recovery jobs skipped their conditions. Issue #237 remains open.",
       "limitations": "Adds repository-level PostgreSQL regressions for immediate membership revocation, transaction-local context across pooled connection reuse, and rollback after partial migration failure. It does not provide independent hosted staging evidence, a live /readyz request, provider-enforced all-in spend cap, real OIDC identity, deployed tenant-isolation proof, verified TLS/network controls, recovery evidence, or owner release authorization. No AI-9 holdout seed was run or consumed. AI-9 remains FAIL/BLOCKED and P01 remains NO-GO/BLOCKED; static Pages is not an API deployment."
+    },
+    {
+      "id": "terra-readiness-pr514",
+      "area": "DOCUMENTATION",
+      "title": "Assess GPT-6.1 Terra readiness for Devobs P13-P19 without enabling inference",
+      "pr_number": 514,
+      "pr_head_sha": "fbfb8598bbada7e829bc87227f7a94ef68baaa98",
+      "merge_sha": "700cea42f876a1d9748ba86371dfbfdccef27942",
+      "ci_run_id": 42978420012,
+      "verification": "VERIFIED 2026-11-11: PR #514 merged at 700cea42f876a1d9748ba86371dfbfdccef27942 from exact head fbfb8598bbada7e829bc87227f7a94ef68baaa98. Exact-head CI 42978098373 and CodeQL 42978099240 passed; post-merge main CI 42978420012 and CodeQL 42978419022 passed. Static Pages published and verify-production passed.",
+      "limitations": "Documentation and planning only. No Terra/Copilot/OpenAI inference, workflow or application change, cloud resource, or deployment setting change. P01 remains BLOCKED, AI-9 remains FAIL/BLOCKED, and Codex runtime acceptance remains OPEN."
+    },
+    {
+      "id": "terraform-conftest-policy-pr515",
+      "area": "CI_SECURITY",
+      "title": "Add a narrow checksum-pinned Conftest policy gate for Terraform HCL",
+      "pr_number": 515,
+      "pr_head_sha": "85f806759a4d2c055e6ffaa418fd5c4c0b1eb2e2",
+      "merge_sha": "c8a99533a671438d6e6d2858b47124c3eaff138b",
+      "ci_run_id": 42977569032,
+      "verification": "VERIFIED 2026-11-11: PR #515 merged at c8a99533a671438d6e6d2858b47124c3eaff138b from exact head 85f806759a4d2c055e6ffaa418fd5c4c0b1eb2e2. Exact-head PR CI 42977296953 and CodeQL 42977292836 passed; post-merge main CI 42977569032 and CodeQL 42977568207 passed. Conftest policy tests passed in terraform-validate; static Pages published and verify-production passed.",
+      "limitations": "Narrow static HCL policy only; no Terraform plan/apply, Google Cloud call, resource provisioning, secret access, or runtime policy enforcement. Does not establish P01 readiness or change AI-9/P01 gates. Local full unittest discovery lacked psycopg and opentelemetry; hosted exact-head and post-merge CI passed."
     }
   ],
   "gates": [
