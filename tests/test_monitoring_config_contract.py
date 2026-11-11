@@ -79,11 +79,11 @@ class MonitoringConfigContractTests(unittest.TestCase):
         self.assertIn("PrometheusScrapeTargetDown", alerts)
         self.assertIn("PrometheusScrapeTargetMissing", alerts)
 
-    def test_dashboard_shows_host_metrics_without_claiming_application_telemetry(self):
+    def test_dashboard_shows_host_and_optional_local_api_metrics(self):
         serialized = json.dumps(DASHBOARD)
         titles = {panel["title"] for panel in DASHBOARD["panels"]}
         self.assertEqual(DASHBOARD["uid"], "devobs-monitoring-starter")
-        self.assertIn("no application /metrics endpoint", serialized)
+        self.assertIn("static site has no /metrics endpoint", serialized)
         self.assertIn('up{job=\\"prometheus\\"}', serialized)
         self.assertTrue({
             "Linux host CPU usage",
@@ -97,6 +97,27 @@ class MonitoringConfigContractTests(unittest.TestCase):
         self.assertEqual(len(network_panel["targets"]), 2)
         self.assertIn("node_network_receive_bytes_total", network_panel["targets"][0]["expr"])
         self.assertIn("node_network_transmit_bytes_total", network_panel["targets"][1]["expr"])
+
+        latency_panel = next(
+            panel for panel in DASHBOARD["panels"]
+            if panel["title"] == "Local API p95 request duration"
+        )
+        latency_query = latency_panel["targets"][0]["expr"]
+        self.assertIn("histogram_quantile(0.95", latency_query)
+        self.assertIn("devobs_api_request_duration_bucket", latency_query)
+        self.assertIn('service_name="devobs"', latency_query)
+        self.assertIn("Local-only", latency_panel["description"])
+
+        rate_panel = next(
+            panel for panel in DASHBOARD["panels"]
+            if panel["title"] == "Local API request rate"
+        )
+        rate_query = rate_panel["targets"][0]["expr"]
+        self.assertIn("devobs_api_request_duration_count", rate_query)
+        self.assertIn('service_name="devobs"', rate_query)
+        for forbidden_dimension in ("tenant", "route", "user", "status"):
+            self.assertNotIn(forbidden_dimension, latency_query + rate_query)
+        self.assertIn("not Render or production telemetry", latency_panel["description"])
 
 
 if __name__ == "__main__":

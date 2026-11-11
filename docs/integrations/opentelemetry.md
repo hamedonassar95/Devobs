@@ -96,6 +96,8 @@ The API accepts only the fixed endpoint `https://127.0.0.1:4318/v1/metrics`; it 
 
 The existing Prometheus scrape interval (15 seconds), retention (15 days or 5 GB), alerts, and Grafana datasource remain unchanged. New metric samples expire from the Collector exporter after five minutes without updates.
 
+The existing Grafana dashboard adds two panels for the optional local API histogram: approximate p95 duration via Prometheus `histogram_quantile` over the fixed classic buckets, and request rate from the histogram count. These panels have no tenant, route, user, or status dimensions and remain empty when local instrumentation is disabled. Prometheus documents that classic histogram quantiles are estimates based on configured bucket boundaries: https://prometheus.io/docs/practices/histograms/ and https://prometheus.io/docs/prometheus/latest/querying/functions/#histogram_quantile . The panels do not represent Render or production telemetry.
+
 ## Resource and security limits
 
 - Collector image is digest-pinned; only OTLP, bearer-token auth, memory-limiter, filter, transform, batch, and Prometheus exporter are configured.
