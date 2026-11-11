@@ -1916,6 +1916,17 @@
       "ci_run_id": 43022732431,
       "verification": "VERIFIED 2026-11-11: owner merged PR #522 at cc29c7635ca817b13dbf92d6875e2386b81e1c6e from exact head df397841a3d9309de724fb6829d6c75346e7f72b. Exact-head PR CI 43010992882 and CodeQL 43010987811 passed; post-merge main CI 43022732431 and CodeQL 43022731578 passed on the merge SHA. Post-merge Python validation, site-contract, security, container/Trivy, PostgreSQL RLS, Terraform, validate, GitHub Pages publication, and verify-production passed. Node tests and controlled incident drill were skipped by path or workflow conditions.",
       "limitations": "Documentation-only ledger, STATE, and ledger-test synchronization; no application behavior or readiness gate changed. Pages publication and CI do not establish hosted SaaS readiness or customer delivery capability. No cloud resource, secret change, or AI inference was introduced. AI-9 remains FAIL/BLOCKED, P01 remains NO-GO/BLOCKED, and Codex runtime remains OPEN."
+    },
+    {
+      "id": "devobs-regressions-local-code-assistant-pr530",
+      "area": "QUALITY",
+      "title": "Fix five Devobs regressions and add an optional local Aider coding assistant",
+      "pr_number": 530,
+      "pr_head_sha": "670b25fa022ec26cd6b8c3e2a621b73d3f61f6e9",
+      "merge_sha": "1dbc2d811b317b9f060bf46fa2376aaf083f0aec",
+      "ci_run_id": 43121075788,
+      "verification": "VERIFIED 2026-11-11: PR #530 merged as 1dbc2d811b317b9f060bf46fa2376aaf083f0aec from exact head 670b25fa022ec26cd6b8c3e2a621b73d3f61f6e9. PR CI 43121075788, ShellCheck 43121075639, and AI Code Review 43121075640 passed. Hosted Python validation, Node tests, security, Terraform, PostgreSQL RLS, container scan, site-contract, and validate passed. Local focused suite passed 56 Python and 1 Node test; local full unittest discovery could not import psycopg/opentelemetry.",
+      "limitations": "Fixes five regression cases and adds an optional interactive Aider/Ollama path with cloud inference and automatic commits disabled. CC BY 4.0 applies only to original Devobs content; third-party material retains its own terms. No model weights were downloaded and no local inference was run. Does not establish production readiness or change gates: AI-9 remains BLOCKED, P01 remains BLOCKED, and Codex runtime remains OPEN."
     }
   ],
   "gates": [
