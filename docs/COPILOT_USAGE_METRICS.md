@@ -4,7 +4,7 @@
 
 CI validates the shared Python test suite on Python 3.12 and 3.15. The security job rejects mutable GitHub Actions references and now fails if an active workflow YAML introduces a `pull_request_target` trigger. Existing GitHub-managed CodeQL analysis and Gitleaks remain in place; this repository does not add duplicate scanning workflows.
 
-Dependabot continues to check Actions, Python, and the AI console's npm dependencies weekly. New Python and Actions dependency pull requests receive the repository's existing `python` and `github_actions` labels.
+Dependabot continues to check Actions, Python, and the AI console's npm dependencies weekly. Python updates explicitly target `main` and receive the existing `python` label plus `python-3.15`; Actions updates keep `github_actions` and add `ci-security`.
 
 ## Read a downloaded usage report
 
@@ -17,6 +17,10 @@ python3 scripts/copilot_metrics_report.py --input ./copilot-usage.ndjson
 For multiple disjoint shards from one report, repeat `--input` for each shard. Do not combine overlapping reports; the script does not infer whether input files overlap.
 
 The Copilot usage metrics API provides organization and enterprise reports. An authorized organization or enterprise operator must obtain the NDJSON report through GitHub and save it locally first. It is not a personal-account `/users/{owner}/copilot/metrics` endpoint. A local parse failure, missing field, or unavailable metric is reported as an error or unknown value; it is never converted to zero.
+
+### API and budget boundary
+
+The [current REST reference](https://docs.github.com/en/rest/copilot/copilot-metrics?apiVersion=2026-03-10) lists `2026-03-10` as its latest API version and documents organization/enterprise report endpoints that return short-lived NDJSON download links. It does not document the proposed `2026-11-01` API version or the `/users/{owner}/copilot/metrics` path from the supplied draft. These reports measure usage, not a guaranteed provider charge in USD. The budget gate therefore remains a manual operator decision; missing or unavailable report data must never set `DEVOBS_AI_BUDGET_APPROVED=true`.
 
 ## Budget and model limits
 
