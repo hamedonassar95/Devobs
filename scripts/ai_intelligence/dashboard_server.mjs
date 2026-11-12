@@ -22,6 +22,7 @@ const CONTENT_TYPES = new Map([
   ['/runbook_notes.mjs', 'text/javascript; charset=utf-8'],
   ['/google_docs_export.mjs', 'text/javascript; charset=utf-8'],
   ['/google_calendar_followup.mjs', 'text/javascript; charset=utf-8'],
+  ['/google_sheets_export.mjs', 'text/javascript; charset=utf-8'],
 ]);
 const ASSET_FILES = new Map([
   ['/', 'index.html'],
@@ -30,6 +31,7 @@ const ASSET_FILES = new Map([
   ['/runbook_notes.mjs', 'runbook_notes.mjs'],
   ['/google_docs_export.mjs', 'google_docs_export.mjs'],
   ['/google_calendar_followup.mjs', 'google_calendar_followup.mjs'],
+  ['/google_sheets_export.mjs', 'google_sheets_export.mjs'],
 ]);
 
 export class DashboardError extends Error {
@@ -228,7 +230,7 @@ function send(response, status, contentType, body, method) {
     'X-Content-Type-Options': 'nosniff',
     'Referrer-Policy': 'no-referrer',
     'Cross-Origin-Resource-Policy': 'same-origin',
-    'Content-Security-Policy': "default-src 'none'; script-src 'self' https://accounts.google.com; style-src 'self'; connect-src 'self' https://docs.googleapis.com https://www.googleapis.com; frame-src https://accounts.google.com/gsi/; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'",
+    'Content-Security-Policy': "default-src 'none'; script-src 'self' https://accounts.google.com; style-src 'self'; connect-src 'self' https://docs.googleapis.com https://sheets.googleapis.com https://www.googleapis.com; frame-src https://accounts.google.com/gsi/; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'",
   });
   response.end(method === 'HEAD' ? undefined : body);
 }
@@ -242,6 +244,7 @@ export async function createDashboardServer({
   feedbackLedgerPath = null,
   googleDocsClientId = '',
   googleCalendarClientId = '',
+  googleSheetsClientId = '',
 }) {
   const snapshot = await loadSnapshot({ storePath, feedbackLedgerPath });
   if (typeof googleDocsClientId !== 'string' || googleDocsClientId.length > 256
@@ -251,6 +254,10 @@ export async function createDashboardServer({
   if (typeof googleCalendarClientId !== 'string' || googleCalendarClientId.length > 256
     || (googleCalendarClientId !== '' && !/^\d+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$/.test(googleCalendarClientId))) {
     reject('invalid_google_calendar_client_id');
+  }
+  if (typeof googleSheetsClientId !== 'string' || googleSheetsClientId.length > 256
+    || (googleSheetsClientId !== '' && !/^\d+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$/.test(googleSheetsClientId))) {
+    reject('invalid_google_sheets_client_id');
   }
   const jsonBodies = new Map([
     ['/api/v1/intelligence', JSON.stringify(snapshot)],
@@ -271,6 +278,11 @@ export async function createDashboardServer({
       enabled: googleCalendarClientId !== '',
       client_id: googleCalendarClientId,
       scope: 'https://www.googleapis.com/auth/calendar.app.created',
+    })],
+    ['/api/v1/google-sheets-config', JSON.stringify({
+      enabled: googleSheetsClientId !== '',
+      client_id: googleSheetsClientId,
+      scope: 'https://www.googleapis.com/auth/drive.file',
     })],
   ]);
   const assets = new Map();
@@ -338,6 +350,7 @@ function parseArgs(args) {
     feedbackLedgerPath: null,
     googleDocsClientId: '',
     googleCalendarClientId: '',
+    googleSheetsClientId: '',
     port: DEFAULT_PORT,
   };
   const seen = new Set();
@@ -350,6 +363,7 @@ function parseArgs(args) {
     else if (flag === '--feedback-ledger' && options.feedbackLedgerPath === null) options.feedbackLedgerPath = value;
     else if (flag === '--google-docs-client-id' && options.googleDocsClientId === '') options.googleDocsClientId = value;
     else if (flag === '--google-calendar-client-id' && options.googleCalendarClientId === '') options.googleCalendarClientId = value;
+    else if (flag === '--google-sheets-client-id' && options.googleSheetsClientId === '') options.googleSheetsClientId = value;
     else if (flag === '--port' && options.port === DEFAULT_PORT) {
       if (!/^(?:0|[1-9]\d{0,4})$/.test(value) || Number(value) > 65_535) reject('invalid_arguments');
       options.port = Number(value);
@@ -361,7 +375,7 @@ function parseArgs(args) {
 }
 
 function usage() {
-  return 'Usage: node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--feedback-ledger <private-jsonl-file>] [--google-docs-client-id <public-oauth-client-id>] [--google-calendar-client-id <public-oauth-client-id>] [--port <0-65535>]';
+  return 'Usage: node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--feedback-ledger <private-jsonl-file>] [--google-docs-client-id <public-oauth-client-id>] [--google-calendar-client-id <public-oauth-client-id>] [--google-sheets-client-id <public-oauth-client-id>] [--port <0-65535>]';
 }
 
 export async function main(args = process.argv.slice(2)) {

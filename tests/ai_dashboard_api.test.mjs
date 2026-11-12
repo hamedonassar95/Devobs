@@ -116,13 +116,14 @@ test('read-only local API returns bounded aggregates and hides raw log/path/hash
   const port = await listen(server);
   t.after(() => new Promise(resolve => server.close(resolve)));
 
-  const [intelligenceResponse, summaryResponse, incidentsResponse, recommendationsResponse, googleConfigResponse, googleCalendarConfigResponse] = await Promise.all([
+  const [intelligenceResponse, summaryResponse, incidentsResponse, recommendationsResponse, googleConfigResponse, googleCalendarConfigResponse, googleSheetsConfigResponse] = await Promise.all([
     request(port, '/api/v1/intelligence'),
     request(port, '/api/v1/summary'),
     request(port, '/api/v1/incidents'),
     request(port, '/api/v1/recommendations'),
     request(port, '/api/v1/google-docs-config'),
     request(port, '/api/v1/google-calendar-config'),
+    request(port, '/api/v1/google-sheets-config'),
   ]);
   assert.equal(intelligenceResponse.status, 200);
   assert.equal(summaryResponse.status, 200);
@@ -130,6 +131,7 @@ test('read-only local API returns bounded aggregates and hides raw log/path/hash
   assert.equal(recommendationsResponse.status, 200);
   assert.equal(googleConfigResponse.status, 200);
   assert.equal(googleCalendarConfigResponse.status, 200);
+  assert.equal(googleSheetsConfigResponse.status, 200);
   assert.deepEqual(JSON.parse(googleConfigResponse.body), {
     enabled: false,
     client_id: '',
@@ -139,6 +141,11 @@ test('read-only local API returns bounded aggregates and hides raw log/path/hash
     enabled: false,
     client_id: '',
     scope: 'https://www.googleapis.com/auth/calendar.app.created',
+  });
+  assert.deepEqual(JSON.parse(googleSheetsConfigResponse.body), {
+    enabled: false,
+    client_id: '',
+    scope: 'https://www.googleapis.com/auth/drive.file',
   });
   const intelligence = JSON.parse(intelligenceResponse.body);
   const summary = JSON.parse(summaryResponse.body);
@@ -177,12 +184,14 @@ test('server is loopback-only, same-origin, read-only, and emits browser hardeni
   assert.match(page.headers['content-security-policy'], /default-src 'none'/);
   assert.match(page.headers['content-security-policy'], /accounts\.google\.com/);
   assert.match(page.headers['content-security-policy'], /docs\.googleapis\.com/);
+  assert.match(page.headers['content-security-policy'], /sheets\.googleapis\.com/);
   assert.match(page.headers['content-security-policy'], /www\.googleapis\.com/);
   assert.equal(page.headers['access-control-allow-origin'], undefined);
   assert.match(page.body, /lang="ar" dir="rtl"/);
   assert.match(page.body, /dashboard\.js/);
   assert.match(page.body, /مذكرات المشغّل المحلية/);
   assert.match(page.body, /google-calendar-followup-form/);
+  assert.match(page.body, /google-sheets-export/);
   assert.match(page.body, /لا يضيف مدعوين أو رابط اجتماع/);
 
   const script = await request(port, '/dashboard.js', { origin });
@@ -195,6 +204,9 @@ test('server is loopback-only, same-origin, read-only, and emits browser hardeni
   assert.match(script.body, /drive\.file/);
   assert.match(script.body, /google_calendar_followup\.mjs/);
   assert.match(script.body, /GOOGLE_CALENDAR_SCOPE/);
+  assert.match(script.body, /google_sheets_export\.mjs/);
+  assert.match(script.body, /google-sheets-config/);
+  assert.match(script.body, /drive\.file/);
   assert.doesNotMatch(script.body, /innerHTML/);
 
   const noteModule = await request(port, '/runbook_notes.mjs', { origin });
@@ -213,7 +225,18 @@ test('server is loopback-only, same-origin, read-only, and emits browser hardeni
   assert.match(calendarModule.body, /calendar\.app\.created/);
   assert.match(calendarModule.body, /sendUpdates=none/);
   assert.doesNotMatch(calendarModule.body, /innerHTML|CUSTOMER_RAW_MARKER/);
+  const sheetsModule = await request(port, '/google_sheets_export.mjs', { origin });
+  assert.equal(sheetsModule.status, 200);
+  assert.match(sheetsModule.headers['content-type'], /javascript/);
+  assert.match(sheetsModule.body, /https:\/\/sheets\.googleapis\.com/);
+  assert.match(sheetsModule.body, /valueInputOption', 'RAW'/);
+  assert.doesNotMatch(sheetsModule.body, /innerHTML|CUSTOMER_RAW_MARKER/);
   assert.deepEqual(JSON.parse((await request(port, '/api/v1/google-docs-config', { origin })).body), {
+    enabled: false,
+    client_id: '',
+    scope: 'https://www.googleapis.com/auth/drive.file',
+  });
+  assert.deepEqual(JSON.parse((await request(port, '/api/v1/google-sheets-config', { origin })).body), {
     enabled: false,
     client_id: '',
     scope: 'https://www.googleapis.com/auth/drive.file',
@@ -226,6 +249,7 @@ test('server is loopback-only, same-origin, read-only, and emits browser hardeni
   assert.equal((await request(port, '/runbook_notes.mjs', { method: 'POST', origin })).status, 405);
   assert.equal((await request(port, '/api/v1/google-docs-config', { method: 'POST', origin })).status, 405);
   assert.equal((await request(port, '/api/v1/google-calendar-config', { method: 'POST', origin })).status, 405);
+  assert.equal((await request(port, '/api/v1/google-sheets-config', { method: 'POST', origin })).status, 405);
   assert.equal((await request(port, '/unknown', { origin })).status, 404);
 });
 
@@ -235,6 +259,7 @@ test('Google OAuth configuration is opt-in, public-client-only, and bounded', as
     storePath,
     googleDocsClientId: '1234567890-publicclient.apps.googleusercontent.com',
     googleCalendarClientId: '1234567890-publicclient.apps.googleusercontent.com',
+    googleSheetsClientId: '1234567890-publicclient.apps.googleusercontent.com',
   });
   const port = await listen(server);
   t.after(() => new Promise(resolve => server.close(resolve)));
@@ -252,12 +277,22 @@ test('Google OAuth configuration is opt-in, public-client-only, and bounded', as
     client_id: '1234567890-publicclient.apps.googleusercontent.com',
     scope: 'https://www.googleapis.com/auth/calendar.app.created',
   });
+  const sheetsConfigResponse = await request(port, '/api/v1/google-sheets-config');
+  assert.equal(sheetsConfigResponse.status, 200);
+  assert.deepEqual(JSON.parse(sheetsConfigResponse.body), {
+    enabled: true,
+    client_id: '1234567890-publicclient.apps.googleusercontent.com',
+    scope: 'https://www.googleapis.com/auth/drive.file',
+  });
 
   await assert.rejects(createDashboardServer({ storePath, googleDocsClientId: 'not-a-client-secret' }), {
     code: 'invalid_google_docs_client_id',
   });
   await assert.rejects(createDashboardServer({ storePath, googleCalendarClientId: 'not-a-client-secret' }), {
     code: 'invalid_google_calendar_client_id',
+  });
+  await assert.rejects(createDashboardServer({ storePath, googleSheetsClientId: 'not-a-client-secret' }), {
+    code: 'invalid_google_sheets_client_id',
   });
 });
 

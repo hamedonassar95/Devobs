@@ -54,6 +54,15 @@
       </div>
     </section>
 
+    <section aria-labelledby="google-sheets-title">
+      <h2 id="google-sheets-title">تصدير مجاميع AI-7 إلى Google Sheets</h2>
+      <p class="notice">ينشئ جدولًا جديدًا بعد تأكيدك. يرسل أعدادًا إجمالية وفئات ثابتة فقط؛ لا يقرأ جداول Drive ولا يرسل نصوص السجلات أو أسماء العملاء أو معرّفات المشاريع والخوادم. يستخدم صلاحية Google للملفات التي ينشئها Devobs.</p>
+      <div class="card">
+        <button type="button" id="google-sheets-export" disabled>إنشاء جدول ملخص في Google Sheets</button>
+        <p id="google-sheets-status" class="muted" role="status" aria-live="polite">ميزة Google Sheets غير مفعّلة حتى إعداد OAuth اختياري.</p>
+      </div>
+    </section>
+
     <section aria-labelledby="google-calendar-title">
       <h2 id="google-calendar-title">جدولة مراجعة متابعة في Google Calendar</h2>
       <p class="notice">خيار محلي. ينشئ موعدًا عامًا لمدة 30 دقيقة في تقويم منفصل تابع لـDevobs AI-7. لا يرسل سجلات أو بيانات حوادث أو أسماء عملاء، ولا يضيف مدعوين أو رابط اجتماع. يلزم اختيار موعد وتأكيده قبل الاتصال. يُحفظ معرّف التقويم في هذا المتصفح لإعادة استخدامه؛ رمز الدخول لا يُحفظ.</p>
