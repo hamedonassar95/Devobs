@@ -85,6 +85,19 @@
       </div>
     </section>
 
+    <section aria-labelledby="google-tasks-title">
+      <h2 id="google-tasks-title">إنشاء مهمة متابعة في Google Tasks</h2>
+      <p class="notice">ينشئ مهمة واحدة في القائمة الافتراضية بعد مراجعة المعاينة والتأكيد. يرسل أعداد AI-7 الثابتة وتاريخ الاستحقاق فقط؛ لا يقرأ قوائمك أو مهامك ولا يعدّلها أو يحذفها. صلاحية Google Tasks واسعة بما يكفي لإدارة المهام، بينما هذا الزر يرسل طلب إنشاء واحدًا فقط. رمز الدخول لا يُحفظ.</p>
+      <form id="google-tasks-form" class="card calendar-form">
+        <label for="google-tasks-due">تاريخ استحقاق المهمة</label>
+        <input id="google-tasks-due" name="due" type="date" required>
+        <label for="google-tasks-preview">معاينة المهمة التي ستُنشأ</label>
+        <textarea id="google-tasks-preview" rows="7" readonly aria-describedby="google-tasks-status"></textarea>
+        <button type="submit" id="google-tasks-create" disabled>إنشاء مهمة المتابعة</button>
+        <p id="google-tasks-status" class="muted" role="status" aria-live="polite">ميزة Google Tasks غير مفعّلة حتى إعداد OAuth اختياري.</p>
+      </form>
+    </section>
+
     <section aria-labelledby="google-calendar-title">
       <h2 id="google-calendar-title">جدولة مراجعة متابعة في Google Calendar</h2>
       <p class="notice">خيار محلي. ينشئ موعدًا عامًا لمدة 30 دقيقة في تقويم منفصل تابع لـDevobs AI-7. لا يرسل سجلات أو بيانات حوادث أو أسماء عملاء، ولا يضيف مدعوين أو رابط اجتماع. يلزم اختيار موعد وتأكيده قبل الاتصال. يُحفظ معرّف التقويم في هذا المتصفح لإعادة استخدامه؛ رمز الدخول لا يُحفظ.</p>

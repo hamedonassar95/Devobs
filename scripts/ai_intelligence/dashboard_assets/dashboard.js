@@ -9,6 +9,7 @@ import { deriveFollowupEventId, GOOGLE_CALENDAR_SCOPE, scheduleGoogleCalendarFol
 import { buildGoogleSheetsReport, createGoogleSheet } from './google_sheets_export.mjs';
 import { buildGoogleSlidesReport, createGoogleSlidesPresentation } from './google_slides_export.mjs';
 import { buildGoogleChatReport, GOOGLE_CHAT_SCOPE, isValidGoogleChatSpaceName, sendGoogleChatSummary } from './google_chat_export.mjs';
+import { buildGoogleTasksFollowup, createGoogleTasksFollowup, GOOGLE_TASKS_SCOPE } from './google_tasks_followup.mjs';
 
 const RUNBOOK_STORAGE_KEY = 'devobs_ai7_runbook_notes';
 const GOOGLE_CALENDAR_STORAGE_KEY = 'devobs_ai7_followup_calendar_id';
@@ -29,6 +30,11 @@ let googleChatConfigured = false;
 let googleChatBusy = false;
 let googleChatAttempted = false;
 let googleChatReport = null;
+let googleTasksClientId = '';
+let googleTasksConfigured = false;
+let googleTasksBusy = false;
+let googleTasksCreated = false;
+let googleTasksReport = null;
 let googleCalendarClientId = '';
 let googleCalendarConfigured = false;
 let googleCalendarBusy = false;
@@ -717,6 +723,88 @@ function setGoogleCalendarStatus(message) {
   document.querySelector('#google-calendar-status').textContent = message;
 }
 
+function localDateValue(date) {
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 10);
+}
+
+function setGoogleTasksStatus(message) {
+  document.querySelector('#google-tasks-status').textContent = message;
+}
+
+function updateGoogleTasksPreview() {
+  const preview = document.querySelector('#google-tasks-preview');
+  const dueDate = document.querySelector('#google-tasks-due').value;
+  try {
+    googleTasksReport = intelligenceSnapshot
+      ? buildGoogleTasksFollowup(intelligenceSnapshot, dueDate)
+      : null;
+  } catch {
+    googleTasksReport = null;
+  }
+  preview.value = googleTasksReport
+    ? `${googleTasksReport.title}\n\n${googleTasksReport.notes}\n\nموعد الاستحقاق: ${dueDate}`
+    : '';
+  updateGoogleTasksButton();
+}
+
+function updateGoogleTasksButton() {
+  document.querySelector('#google-tasks-create').disabled = !googleTasksConfigured
+    || googleTasksBusy || googleTasksCreated || !intelligenceSnapshot || !googleTasksReport;
+}
+
+function initializeGoogleTasksFollowup() {
+  const form = document.querySelector('#google-tasks-form');
+  const dueInput = document.querySelector('#google-tasks-due');
+  const button = document.querySelector('#google-tasks-create');
+  dueInput.min = localDateValue(new Date());
+  dueInput.value = localDateValue(new Date(Date.now() + 24 * 60 * 60 * 1000));
+  dueInput.addEventListener('input', updateGoogleTasksPreview);
+  updateGoogleTasksPreview();
+
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (!googleTasksConfigured || googleTasksBusy || googleTasksCreated
+      || !intelligenceSnapshot || !googleTasksReport || button.disabled) return;
+    const dueDate = dueInput.value;
+    const approved = window.confirm(
+      `ستُنشأ مهمة واحدة في قائمة Google Tasks الافتراضية بعنوان "${googleTasksReport.title}". سترسل اللوحة أعداد AI-7 الثابتة وتاريخ الاستحقاق فقط؛ لن تقرأ قوائمك أو مهامك، ولن تعدّلها أو تحذفها. نطاق Google المطلوب يسمح بإدارة المهام عمومًا، لكن هذه الميزة ترسل طلب إنشاء واحدًا فقط. هل تريد المتابعة؟`,
+    );
+    if (!approved) return;
+
+    googleTasksBusy = true;
+    updateGoogleTasksButton();
+    setGoogleTasksStatus('بانتظار تسجيل الدخول وموافقتك على صلاحية Google Tasks…');
+    let accessToken = '';
+    try {
+      accessToken = await requestGoogleAccessToken(googleTasksClientId, GOOGLE_TASKS_SCOPE);
+      await createGoogleTasksFollowup({ accessToken, snapshot: intelligenceSnapshot, dueDate });
+      googleTasksCreated = true;
+      setGoogleTasksStatus('أُنشئت مهمة متابعة واحدة في قائمة Google Tasks الافتراضية. افتح Google Tasks لمراجعتها.');
+    } catch {
+      setGoogleTasksStatus('لم نتأكد من نتيجة الطلب. افحص Google Tasks قبل إعادة المحاولة لتجنب تكرار المهمة؛ لم تُعرض تفاصيل Google أو رمز الدخول.');
+    } finally {
+      accessToken = '';
+      googleTasksBusy = false;
+      updateGoogleTasksButton();
+    }
+  });
+
+  void load('/api/v1/google-tasks-config').then(async config => {
+    if (!config.enabled || typeof config.client_id !== 'string' || !config.client_id) {
+      setGoogleTasksStatus('الميزة معطّلة. أعد تشغيل اللوحة مع إعداد OAuth الاختياري الموضح في الدليل.');
+      return;
+    }
+    googleTasksClientId = config.client_id;
+    await loadGoogleIdentityServices();
+    googleTasksConfigured = true;
+    updateGoogleTasksButton();
+    setGoogleTasksStatus('جاهز عند الطلب. راجع معاينة المهمة وتاريخها قبل إنشاء المهمة.');
+  }).catch(() => {
+    setGoogleTasksStatus('تعذر تحميل إعداد Google Tasks؛ بقيت الميزة معطّلة.');
+  });
+}
+
 function localDateTimeValue(date) {
   const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
   return local.toISOString().slice(0, 16);
@@ -848,6 +936,7 @@ async function render() {
     updateGoogleDocsButton();
     updateGoogleSheetsButton();
     updateGoogleSlidesButton();
+    updateGoogleTasksPreview();
     try {
       googleChatReport = buildGoogleChatReport(intelligence);
     } catch {
@@ -872,5 +961,6 @@ initializeGoogleDocsExport();
 initializeGoogleSheetsExport();
 initializeGoogleSlidesExport();
 initializeGoogleChatExport();
+initializeGoogleTasksFollowup();
 initializeGoogleCalendarFollowup();
 void render();
