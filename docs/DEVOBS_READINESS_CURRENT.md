@@ -1,3 +1,9 @@
+## تسميات Dependabot وحدود تقارير Copilot بعد PR #578 — 2026-11-12 (VERIFIED)
+
+- دُمج PR [#578](https://github.com/hamedonassar95/Devobs/pull/578) عند `7d4f1a4937890bb9ea9786a18cee92e12971ea80` من HEAD `5d81c2f218bfbc81b1f27dbfae95d8e7c025b962`. نجح PR CI [43305186699](https://github.com/hamedonassar95/Devobs/actions/runs/43305186699)، exact-head push CI [43305176500](https://github.com/hamedonassar95/Devobs/actions/runs/43305176500)، وCodeQL [43305176702](https://github.com/hamedonassar95/Devobs/actions/runs/43305176702). بعد الدمج نجح main CI [43305441591](https://github.com/hamedonassar95/Devobs/actions/runs/43305441591) وCodeQL [43305439062](https://github.com/hamedonassar95/Devobs/actions/runs/43305439062) على SHA الدمج. اجتازت Python 3.12/3.15 وsecurity/Gitleaks وPostgreSQL RLS والحاوية/Trivy وTerraform و`validate`؛ نُشرت Pages واجتازت `verify-production`.
+- يضيف التغيير تسميات Dependabot لتحديثات Python 3.15 وأدوات CI، ويوثق أن تقرير Copilot الحالي يُنزّل كـNDJSON من نقاط API الرسمية الموثقة. لا يوجد موصل API أو تحديث آلي للميزانية أو تقدير تكاليف USD؛ لا تُحوّل البيانات الناقصة إلى موافقة إنفاق. لم نكرر CodeQL أو Gitleaks الموجودين أصلًا.
+- محليًا نجح `python3 -m unittest discover -s tests -q`: 1,049 اختبارًا، 25 متجاوزًا. Node وincident drill تخطّيا شروط المسار/الـworkflow. لا تغيير على بوابات الجاهزية: AI-9 وP01 **BLOCKED** وCodex runtime **OPEN**.
+
 ## موجز Gmail محلي اختياري لـAI-7 بعد PR #562 — 2026-11-12 (VERIFIED)
 
 - أضاف PR [#562](https://github.com/hamedonassar95/Devobs/pull/562) خيار إرسال رسالة واحدة إلى مستلم واحد بعد معاينة المستخدم وتأكيده، باستخدام نطاق Google `gmail.send` ومجاميع AI-7 الثابتة. لا يقرأ Gmail ولا يرسل نصوص الحوادث أو السجلات الخام. عولجت ملاحظة المراجعة التي وجدت أن CSP تمنع `gmail.googleapis.com`، وأضيف اختبار للسياسة.

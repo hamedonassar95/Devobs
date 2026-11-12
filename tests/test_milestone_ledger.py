@@ -1028,8 +1028,8 @@ class MilestoneLedgerTests(unittest.TestCase):
 
     def test_pr574_history_remains_recorded_and_gates_unpromoted(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 576)
-        self.assertEqual(result["merged_milestones"], 208)
+        self.assertEqual(result["latest_pr"], 578)
+        self.assertEqual(result["merged_milestones"], 209)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         self.assertEqual(records[550]["pr_head_sha"], "0e681cb62b4359f99d59caaaab99bfbc911e1879")
         self.assertEqual(records[550]["merge_sha"], "b68031d1b11c20d2f6fa29e46b687aa2010186b3")
@@ -1980,11 +1980,30 @@ class MilestoneLedgerTests(unittest.TestCase):
                 self.assertIn(str(codeql), entry["verification"])
                 self.assertIn("passed", entry["verification"])
         self.assertNotIn(567, records)
-        self.assertEqual(result["merged_milestones"], 208)
-        self.assertEqual(result["latest_pr"], 576)
+        self.assertEqual(result["merged_milestones"], 209)
+        self.assertEqual(result["latest_pr"], 578)
         self.assertIn("v1beta", records[569]["limitations"])
         self.assertIn("verify-production passed", records[576]["verification"])
         gates = {entry["id"]: entry["status"] for entry in self.data["gates"]}
+        self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
+        self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
+        self.assertEqual(gates["codex-agent-runtime-acceptance"], "OPEN")
+
+    def test_pr578_dependabot_metrics_boundary_is_recorded_without_gate_promotion(self):
+        result = validate(self.data)
+        records = {entry["pr_number"]: entry for entry in self.data["milestones"]}
+        entry = records[578]
+        self.assertEqual(entry["pr_head_sha"], "5d81c2f218bfbc81b1f27dbfae95d8e7c025b962")
+        self.assertEqual(entry["merge_sha"], "7d4f1a4937890bb9ea9786a18cee92e12971ea80")
+        self.assertEqual(entry["ci_run_id"], 43305186699)
+        for run_id in (43305176500, 43305176702, 43305441591, 43305439062):
+            self.assertIn(str(run_id), entry["verification"])
+        self.assertIn("verify-production passed", entry["verification"])
+        self.assertIn("does not add an API client", entry["limitations"])
+        self.assertIn("automatic budget update", entry["limitations"])
+        self.assertEqual(result["merged_milestones"], 209)
+        self.assertEqual(result["latest_pr"], 578)
+        gates = {gate["id"]: gate["status"] for gate in self.data["gates"]}
         self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
         self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
         self.assertEqual(gates["codex-agent-runtime-acceptance"], "OPEN")
