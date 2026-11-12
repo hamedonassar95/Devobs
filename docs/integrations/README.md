@@ -6,7 +6,7 @@
 
 ## Scope and source of truth
 
-- `service-inventory.json` is the machine-readable evidence and decision ledger for the eleven named integrations.
+- `service-inventory.json` is the machine-readable evidence and decision ledger for the twelve named integrations.
 - `RUNBOOK.md` defines the human approval gates and next diagnostic steps. The read-only validator is `scripts/check_integration_catalog.py`.
 - Existing documentation remains authoritative for the CI/automation architecture: [Automation Hub](../AUTOMATION_HUB.md), [integration workflow](../INTEGRATION_WORKFLOW.md), [AI DevKit](../AI_DEVKIT.md), and [SaaS readiness](../PRODUCT_SAAS_READINESS.md).
 - The optional local OpenTelemetry Collector is documented in the [OpenTelemetry integration guide](opentelemetry.md). It reuses the existing Prometheus stack and is not a hosted provider connection or production-readiness claim.
@@ -27,6 +27,7 @@
 | Google Calendar API | PR #550 adds optional local AI-7 follow-up scheduling with `calendar.app.created` in a dedicated app-created calendar. | No OAuth Client ID, account grant, API call, calendar or event has been verified. | Owner configures an approved public OAuth client locally and grants the scope; no token belongs in the repository. |
 | Google Sheets API | PR #552 adds an optional local AI-7 export that creates a new spreadsheet with fixed aggregate counts using `drive.file` and `RAW` values. | No OAuth Client ID, account grant, API call or spreadsheet has been verified; existing Drive files are never listed or read. | Owner configures an approved public OAuth client locally and grants `drive.file`; no token belongs in the repository. |
 | Google Slides API | PR #554 adds an optional local AI-7 export that creates a new two-slide executive summary from fixed aggregate counts using `drive.file`. | No OAuth Client ID, account grant, API call or presentation has been verified; existing Drive files are never listed or read. | Owner configures an approved public OAuth client locally and grants `drive.file`; no token belongs in the repository. |
+| Google Chat API | PR #556 adds an optional local AI-7 action to send one confirmed, fixed aggregate text message to a manually entered existing space using `chat.messages.create`. | No OAuth Client ID, account grant or message send is verified; spaces and messages are never listed/read, and message visibility is to the target space's members. | Owner configures an approved public OAuth client locally and grants the scope; review the destination and preview before each send. |
 
 ### Verification vocabulary
 

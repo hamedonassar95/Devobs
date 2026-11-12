@@ -206,6 +206,25 @@
         "Google presentations.create and presentations.batchUpdate list drive.file as an accepted scope",
         "AI-7 implementation and mocked tests are covered by PR #554"
       ]
+    },
+    {
+      "id": "google-chat-ai7",
+      "name": "Google Chat API",
+      "integration_status": "local_feature_unverified",
+      "runtime_verified": false,
+      "provider_writes_authorized": false,
+      "cost_authorized": false,
+      "repository_scope": "local AI-7 dashboard only; no Google account connected",
+      "observed_branch": "main",
+      "observed_directory": "scripts/ai_intelligence/dashboard_assets/google_chat_export.mjs",
+      "verified_capability": "PR #556 added an optional local action that sends one user-confirmed text message with fixed AI-7 aggregate counts to a manually entered existing Chat space using chat.messages.create. It never lists spaces or reads messages; tests use mocked Google responses.",
+      "blocker": "No OAuth Client ID or Google account was configured and no live API call or message was made. Owner must configure an approved public OAuth client and grant chat.messages.create locally; inspect destination and preview before each send.",
+      "evidence": [
+        "PR #556 merged at 92ce3839bff39cfa1d02106993a11b2444c13ea7 from exact head 3bee8a851213d45455828e9929108d75aaa62a92; PR CI 43159024265, push CI 43159002718, main CI 43159280339 passed; CodeQL 43159021789 and 43159279493 passed",
+        "Google Chat messages.create: https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages/create",
+        "Google Chat user authentication and authorization: https://developers.google.com/workspace/chat/authenticate-authorize-chat-user",
+        "AI-7 implementation and mocked tests are covered by PR #556; no real OAuth or message send was performed"
+      ]
     }
   ]
 }

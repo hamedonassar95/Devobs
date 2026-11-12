@@ -2147,6 +2147,17 @@
       "ci_run_id": 43157396044,
       "verification": "VERIFIED 2026-11-12: PR #554 merged at 10cd5055b833ab7fd1911256e8d0d4283e16fec7 from exact head 7266a45e34e7206b0861cb71f076a77f708af973. Exact-head push CI 43157141444 and PR CI 43157166862 passed; CodeQL 43157162132 passed for Actions, JavaScript/TypeScript, and Python. The advisory Codex workflow 43157166798 completed, but its model-review steps were skipped because no API secret was available; PR-Agent was skipped by condition. Post-merge main CI 43157396044 and CodeQL 43157395862 passed on the merge SHA. Main CI passed Python, Node, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication, and verify-production. Incident drill and restore checks skipped by conditions. Focused local tests passed (37).",
       "limitations": "Adds an optional local AI-7 export creating a new two-slide Google Slides presentation with allowlisted labels and aggregate counts using drive.file. No OAuth Client ID/account was configured; no live Google API call or presentation was created. It never lists or reads existing Drive files and sends no incident text or identifiers. The AI-7 dashboard remains outside deployed Pages; static publication does not host this integration. Codex runtime remains OPEN; AI-9 and P01 remain BLOCKED."
+    },
+    {
+      "id": "google-chat-ai7-summary-export",
+      "area": "OPERATIONS",
+      "title": "Add optional local AI-7 aggregate message export to Google Chat",
+      "pr_number": 556,
+      "pr_head_sha": "3bee8a851213d45455828e9929108d75aaa62a92",
+      "merge_sha": "92ce3839bff39cfa1d02106993a11b2444c13ea7",
+      "ci_run_id": 43159280339,
+      "verification": "VERIFIED 2026-11-12: PR #556 merged at 92ce3839bff39cfa1d02106993a11b2444c13ea7 from exact head 3bee8a851213d45455828e9929108d75aaa62a92. PR CI 43159024265 and exact-head push CI 43159002718 passed; CodeQL 43159021789 passed for Actions, JavaScript/TypeScript and Python. The advisory Codex workflow completed successfully with inference skipped because budget approval and an API secret were unavailable; PR-Agent skipped by condition. Post-merge main CI 43159280339 and CodeQL 43159279493 passed on the merge SHA. Main CI passed Node/Python, PostgreSQL RLS, security/Gitleaks, container/Trivy, Terraform, site-contract, validate, static Pages publication, and verify-production; incident/restore jobs skipped by conditions. Local AI-7/event/integration suite passed (95).",
+      "limitations": "Adds an optional local AI-7 export that sends one explicitly confirmed text message to a manually entered Google Chat space using chat.messages.create and allowlisted aggregate counts. No OAuth Client ID/account was configured; no live Google Chat API call or message was made. It never lists spaces or reads messages; target-space members can see the message under the user account. AI-7 remains local and is not served by Pages. Codex runtime remains OPEN; AI-9 and P01 remain BLOCKED."
     }
   ],
   "gates": [
