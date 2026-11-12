@@ -2169,6 +2169,17 @@
       "ci_run_id": 43183901590,
       "verification": "VERIFIED 2026-11-12: PR #558 merged at 8579c907a6d0e83a59c7aff7011b49eaf71f3b6e from exact head 57ff9fbfca2a00d1c731f449f3bc6e925ec4cb9d. PR CI 43183626628 and exact-head push CI 43183592846 passed; CodeQL 43183620470 passed. Post-merge main CI 43183901590 and CodeQL 43183899814 passed on the merge SHA. Main CI passed Python/Node, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication and verify-production; incident drill and restoration jobs skipped by their conditions. Local relevant Node suite passed (98); catalog tests passed (23); integration catalog validation passed (13 records).",
       "limitations": "Adds an optional local AI-7 workflow that creates one Google Tasks task in the default task list only after user preview and confirmation, using a fixed template, allowlisted aggregate AI-7 counts, and a user-selected due date. The implementation does not read/list tasks or lists, update tasks, or delete tasks. The feature requires an optional OAuth Client ID and the broad https://www.googleapis.com/auth/tasks scope. No Google account was connected, no live Google Tasks API call was made, and no task was created. The local AI-7 UI is outside static Pages assets; the existing Pages deployment does not host it. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
+    },
+    {
+      "id": "google-docs-integration-catalog-record",
+      "area": "DOCUMENTATION",
+      "title": "Complete the integration catalog with existing Google Docs export",
+      "pr_number": 560,
+      "pr_head_sha": "843dc2356e838761e26730634cddaaa77b1b27e5",
+      "merge_sha": "a0c0b568f3f09302051c51cc197fd84c2c735ade",
+      "ci_run_id": 43186249132,
+      "verification": "VERIFIED 2026-11-12: PR #560 merged at a0c0b568f3f09302051c51cc197fd84c2c735ade from exact head 843dc2356e838761e26730634cddaaa77b1b27e5. PR CI 43185989403 and exact-head push CI 43185964960 passed; CodeQL 43185983382 passed. Post-merge main CI 43186249132 and CodeQL 43186249030 passed on the merge SHA. Main CI passed security/Gitleaks, Python, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication and verify-production. Node passed on the exact-head push and was skipped by path selection in PR and main CI; incident drill and restoration skipped by conditions. Local integration catalog tests passed (24) and JSON parsing passed.",
+      "limitations": "Catalog-only correction: Google Docs export already existed from PR #532 but was absent from the service inventory; PR #560 added no runtime connector or new operational behavior. Google Docs remains an optional local AI-7 feature using drive.file, with no OAuth Client ID/account configured and no live API call or document creation performed. The local AI-7 UI is outside static Pages assets. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
     }
   ],
   "gates": [
