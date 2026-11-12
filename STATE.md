@@ -1,4 +1,10 @@
-## أحدث لقطة موثّقة: دمج PR #538 — تحقق 2026-11-12
+## أحدث لقطة موثّقة: دمج PR #539 — تحقق 2026-11-12
+
+- **VERIFIED من GitHub:** دُمج PR [#539](https://github.com/hamedonassar95/Devobs/pull/539) عند `47004a850ebdc376711bf763ec9ca5458532a538` من HEAD الدقيق `a843db5b8bdaff34ae509171a3959e7698c58e9a`. نجح [PR CI 43134546161](https://github.com/hamedonassar95/Devobs/actions/runs/43134546161) و[CodeQL على PR 43134542025](https://github.com/hamedonassar95/Devobs/actions/runs/43134542025)، ثم نجح [CI بعد الدمج 43134970833](https://github.com/hamedonassar95/Devobs/actions/runs/43134970833) و[CodeQL على main 43134970567](https://github.com/hamedonassar95/Devobs/actions/runs/43134970567).
+- **VERIFIED:** مرّت فحوص Python وsecurity وPostgreSQL RLS وcontainer/Trivy وTerraform وsite-contract و`validate`، ونُشرت صفحة الإنتاج الثابتة واجتازت `verify-production`. تخطّى Node بحسب اختيار المسارات، وتخطّت اختبارات incident drill والاستعادة شروط التشغيل. اختبارات السجل المحلية نجحت: 50 اختبارًا. اكتملت workflow مراجعة Codex دون استدعاء النموذج لغياب اعتماد الميزانية؛ وتخطّت مراجعة PR-Agent.
+- **الحدود:** PR #539 يوثّق PR #538 في السجل والحالة والاختبار فقط، ولم يغيّر سلوك التطبيق أو بوابات الجاهزية. النشر الثابت الآلي لا يثبت جاهزية SaaS، وتكامل Google Docs ما زال دون اختبار OAuth أو Docs API حي. AI-9 وP01 ما زالا **BLOCKED**، وقبول Codex runtime ما زال **OPEN**. يحتوي السجل الآن 183 إنجازًا وآخر PR موثّق هو #539.
+
+## لقطة موثّقة سابقة: دمج PR #538 — تحقق 2026-11-12
 
 - **VERIFIED من GitHub:** دمج مالك المستودع PR [#538](https://github.com/hamedonassar95/Devobs/pull/538) عند `04ef9efdda824130a795c3909b73748621c6581d` من HEAD `1ac5cdc695a9c698b5ad7e5147c0c89021284af6`. نجح [CI على الرأس 43133619897](https://github.com/hamedonassar95/Devobs/actions/runs/43133619897) و[PR CI 43133640879](https://github.com/hamedonassar95/Devobs/actions/runs/43133640879)، و[CodeQL 43133636288](https://github.com/hamedonassar95/Devobs/actions/runs/43133636288) للغات Python وActions وJavaScript.
 - **VERIFIED:** اجتازت Python validation وNode tests على فحص push وsecurity وPostgreSQL RLS وcontainer/Trivy وTerraform وsite-contract و`validate`. تخطّى Node فحص PR بحسب اختيار المسارات. Workflow مراجعة Codex اكتملت لكن الاستدلال تخطّى لغياب موافقة الميزانية؛ كما تخطّت مراجعة PR-Agent.
