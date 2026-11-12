@@ -2180,6 +2180,17 @@
       "ci_run_id": 43186249132,
       "verification": "VERIFIED 2026-11-12: PR #560 merged at a0c0b568f3f09302051c51cc197fd84c2c735ade from exact head 843dc2356e838761e26730634cddaaa77b1b27e5. PR CI 43185989403 and exact-head push CI 43185964960 passed; CodeQL 43185983382 passed. Post-merge main CI 43186249132 and CodeQL 43186249030 passed on the merge SHA. Main CI passed security/Gitleaks, Python, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication and verify-production. Node passed on the exact-head push and was skipped by path selection in PR and main CI; incident drill and restoration skipped by conditions. Local integration catalog tests passed (24) and JSON parsing passed.",
       "limitations": "Catalog-only correction: Google Docs export already existed from PR #532 but was absent from the service inventory; PR #560 added no runtime connector or new operational behavior. Google Docs remains an optional local AI-7 feature using drive.file, with no OAuth Client ID/account configured and no live API call or document creation performed. The local AI-7 UI is outside static Pages assets. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
+    },
+    {
+      "id": "google-gmail-ai7-summary-email",
+      "area": "OPERATIONS",
+      "title": "Add optional local AI-7 aggregate email summary via Gmail",
+      "pr_number": 562,
+      "pr_head_sha": "3003b924abdc24151f4188cb1279bba1609eb5e5",
+      "merge_sha": "66f04316838870b095e0ab1ee9e104660b534f73",
+      "ci_run_id": 43191054462,
+      "verification": "VERIFIED 2026-11-12: PR #562 merged at 66f04316838870b095e0ab1ee9e104660b534f73 from exact head 3003b924abdc24151f4188cb1279bba1609eb5e5. PR CI 43190661267 and exact-head push CI 43190653455 passed; CodeQL 43190653769 passed for Actions, JavaScript/TypeScript, and Python. Post-merge main CI 43191054462 and CodeQL 43191053490 passed on the merge SHA. Main CI passed Node/Python, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract and validate; static Pages publication and verify-production passed. Incident drill and restoration checks skipped by conditions. Local relevant Node tests passed (102), integration catalog tests passed (25), 15 catalog records validated, and AI DevKit lint passed 16 checks. The advisory Codex workflow completed with inference skipped because budget approval was absent; PR-Agent skipped by condition.",
+      "limitations": "Adds an optional local AI-7 action that sends one explicitly confirmed message to one validated recipient using gmail.send and fixed aggregate counts; it does not read the inbox or send raw logs or incident text. No OAuth Client ID/account was configured and no live Gmail API call or email was sent. The AI-7 dashboard is outside static Pages assets, so Pages publication does not host it or establish SaaS readiness. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
     }
   ],
   "gates": [
