@@ -1938,6 +1938,17 @@
       "ci_run_id": 43129410896,
       "verification": "VERIFIED 2026-11-12: owner merged PR #532 at b518ad23affac0bc04e76497c52067afb494119a from exact head 2cded308474161764b282af245e63460f70b668d. PR CI 43128872855 and AI Code Review 43128872811 passed; post-merge main CI 43129410896 passed on the merge SHA. Node tests, security, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication, and verify-production passed. Python validation and controlled incident drill were skipped by workflow/path conditions.",
       "limitations": "Adds a manual, opt-in export from the loopback-only local AI-7 dashboard using drive.file and aggregate counts/allowlisted categories only. No OAuth Client ID, Google login, or live Docs API request was used; the feature is not part of the static site or a hosted SaaS. Does not change readiness gates: AI-9 remains BLOCKED, P01 remains BLOCKED, and Codex runtime remains OPEN."
+    },
+    {
+      "id": "ledger-sync-pr533-google-docs-export",
+      "area": "DOCUMENTATION",
+      "title": "Record PR 533 merge evidence for the Google Docs export milestone",
+      "pr_number": 533,
+      "pr_head_sha": "0d347a04c4b7860b62343b6bc00028f03939826f",
+      "merge_sha": "f22263dfe43fb18f16ca4fc477307c90ddcb3d75",
+      "ci_run_id": 43130502274,
+      "verification": "VERIFIED 2026-11-12: owner merged PR #533 at f22263dfe43fb18f16ca4fc477307c90ddcb3d75 from exact head 0d347a04c4b7860b62343b6bc00028f03939826f. PR CI 43130226188 and AI Code Review 43130226060 passed; post-merge main CI 43130502274 and Push on main 43130501079 passed. Python, security, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication, and verify-production passed. Node tests and controlled incident drill were skipped by path/workflow conditions. Local ledger suite passed 50 tests.",
+      "limitations": "Documentation, ledger, STATE, and ledger-test synchronization only; no application behavior changed. It records PR #532's optional local Google Docs export, which has not been live-tested with OAuth or Google Docs. Static Pages publication does not deploy the AI-7 dashboard or establish SaaS readiness. AI-9 remains BLOCKED, P01 remains BLOCKED, and Codex runtime remains OPEN."
     }
   ],
   "gates": [

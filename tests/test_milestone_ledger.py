@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_latest_recorded_merges_through_pr532_do_not_promote_gates(self):
+    def test_latest_recorded_merges_through_pr533_do_not_promote_gates(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 532)
-        self.assertEqual(result["merged_milestones"], 176)
+        self.assertEqual(result["latest_pr"], 533)
+        self.assertEqual(result["merged_milestones"], 177)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         self.assertEqual(
             records[530]["merge_sha"],
@@ -1040,6 +1040,10 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(records[532]["pr_head_sha"], "2cded308474161764b282af245e63460f70b668d")
         self.assertEqual(records[532]["ci_run_id"], 43129410896)
         self.assertIn("No OAuth Client ID", records[532]["limitations"])
+        self.assertEqual(records[533]["merge_sha"], "f22263dfe43fb18f16ca4fc477307c90ddcb3d75")
+        self.assertEqual(records[533]["pr_head_sha"], "0d347a04c4b7860b62343b6bc00028f03939826f")
+        self.assertEqual(records[533]["ci_run_id"], 43130502274)
+        self.assertIn("50 tests", records[533]["verification"])
         expected_recent = {
             502: ("0f6168681b08f687bc7a3aefa8238c0a7f3de691", "917b481694c4e3607f93890681e39c23e5dcad21", 42689426462),
             503: ("dd7a59bc3cf68070cfde419c442bdc7c2c52eb8f", "8b1ad57f5761fa86b6e606b8610ca3d643a8c0c6", 42737489501),
