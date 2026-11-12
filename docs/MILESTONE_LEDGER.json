@@ -1949,6 +1949,17 @@
       "ci_run_id": 43130502274,
       "verification": "VERIFIED 2026-11-12: owner merged PR #533 at f22263dfe43fb18f16ca4fc477307c90ddcb3d75 from exact head 0d347a04c4b7860b62343b6bc00028f03939826f. PR CI 43130226188 and AI Code Review 43130226060 passed; post-merge main CI 43130502274 and Push on main 43130501079 passed. Python, security, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication, and verify-production passed. Node tests and controlled incident drill were skipped by path/workflow conditions. Local ledger suite passed 50 tests.",
       "limitations": "Documentation, ledger, STATE, and ledger-test synchronization only; no application behavior changed. It records PR #532's optional local Google Docs export, which has not been live-tested with OAuth or Google Docs. Static Pages publication does not deploy the AI-7 dashboard or establish SaaS readiness. AI-9 remains BLOCKED, P01 remains BLOCKED, and Codex runtime remains OPEN."
+    },
+    {
+      "id": "ledger-sync-pr534-google-docs-export",
+      "area": "DOCUMENTATION",
+      "title": "Record PR 534 merge evidence for the Google Docs export ledger sync",
+      "pr_number": 534,
+      "pr_head_sha": "82ef6f6551851c5f3899b25f163873f4e97b0d8b",
+      "merge_sha": "933adefc3fbce277d431f253b3b6e96db992564f",
+      "ci_run_id": 43131087636,
+      "verification": "VERIFIED 2026-11-12: owner merged PR #534 at 933adefc3fbce277d431f253b3b6e96db992564f from exact head 82ef6f6551851c5f3899b25f163873f4e97b0d8b. Exact-head CI 43130859485 passed Python validation, security, PostgreSQL RLS, container/Trivy, Terraform, site-contract, and validate; Node tests, controlled incident drill, and production release were skipped by path/event conditions. AI Code Review workflow 43130859436 completed, but model review was skipped because explicit AI budget approval was absent. Post-merge main CI 43131087636 and Push on main 43131087441 passed on the merge SHA. Post-merge Python validation, security, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication, verify-production, and CodeQL Python/actions/JavaScript passed; Node tests and controlled incident drill were skipped by workflow conditions.",
+      "limitations": "Documentation, ledger, STATE, and ledger-test synchronization only; no application behavior or readiness gate changed. The optional local Google Docs export remains untested with a real OAuth client or Docs API call, and static Pages does not host the local AI-7 dashboard or establish SaaS readiness. No AI model review ran because the budget gate was not approved. AI-9 remains BLOCKED, P01 remains BLOCKED, and Codex runtime remains OPEN."
     }
   ],
   "gates": [
