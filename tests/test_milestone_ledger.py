@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_latest_recorded_merges_through_pr552_do_not_promote_gates(self):
+    def test_latest_recorded_merges_through_pr554_do_not_promote_gates(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 552)
-        self.assertEqual(result["merged_milestones"], 194)
+        self.assertEqual(result["latest_pr"], 554)
+        self.assertEqual(result["merged_milestones"], 195)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         self.assertEqual(records[550]["pr_head_sha"], "0e681cb62b4359f99d59caaaab99bfbc911e1879")
         self.assertEqual(records[550]["merge_sha"], "b68031d1b11c20d2f6fa29e46b687aa2010186b3")
@@ -1040,6 +1040,11 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(records[552]["ci_run_id"], 43155307706)
         self.assertIn("drive.file", records[552]["limitations"])
         self.assertIn("no live Google API call", records[552]["limitations"])
+        self.assertEqual(records[554]["pr_head_sha"], "7266a45e34e7206b0861cb71f076a77f708af973")
+        self.assertEqual(records[554]["merge_sha"], "10cd5055b833ab7fd1911256e8d0d4283e16fec7")
+        self.assertEqual(records[554]["ci_run_id"], 43157396044)
+        self.assertIn("drive.file", records[554]["limitations"])
+        self.assertIn("no live Google API call", records[554]["limitations"])
         self.assertEqual(
             records[530]["merge_sha"],
             "1dbc2d811b317b9f060bf46fa2376aaf083f0aec",

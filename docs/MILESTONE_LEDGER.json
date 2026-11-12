@@ -2136,6 +2136,17 @@
       "ci_run_id": 43155307706,
       "verification": "VERIFIED 2026-11-12: PR #552 merged at 8c490b796994a842899db5e677eab6eff62bce7c from exact head fb1375dc265f43436bdc0bccea3b0007b51cbea4. Exact-head push CI 43155012146 and PR CI 43155034494 passed; CodeQL 43155031310 passed for Actions, JavaScript/TypeScript and Python; advisory review run 43155034451 succeeded. Post-merge main CI 43155307706 and CodeQL 43155307263 passed on the merge SHA. Main CI passed Node/Python, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication and verify-production. Incident drill and restoration checks skipped by conditions. Local AI-7 Node suite passed (87 tests); existing Docs export tests passed (4).",
       "limitations": "Adds an optional local AI-7 export that creates a new spreadsheet and writes only fixed aggregate counts using drive.file and RAW values. No OAuth Client ID/account was configured; no live Google API call or spreadsheet was created. It never lists or reads existing Drive files. The AI-7 dashboard remains outside deployed Pages; static publication does not host the integration. Codex runtime remains OPEN; AI-9 and P01 remain BLOCKED."
+    },
+    {
+      "id": "google-slides-ai7-summary-export",
+      "area": "OPERATIONS",
+      "title": "Add optional local AI-7 aggregate executive export to Google Slides",
+      "pr_number": 554,
+      "pr_head_sha": "7266a45e34e7206b0861cb71f076a77f708af973",
+      "merge_sha": "10cd5055b833ab7fd1911256e8d0d4283e16fec7",
+      "ci_run_id": 43157396044,
+      "verification": "VERIFIED 2026-11-12: PR #554 merged at 10cd5055b833ab7fd1911256e8d0d4283e16fec7 from exact head 7266a45e34e7206b0861cb71f076a77f708af973. Exact-head push CI 43157141444 and PR CI 43157166862 passed; CodeQL 43157162132 passed for Actions, JavaScript/TypeScript, and Python. The advisory Codex workflow 43157166798 completed, but its model-review steps were skipped because no API secret was available; PR-Agent was skipped by condition. Post-merge main CI 43157396044 and CodeQL 43157395862 passed on the merge SHA. Main CI passed Python, Node, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication, and verify-production. Incident drill and restore checks skipped by conditions. Focused local tests passed (37).",
+      "limitations": "Adds an optional local AI-7 export creating a new two-slide Google Slides presentation with allowlisted labels and aggregate counts using drive.file. No OAuth Client ID/account was configured; no live Google API call or presentation was created. It never lists or reads existing Drive files and sends no incident text or identifiers. The AI-7 dashboard remains outside deployed Pages; static publication does not host this integration. Codex runtime remains OPEN; AI-9 and P01 remain BLOCKED."
     }
   ],
   "gates": [

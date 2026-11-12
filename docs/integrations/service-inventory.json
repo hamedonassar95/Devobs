@@ -187,6 +187,25 @@
         "Google spreadsheets.create and spreadsheets.values.update list drive.file as an accepted scope",
         "AI-7 implementation and mocked tests are covered by PR #552"
       ]
+    },
+    {
+      "id": "google-slides-ai7",
+      "name": "Google Slides API",
+      "integration_status": "local_feature_unverified",
+      "runtime_verified": false,
+      "provider_writes_authorized": false,
+      "cost_authorized": false,
+      "repository_scope": "local AI-7 dashboard only; no Google account connected",
+      "observed_branch": "main",
+      "observed_directory": "scripts/ai_intelligence/dashboard_assets/google_slides_export.mjs",
+      "verified_capability": "PR #554 added an optional local export that creates a new two-slide presentation with fixed AI-7 aggregate counts using drive.file; tests use mocked Google responses.",
+      "blocker": "No OAuth Client ID or Google account was configured and no live API call or presentation was made. Owner must configure the public OAuth client and grant drive.file locally before runtime use.",
+      "evidence": [
+        "PR #554 merged at 10cd5055b833ab7fd1911256e8d0d4283e16fec7; main CI 43157396044 and CodeQL 43157395862 passed",
+        "Google Slides API scopes: https://developers.google.com/workspace/slides/api/scopes",
+        "Google presentations.create and presentations.batchUpdate list drive.file as an accepted scope",
+        "AI-7 implementation and mocked tests are covered by PR #554"
+      ]
     }
   ]
 }
