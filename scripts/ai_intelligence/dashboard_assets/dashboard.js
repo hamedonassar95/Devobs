@@ -4,11 +4,15 @@ import {
   setRunbookNoteArchived,
   setRunbookNotePinned,
 } from './runbook_notes.mjs';
+import { buildGoogleDocsReport, createGoogleDoc } from './google_docs_export.mjs';
 
 const RUNBOOK_STORAGE_KEY = 'devobs_ai7_runbook_notes';
 let runbookNotes = [];
 let showArchivedRunbookNotes = false;
 let pendingRunbookArchiveId = null;
+let intelligenceSnapshot = null;
+let googleDocsClientId = '';
+let googleDocsConfigured = false;
 
 const labels = {
   event_count: 'الأحداث',
@@ -374,10 +378,116 @@ async function load(path) {
   return response.json();
 }
 
+function loadGoogleIdentityServices() {
+  return new Promise((resolve, reject) => {
+    if (window.google?.accounts?.oauth2?.initTokenClient) {
+      resolve();
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => window.google?.accounts?.oauth2?.initTokenClient
+      ? resolve() : reject(new Error('google_identity_unavailable'));
+    script.onerror = () => reject(new Error('google_identity_unavailable'));
+    document.head.append(script);
+  });
+}
+
+function requestGoogleAccessToken(clientId) {
+  return new Promise((resolve, reject) => {
+    try {
+      const client = window.google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: 'https://www.googleapis.com/auth/drive.file',
+        callback: response => {
+          if (!response || response.error || typeof response.access_token !== 'string') {
+            reject(new Error('google_authorization_failed'));
+            return;
+          }
+          resolve(response.access_token);
+        },
+        error_callback: () => reject(new Error('google_authorization_failed')),
+      });
+      client.requestAccessToken({ prompt: 'consent' });
+    } catch {
+      reject(new Error('google_authorization_failed'));
+    }
+  });
+}
+
+function setGoogleDocsStatus(message) {
+  document.querySelector('#google-docs-status').textContent = message;
+}
+
+function updateGoogleDocsButton() {
+  document.querySelector('#google-docs-export').disabled = !googleDocsConfigured || !intelligenceSnapshot;
+}
+
+function initializeGoogleDocsExport() {
+  const button = document.querySelector('#google-docs-export');
+  button.addEventListener('click', async () => {
+    if (!intelligenceSnapshot || !googleDocsClientId || button.disabled) return;
+    let report;
+    try {
+      report = buildGoogleDocsReport(intelligenceSnapshot);
+    } catch {
+      setGoogleDocsStatus('تعذر تجهيز الملخص؛ لم تُرسل أي بيانات.');
+      return;
+    }
+    const approved = window.confirm(
+      'سيُرسل إلى Google مستند جديد يتضمن أعداد الأحداث وفئات عامة وتاريخ الإنشاء فقط. لن تُرسل نصوص السجلات أو أسماء العملاء أو معرّفات المشاريع والخوادم. هل تريد المتابعة؟',
+    );
+    if (!approved) return;
+
+    button.disabled = true;
+    setGoogleDocsStatus('بانتظار تسجيل الدخول وموافقتك من Google…');
+    let accessToken = '';
+    try {
+      accessToken = await requestGoogleAccessToken(googleDocsClientId);
+      const { documentId } = await createGoogleDoc({ ...report, accessToken });
+      const link = document.createElement('a');
+      link.href = `https://docs.google.com/document/d/${encodeURIComponent(documentId)}/edit`;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = 'افتح المستند الذي أُنشئ في Google Docs';
+      const status = document.querySelector('#google-docs-status');
+      status.replaceChildren(link);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      setGoogleDocsStatus(message === 'google_docs_create_failed'
+        ? 'تعذر إنشاء المستند. تحقق من إعداد Google Docs API وOAuth، ولم يُعرض محتوى الاستجابة.'
+        : message === 'google_docs_write_failed'
+          ? 'أُنشئ المستند لكن تعذرت كتابة الملخص داخله. راجع Google Docs قبل إعادة المحاولة.'
+          : 'لم يكتمل الحفظ؛ لم تُعرض تفاصيل Google أو رمز الدخول.');
+    } finally {
+      accessToken = '';
+      updateGoogleDocsButton();
+    }
+  });
+
+  void load('/api/v1/google-docs-config').then(async config => {
+    if (!config.enabled || typeof config.client_id !== 'string' || !config.client_id) {
+      setGoogleDocsStatus('الميزة غير مفعّلة. أعد تشغيل اللوحة مع إعداد OAuth الاختياري الموضح في الدليل.');
+      return;
+    }
+    googleDocsClientId = config.client_id;
+    await loadGoogleIdentityServices();
+    googleDocsConfigured = true;
+    updateGoogleDocsButton();
+    setGoogleDocsStatus('جاهز عند الطلب. لن يتصل بحساب Google حتى تضغط الزر وتوافق على الإرسال.');
+  }).catch(() => {
+    setGoogleDocsStatus('تعذر تحميل إعداد Google Docs؛ بقيت الميزة معطّلة.');
+  });
+}
+
 async function render() {
   const status = document.querySelector('#status');
   try {
     const intelligence = await load('/api/v1/intelligence');
+    intelligenceSnapshot = intelligence;
+    updateGoogleDocsButton();
     renderSummary(intelligence.summary);
     renderPipeline(intelligence.pipeline.stages);
     renderAnomalies(intelligence.anomaly_analysis);
@@ -392,4 +502,5 @@ async function render() {
 
 initializeRunbookNotes();
 bindRunbookNotes();
+initializeGoogleDocsExport();
 void render();

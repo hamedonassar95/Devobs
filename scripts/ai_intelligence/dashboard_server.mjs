@@ -20,12 +20,14 @@ const CONTENT_TYPES = new Map([
   ['/dashboard.js', 'text/javascript; charset=utf-8'],
   ['/dashboard.css', 'text/css; charset=utf-8'],
   ['/runbook_notes.mjs', 'text/javascript; charset=utf-8'],
+  ['/google_docs_export.mjs', 'text/javascript; charset=utf-8'],
 ]);
 const ASSET_FILES = new Map([
   ['/', 'index.html'],
   ['/dashboard.js', 'dashboard.js'],
   ['/dashboard.css', 'dashboard.css'],
   ['/runbook_notes.mjs', 'runbook_notes.mjs'],
+  ['/google_docs_export.mjs', 'google_docs_export.mjs'],
 ]);
 
 export class DashboardError extends Error {
@@ -224,7 +226,7 @@ function send(response, status, contentType, body, method) {
     'X-Content-Type-Options': 'nosniff',
     'Referrer-Policy': 'no-referrer',
     'Cross-Origin-Resource-Policy': 'same-origin',
-    'Content-Security-Policy': "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'",
+    'Content-Security-Policy': "default-src 'none'; script-src 'self' https://accounts.google.com; style-src 'self'; connect-src 'self' https://docs.googleapis.com; frame-src https://accounts.google.com/gsi/; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'",
   });
   response.end(method === 'HEAD' ? undefined : body);
 }
@@ -233,8 +235,12 @@ function sendError(response, status, code, method) {
   send(response, status, 'application/json; charset=utf-8', JSON.stringify({ error: code }), method);
 }
 
-export async function createDashboardServer({ storePath, feedbackLedgerPath = null }) {
+export async function createDashboardServer({ storePath, feedbackLedgerPath = null, googleDocsClientId = '' }) {
   const snapshot = await loadSnapshot({ storePath, feedbackLedgerPath });
+  if (typeof googleDocsClientId !== 'string' || googleDocsClientId.length > 256
+    || (googleDocsClientId !== '' && !/^\d+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$/.test(googleDocsClientId))) {
+    reject('invalid_google_docs_client_id');
+  }
   const jsonBodies = new Map([
     ['/api/v1/intelligence', JSON.stringify(snapshot)],
     ['/api/v1/summary', JSON.stringify({ schema_version: 1, ...snapshot.summary })],
@@ -244,6 +250,11 @@ export async function createDashboardServer({ storePath, feedbackLedgerPath = nu
       mode: 'suggestion_only',
       feedback_learning: { automatic_execution: false },
       recommendations: snapshot.recommendations,
+    })],
+    ['/api/v1/google-docs-config', JSON.stringify({
+      enabled: googleDocsClientId !== '',
+      client_id: googleDocsClientId,
+      scope: 'https://www.googleapis.com/auth/drive.file',
     })],
   ]);
   const assets = new Map();
@@ -306,7 +317,7 @@ export async function createDashboardServer({ storePath, feedbackLedgerPath = nu
 }
 
 function parseArgs(args) {
-  const options = { storePath: null, feedbackLedgerPath: null, port: DEFAULT_PORT };
+  const options = { storePath: null, feedbackLedgerPath: null, googleDocsClientId: '', port: DEFAULT_PORT };
   const seen = new Set();
   for (let index = 0; index < args.length; index++) {
     const flag = args[index];
@@ -315,6 +326,7 @@ function parseArgs(args) {
     seen.add(flag);
     if (flag === '--store' && options.storePath === null) options.storePath = value;
     else if (flag === '--feedback-ledger' && options.feedbackLedgerPath === null) options.feedbackLedgerPath = value;
+    else if (flag === '--google-docs-client-id' && options.googleDocsClientId === '') options.googleDocsClientId = value;
     else if (flag === '--port' && options.port === DEFAULT_PORT) {
       if (!/^(?:0|[1-9]\d{0,4})$/.test(value) || Number(value) > 65_535) reject('invalid_arguments');
       options.port = Number(value);
@@ -326,7 +338,7 @@ function parseArgs(args) {
 }
 
 function usage() {
-  return 'Usage: node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--feedback-ledger <private-jsonl-file>] [--port <0-65535>]';
+  return 'Usage: node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--feedback-ledger <private-jsonl-file>] [--google-docs-client-id <public-oauth-client-id>] [--port <0-65535>]';
 }
 
 export async function main(args = process.argv.slice(2)) {
