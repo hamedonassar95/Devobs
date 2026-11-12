@@ -54,6 +54,17 @@
       </div>
     </section>
 
+    <section aria-labelledby="google-calendar-title">
+      <h2 id="google-calendar-title">جدولة مراجعة متابعة في Google Calendar</h2>
+      <p class="notice">خيار محلي. ينشئ موعدًا عامًا لمدة 30 دقيقة في تقويم منفصل تابع لـDevobs AI-7. لا يرسل سجلات أو بيانات حوادث أو أسماء عملاء، ولا يضيف مدعوين أو رابط اجتماع. يلزم اختيار موعد وتأكيده قبل الاتصال. يُحفظ معرّف التقويم في هذا المتصفح لإعادة استخدامه؛ رمز الدخول لا يُحفظ.</p>
+      <form id="google-calendar-followup-form" class="card calendar-form">
+        <label for="google-calendar-followup-start">موعد المراجعة (حسب توقيت جهازك)</label>
+        <input id="google-calendar-followup-start" name="start" type="datetime-local" required>
+        <button type="submit" id="google-calendar-followup-submit" disabled>جدولة موعد المتابعة</button>
+        <p id="google-calendar-status" class="muted" role="status" aria-live="polite">ميزة Google Calendar غير مفعّلة حتى إعداد OAuth اختياري.</p>
+      </form>
+    </section>
+
     <section aria-labelledby="recommendations-title">
       <h2 id="recommendations-title">التوصيات</h2>
       <p class="notice">التصنيف ودرجات الإشارة إرشادية وليست احتمالًا معايرًا. لا يُنفذ أي تغيير من هذه اللوحة.</p>

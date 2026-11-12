@@ -5,14 +5,21 @@ import {
   setRunbookNotePinned,
 } from './runbook_notes.mjs';
 import { buildGoogleDocsReport, createGoogleDoc } from './google_docs_export.mjs';
+import { deriveFollowupEventId, GOOGLE_CALENDAR_SCOPE, scheduleGoogleCalendarFollowup } from './google_calendar_followup.mjs';
 
 const RUNBOOK_STORAGE_KEY = 'devobs_ai7_runbook_notes';
+const GOOGLE_CALENDAR_STORAGE_KEY = 'devobs_ai7_followup_calendar_id';
 let runbookNotes = [];
 let showArchivedRunbookNotes = false;
 let pendingRunbookArchiveId = null;
 let intelligenceSnapshot = null;
 let googleDocsClientId = '';
 let googleDocsConfigured = false;
+let googleCalendarClientId = '';
+let googleCalendarConfigured = false;
+let googleCalendarBusy = false;
+let googleCalendarId = '';
+let googleIdentityServicesPromise = null;
 
 const labels = {
   event_count: 'الأحداث',
@@ -379,7 +386,9 @@ async function load(path) {
 }
 
 function loadGoogleIdentityServices() {
-  return new Promise((resolve, reject) => {
+  if (window.google?.accounts?.oauth2?.initTokenClient) return Promise.resolve();
+  if (googleIdentityServicesPromise) return googleIdentityServicesPromise;
+  googleIdentityServicesPromise = new Promise((resolve, reject) => {
     if (window.google?.accounts?.oauth2?.initTokenClient) {
       resolve();
       return;
@@ -395,14 +404,17 @@ function loadGoogleIdentityServices() {
   });
 }
 
-function requestGoogleAccessToken(clientId) {
+function requestGoogleAccessToken(clientId, scope) {
   return new Promise((resolve, reject) => {
     try {
-      const client = window.google.accounts.oauth2.initTokenClient({
+      const oauth = window.google.accounts.oauth2;
+      const client = oauth.initTokenClient({
         client_id: clientId,
-        scope: 'https://www.googleapis.com/auth/drive.file',
+        scope,
         callback: response => {
-          if (!response || response.error || typeof response.access_token !== 'string') {
+          if (!response || response.error || typeof response.access_token !== 'string'
+            || typeof oauth.hasGrantedAllScopes !== 'function'
+            || !oauth.hasGrantedAllScopes(response, scope)) {
             reject(new Error('google_authorization_failed'));
             return;
           }
@@ -410,7 +422,7 @@ function requestGoogleAccessToken(clientId) {
         },
         error_callback: () => reject(new Error('google_authorization_failed')),
       });
-      client.requestAccessToken({ prompt: 'consent' });
+      client.requestAccessToken({ include_granted_scopes: true });
     } catch {
       reject(new Error('google_authorization_failed'));
     }
@@ -445,7 +457,7 @@ function initializeGoogleDocsExport() {
     setGoogleDocsStatus('بانتظار تسجيل الدخول وموافقتك من Google…');
     let accessToken = '';
     try {
-      accessToken = await requestGoogleAccessToken(googleDocsClientId);
+      accessToken = await requestGoogleAccessToken(googleDocsClientId, 'https://www.googleapis.com/auth/drive.file');
       const { documentId } = await createGoogleDoc({ ...report, accessToken });
       const link = document.createElement('a');
       link.href = `https://docs.google.com/document/d/${encodeURIComponent(documentId)}/edit`;
@@ -482,6 +494,133 @@ function initializeGoogleDocsExport() {
   });
 }
 
+function setGoogleCalendarStatus(message) {
+  document.querySelector('#google-calendar-status').textContent = message;
+}
+
+function localDateTimeValue(date) {
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 16);
+}
+
+function getGoogleCalendarId() {
+  try {
+    const stored = window.localStorage.getItem(GOOGLE_CALENDAR_STORAGE_KEY);
+    if (typeof stored === 'string' && /^[A-Za-z0-9._@+-]{1,320}$/.test(stored)) {
+      googleCalendarId = stored;
+      return stored;
+    }
+    if (stored !== null) window.localStorage.removeItem(GOOGLE_CALENDAR_STORAGE_KEY);
+  } catch {
+    // Keep the identifier in page memory if browser storage is unavailable.
+  }
+  return googleCalendarId;
+}
+
+function rememberGoogleCalendarId(calendarId) {
+  googleCalendarId = calendarId;
+  try {
+    window.localStorage.setItem(GOOGLE_CALENDAR_STORAGE_KEY, calendarId);
+  } catch {
+    // The in-memory value still prevents duplicate calendars for this page lifetime.
+  }
+}
+
+function forgetGoogleCalendarId() {
+  googleCalendarId = '';
+  try {
+    window.localStorage.removeItem(GOOGLE_CALENDAR_STORAGE_KEY);
+  } catch {
+    // There is no provider-side write when clearing this local session value.
+  }
+}
+
+function updateGoogleCalendarButton() {
+  const button = document.querySelector('#google-calendar-followup-submit');
+  const start = new Date(document.querySelector('#google-calendar-followup-start').value);
+  button.disabled = !googleCalendarConfigured || googleCalendarBusy
+    || !Number.isFinite(start.getTime()) || start.getTime() <= Date.now();
+}
+
+function initializeGoogleCalendarFollowup() {
+  const form = document.querySelector('#google-calendar-followup-form');
+  const timeInput = document.querySelector('#google-calendar-followup-start');
+  const button = document.querySelector('#google-calendar-followup-submit');
+  timeInput.min = localDateTimeValue(new Date(Date.now() + 60_000));
+  timeInput.addEventListener('input', updateGoogleCalendarButton);
+  updateGoogleCalendarButton();
+
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (!googleCalendarConfigured || googleCalendarBusy || button.disabled) return;
+    const start = new Date(timeInput.value);
+    if (!Number.isFinite(start.getTime()) || start.getTime() <= Date.now()) {
+      setGoogleCalendarStatus('اختر موعدًا مستقبليًا؛ لم تُرسل أي بيانات.');
+      updateGoogleCalendarButton();
+      return;
+    }
+
+    const startDateTime = start.toISOString();
+    let eventId;
+    try {
+      eventId = deriveFollowupEventId(startDateTime);
+    } catch {
+      setGoogleCalendarStatus('تعذر تجهيز الموعد محليًا؛ لم يُرسل أي طلب إلى Google.');
+      return;
+    }
+    const approved = window.confirm(
+      `سيُستخدم أو يُنشأ تقويم منفصل باسم "Devobs AI-7 Follow-ups"، ويُضاف إليه موعد واحد لمدة 30 دقيقة عند ${start.toLocaleString('ar-JO')}. لن نرسل سجلات أو بيانات حوادث أو أسماء عملاء، ولن نضيف مدعوين أو رابط اجتماع. هل تريد المتابعة؟`,
+    );
+    if (!approved) return;
+
+    googleCalendarBusy = true;
+    button.disabled = true;
+    setGoogleCalendarStatus('بانتظار تسجيل الدخول وموافقتك على صلاحية Google المخصّصة…');
+    let accessToken = '';
+    try {
+      accessToken = await requestGoogleAccessToken(googleCalendarClientId, GOOGLE_CALENDAR_SCOPE);
+      const result = await scheduleGoogleCalendarFollowup({
+        accessToken,
+        startDateTime,
+        eventId,
+        calendarId: getGoogleCalendarId(),
+        onCalendarCreated: rememberGoogleCalendarId,
+      });
+      const suffix = result.calendarCreated
+        ? ' أُنشئ التقويم المنفصل أيضًا.'
+        : '';
+      setGoogleCalendarStatus(result.alreadyScheduled
+        ? 'هذا الموعد موجود مسبقًا في تقويم Devobs AI-7؛ لم يُنشأ موعد مكرر.'
+        : `أُنشئ الموعد في تقويم Devobs AI-7.${suffix} راجعه في Google Calendar.`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      setGoogleCalendarStatus(message === 'google_calendar_event_create_failed'
+        ? 'تعذر إنشاء الموعد. قد يبقى التقويم المنفصل فارغًا؛ راجعه قبل إعادة المحاولة.'
+        : message === 'google_calendar_saved_calendar_unavailable'
+          ? (forgetGoogleCalendarId(), 'التقويم المحفوظ محليًا لم يعد متاحًا لهذا الحساب. أزيل معرّفه؛ أعد المحاولة لإنشاء تقويم مخصص للحساب الحالي.')
+          : 'لم يكتمل الجدول؛ لم تُعرض تفاصيل Google أو رمز الدخول.');
+    } finally {
+      accessToken = '';
+      googleCalendarBusy = false;
+      updateGoogleCalendarButton();
+    }
+  });
+
+  void load('/api/v1/google-calendar-config').then(async config => {
+    if (!config.enabled || typeof config.client_id !== 'string' || !config.client_id) {
+      setGoogleCalendarStatus('الميزة معطّلة. أعد تشغيل اللوحة مع إعداد OAuth الاختياري الموضح في الدليل.');
+      return;
+    }
+    googleCalendarClientId = config.client_id;
+    await loadGoogleIdentityServices();
+    googleCalendarConfigured = true;
+    updateGoogleCalendarButton();
+    setGoogleCalendarStatus('جاهز عند الطلب. لن يتصل بحساب Google أو يكتب تقويمًا حتى تختار موعدًا وتؤكد الإرسال.');
+  }).catch(() => {
+    setGoogleCalendarStatus('تعذر تحميل إعداد Google Calendar؛ بقيت الميزة معطّلة.');
+  });
+}
+
 async function render() {
   const status = document.querySelector('#status');
   try {
@@ -503,4 +642,5 @@ async function render() {
 initializeRunbookNotes();
 bindRunbookNotes();
 initializeGoogleDocsExport();
+initializeGoogleCalendarFollowup();
 void render();
