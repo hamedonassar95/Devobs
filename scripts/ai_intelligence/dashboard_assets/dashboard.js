@@ -6,6 +6,7 @@ import {
 } from './runbook_notes.mjs';
 import { buildGoogleDocsReport, createGoogleDoc } from './google_docs_export.mjs';
 import { deriveFollowupEventId, GOOGLE_CALENDAR_SCOPE, scheduleGoogleCalendarFollowup } from './google_calendar_followup.mjs';
+import { buildGoogleSheetsReport, createGoogleSheet } from './google_sheets_export.mjs';
 
 const RUNBOOK_STORAGE_KEY = 'devobs_ai7_runbook_notes';
 const GOOGLE_CALENDAR_STORAGE_KEY = 'devobs_ai7_followup_calendar_id';
@@ -15,6 +16,9 @@ let pendingRunbookArchiveId = null;
 let intelligenceSnapshot = null;
 let googleDocsClientId = '';
 let googleDocsConfigured = false;
+let googleSheetsClientId = '';
+let googleSheetsConfigured = false;
+let googleSheetsBusy = false;
 let googleCalendarClientId = '';
 let googleCalendarConfigured = false;
 let googleCalendarBusy = false;
@@ -494,6 +498,74 @@ function initializeGoogleDocsExport() {
   });
 }
 
+function setGoogleSheetsStatus(message) {
+  document.querySelector('#google-sheets-status').textContent = message;
+}
+
+function updateGoogleSheetsButton() {
+  document.querySelector('#google-sheets-export').disabled = !googleSheetsConfigured
+    || googleSheetsBusy || !intelligenceSnapshot;
+}
+
+function initializeGoogleSheetsExport() {
+  const button = document.querySelector('#google-sheets-export');
+  button.addEventListener('click', async () => {
+    if (!intelligenceSnapshot || !googleSheetsClientId || button.disabled) return;
+    let report;
+    try {
+      report = buildGoogleSheetsReport(intelligenceSnapshot);
+    } catch {
+      setGoogleSheetsStatus('تعذر تجهيز المجاميع؛ لم تُرسل أي بيانات.');
+      return;
+    }
+    const approved = window.confirm(
+      'سيُنشأ جدول Google جديد يحتوي أعدادًا إجمالية وفئات ثابتة وتاريخ الإنشاء فقط. لن نقرأ جداولك الحالية أو نرسل نصوص السجلات أو أسماء العملاء أو معرّفات المشاريع والخوادم. هل تريد المتابعة؟',
+    );
+    if (!approved) return;
+
+    googleSheetsBusy = true;
+    updateGoogleSheetsButton();
+    setGoogleSheetsStatus('بانتظار تسجيل الدخول وموافقتك من Google…');
+    let accessToken = '';
+    try {
+      accessToken = await requestGoogleAccessToken(googleSheetsClientId, 'https://www.googleapis.com/auth/drive.file');
+      const { spreadsheetId } = await createGoogleSheet({ accessToken, report });
+      const link = document.createElement('a');
+      link.href = `https://docs.google.com/spreadsheets/d/${encodeURIComponent(spreadsheetId)}/edit`;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = 'افتح جدول AI-7 الذي أُنشئ في Google Sheets';
+      const status = document.querySelector('#google-sheets-status');
+      status.replaceChildren(link);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      setGoogleSheetsStatus(message === 'google_sheets_write_failed'
+        ? 'أُنشئ الجدول لكن تعذرت كتابة المجاميع؛ قد يبقى فارغًا. راجع Google Drive قبل إعادة المحاولة.'
+        : message === 'google_sheets_invalid_response'
+          ? 'لم تصل استجابة مكتملة؛ افحص Google Drive لاحتمال وجود جدول جديد قبل إعادة المحاولة.'
+          : 'لم يكتمل التصدير؛ لم تُعرض تفاصيل Google أو رمز الدخول. افحص Google Drive قبل إعادة المحاولة.');
+    } finally {
+      accessToken = '';
+      googleSheetsBusy = false;
+      updateGoogleSheetsButton();
+    }
+  });
+
+  void load('/api/v1/google-sheets-config').then(async config => {
+    if (!config.enabled || typeof config.client_id !== 'string' || !config.client_id) {
+      setGoogleSheetsStatus('الميزة غير مفعّلة. أعد تشغيل اللوحة مع إعداد OAuth الاختياري الموضح في الدليل.');
+      return;
+    }
+    googleSheetsClientId = config.client_id;
+    await loadGoogleIdentityServices();
+    googleSheetsConfigured = true;
+    updateGoogleSheetsButton();
+    setGoogleSheetsStatus('جاهز عند الطلب. لن يتصل بحساب Google أو ينشئ جدولًا حتى تضغط الزر وتؤكد الإرسال.');
+  }).catch(() => {
+    setGoogleSheetsStatus('تعذر تحميل إعداد Google Sheets؛ بقيت الميزة معطّلة.');
+  });
+}
+
 function setGoogleCalendarStatus(message) {
   document.querySelector('#google-calendar-status').textContent = message;
 }
@@ -627,6 +699,7 @@ async function render() {
     const intelligence = await load('/api/v1/intelligence');
     intelligenceSnapshot = intelligence;
     updateGoogleDocsButton();
+    updateGoogleSheetsButton();
     renderSummary(intelligence.summary);
     renderPipeline(intelligence.pipeline.stages);
     renderAnomalies(intelligence.anomaly_analysis);
@@ -642,5 +715,6 @@ async function render() {
 initializeRunbookNotes();
 bindRunbookNotes();
 initializeGoogleDocsExport();
+initializeGoogleSheetsExport();
 initializeGoogleCalendarFollowup();
 void render();

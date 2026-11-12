@@ -5,10 +5,10 @@
 ## التشغيل
 
 ```sh
-node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--feedback-ledger <private-jsonl-file>] [--google-docs-client-id <public-oauth-client-id>] [--port 8765]
+node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--feedback-ledger <private-jsonl-file>] [--google-docs-client-id <public-oauth-client-id>] [--google-sheets-client-id <public-oauth-client-id>] [--port 8765]
 ```
 
-افتح الرابط المحلي الذي يطبعه الأمر على `127.0.0.1`. لإيقاف الخادم اضغط `Ctrl+C`. يقرأ الخادم لقطة مرة واحدة عند البدء؛ أعد تشغيله بعد تحديث سجل الأحداث أو سجل التغذية الراجعة. من دون `--google-docs-client-id` لا تحاول اللوحة الاتصال بخدمة خارجية. استخدم بيانات اصطناعية حتى اعتماد سياسة الخصوصية والاحتفاظ.
+افتح الرابط المحلي الذي يطبعه الأمر على `127.0.0.1`. لإيقاف الخادم اضغط `Ctrl+C`. يقرأ الخادم لقطة مرة واحدة عند البدء؛ أعد تشغيله بعد تحديث سجل الأحداث أو سجل التغذية الراجعة. كل تكامل Google اختياري ومنفصل؛ لا يُفعّل إلا بإضافة معرّف OAuth الخاص به. استخدم بيانات اصطناعية حتى اعتماد سياسة الخصوصية والاحتفاظ.
 
 ## الواجهة والحدود الأمنية
 
@@ -27,6 +27,21 @@ node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--
 عند الضغط على زر الحفظ، تعرض اللوحة تأكيدًا، ثم تطلب موافقتك من Google على نطاق `drive.file`. تنشئ مستندًا جديدًا وتكتب فيه أعداد الأحداث وفئات عامة وتاريخ الإنشاء. لا تقرأ ملفات Drive الموجودة ولا ترسل نصوص السجلات أو أسماء العملاء أو معرّفات المشاريع والخوادم. رمز الوصول يبقى في ذاكرة الصفحة للطلب الحالي ولا يُحفظ في `localStorage` أو ملفات Devops. إذا نجح إنشاء المستند وفشلت الكتابة، قد يبقى مستند فارغ في Drive؛ افحص Drive قبل إعادة المحاولة.
 
 هذا التكامل يخص لوحة AI-7 المحلية فقط؛ لا يضيف حفظًا إلى موقع Devobs الثابت أو خدمة SaaS مستضافة. اختبارات المستودع تستخدم تقريرًا اصطناعيًا وطلبات Google وهمية، ولا تسجّل الدخول أو تتصل بحساب Google.
+
+## إنشاء جدول إجمالي جديد في Google Sheets (اختياري)
+
+هذا خيار محلي منفصل عن Docs وCalendar. فعّل Google Sheets API، وأنشئ OAuth client من نوع Web application، وأضف الأصل `http://127.0.0.1:8765` إلى JavaScript origins. لا تنشئ client secret للواجهة ولا ترسله. شغّل اللوحة مع `--google-sheets-client-id <public-oauth-client-id>`؛ يمكن استخدام OAuth client العام نفسه في أكثر من تكامل، لكن كل ميزة تبقى معطلة ما لم تضف معرّفها صراحةً.
+
+عند الضغط على الزر وتأكيد الإرسال، ينشئ التكامل جدولًا جديدًا بعنوان يومي ويكتب فيه صفوفًا ثابتة لأعداد AI-7، أنواع الأحداث، درجاتها، وفئات استرشادية مجمعة. لا يسرد ملفات Drive، ولا يقرأ جداول سابقة، ولا يرسل نصوص سجلات أو أسماء عملاء أو معرّفات مشاريع أو خوادم. يطلب النطاق `drive.file` فقط، ويكتب القيم بخيار `RAW` حتى لا تُفسّر كنصوص كصيغ. رمز OAuth يبقى في ذاكرة الصفحة للطلب ولا يُحفظ. إذا فشل تحديث القيم بعد إنشاء الجدول، قد يبقى جدول فارغ؛ افحص Drive قبل إعادة المحاولة.
+
+هذا التكامل محلي فقط ولا يضيف تخزينًا إلى موقع Devobs الثابت أو خدمة SaaS. اختباراته تستخدم لقطة اصطناعية وواجهة Google وهمية؛ لم يُربط حساب أو يُنشأ جدول فعلي.
+
+مراجع Google Sheets الرسمية:
+
+- [نطاقات OAuth في Google Sheets API](https://developers.google.com/workspace/sheets/api/scopes)
+- [إنشاء جدول](https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/create)
+- [تحديث قيم جدول](https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets.values/update)
+- [نموذج الرموز في Google Identity Services](https://developers.google.com/identity/oauth2/web/guides/use-token-model)
 
 ## جدولة مراجعة متابعة في Google Calendar (اختياري)
 
@@ -64,10 +79,13 @@ node --check scripts/ai_intelligence/dashboard_server.mjs
 node --check scripts/ai_intelligence/dashboard_assets/dashboard.js
 node --check scripts/ai_intelligence/dashboard_assets/google_docs_export.mjs
 node --check scripts/ai_intelligence/dashboard_assets/google_calendar_followup.mjs
+node --check scripts/ai_intelligence/dashboard_assets/google_sheets_export.mjs
 node --check tests/ai_dashboard_api.test.mjs
 node --check tests/google_calendar_followup.test.mjs
+node --check tests/google_sheets_export.test.mjs
 node --test tests/ai_dashboard_api.test.mjs tests/google_docs_export.test.mjs tests/ai_anomaly_detector.test.mjs tests/ai_trend_forecast.test.mjs
 node --test tests/google_calendar_followup.test.mjs
+node --test tests/google_sheets_export.test.mjs
 ```
 
 الخادم يستخدم مكتبة [Node.js HTTP](https://nodejs.org/api/http.html) وواجهة [URL](https://nodejs.org/api/url.html) المدمجتين؛ الاختبارات تستخدم [Node.js Test Runner](https://nodejs.org/api/test.html) وHTTP محليًا على loopback فقط. لا تثبت هذه الفحوص أمان خدمة عامة أو جاهزية نشر.
