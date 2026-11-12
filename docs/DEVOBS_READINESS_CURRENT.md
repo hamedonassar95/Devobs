@@ -1,3 +1,9 @@
+## تزامن السجل بعد PR #544 — 2026-11-12 (VERIFIED)
+
+- PR [#544](https://github.com/hamedonassar95/Devobs/pull/544) حدّث الحالة وسجل الإنجازات واختبارات السجل لدمج #543. دُمج عند `882053b0a6c8c0264871aaa8a4121059190bb471` من HEAD `36dcf9fafb994cda153c95c6ff75a7b0109de68e`.
+- نجح push CI `43144462445` وPR CI `43144483235` وCodeQL `43144478678` على الرأس؛ وبعد الدمج نجح main CI [43144634329](https://github.com/hamedonassar95/Devobs/actions/runs/43144634329) وCodeQL [43144633820](https://github.com/hamedonassar95/Devobs/actions/runs/43144633820). اجتازت فحوص Pages الثابتة `verify-production`.
+- لم يغيّر PR #544 التطبيق أو بوابات الجاهزية. تبقى AI-9 وP01 **BLOCKED** وقبول Codex runtime **OPEN**.
+
 ## تحديث بوابات الجاهزية بعد PR #543 — 2026-11-12 (VERIFIED)
 
 - دمج PR [#543](https://github.com/hamedonassar95/Devobs/pull/543) تكامل Grafana MCP محليًا واختياريًا. يحصر الفئات في `search,datasource,prometheus,dashboard`، ويضبط `--disable-write` و`--disable-api` ويعطل إحصاءات الاستخدام. النسخة والمصدر وحزمة Windows مثبتة في [الدليل](GRAFANA_MCP_INTEGRATION.md). لا يُحمّل المثال في إعداد المستودع ولا CI.

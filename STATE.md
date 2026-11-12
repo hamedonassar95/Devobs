@@ -1,4 +1,10 @@
-## أحدث لقطة موثّقة: دمج PR #543 — تحقق 2026-11-12
+## أحدث لقطة موثّقة: دمج PR #544 — تحقق 2026-11-12
+
+- **VERIFIED من GitHub:** دُمج PR [#544](https://github.com/hamedonassar95/Devobs/pull/544) عند `882053b0a6c8c0264871aaa8a4121059190bb471` من HEAD الدقيق `36dcf9fafb994cda153c95c6ff75a7b0109de68e`. نجح push CI `43144462445` وPR CI `43144483235` وCodeQL `43144478678` على HEAD؛ ثم نجح main CI [43144634329](https://github.com/hamedonassar95/Devobs/actions/runs/43144634329) وCodeQL [43144633820](https://github.com/hamedonassar95/Devobs/actions/runs/43144633820) على SHA الدمج.
+- **VERIFIED:** اجتازت فحوص Python وNode وsecurity/Gitleaks وPostgreSQL RLS وcontainer/Trivy وTerraform وsite-contract و`validate`. نشرت CI صفحة Pages الثابتة واجتازت `verify-production`. تخطّى incident drill وفحوص الاستعادة شروطها. نجحت اختبارات سجل الإنجازات محليًا: 50 اختبارًا.
+- **النطاق والحدود:** PR #544 مزامنة حالة وسجل واختبارات فقط؛ لم يغيّر سلوك التطبيق أو بوابات الجاهزية. تكامل Grafana في PR #543 ما زال اختياريًا محليًا ولم يُختبر runtime حيًا. السجل بعد هذا التحديث يوثق 188 إنجازًا وآخر PR موثّق #544.
+
+## لقطة موثّقة سابقة: دمج PR #543 — تحقق 2026-11-12
 
 - **VERIFIED من GitHub:** دُمج PR [#543](https://github.com/hamedonassar95/Devobs/pull/543) على `main` عند `f34a1969c59780f3a77d027ec6e320f82e803ad3` من HEAD الدقيق `a58a3550b04a2ab366bfbf8245fe8fe4c9ee25dc`. نجح push CI [43143644469](https://github.com/hamedonassar95/Devobs/actions/runs/43143644469)، وPR CI [43143666253](https://github.com/hamedonassar95/Devobs/actions/runs/43143666253)، وCodeQL [43143663879](https://github.com/hamedonassar95/Devobs/actions/runs/43143663879). بعد الدمج نجح main CI [43143834691](https://github.com/hamedonassar95/Devobs/actions/runs/43143834691) وCodeQL [43143834529](https://github.com/hamedonassar95/Devobs/actions/runs/43143834529) على SHA الدمج نفسه.
 - **VERIFIED:** PR [#542](https://github.com/hamedonassar95/Devobs/pull/542) مزامنة سابقة لسجل #541، دُمج عند `1ee8e5f581173f01baf398936b98b26c49de1f47` من HEAD `5967024a5bf0fbf53f40984097348be2e4e5b39b`. نجح main CI `43142370703` وCodeQL `43142370226` على SHA الدمج.

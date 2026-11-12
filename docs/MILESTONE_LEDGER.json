@@ -2059,6 +2059,17 @@
       "ci_run_id": 43143834691,
       "verification": "VERIFIED 2026-11-12: PR #543 merged at f34a1969c59780f3a77d027ec6e320f82e803ad3 from exact head a58a3550b04a2ab366bfbf8245fe8fe4c9ee25dc. Exact-head push CI 43143644469 and PR CI 43143666253 passed; CodeQL 43143663879 passed for Actions, JavaScript/TypeScript, and Python. Post-merge main CI 43143834691 and CodeQL 43143834529 passed on the exact merge SHA. Main CI passed Python, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, Pages publication, and verify-production. Node tests passed on the exact-head push run and were skipped in PR/main runs by path selection; controlled incident drill and restore checks skipped by conditions. The full local Python suite passed 1023 tests with 25 skipped; the focused Grafana MCP contract passed 2 tests. The Windows x64 release archive hash matched the official v2.3.0 checksums file.",
       "limitations": "Adds an optional local Windows Codex example and documentation only; it is not enabled in repository Codex config, CI, or the published site. Grafana, Docker, OAuth, a service-account token, and a live MCP call were not run. Codex runtime remains OPEN; AI-9 and P01 remain BLOCKED. The example restricts the server tool categories and disables write tools and the generic API proxy, but Grafana RBAC remains authoritative and query results can disclose locally readable metric data to the active Codex model."
+    },
+    {
+      "id": "ledger-sync-pr544-grafana-mcp",
+      "area": "DOCUMENTATION",
+      "title": "Record PR 544 merge evidence for the PR 543 Grafana MCP ledger sync",
+      "pr_number": 544,
+      "pr_head_sha": "36dcf9fafb994cda153c95c6ff75a7b0109de68e",
+      "merge_sha": "882053b0a6c8c0264871aaa8a4121059190bb471",
+      "ci_run_id": 43144634329,
+      "verification": "VERIFIED 2026-11-12: PR #544 merged at 882053b0a6c8c0264871aaa8a4121059190bb471 from exact head 36dcf9fafb994cda153c95c6ff75a7b0109de68e. Exact-head push CI 43144462445 and PR CI 43144483235 passed; CodeQL 43144478678 passed for Actions, JavaScript/TypeScript, and Python. Post-merge main CI 43144634329 and CodeQL 43144633820 passed on the merge SHA. Main CI passed Python, Node, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication, and verify-production. Incident drill and recovery jobs skipped by conditions. Local milestone ledger tests passed (50 tests).",
+      "limitations": "Documentation, readiness, ledger, and ledger-test synchronization only; no application behavior or readiness gate changed. Grafana MCP remains an optional local example and has no live runtime verification. AI-9 and P01 remain BLOCKED; Codex runtime remains OPEN."
     }
   ],
   "gates": [
