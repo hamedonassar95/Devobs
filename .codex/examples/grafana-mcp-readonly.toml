@@ -1,0 +1,19 @@
+# OPTIONAL Grafana MCP example. NOT loaded by Devobs by default.
+# Replace the executable path, then copy this block to your personal Codex config
+# only after creating a read-only Grafana service account for the local instance.
+
+[mcp_servers.grafana]
+command = "C:/path/to/mcp-grafana.exe"
+args = [
+  "--transport=stdio",
+  "--enabled-tools=search,datasource,prometheus,dashboard",
+  "--disable-write",
+  "--disable-api",
+  "--usage-stats=disabled",
+  "--prometheus-guardrail-mode=enforce",
+  "--prometheus-guardrail-max-range=24h",
+  "--prometheus-guardrail-max-points=5000",
+]
+[mcp_servers.grafana.env]
+GRAFANA_URL = "http://127.0.0.1:3000"
+GRAFANA_SERVICE_ACCOUNT_TOKEN_FILE = "C:/Users/you/AppData/Local/Devobs/secrets/grafana-mcp-token.txt"
