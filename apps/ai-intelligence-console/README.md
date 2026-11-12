@@ -13,6 +13,7 @@ This is the preserved React/TypeScript prototype from the former `DevObs-ai-Inte
 - Google Workspace code includes broad OAuth scopes and has not been approved for live use. Keep it disabled.
 - Gemini models and responses shown without a key are prototype fallbacks, not verified model output.
 - Gemini API calls can incur charges. Leave `GEMINI_API_KEY` blank unless a maintainer intentionally configures and reviews a separate test environment.
+- The optional Gemini SDK client pins API version `v1beta` to preserve the previous SDK behavior. No live Gemini request is part of CI or this prototype's release checks.
 
 ## Run the local prototype
 

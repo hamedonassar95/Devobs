@@ -45,6 +45,8 @@ const apiKey = process.env.GEMINI_API_KEY;
 const ai = apiKey
   ? new GoogleGenAI({
       apiKey,
+      // Preserve the v2 SDK's Gemini Developer API default during the v3 upgrade.
+      apiVersion: 'v1beta',
       httpOptions: {
         headers: {
           'User-Agent': 'aistudio-build',
