@@ -111,6 +111,23 @@ class IntegrationCatalogTests(unittest.TestCase):
         next(s for s in data["services"] if s["id"] == "google-calendar-ai7")["runtime_verified"] = True
         self.invalid(data, "Google Calendar OAuth/runtime is not verified")
 
+    def test_google_docs_stays_local_optional_and_runtime_unverified(self):
+        record = next(s for s in self.inventory["services"] if s["id"] == "google-docs-ai7")
+        self.assertEqual(record["integration_status"], "local_feature_unverified")
+        self.assertIs(record["runtime_verified"], False)
+        self.assertIs(record["provider_writes_authorized"], False)
+        self.assertIs(record["cost_authorized"], False)
+        self.assertEqual(
+            record["observed_directory"],
+            "scripts/ai_intelligence/dashboard_assets/google_docs_export.mjs",
+        )
+        self.assertIn("drive.file", record["verified_capability"])
+        self.assertIn("No OAuth Client ID", record["blocker"])
+
+        data = copy.deepcopy(self.inventory)
+        next(s for s in data["services"] if s["id"] == "google-docs-ai7")["runtime_verified"] = True
+        self.invalid(data, "Google Docs OAuth/runtime is not verified")
+
     def test_google_sheets_stays_local_optional_and_runtime_unverified(self):
         record = next(s for s in self.inventory["services"] if s["id"] == "google-sheets-ai7")
         self.assertEqual(record["integration_status"], "local_feature_unverified")
