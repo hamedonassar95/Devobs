@@ -9,15 +9,18 @@ updates:
     labels:
       - "dependencies"
       - "github_actions"
+      - "ci-security"
 
   - package-ecosystem: "pip"
     directory: "/"
+    target-branch: "main"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
     labels:
       - "dependencies"
       - "python"
+      - "python-3.15"
 
   - package-ecosystem: "npm"
     directory: "/apps/ai-intelligence-console"
