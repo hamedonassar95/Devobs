@@ -1026,16 +1026,20 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_latest_recorded_merges_through_pr530_do_not_promote_gates(self):
+    def test_latest_recorded_merges_through_pr532_do_not_promote_gates(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 530)
-        self.assertEqual(result["merged_milestones"], 175)
+        self.assertEqual(result["latest_pr"], 532)
+        self.assertEqual(result["merged_milestones"], 176)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         self.assertEqual(
             records[530]["merge_sha"],
             "1dbc2d811b317b9f060bf46fa2376aaf083f0aec",
         )
         self.assertIn("No model weights were downloaded", records[530]["limitations"])
+        self.assertEqual(records[532]["merge_sha"], "b518ad23affac0bc04e76497c52067afb494119a")
+        self.assertEqual(records[532]["pr_head_sha"], "2cded308474161764b282af245e63460f70b668d")
+        self.assertEqual(records[532]["ci_run_id"], 43129410896)
+        self.assertIn("No OAuth Client ID", records[532]["limitations"])
         expected_recent = {
             502: ("0f6168681b08f687bc7a3aefa8238c0a7f3de691", "917b481694c4e3607f93890681e39c23e5dcad21", 42689426462),
             503: ("dd7a59bc3cf68070cfde419c442bdc7c2c52eb8f", "8b1ad57f5761fa86b6e606b8610ca3d643a8c0c6", 42737489501),
