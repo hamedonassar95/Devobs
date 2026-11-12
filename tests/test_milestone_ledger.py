@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_latest_recorded_merges_through_pr556_do_not_promote_gates(self):
+    def test_latest_recorded_merges_through_pr558_do_not_promote_gates(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 556)
-        self.assertEqual(result["merged_milestones"], 196)
+        self.assertEqual(result["latest_pr"], 558)
+        self.assertEqual(result["merged_milestones"], 197)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         self.assertEqual(records[550]["pr_head_sha"], "0e681cb62b4359f99d59caaaab99bfbc911e1879")
         self.assertEqual(records[550]["merge_sha"], "b68031d1b11c20d2f6fa29e46b687aa2010186b3")
@@ -1050,6 +1050,11 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(records[556]["ci_run_id"], 43159280339)
         self.assertIn("chat.messages.create", records[556]["limitations"])
         self.assertIn("no live Google Chat API call", records[556]["limitations"])
+        self.assertEqual(records[558]["pr_head_sha"], "57ff9fbfca2a00d1c731f449f3bc6e925ec4cb9d")
+        self.assertEqual(records[558]["merge_sha"], "8579c907a6d0e83a59c7aff7011b49eaf71f3b6e")
+        self.assertEqual(records[558]["ci_run_id"], 43183901590)
+        self.assertIn("https://www.googleapis.com/auth/tasks", records[558]["limitations"])
+        self.assertIn("No Google account was connected", records[558]["limitations"])
         self.assertEqual(
             records[530]["merge_sha"],
             "1dbc2d811b317b9f060bf46fa2376aaf083f0aec",
