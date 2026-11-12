@@ -2290,6 +2290,17 @@
       "ci_run_id": 43301989268,
       "verification": "VERIFIED 2026-11-12: PR #576 merged at 3eadca1727671f4990255b6e609e47b719926547 from exact reviewed head c5cce7c196e8f9a4ef3cbfdc0a9bffa5c65e59a0. PR CI 43301989268 and exact-head push CI 43301968297 passed, including Node app tests and CodeQL. Post-merge main CI 43302413818 and CodeQL 43302411900 passed on the merge SHA; static Pages publication and verify-production passed. Local app verification passed npm audit (0 vulnerabilities), npm test (10/10), lint, and build.",
       "limitations": "The Motion package had no application imports and was removed with its unused transitive packages; PR #567 was closed as superseded. No runtime animation behavior was removed because none used this package. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
+    },
+    {
+      "id": "dependabot-labels-copilot-metrics-api-boundary",
+      "area": "CI_SECURITY",
+      "title": "Clarify Dependabot labels and document the verified Copilot metrics API boundary",
+      "pr_number": 578,
+      "pr_head_sha": "5d81c2f218bfbc81b1f27dbfae95d8e7c025b962",
+      "merge_sha": "7d4f1a4937890bb9ea9786a18cee92e12971ea80",
+      "ci_run_id": 43305186699,
+      "verification": "VERIFIED 2026-11-12: PR #578 merged at 7d4f1a4937890bb9ea9786a18cee92e12971ea80 from exact head 5d81c2f218bfbc81b1f27dbfae95d8e7c025b962. PR CI 43305186699 and exact-head push CI 43305176500 passed; CodeQL 43305176702 and advisory Codex review 43305186205 passed. Post-merge main CI 43305441591 and CodeQL 43305439062 passed on the merge SHA. Python 3.12/3.15, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, and validate passed; Node and incident drill skipped by existing path/condition rules. GitHub Pages publication and verify-production passed. Local unittest discovery passed 1,049 tests with 25 skipped.",
+      "limitations": "Adds Dependabot labels and a Python regression assertion, plus documentation of the officially verified Copilot metrics API version and report boundary. It does not add an API client, automatic budget update, estimated USD cost, duplicate CodeQL/Gitleaks scanning, OAuth configuration, or paid inference. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
     }
   ],
   "gates": [
