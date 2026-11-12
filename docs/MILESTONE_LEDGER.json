@@ -2301,6 +2301,17 @@
       "ci_run_id": 43305186699,
       "verification": "VERIFIED 2026-11-12: PR #578 merged at 7d4f1a4937890bb9ea9786a18cee92e12971ea80 from exact head 5d81c2f218bfbc81b1f27dbfae95d8e7c025b962. PR CI 43305186699 and exact-head push CI 43305176500 passed; CodeQL 43305176702 and advisory Codex review 43305186205 passed. Post-merge main CI 43305441591 and CodeQL 43305439062 passed on the merge SHA. Python 3.12/3.15, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, and validate passed; Node and incident drill skipped by existing path/condition rules. GitHub Pages publication and verify-production passed. Local unittest discovery passed 1,049 tests with 25 skipped.",
       "limitations": "Adds Dependabot labels and a Python regression assertion, plus documentation of the officially verified Copilot metrics API version and report boundary. It does not add an API client, automatic budget update, estimated USD cost, duplicate CodeQL/Gitleaks scanning, OAuth configuration, or paid inference. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
+    },
+    {
+      "id": "ai-console-express5-dependency-refresh",
+      "area": "PLATFORM",
+      "title": "Consolidate AI console dependency updates and fix Express 5 SPA routing",
+      "pr_number": 585,
+      "pr_head_sha": "6b362bfe01ed87717d3ea8322f778d6b78680f0b",
+      "merge_sha": "06c0849bc0fd8494f6ed889763606e013653c367",
+      "ci_run_id": 43308109491,
+      "verification": "VERIFIED 2026-11-12: PR #585 merged at 06c0849bc0fd8494f6ed889763606e013653c367 from exact reviewed head 6b362bfe01ed87717d3ea8322f778d6b78680f0b. PR CI 43308109491, exact-head push CI 43308097217, CodeQL 43308097959, and advisory Codex review 43308109464 passed. Post-merge main CI 43308481179 and CodeQL 43308479420 passed on the merge SHA; Node tests, Python 3.12/3.15, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, and validate passed. GitHub Pages deployed and verify-production passed; the controlled incident drill and recovery checks skipped under their existing conditions. Vercel preview passed. Local app checks passed npm ci, npm audit (0 vulnerabilities), npm test (11/11), npm run lint, and npm run build.",
+      "limitations": "Consolidates Dependabot updates for Express 5.3.0, @types/express 5.0.6, @types/node 26.6.6, Vite 8.3.7, @vitejs/plugin-react 6.3.0, and dotenv 18.0.10; updates the production SPA fallback to Express 5 routing and adds root/nested-route/rate-limit regression coverage. PRs #579-#583 were closed as superseded. No live Google or Gemini requests, credentials, or API calls were used. GitHub Pages publishes the static repository site and does not deploy this console API or establish SaaS readiness. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
     }
   ],
   "gates": [
