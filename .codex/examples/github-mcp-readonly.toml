@@ -1,0 +1,31 @@
+# OPTIONAL GitHub MCP example. NOT loaded by Devobs by default.
+# Copy into the user's trusted Codex config only after reviewing the scope.
+# The official local server applies a strict read-only tool filter.
+
+[mcp_servers.github]
+command = "docker"
+args = [
+  "run",
+  "-i",
+  "--rm",
+  "-p",
+  "127.0.0.1:8085:8085",
+  "-e",
+  "GITHUB_OAUTH_CALLBACK_PORT",
+  "-e",
+  "GITHUB_OAUTH_SCOPES",
+  "-e",
+  "GITHUB_READ_ONLY",
+  "-e",
+  "GITHUB_TOOLSETS",
+  "-e",
+  "GITHUB_PERSONAL_ACCESS_TOKEN",
+  "ghcr.io/github/github-mcp-server:v2.1.0@sha256:f6056fc10bfffcc8c81a6417a2e9ca12808647e8dd6049642a4feaadee0e0f8a",
+]
+env_vars = ["GITHUB_PERSONAL_ACCESS_TOKEN"]
+
+[mcp_servers.github.env]
+GITHUB_OAUTH_CALLBACK_PORT = "8085"
+GITHUB_OAUTH_SCOPES = "public_repo"
+GITHUB_READ_ONLY = "true"
+GITHUB_TOOLSETS = "repos,issues,pull_requests,actions"
