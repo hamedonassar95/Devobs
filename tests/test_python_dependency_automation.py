@@ -81,6 +81,7 @@ class PythonDependencyAutomationTests(unittest.TestCase):
             re.compile(
                 r'(?ms)^  - package-ecosystem: "pip"\s+'
                 r'directory: "/"\s+'
+                r'target-branch: "main"\s+'
                 r'schedule:\s+interval: "weekly"(?:\s|$)'
             ),
         )
