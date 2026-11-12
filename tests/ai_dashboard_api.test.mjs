@@ -209,6 +209,7 @@ test('server is loopback-only, same-origin, read-only, and emits browser hardeni
   assert.match(page.headers['content-security-policy'], /slides\.googleapis\.com/);
   assert.match(page.headers['content-security-policy'], /chat\.googleapis\.com/);
   assert.match(page.headers['content-security-policy'], /tasks\.googleapis\.com/);
+  assert.match(page.headers['content-security-policy'], /gmail\.googleapis\.com/);
   assert.match(page.headers['content-security-policy'], /www\.googleapis\.com/);
   assert.equal(page.headers['access-control-allow-origin'], undefined);
   assert.match(page.body, /lang="ar" dir="rtl"/);
@@ -243,6 +244,9 @@ test('server is loopback-only, same-origin, read-only, and emits browser hardeni
   assert.match(script.body, /google_tasks_followup\.mjs/);
   assert.match(script.body, /google-tasks-config/);
   assert.match(script.body, /GOOGLE_TASKS_SCOPE/);
+  assert.match(script.body, /google_gmail_summary\.mjs/);
+  assert.match(script.body, /google-gmail-config/);
+  assert.match(script.body, /GOOGLE_GMAIL_SCOPE/);
   assert.match(script.body, /drive\.file/);
   assert.doesNotMatch(script.body, /innerHTML/);
 
@@ -285,6 +289,12 @@ test('server is loopback-only, same-origin, read-only, and emits browser hardeni
   assert.match(tasksModule.body, /https:\/\/tasks\.googleapis\.com\/tasks\/v1\/lists\/@default\/tasks/);
   assert.match(tasksModule.body, /auth\/tasks/);
   assert.doesNotMatch(tasksModule.body, /innerHTML|CUSTOMER_RAW_MARKER/);
+  const gmailModule = await request(port, '/google_gmail_summary.mjs', { origin });
+  assert.equal(gmailModule.status, 200);
+  assert.match(gmailModule.headers['content-type'], /javascript/);
+  assert.match(gmailModule.body, /gmail\.send/);
+  assert.match(gmailModule.body, /gmail\.googleapis\.com/);
+  assert.doesNotMatch(gmailModule.body, /innerHTML|CUSTOMER_RAW_MARKER/);
   assert.deepEqual(JSON.parse((await request(port, '/api/v1/google-docs-config', { origin })).body), {
     enabled: false,
     client_id: '',
@@ -310,6 +320,11 @@ test('server is loopback-only, same-origin, read-only, and emits browser hardeni
     client_id: '',
     scope: 'https://www.googleapis.com/auth/tasks',
   });
+  assert.deepEqual(JSON.parse((await request(port, '/api/v1/google-gmail-config', { origin })).body), {
+    enabled: false,
+    client_id: '',
+    scope: 'https://www.googleapis.com/auth/gmail.send',
+  });
 
   assert.equal((await request(port, '/api/v1/summary', { host: `localhost:${port}` })).status, 421);
   assert.equal((await request(port, '/api/v1/summary', { origin: 'https://untrusted.example' })).status, 403);
@@ -322,6 +337,7 @@ test('server is loopback-only, same-origin, read-only, and emits browser hardeni
   assert.equal((await request(port, '/api/v1/google-slides-config', { method: 'POST', origin })).status, 405);
   assert.equal((await request(port, '/api/v1/google-chat-config', { method: 'POST', origin })).status, 405);
   assert.equal((await request(port, '/api/v1/google-tasks-config', { method: 'POST', origin })).status, 405);
+  assert.equal((await request(port, '/api/v1/google-gmail-config', { method: 'POST', origin })).status, 405);
   assert.equal((await request(port, '/unknown', { origin })).status, 404);
 });
 
@@ -335,6 +351,7 @@ test('Google OAuth configuration is opt-in, public-client-only, and bounded', as
     googleSlidesClientId: '1234567890-publicclient.apps.googleusercontent.com',
     googleChatClientId: '1234567890-publicclient.apps.googleusercontent.com',
     googleTasksClientId: '1234567890-publicclient.apps.googleusercontent.com',
+    googleGmailClientId: '1234567890-publicclient.apps.googleusercontent.com',
   });
   const port = await listen(server);
   t.after(() => new Promise(resolve => server.close(resolve)));
@@ -380,6 +397,13 @@ test('Google OAuth configuration is opt-in, public-client-only, and bounded', as
     client_id: '1234567890-publicclient.apps.googleusercontent.com',
     scope: 'https://www.googleapis.com/auth/tasks',
   });
+  const gmailConfigResponse = await request(port, '/api/v1/google-gmail-config');
+  assert.equal(gmailConfigResponse.status, 200);
+  assert.deepEqual(JSON.parse(gmailConfigResponse.body), {
+    enabled: true,
+    client_id: '1234567890-publicclient.apps.googleusercontent.com',
+    scope: 'https://www.googleapis.com/auth/gmail.send',
+  });
 
   await assert.rejects(createDashboardServer({ storePath, googleDocsClientId: 'not-a-client-secret' }), {
     code: 'invalid_google_docs_client_id',
@@ -398,6 +422,9 @@ test('Google OAuth configuration is opt-in, public-client-only, and bounded', as
   });
   await assert.rejects(createDashboardServer({ storePath, googleTasksClientId: 'not-a-client-secret' }), {
     code: 'invalid_google_tasks_client_id',
+  });
+  await assert.rejects(createDashboardServer({ storePath, googleGmailClientId: 'not-a-client-secret' }), {
+    code: 'invalid_google_gmail_client_id',
   });
 });
 

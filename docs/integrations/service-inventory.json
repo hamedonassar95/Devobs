@@ -264,6 +264,25 @@
         "Google Tasks OAuth scope: https://developers.google.com/identity/protocols/oauth2/scopes#tasks",
         "Devobs implementation uses fixed text and mocked API requests; no live OAuth or task creation was performed"
       ]
+    },
+    {
+      "id": "google-gmail-ai7",
+      "name": "Gmail API",
+      "integration_status": "local_feature_unverified",
+      "runtime_verified": false,
+      "provider_writes_authorized": false,
+      "cost_authorized": false,
+      "repository_scope": "local AI-7 dashboard only; no Google account connected",
+      "observed_branch": "main",
+      "observed_directory": "scripts/ai_intelligence/dashboard_assets/google_gmail_summary.mjs",
+      "verified_capability": "Adds an optional local action to send one user-confirmed email with fixed AI-7 aggregate counts to one manually entered recipient using the gmail.send scope. It never reads Gmail; tests use mocked Google responses.",
+      "blocker": "No OAuth Client ID or Google account was configured and no live Gmail API call or email was sent. The gmail.send scope lets the signed-in account send mail; inspect the recipient and preview before each send.",
+      "evidence": [
+        "Source capability reviewed in hamedonassar95/DevObs-ai-Intelligence- src/services/gmailService.ts; only the send-only idea was retained, not inbox reading or arbitrary message composition",
+        "Gmail users.messages.send: https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send",
+        "Google Gmail API OAuth scopes: https://developers.google.com/workspace/gmail/api/auth/scopes",
+        "AI-7 implementation and mocked API tests are included in this change; no real OAuth or email send was performed"
+      ]
     }
   ]
 }

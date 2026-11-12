@@ -10,6 +10,7 @@ import { buildGoogleSheetsReport, createGoogleSheet } from './google_sheets_expo
 import { buildGoogleSlidesReport, createGoogleSlidesPresentation } from './google_slides_export.mjs';
 import { buildGoogleChatReport, GOOGLE_CHAT_SCOPE, isValidGoogleChatSpaceName, sendGoogleChatSummary } from './google_chat_export.mjs';
 import { buildGoogleTasksFollowup, createGoogleTasksFollowup, GOOGLE_TASKS_SCOPE } from './google_tasks_followup.mjs';
+import { buildGoogleGmailReport, GOOGLE_GMAIL_SCOPE, isValidGoogleGmailAddress, sendGoogleGmailSummary } from './google_gmail_summary.mjs';
 
 const RUNBOOK_STORAGE_KEY = 'devobs_ai7_runbook_notes';
 const GOOGLE_CALENDAR_STORAGE_KEY = 'devobs_ai7_followup_calendar_id';
@@ -35,6 +36,11 @@ let googleTasksConfigured = false;
 let googleTasksBusy = false;
 let googleTasksCreated = false;
 let googleTasksReport = null;
+let googleGmailClientId = '';
+let googleGmailConfigured = false;
+let googleGmailBusy = false;
+let googleGmailReport = null;
+let googleGmailAttempted = false;
 let googleCalendarClientId = '';
 let googleCalendarConfigured = false;
 let googleCalendarBusy = false;
@@ -732,6 +738,90 @@ function setGoogleTasksStatus(message) {
   document.querySelector('#google-tasks-status').textContent = message;
 }
 
+function setGoogleGmailStatus(message) {
+  document.querySelector('#google-gmail-status').textContent = message;
+}
+
+function updateGoogleGmailPreview() {
+  const recipient = document.querySelector('#google-gmail-recipient').value.trim();
+  const preview = document.querySelector('#google-gmail-preview');
+  try {
+    googleGmailReport = intelligenceSnapshot
+      ? buildGoogleGmailReport(intelligenceSnapshot, recipient)
+      : null;
+  } catch {
+    googleGmailReport = null;
+  }
+  preview.value = googleGmailReport
+    ? `إلى: ${googleGmailReport.recipient}\nالموضوع: ${googleGmailReport.subject}\n\n${googleGmailReport.body}`
+    : '';
+  updateGoogleGmailButton();
+}
+
+function updateGoogleGmailButton() {
+  const button = document.querySelector('#google-gmail-send');
+  const recipient = document.querySelector('#google-gmail-recipient').value.trim();
+  button.disabled = !googleGmailConfigured || googleGmailBusy || !intelligenceSnapshot
+    || googleGmailAttempted || !isValidGoogleGmailAddress(recipient);
+}
+
+function initializeGoogleGmailSummary() {
+  const button = document.querySelector('#google-gmail-send');
+  const recipientInput = document.querySelector('#google-gmail-recipient');
+  recipientInput.addEventListener('input', updateGoogleGmailPreview);
+  updateGoogleGmailPreview();
+  button.addEventListener('click', async () => {
+    const report = googleGmailReport;
+    if (!report || !googleGmailClientId || button.disabled) return;
+    const approved = window.confirm(
+      `سيُرسل بريد واحد من حساب Google الذي تختاره إلى ${report.recipient} بعنوان "${report.subject}". محتوى الرسالة هو المعاينة الظاهرة، وتقتصر على مجاميع AI-7 الثابتة. لا نقرأ البريد أو المرفقات. هل تريد الإرسال؟`,
+    );
+    if (!approved) return;
+
+    googleGmailBusy = true;
+    updateGoogleGmailButton();
+    setGoogleGmailStatus('بانتظار تسجيل الدخول وموافقتك على صلاحية إرسال البريد…');
+    let accessToken = '';
+    let requestStarted = false;
+    try {
+      accessToken = await requestGoogleAccessToken(googleGmailClientId, GOOGLE_GMAIL_SCOPE);
+      requestStarted = true;
+      googleGmailAttempted = true;
+      updateGoogleGmailButton();
+      await sendGoogleGmailSummary({
+        accessToken,
+        snapshot: intelligenceSnapshot,
+        recipient: report.recipient,
+        createdAt: new Date(report.createdAt),
+      });
+      setGoogleGmailStatus('أكد Gmail قبول رسالة واحدة. أوقفنا أي إرسال آخر من هذه الصفحة لتجنب التكرار.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      setGoogleGmailStatus(requestStarted || message === 'google_gmail_invalid_response'
+        ? 'لم نتمكن من تأكيد النتيجة. افحص مجلد الرسائل المرسلة قبل إعادة تحميل اللوحة؛ قد يكون البريد وصل.'
+        : 'لم يُرسل طلب البريد؛ لم تكتمل موافقة Google.');
+    } finally {
+      accessToken = '';
+      googleGmailBusy = false;
+      updateGoogleGmailButton();
+    }
+  });
+
+  void load('/api/v1/google-gmail-config').then(async config => {
+    if (!config.enabled || typeof config.client_id !== 'string' || !config.client_id) {
+      setGoogleGmailStatus('الميزة معطّلة. أعد تشغيل اللوحة مع إعداد OAuth الاختياري الموضح في الدليل.');
+      return;
+    }
+    googleGmailClientId = config.client_id;
+    await loadGoogleIdentityServices();
+    googleGmailConfigured = true;
+    updateGoogleGmailButton();
+    setGoogleGmailStatus('جاهز عند الطلب. لا يتصل بحساب Google ولا يرسل بريدًا حتى تراجع المعاينة وتؤكد.');
+  }).catch(() => {
+    setGoogleGmailStatus('تعذر تحميل إعداد Gmail؛ بقيت الميزة معطّلة.');
+  });
+}
+
 function updateGoogleTasksPreview() {
   const preview = document.querySelector('#google-tasks-preview');
   const dueDate = document.querySelector('#google-tasks-due').value;
@@ -937,6 +1027,7 @@ async function render() {
     updateGoogleSheetsButton();
     updateGoogleSlidesButton();
     updateGoogleTasksPreview();
+    updateGoogleGmailPreview();
     try {
       googleChatReport = buildGoogleChatReport(intelligence);
     } catch {
@@ -962,5 +1053,6 @@ initializeGoogleSheetsExport();
 initializeGoogleSlidesExport();
 initializeGoogleChatExport();
 initializeGoogleTasksFollowup();
+initializeGoogleGmailSummary();
 initializeGoogleCalendarFollowup();
 void render();
