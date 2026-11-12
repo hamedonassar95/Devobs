@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_latest_recorded_merges_through_pr562_do_not_promote_gates(self):
+    def test_latest_recorded_merges_through_pr565_do_not_promote_gates(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 562)
-        self.assertEqual(result["merged_milestones"], 199)
+        self.assertEqual(result["latest_pr"], 565)
+        self.assertEqual(result["merged_milestones"], 200)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         self.assertEqual(records[550]["pr_head_sha"], "0e681cb62b4359f99d59caaaab99bfbc911e1879")
         self.assertEqual(records[550]["merge_sha"], "b68031d1b11c20d2f6fa29e46b687aa2010186b3")
@@ -1066,6 +1066,18 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("gmail.send", records[562]["limitations"])
         self.assertIn("no live Gmail API call", records[562]["limitations"])
         self.assertIn("inference skipped", records[562]["verification"])
+        self.assertEqual(
+            records[565]["pr_head_sha"],
+            "b64d4e1f50893024a5e96e672e9e02493f12ded2",
+        )
+        self.assertEqual(
+            records[565]["merge_sha"],
+            "b6179ba440018c67936aca06ab92c562566cfd6e",
+        )
+        self.assertEqual(records[565]["ci_run_id"], 43231162103)
+        self.assertIn("GitHub Pages publication", records[565]["verification"])
+        self.assertIn("Vercel Production", records[565]["verification"])
+        self.assertIn("AI-9 and P01 remain BLOCKED", records[565]["limitations"])
         self.assertEqual(
             records[530]["merge_sha"],
             "1dbc2d811b317b9f060bf46fa2376aaf083f0aec",
