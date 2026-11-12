@@ -85,6 +85,19 @@
       </div>
     </section>
 
+    <section aria-labelledby="google-gmail-title">
+      <h2 id="google-gmail-title">إرسال موجز مجمّع إلى Gmail</h2>
+      <p class="notice">يرسل بريدًا واحدًا بعد عرض المعاينة وتأكيدك. يقتصر المحتوى على مجاميع AI-7 الثابتة، ولا يقرأ البريد أو المرفقات أو يرسل نصوص الحوادث. صلاحية <code>gmail.send</code> تسمح بالإرسال من حساب Google الذي تختاره؛ لن تُطلب إلا عند الإرسال.</p>
+      <div class="card google-gmail-summary">
+        <label for="google-gmail-recipient">عنوان بريد واحد</label>
+        <input id="google-gmail-recipient" type="email" required maxlength="254" autocomplete="email" placeholder="team@example.com">
+        <label for="google-gmail-preview">معاينة الرسالة</label>
+        <textarea id="google-gmail-preview" rows="14" readonly aria-describedby="google-gmail-status"></textarea>
+        <button type="button" id="google-gmail-send" disabled>إرسال موجز AI-7 إلى هذا العنوان</button>
+        <p id="google-gmail-status" class="muted" role="status" aria-live="polite">ميزة Gmail غير مفعّلة حتى إعداد OAuth اختياري.</p>
+      </div>
+    </section>
+
     <section aria-labelledby="google-tasks-title">
       <h2 id="google-tasks-title">إنشاء مهمة متابعة في Google Tasks</h2>
       <p class="notice">ينشئ مهمة واحدة في القائمة الافتراضية بعد مراجعة المعاينة والتأكيد. يرسل أعداد AI-7 الثابتة وتاريخ الاستحقاق فقط؛ لا يقرأ قوائمك أو مهامك ولا يعدّلها أو يحذفها. صلاحية Google Tasks واسعة بما يكفي لإدارة المهام، بينما هذا الزر يرسل طلب إنشاء واحدًا فقط. رمز الدخول لا يُحفظ.</p>

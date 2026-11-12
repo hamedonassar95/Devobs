@@ -5,7 +5,7 @@
 ## التشغيل
 
 ```sh
-node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--feedback-ledger <private-jsonl-file>] [--google-docs-client-id <public-oauth-client-id>] [--google-sheets-client-id <public-oauth-client-id>] [--google-slides-client-id <public-oauth-client-id>] [--google-chat-client-id <public-oauth-client-id>] [--google-tasks-client-id <public-oauth-client-id>] [--port 8765]
+node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--feedback-ledger <private-jsonl-file>] [--google-docs-client-id <public-oauth-client-id>] [--google-sheets-client-id <public-oauth-client-id>] [--google-slides-client-id <public-oauth-client-id>] [--google-chat-client-id <public-oauth-client-id>] [--google-tasks-client-id <public-oauth-client-id>] [--google-gmail-client-id <public-oauth-client-id>] [--port 8765]
 ```
 
 افتح الرابط المحلي الذي يطبعه الأمر على `127.0.0.1`. لإيقاف الخادم اضغط `Ctrl+C`. يقرأ الخادم لقطة مرة واحدة عند البدء؛ أعد تشغيله بعد تحديث سجل الأحداث أو سجل التغذية الراجعة. كل تكامل Google اختياري ومنفصل؛ لا يُفعّل إلا بإضافة معرّف OAuth الخاص به. استخدم بيانات اصطناعية حتى اعتماد سياسة الخصوصية والاحتفاظ.
@@ -114,6 +114,21 @@ node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> --g
 - [نطاقات OAuth في Google Tasks](https://developers.google.com/identity/protocols/oauth2/scopes#tasks)
 - [Google Identity Services: نموذج الرموز](https://developers.google.com/identity/oauth2/web/guides/use-token-model)
 
+## إرسال موجز واحد عبر Gmail (اختياري)
+
+هذا الخيار المحلي معطّل افتراضيًا. فعّل Gmail API، وسجّل `http://127.0.0.1:8765` كـJavaScript origin في OAuth client من نوع Web application، ثم شغّل اللوحة مع `--google-gmail-client-id <public-oauth-client-id>`. لا تنشئ client secret للواجهة ولا ترسله. لا يُطلب نطاق `https://www.googleapis.com/auth/gmail.send` إلا بعد معاينة الرسالة وتأكيد الإرسال.
+
+أدخل عنوانًا واحدًا وراجع المعاينة قبل الإرسال. ينشئ Devobs رسالة نصية ثابتة من أعداد AI-7 والفئات العامة فقط. لا يقرأ الرسائل أو المرفقات، ولا يرسل سجلات أو أسماء عملاء أو معرّفات مشاريع وخوادم. Gmail يرسلها من حساب Google الذي توافق عليه؛ يُسمح بمحاولة إرسال واحدة في الصفحة الحالية. إذا انقطع الاتصال أو لم تصل استجابة واضحة، افحص مجلد الرسائل المرسلة قبل إعادة تحميل اللوحة والمحاولة مرة ثانية.
+
+الميزة اختيارية ومحلية، ولم تُضبط لها بيانات OAuth ولم تُرسل رسالة فعلية. الاختبارات تستخدم استجابة Gmail وهمية.
+
+مراجع Google الرسمية:
+
+- [Gmail API: إرسال البريد](https://developers.google.com/workspace/gmail/api/guides/sending)
+- [Gmail `users.messages.send`](https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages/send)
+- [نطاقات Gmail API OAuth](https://developers.google.com/workspace/gmail/api/auth/scopes)
+- [Google Identity Services: نموذج الرموز](https://developers.google.com/identity/oauth2/web/guides/use-token-model)
+
 ## التقييم الاصطناعي والفحوص
 
 **VERIFIED في اختبار هذه النسخة:** يحتوي اختبار التغطية ست حالات اصطناعية لقواعد AI-3 (timeout، اتصال، DNS، صلاحية، اعتماد، ذاكرة)، ومطابقة 6/6 للفئة المحددة. هذه **مطابقة لمجموعة قواعد صغيرة أنشأها المطور**، وليست دقة تنبؤية أو تقييمًا على حوادث حقيقية.
@@ -127,17 +142,20 @@ node --check scripts/ai_intelligence/dashboard_assets/google_sheets_export.mjs
 node --check scripts/ai_intelligence/dashboard_assets/google_slides_export.mjs
 node --check scripts/ai_intelligence/dashboard_assets/google_chat_export.mjs
 node --check scripts/ai_intelligence/dashboard_assets/google_tasks_followup.mjs
+node --check scripts/ai_intelligence/dashboard_assets/google_gmail_summary.mjs
 node --check tests/ai_dashboard_api.test.mjs
 node --check tests/google_calendar_followup.test.mjs
 node --check tests/google_sheets_export.test.mjs
 node --check tests/google_slides_export.test.mjs
 node --check tests/google_chat_export.test.mjs
 node --check tests/google_tasks_followup.test.mjs
+node --check tests/google_gmail_summary.test.mjs
 node --test tests/ai_dashboard_api.test.mjs tests/google_docs_export.test.mjs tests/google_chat_export.test.mjs tests/ai_anomaly_detector.test.mjs tests/ai_trend_forecast.test.mjs
 node --test tests/google_calendar_followup.test.mjs
 node --test tests/google_sheets_export.test.mjs
 node --test tests/google_slides_export.test.mjs
 node --test tests/google_tasks_followup.test.mjs
+node --test tests/google_gmail_summary.test.mjs
 ```
 
 الخادم يستخدم مكتبة [Node.js HTTP](https://nodejs.org/api/http.html) وواجهة [URL](https://nodejs.org/api/url.html) المدمجتين؛ الاختبارات تستخدم [Node.js Test Runner](https://nodejs.org/api/test.html) وHTTP محليًا على loopback فقط. لا تثبت هذه الفحوص أمان خدمة عامة أو جاهزية نشر.

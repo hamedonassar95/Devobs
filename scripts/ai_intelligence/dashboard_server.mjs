@@ -26,6 +26,7 @@ const CONTENT_TYPES = new Map([
   ['/google_slides_export.mjs', 'text/javascript; charset=utf-8'],
   ['/google_chat_export.mjs', 'text/javascript; charset=utf-8'],
   ['/google_tasks_followup.mjs', 'text/javascript; charset=utf-8'],
+  ['/google_gmail_summary.mjs', 'text/javascript; charset=utf-8'],
 ]);
 const ASSET_FILES = new Map([
   ['/', 'index.html'],
@@ -38,6 +39,7 @@ const ASSET_FILES = new Map([
   ['/google_slides_export.mjs', 'google_slides_export.mjs'],
   ['/google_chat_export.mjs', 'google_chat_export.mjs'],
   ['/google_tasks_followup.mjs', 'google_tasks_followup.mjs'],
+  ['/google_gmail_summary.mjs', 'google_gmail_summary.mjs'],
 ]);
 
 export class DashboardError extends Error {
@@ -254,6 +256,7 @@ export async function createDashboardServer({
   googleSlidesClientId = '',
   googleChatClientId = '',
   googleTasksClientId = '',
+  googleGmailClientId = '',
 }) {
   const snapshot = await loadSnapshot({ storePath, feedbackLedgerPath });
   if (typeof googleDocsClientId !== 'string' || googleDocsClientId.length > 256
@@ -279,6 +282,10 @@ export async function createDashboardServer({
   if (typeof googleTasksClientId !== 'string' || googleTasksClientId.length > 256
     || (googleTasksClientId !== '' && !/^\d+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$/.test(googleTasksClientId))) {
     reject('invalid_google_tasks_client_id');
+  }
+  if (typeof googleGmailClientId !== 'string' || googleGmailClientId.length > 256
+    || (googleGmailClientId !== '' && !/^\d+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$/.test(googleGmailClientId))) {
+    reject('invalid_google_gmail_client_id');
   }
   const jsonBodies = new Map([
     ['/api/v1/intelligence', JSON.stringify(snapshot)],
@@ -319,6 +326,11 @@ export async function createDashboardServer({
       enabled: googleTasksClientId !== '',
       client_id: googleTasksClientId,
       scope: 'https://www.googleapis.com/auth/tasks',
+    })],
+    ['/api/v1/google-gmail-config', JSON.stringify({
+      enabled: googleGmailClientId !== '',
+      client_id: googleGmailClientId,
+      scope: 'https://www.googleapis.com/auth/gmail.send',
     })],
   ]);
   const assets = new Map();
@@ -390,6 +402,7 @@ function parseArgs(args) {
     googleSlidesClientId: '',
     googleChatClientId: '',
     googleTasksClientId: '',
+    googleGmailClientId: '',
     port: DEFAULT_PORT,
   };
   const seen = new Set();
@@ -406,6 +419,7 @@ function parseArgs(args) {
     else if (flag === '--google-slides-client-id' && options.googleSlidesClientId === '') options.googleSlidesClientId = value;
     else if (flag === '--google-chat-client-id' && options.googleChatClientId === '') options.googleChatClientId = value;
     else if (flag === '--google-tasks-client-id' && options.googleTasksClientId === '') options.googleTasksClientId = value;
+    else if (flag === '--google-gmail-client-id' && options.googleGmailClientId === '') options.googleGmailClientId = value;
     else if (flag === '--port' && options.port === DEFAULT_PORT) {
       if (!/^(?:0|[1-9]\d{0,4})$/.test(value) || Number(value) > 65_535) reject('invalid_arguments');
       options.port = Number(value);
@@ -417,7 +431,7 @@ function parseArgs(args) {
 }
 
 function usage() {
-  return 'Usage: node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--feedback-ledger <private-jsonl-file>] [--google-docs-client-id <public-oauth-client-id>] [--google-calendar-client-id <public-oauth-client-id>] [--google-sheets-client-id <public-oauth-client-id>] [--google-slides-client-id <public-oauth-client-id>] [--google-chat-client-id <public-oauth-client-id>] [--google-tasks-client-id <public-oauth-client-id>] [--port <0-65535>]';
+  return 'Usage: node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--feedback-ledger <private-jsonl-file>] [--google-docs-client-id <public-oauth-client-id>] [--google-calendar-client-id <public-oauth-client-id>] [--google-sheets-client-id <public-oauth-client-id>] [--google-slides-client-id <public-oauth-client-id>] [--google-chat-client-id <public-oauth-client-id>] [--google-tasks-client-id <public-oauth-client-id>] [--google-gmail-client-id <public-oauth-client-id>] [--port <0-65535>]';
 }
 
 export async function main(args = process.argv.slice(2)) {

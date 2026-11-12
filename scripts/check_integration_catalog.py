@@ -27,6 +27,7 @@ EXPECTED_IDS = {
     "google-slides-ai7",
     "google-chat-ai7",
     "google-tasks-ai7",
+    "google-gmail-ai7",
 }
 VALID_STATUSES = {"import_confirmed", "github_app_installed", "account_connected_unlinked",
                   "draft_handoff_only", "config_committed_unverified", "local_feature_unverified"}
@@ -174,6 +175,13 @@ def validate_catalog(data: Any) -> list[str]:
                 errors.append("Google Tasks source path must match the local AI-7 integration.")
             if svc.get("runtime_verified") is True:
                 errors.append("Google Tasks OAuth/runtime is not verified.")
+        elif identifier == "google-gmail-ai7":
+            if svc.get("integration_status") != "local_feature_unverified":
+                errors.append("Google Gmail must remain optional and local until OAuth runtime is verified.")
+            if svc.get("observed_directory") != "scripts/ai_intelligence/dashboard_assets/google_gmail_summary.mjs":
+                errors.append("Google Gmail source path must match the local AI-7 integration.")
+            if svc.get("runtime_verified") is True:
+                errors.append("Google Gmail OAuth/runtime is not verified.")
         elif svc.get("runtime_verified") is True:
             errors.append(f"{label}: runtime is not verified for this provider.")
 
