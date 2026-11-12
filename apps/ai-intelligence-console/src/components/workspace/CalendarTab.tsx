@@ -30,6 +30,7 @@ import {
   scheduleServerMaintenanceWindow,
 } from '../../services/googleCalendarService';
 import { googleSignIn } from '../../services/googleAuth';
+import { toLocalDateTimeInput } from '../../utils/dateTime';
 
 interface CalendarTabProps {
   user: User | null;
@@ -86,12 +87,12 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
   const [customStartDate, setCustomStartDate] = useState(() => {
     const d = new Date();
     d.setMinutes(d.getMinutes() + 30);
-    return d.toISOString().slice(0, 16);
+    return toLocalDateTimeInput(d);
   });
   const [customEndDate, setCustomEndDate] = useState(() => {
     const d = new Date();
     d.setMinutes(d.getMinutes() + 90);
-    return d.toISOString().slice(0, 16);
+    return toLocalDateTimeInput(d);
   });
   const [customAttendees, setCustomAttendees] = useState('');
   const [customWithMeet, setCustomWithMeet] = useState(true);
@@ -105,7 +106,7 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
   const [maintenanceStartDate, setMaintenanceStartDate] = useState(() => {
     const d = new Date();
     d.setHours(d.getHours() + 4);
-    return d.toISOString().slice(0, 16);
+    return toLocalDateTimeInput(d);
   });
   const [maintenanceDuration, setMaintenanceDuration] = useState<number>(2);
   const [maintenanceNotes, setMaintenanceNotes] = useState('');

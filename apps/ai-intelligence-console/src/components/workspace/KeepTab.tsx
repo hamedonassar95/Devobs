@@ -24,7 +24,8 @@ import {
   Inbox,
 } from 'lucide-react';
 import { createTask } from '../../services/googleTasksService';
-import { createGoogleDoc } from '../../services/googleDocsService';
+import { createGoogleDoc, insertTextToDocument } from '../../services/googleDocsService';
+import { createRecordId } from '../../utils/ids';
 
 interface RunbookNote {
   id: string;
@@ -138,7 +139,7 @@ export function KeepTab({ user, token }: KeepTabProps) {
     if (!newTitle.trim() || !newContent.trim()) return;
 
     const newNote: RunbookNote = {
-      id: `note_${Date.now()}`,
+      id: createRecordId('note'),
       title: newTitle.trim(),
       content: newContent.trim(),
       category: newCategory,
@@ -274,6 +275,7 @@ export function KeepTab({ user, token }: KeepTabProps) {
         setConfirmationModal((prev) => ({ ...prev, isOpen: false }));
         try {
           const doc = await createGoogleDoc(token, `[SRE Playbook] ${note.title}`);
+          await insertTextToDocument(token, doc.documentId, note.content);
           setSuccessMsg(`تم إنشاء وثيقة Google Docs بنجاح! المعرّف: ${doc.documentId}`);
         } catch (err: any) {
           setErrorMsg('فشل إنشاء مستند Google Docs: ' + err.message);

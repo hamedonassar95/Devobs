@@ -16,6 +16,7 @@ import { DeploymentTracker } from './components/dashboard/DeploymentTracker';
 import { AiIncidentModal } from './components/dashboard/AiIncidentModal';
 import { AiAuditModal } from './components/dashboard/AiAuditModal';
 import { exportServersToCSV, exportIncidentsToCSV, exportDeploymentsToCSV } from './utils/dashboardUtils';
+import { createRecordId } from './utils/ids';
 import { initAuth, googleSignIn } from './services/googleAuthFacade';
 import {
   subscribeToServers,
@@ -271,7 +272,7 @@ export default function App() {
     const targetServer = servers.find((s) => s.id === serverId);
     if (targetServer) {
       const newInc: Incident = {
-        id: `inc-${Date.now()}`,
+        id: createRecordId('inc'),
         serverId: targetServer.id,
         serverName: targetServer.name,
         severity: 'info',
@@ -317,7 +318,7 @@ export default function App() {
   const handleAddServer = (newServerData: Omit<Server, 'id' | 'uptimeDays' | 'lastPing'>) => {
     const newServer: Server = {
       ...newServerData,
-      id: `srv-${Date.now().toString().slice(-4)}`,
+      id: createRecordId('srv'),
       uptimeDays: 0,
       lastPing: 'منذ ثانية',
     };
@@ -379,7 +380,7 @@ export default function App() {
     const picked = scenario || mockErrors[Math.floor(Math.random() * mockErrors.length)];
 
     const newIncident: Incident = {
-      id: `inc-${Date.now()}`,
+      id: createRecordId('inc'),
       serverId: pickedServer.id,
       serverName: pickedServer.name,
       severity: picked.severity,
@@ -419,7 +420,7 @@ export default function App() {
   // Automated Hotfix CI/CD Deployment
   const handleDeployHotfix = (serviceName: string, changeLog: string) => {
     const newDep: Deployment = {
-      id: `dep-${Date.now().toString().slice(-4)}`,
+      id: createRecordId('dep'),
       version: `v2.5.${Math.floor(Math.random() * 8) + 1}-hotfix`,
       commitHash: Math.random().toString(16).substring(2, 9),
       serviceName,
@@ -501,7 +502,7 @@ export default function App() {
   const handleAddNewDeployment = (newDepData: Omit<Deployment, 'id' | 'timestamp'>) => {
     const newDep: Deployment = {
       ...newDepData,
-      id: `dep-${Date.now().toString().slice(-4)}`,
+      id: createRecordId('dep'),
       timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
     };
     setDeployments((prev) => [newDep, ...prev]);
