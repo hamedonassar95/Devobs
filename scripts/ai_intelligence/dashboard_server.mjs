@@ -23,6 +23,7 @@ const CONTENT_TYPES = new Map([
   ['/google_docs_export.mjs', 'text/javascript; charset=utf-8'],
   ['/google_calendar_followup.mjs', 'text/javascript; charset=utf-8'],
   ['/google_sheets_export.mjs', 'text/javascript; charset=utf-8'],
+  ['/google_slides_export.mjs', 'text/javascript; charset=utf-8'],
 ]);
 const ASSET_FILES = new Map([
   ['/', 'index.html'],
@@ -32,6 +33,7 @@ const ASSET_FILES = new Map([
   ['/google_docs_export.mjs', 'google_docs_export.mjs'],
   ['/google_calendar_followup.mjs', 'google_calendar_followup.mjs'],
   ['/google_sheets_export.mjs', 'google_sheets_export.mjs'],
+  ['/google_slides_export.mjs', 'google_slides_export.mjs'],
 ]);
 
 export class DashboardError extends Error {
@@ -230,7 +232,7 @@ function send(response, status, contentType, body, method) {
     'X-Content-Type-Options': 'nosniff',
     'Referrer-Policy': 'no-referrer',
     'Cross-Origin-Resource-Policy': 'same-origin',
-    'Content-Security-Policy': "default-src 'none'; script-src 'self' https://accounts.google.com; style-src 'self'; connect-src 'self' https://docs.googleapis.com https://sheets.googleapis.com https://www.googleapis.com; frame-src https://accounts.google.com/gsi/; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'",
+    'Content-Security-Policy': "default-src 'none'; script-src 'self' https://accounts.google.com; style-src 'self'; connect-src 'self' https://docs.googleapis.com https://sheets.googleapis.com https://slides.googleapis.com https://www.googleapis.com; frame-src https://accounts.google.com/gsi/; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'",
   });
   response.end(method === 'HEAD' ? undefined : body);
 }
@@ -245,6 +247,7 @@ export async function createDashboardServer({
   googleDocsClientId = '',
   googleCalendarClientId = '',
   googleSheetsClientId = '',
+  googleSlidesClientId = '',
 }) {
   const snapshot = await loadSnapshot({ storePath, feedbackLedgerPath });
   if (typeof googleDocsClientId !== 'string' || googleDocsClientId.length > 256
@@ -258,6 +261,10 @@ export async function createDashboardServer({
   if (typeof googleSheetsClientId !== 'string' || googleSheetsClientId.length > 256
     || (googleSheetsClientId !== '' && !/^\d+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$/.test(googleSheetsClientId))) {
     reject('invalid_google_sheets_client_id');
+  }
+  if (typeof googleSlidesClientId !== 'string' || googleSlidesClientId.length > 256
+    || (googleSlidesClientId !== '' && !/^\d+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com$/.test(googleSlidesClientId))) {
+    reject('invalid_google_slides_client_id');
   }
   const jsonBodies = new Map([
     ['/api/v1/intelligence', JSON.stringify(snapshot)],
@@ -282,6 +289,11 @@ export async function createDashboardServer({
     ['/api/v1/google-sheets-config', JSON.stringify({
       enabled: googleSheetsClientId !== '',
       client_id: googleSheetsClientId,
+      scope: 'https://www.googleapis.com/auth/drive.file',
+    })],
+    ['/api/v1/google-slides-config', JSON.stringify({
+      enabled: googleSlidesClientId !== '',
+      client_id: googleSlidesClientId,
       scope: 'https://www.googleapis.com/auth/drive.file',
     })],
   ]);
@@ -351,6 +363,7 @@ function parseArgs(args) {
     googleDocsClientId: '',
     googleCalendarClientId: '',
     googleSheetsClientId: '',
+    googleSlidesClientId: '',
     port: DEFAULT_PORT,
   };
   const seen = new Set();
@@ -364,6 +377,7 @@ function parseArgs(args) {
     else if (flag === '--google-docs-client-id' && options.googleDocsClientId === '') options.googleDocsClientId = value;
     else if (flag === '--google-calendar-client-id' && options.googleCalendarClientId === '') options.googleCalendarClientId = value;
     else if (flag === '--google-sheets-client-id' && options.googleSheetsClientId === '') options.googleSheetsClientId = value;
+    else if (flag === '--google-slides-client-id' && options.googleSlidesClientId === '') options.googleSlidesClientId = value;
     else if (flag === '--port' && options.port === DEFAULT_PORT) {
       if (!/^(?:0|[1-9]\d{0,4})$/.test(value) || Number(value) > 65_535) reject('invalid_arguments');
       options.port = Number(value);
@@ -375,7 +389,7 @@ function parseArgs(args) {
 }
 
 function usage() {
-  return 'Usage: node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--feedback-ledger <private-jsonl-file>] [--google-docs-client-id <public-oauth-client-id>] [--google-calendar-client-id <public-oauth-client-id>] [--google-sheets-client-id <public-oauth-client-id>] [--port <0-65535>]';
+  return 'Usage: node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--feedback-ledger <private-jsonl-file>] [--google-docs-client-id <public-oauth-client-id>] [--google-calendar-client-id <public-oauth-client-id>] [--google-sheets-client-id <public-oauth-client-id>] [--google-slides-client-id <public-oauth-client-id>] [--port <0-65535>]';
 }
 
 export async function main(args = process.argv.slice(2)) {

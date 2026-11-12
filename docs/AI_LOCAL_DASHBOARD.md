@@ -5,7 +5,7 @@
 ## التشغيل
 
 ```sh
-node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--feedback-ledger <private-jsonl-file>] [--google-docs-client-id <public-oauth-client-id>] [--google-sheets-client-id <public-oauth-client-id>] [--port 8765]
+node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--feedback-ledger <private-jsonl-file>] [--google-docs-client-id <public-oauth-client-id>] [--google-sheets-client-id <public-oauth-client-id>] [--google-slides-client-id <public-oauth-client-id>] [--port 8765]
 ```
 
 افتح الرابط المحلي الذي يطبعه الأمر على `127.0.0.1`. لإيقاف الخادم اضغط `Ctrl+C`. يقرأ الخادم لقطة مرة واحدة عند البدء؛ أعد تشغيله بعد تحديث سجل الأحداث أو سجل التغذية الراجعة. كل تكامل Google اختياري ومنفصل؛ لا يُفعّل إلا بإضافة معرّف OAuth الخاص به. استخدم بيانات اصطناعية حتى اعتماد سياسة الخصوصية والاحتفاظ.
@@ -41,6 +41,21 @@ node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--
 - [نطاقات OAuth في Google Sheets API](https://developers.google.com/workspace/sheets/api/scopes)
 - [إنشاء جدول](https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets/create)
 - [تحديث قيم جدول](https://developers.google.com/workspace/sheets/api/reference/rest/v4/spreadsheets.values/update)
+- [نموذج الرموز في Google Identity Services](https://developers.google.com/identity/oauth2/web/guides/use-token-model)
+
+## إنشاء عرض تنفيذي إجمالي جديد في Google Slides (اختياري)
+
+هذا تكامل محلي اختياري مستقل. فعّل Google Slides API، واستخدم OAuth client من نوع Web application، وأضف الأصل `http://127.0.0.1:8765` إلى JavaScript origins. لا تنشئ client secret للواجهة ولا ترسله. شغّل اللوحة مع `--google-slides-client-id <public-oauth-client-id>`؛ ويمكن استخدام معرّف OAuth العام نفسه لبقية التكاملات، مع تفعيل كل خيار على حدة.
+
+بعد الضغط على الزر وتأكيدك، يطلب المتصفح موافقتك على `drive.file` ثم ينشئ عرضًا جديدًا من شريحتين: مؤشرات AI-7 الإجمالية، ثم أعداد أنواع الأحداث ودرجات الشدة. يستخدم العرض تسميات وأعدادًا ثابتة وتاريخ الإنشاء فقط؛ لا يسرد أو يقرأ عروض Drive الموجودة، ولا يرسل نصوص السجلات أو الحوادث أو أسماء العملاء أو معرّفات المشاريع والخوادم. رمز الدخول يبقى في ذاكرة الصفحة ولا يُحفظ. إذا نجح إنشاء العرض وفشل تحديث الشرائح، قد يبقى العرض فارغًا أو جزئيًا؛ راجع Drive قبل إعادة المحاولة.
+
+هذا التصدير لا يضيف تخزينًا لموقع Devobs الثابت أو خدمة SaaS، ولا يثبت OAuth أو صلاحية حساب حقيقي. الاختبارات تستخدم لقطة وطلبات Google اصطناعية فقط.
+
+مراجع Google Slides الرسمية:
+
+- [نطاقات OAuth في Google Slides API](https://developers.google.com/workspace/slides/api/scopes)
+- [إنشاء عرض تقديمي](https://developers.google.com/workspace/slides/api/reference/rest/v1/presentations/create)
+- [تطبيق تحديثات العرض دفعة واحدة](https://developers.google.com/workspace/slides/api/reference/rest/v1/presentations/batchUpdate)
 - [نموذج الرموز في Google Identity Services](https://developers.google.com/identity/oauth2/web/guides/use-token-model)
 
 ## جدولة مراجعة متابعة في Google Calendar (اختياري)
@@ -80,12 +95,15 @@ node --check scripts/ai_intelligence/dashboard_assets/dashboard.js
 node --check scripts/ai_intelligence/dashboard_assets/google_docs_export.mjs
 node --check scripts/ai_intelligence/dashboard_assets/google_calendar_followup.mjs
 node --check scripts/ai_intelligence/dashboard_assets/google_sheets_export.mjs
+node --check scripts/ai_intelligence/dashboard_assets/google_slides_export.mjs
 node --check tests/ai_dashboard_api.test.mjs
 node --check tests/google_calendar_followup.test.mjs
 node --check tests/google_sheets_export.test.mjs
+node --check tests/google_slides_export.test.mjs
 node --test tests/ai_dashboard_api.test.mjs tests/google_docs_export.test.mjs tests/ai_anomaly_detector.test.mjs tests/ai_trend_forecast.test.mjs
 node --test tests/google_calendar_followup.test.mjs
 node --test tests/google_sheets_export.test.mjs
+node --test tests/google_slides_export.test.mjs
 ```
 
 الخادم يستخدم مكتبة [Node.js HTTP](https://nodejs.org/api/http.html) وواجهة [URL](https://nodejs.org/api/url.html) المدمجتين؛ الاختبارات تستخدم [Node.js Test Runner](https://nodejs.org/api/test.html) وHTTP محليًا على loopback فقط. لا تثبت هذه الفحوص أمان خدمة عامة أو جاهزية نشر.
