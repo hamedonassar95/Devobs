@@ -126,6 +126,21 @@ class IntegrationCatalogTests(unittest.TestCase):
         next(s for s in data["services"] if s["id"] == "google-sheets-ai7")["runtime_verified"] = True
         self.invalid(data, "Google Sheets OAuth/runtime is not verified")
 
+    def test_google_slides_stays_local_optional_and_runtime_unverified(self):
+        record = next(s for s in self.inventory["services"] if s["id"] == "google-slides-ai7")
+        self.assertEqual(record["integration_status"], "local_feature_unverified")
+        self.assertIs(record["runtime_verified"], False)
+        self.assertIs(record["provider_writes_authorized"], False)
+        self.assertIs(record["cost_authorized"], False)
+        self.assertEqual(
+            record["observed_directory"],
+            "scripts/ai_intelligence/dashboard_assets/google_slides_export.mjs",
+        )
+
+        data = copy.deepcopy(self.inventory)
+        next(s for s in data["services"] if s["id"] == "google-slides-ai7")["runtime_verified"] = True
+        self.invalid(data, "Google Slides OAuth/runtime is not verified")
+
     def test_no_provider_can_claim_cost_authorization(self):
         for index in range(len(self.inventory["services"])):
             data = copy.deepcopy(self.inventory)
