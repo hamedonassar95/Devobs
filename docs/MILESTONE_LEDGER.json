@@ -2202,6 +2202,17 @@
       "ci_run_id": 43231162103,
       "verification": "VERIFIED 2026-11-12: PR #565 merged at b6179ba440018c67936aca06ab92c562566cfd6e from reviewed head b64d4e1f50893024a5e96e672e9e02493f12ded2. PR CI 43230036787, CodeQL 43230028515, and advisory review 43230036770 passed. Post-merge main CI 43231162103 and CodeQL 43231160983 passed; Node, Python, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract and validate succeeded. GitHub Pages publication and verify-production succeeded; Vercel Production deployment 7739085232 succeeded. Local console tests passed 10/10, TypeScript/build passed, and npm audit found 0 vulnerabilities.",
       "limitations": "The 73 tracked source files are preserved under apps/ai-intelligence-console except three inactive nested workflows and the bundled Firebase config, documented in CONSOLIDATION.md. The source repository remains untouched. The console is still a prototype with mock infrastructure/GitHub actions; Firebase, Google and Gemini are disabled, no credentials or customer data were connected, and this import does not make it a production control plane or add it to the GitHub Pages artifact. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
+    },
+    {
+      "id": "milestone-ledger-sync-pr572",
+      "area": "DOCUMENTATION",
+      "title": "Record the AI Intelligence consolidation merge in durable project state",
+      "pr_number": 572,
+      "pr_head_sha": "15e017fadc9e9978da4e782ee35853e71db3dfda",
+      "merge_sha": "3a0c768572d49759565a5b6b947a0134194f13f9",
+      "ci_run_id": 43233982170,
+      "verification": "VERIFIED 2026-11-12: PR #572 merged at 3a0c768572d49759565a5b6b947a0134194f13f9 from exact reviewed head 15e017fadc9e9978da4e782ee35853e71db3dfda. PR CI 43232671701 and 43232703990 passed; CodeQL 43232699002 and advisory Codex review 43232703791 passed. Post-merge main CI 43233982170 and CodeQL 43233980719 passed. Python, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract and validate passed. Node was skipped on main by path selection but passed in PR CI 43232671701. GitHub Pages publication and verify-production passed; Vercel Production deployment dpl_GTBXPmwQGVpQFbMtLVshteKoJLrX reached READY.",
+      "limitations": "Documentation and milestone regression-test synchronization only; no application behavior or readiness gates changed. GitHub Pages and Vercel Production deployed automatically after the approved merge. The controlled incident drill and PR-Agent review skipped by conditions. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
     }
   ],
   "gates": [
