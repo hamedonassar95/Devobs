@@ -1,0 +1,31 @@
+# OPTIONAL Argo CD MCP example. NOT loaded by Devobs by default.
+# Prepare a dedicated Argo CD read-only token for one non-production project.
+
+[mcp_servers.argocd]
+command = "docker"
+args = [
+  "run",
+  "--pull=always",
+  "--rm",
+  "-i",
+  "-e",
+  "ARGOCD_BASE_URL",
+  "-e",
+  "ARGOCD_API_TOKEN",
+  "-e",
+  "MCP_READ_ONLY=true",
+  "ghcr.io/argoproj-labs/mcp-for-argocd@sha256:dffc6c719d8635be2d5f2c8ad1c0178540325da4b40da0b373307e12b4c48f86",
+  "stdio",
+]
+env_vars = ["ARGOCD_BASE_URL", "ARGOCD_API_TOKEN"]
+startup_timeout_sec = 120
+tool_timeout_sec = 60
+enabled_tools = ["list_applications"]
+default_tools_approval_mode = "prompt"
+
+[mcp_servers.argocd.env]
+MCP_READ_ONLY = "true"
+
+[mcp_servers.argocd.tools.list_applications]
+approval_mode = "prompt"
+output_token_limit = 3000

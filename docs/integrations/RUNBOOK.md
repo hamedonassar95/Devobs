@@ -73,6 +73,13 @@ Fail closed whenever a setting is missing, an OAuth flow is unfinished, or the r
 - Read-only account inspection on 2026-10-31 observed a Free plan with **0 credits**. No OAuth grant, paid media job, account upgrade, or publication was performed.
 - Require a separate owner-approved live price, scope, privacy review and specific generation approval before any media operation.
 
+## Step 8 — Argo CD MCP local read-only example
+
+- The Devobs example at `.codex/examples/argocd-mcp-readonly.toml` pins the official upstream OCI image to a digest and exposes only `list_applications` through local Codex `stdio`.
+- This does not connect an Argo CD account or establish a running integration. No endpoint, token, container execution, app data, or MCP handshake has been verified.
+- Before local use, the owner must obtain a dedicated Argo CD token scoped to one non-production project/application, provide it through a trusted local environment, and confirm the output contains no customer or sensitive data. Never use a production/customer token or save credentials in this public repository.
+- Revoke the token and remove the personal Codex config entry to disable the local integration. See [Argo CD MCP setup and evidence](../ARGOCD_MCP_INTEGRATION.md).
+
 ## Additional external integrations — acceptance gate
 
 A visible GitHub App, installed plugin or provider account is not proof of Devobs runtime integration. For GitBook, aictrl.dev, Fly.io, Lovable, Render, Supabase, Vercel or future MCP services, first verify exact repository grants and needed access scopes, privacy, data residency, cost ceilings and rollback requirements. Do not bulk-connect third parties, provision cloud resources, create credentials, or schedule recurring work based only on this catalog.
