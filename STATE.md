@@ -1,3 +1,10 @@
+## أحدث لقطة موثّقة: دمج PR #535 — تحقق 2026-11-12
+
+- **VERIFIED من GitHub:** دمج مالك المستودع PR [#535](https://github.com/hamedonassar95/Devobs/pull/535) عند `b1f71c354c757a02c638d9ff31a9fab72d7b6b32` من HEAD `5f172f878923acdbda831fdca7eca0f4db0beece`. نجح [CI على الرأس 43131576002](https://github.com/hamedonassar95/Devobs/actions/runs/43131576002) و[PR CI 43131605111](https://github.com/hamedonassar95/Devobs/actions/runs/43131605111)، و[CodeQL 43131601042](https://github.com/hamedonassar95/Devobs/actions/runs/43131601042) للغات Python وActions وJavaScript. نجح [CI بعد الدمج 43131851220](https://github.com/hamedonassar95/Devobs/actions/runs/43131851220) و[Push on main 43131851025](https://github.com/hamedonassar95/Devobs/actions/runs/43131851025) على SHA الدمج.
+- **VERIFIED:** اجتازت Python validation وNode tests على فحص push وsecurity وPostgreSQL RLS وcontainer/Trivy وTerraform وsite-contract و`validate` ونشر GitHub Pages الثابت و`verify-production`. تخطّى Node فحص PR بحسب اختيار المسارات، وتخطّى controlled incident drill وفحوص الاستعادة شروط التشغيل. اكتملت workflow مراجعة Codex، لكن لم يُستدعَ النموذج بسبب غياب موافقة الميزانية؛ كما تخطّت مراجعة PR-Agent.
+- **الحدود:** PR #535 وثّق PR #534 في سجل الإنجازات والحالة واختبار السجل فقط، دون تغيير سلوك التطبيق. تكامل Google Docs الاختياري لا يزال بلا اختبار OAuth أو Docs API حي. نشر Pages لا يثبت جاهزية SaaS.
+- **الحالة لم تتغير:** AI-9 **BLOCKED**، P01 **BLOCKED**، وقبول تشغيل Codex **OPEN**. يحتوي سجل الإنجازات الآن 179 عنصرًا، وآخر PR موثّق هو #535.
+
 ## أحدث لقطة موثّقة: دمج PR #534 — تحقق 2026-11-12
 
 - **VERIFIED من GitHub:** دمج مالك المستودع PR [#534](https://github.com/hamedonassar95/Devobs/pull/534) عند `933adefc3fbce277d431f253b3b6e96db992564f` من HEAD `82ef6f6551851c5f3899b25f163873f4e97b0d8b`. نجح [PR CI 43130859485](https://github.com/hamedonassar95/Devobs/actions/runs/43130859485). اكتملت workflow مراجعة AI [43130859436](https://github.com/hamedonassar95/Devobs/actions/runs/43130859436)، لكن الاستدلال نفسه تخطّى لغياب موافقة الميزانية.
