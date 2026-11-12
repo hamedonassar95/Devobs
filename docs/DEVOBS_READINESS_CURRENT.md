@@ -1,3 +1,9 @@
+## تحديث بوابات الجاهزية بعد PR #548 — 2026-11-12 (VERIFIED)
+
+- أضاف PR [#548](https://github.com/hamedonassar95/Devobs/pull/548) إعدادًا محليًا واختياريًا لـArgo CD MCP يعرض `list_applications` فقط، ويضبط `MCP_READ_ONLY=true` وموافقة لكل استدعاء، ويثبت صورة upstream على OCI digest. لا يدخل التكامل في إعداد Codex بالمستودع أو CI.
+- نجح push CI [43149581922](https://github.com/hamedonassar95/Devobs/actions/runs/43149581922) وPR CI [43149606708](https://github.com/hamedonassar95/Devobs/actions/runs/43149606708) وCodeQL [43149605577](https://github.com/hamedonassar95/Devobs/actions/runs/43149605577) على HEAD `c5ef51fac267da555f01aeb2c13dd1d80620246b`. بعد الدمج عند `74607bcdb1723274bae1516707d691ef583bbde0` نجح main CI [43149872811](https://github.com/hamedonassar95/Devobs/actions/runs/43149872811) وCodeQL [43149871935](https://github.com/hamedonassar95/Devobs/actions/runs/43149871935). نُشرت صفحة Pages الثابتة واجتازت `verify-production`.
+- **UNVERIFIED:** لم نشغّل Docker أو نتصل بـArgo CD أو نستخدم رمزًا أو بيانات تطبيقات، ولم نجرِ MCP handshake. تكامل Argo CD لا يثبت تشغيل خدمة Devobs. AI-9 وP01 ما زالا **BLOCKED**؛ قبول Codex runtime ما زال **OPEN**. السجل يوثق 192 إنجازًا بعد تسجيل PR #547 و#548.
+
 ## تحديث بوابات الجاهزية بعد PR #546 — 2026-11-12 (VERIFIED)
 
 - أضاف PR [#546](https://github.com/hamedonassar95/Devobs/pull/546) مثالًا اختياريًا محليًا لـKubernetes MCP بقراءة أحداث namespace واحد. يسمح خادم MCP وCodex بأداة `events_list` فقط، ويقيّد RBAC القراءة بـ`list` على أحداث namespace المحدد. الإعداد لا يدخل في `.codex/config.toml` أو CI أو النشر.

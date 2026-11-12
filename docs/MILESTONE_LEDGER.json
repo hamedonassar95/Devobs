@@ -2092,6 +2092,28 @@
       "ci_run_id": 43147378625,
       "verification": "VERIFIED 2026-11-12: PR #546 merged at 9a6eef149a3c942757867875883acbd34764499d from exact head 01d165bb76af08857b6e4478330e55a93e503961. Exact-head push CI 43147104876 and PR CI 43147123864 passed; CodeQL 43147120630 passed for Actions, JavaScript/TypeScript, and Python. Post-merge main CI 43147378625 and CodeQL 43147377568 passed on the merge SHA. Main CI passed Python, Node, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication, and verify-production. The controlled incident drill skipped by condition. Focused local Kubernetes MCP tests passed (4); milestone ledger tests passed (50).",
       "limitations": "Adds an optional local Codex example and RBAC sample only; no cluster, kubeconfig, credentials, or live MCP runtime were used. The example is not loaded in repository Codex configuration. Codex runtime remains OPEN; AI-9 and P01 remain BLOCKED."
+    },
+    {
+      "id": "ledger-sync-pr547-kubernetes-mcp",
+      "area": "DOCUMENTATION",
+      "title": "Record PR 547 merge evidence for the PR 546 Kubernetes MCP ledger sync",
+      "pr_number": 547,
+      "pr_head_sha": "b2c3000082bddc5f6ab4314c7c777dbcf36dfdcc",
+      "merge_sha": "e1f0b7041bbf45659652a85b270aa4d218edd1e8",
+      "ci_run_id": 43148113880,
+      "verification": "VERIFIED 2026-11-12: PR #547 merged at e1f0b7041bbf45659652a85b270aa4d218edd1e8 from exact head b2c3000082bddc5f6ab4314c7c777dbcf36dfdcc. Exact-head push CI 43147843409 and PR CI 43147859779 passed; CodeQL 43147856054 passed for Actions, JavaScript/TypeScript, and Python. Post-merge main CI 43148113880 and CodeQL 43148112936 passed on the merge SHA. Main CI passed Python, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication, and verify-production. Node passed on push CI and was skipped by path selection in the PR CI. This PR synchronized state and readiness evidence for PR #546.",
+      "limitations": "Documentation and ledger synchronization only; no application behavior or readiness gate changed. PR #546 remains an optional local Kubernetes MCP example with no live cluster or MCP verification. AI-9 and P01 remain BLOCKED; Codex runtime remains OPEN."
+    },
+    {
+      "id": "argocd-mcp-readonly-codex",
+      "area": "AGENT_OPERATIONS",
+      "title": "Add optional read-only local Argo CD MCP integration for Codex",
+      "pr_number": 548,
+      "pr_head_sha": "c5ef51fac267da555f01aeb2c13dd1d80620246b",
+      "merge_sha": "74607bcdb1723274bae1516707d691ef583bbde0",
+      "ci_run_id": 43149872811,
+      "verification": "VERIFIED 2026-11-12: PR #548 merged at 74607bcdb1723274bae1516707d691ef583bbde0 from exact head c5ef51fac267da555f01aeb2c13dd1d80620246b. Exact-head push CI 43149581922 and PR CI 43149606708 passed; CodeQL 43149605577 passed for Actions, JavaScript/TypeScript, and Python. Post-merge main CI 43149872811 and CodeQL 43149871935 passed on the merge SHA. Main CI passed Python, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, Pages publication, and verify-production. Node passed on the push run and was skipped by path selection in PR/main CI; controlled incident and restore checks skipped by conditions. Vercel preview completed. Local Python tests passed (1,030; 25 skipped), including 2 Argo CD contract tests, 18 integration catalog tests, and 13 Codex capability tests. The Codex budget-gated AI review was skipped; no paid inference ran.",
+      "limitations": "Adds an optional local Codex example and documentation only; no Docker runtime, Argo CD endpoint/token, application data, or live MCP handshake was used. The example is not loaded in repository Codex configuration. The upstream image is pinned to its OCI digest. Codex runtime remains OPEN; AI-9 and P01 remain BLOCKED."
     }
   ],
   "gates": [
