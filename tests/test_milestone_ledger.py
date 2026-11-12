@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_latest_recorded_merges_through_pr544_do_not_promote_gates(self):
+    def test_latest_recorded_merges_through_pr545_do_not_promote_gates(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 544)
-        self.assertEqual(result["merged_milestones"], 188)
+        self.assertEqual(result["latest_pr"], 545)
+        self.assertEqual(result["merged_milestones"], 189)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         self.assertEqual(
             records[530]["merge_sha"],
@@ -1092,6 +1092,10 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(records[544]["pr_head_sha"], "36dcf9fafb994cda153c95c6ff75a7b0109de68e")
         self.assertEqual(records[544]["ci_run_id"], 43144634329)
         self.assertIn("no application behavior", records[544]["limitations"])
+        self.assertEqual(records[545]["merge_sha"], "dc4f9834fe011985a93bbc4dd2bafef046fb9712")
+        self.assertEqual(records[545]["pr_head_sha"], "9b3bdd5da890af9dd2f345a68fbd78a2d12eb0a6")
+        self.assertEqual(records[545]["ci_run_id"], 43145332069)
+        self.assertIn("no application behavior", records[545]["limitations"])
         self.assertIn("Post-merge main CI 43134970833", records[539]["verification"])
         self.assertIn("43134970567", records[539]["verification"])
         self.assertIn("AI-9 remains BLOCKED", records[539]["limitations"])
@@ -1122,6 +1126,7 @@ class MilestoneLedgerTests(unittest.TestCase):
             542: ("5967024a5bf0fbf53f40984097348be2e4e5b39b", "1ee8e5f581173f01baf398936b98b26c49de1f47", 43142370703),
             543: ("a58a3550b04a2ab366bfbf8245fe8fe4c9ee25dc", "f34a1969c59780f3a77d027ec6e320f82e803ad3", 43143834691),
             544: ("36dcf9fafb994cda153c95c6ff75a7b0109de68e", "882053b0a6c8c0264871aaa8a4121059190bb471", 43144634329),
+            545: ("9b3bdd5da890af9dd2f345a68fbd78a2d12eb0a6", "dc4f9834fe011985a93bbc4dd2bafef046fb9712", 43145332069),
         }
         for number, (head_sha, merge_sha, ci_run_id) in expected_recent.items():
             with self.subTest(pr=number):

@@ -28,6 +28,7 @@
 | [LocalAI](https://github.com/mudler/LocalAI) | v4.12.1؛ digest موثق في [دليل النماذج](models/README.md) | [MIT](https://github.com/mudler/LocalAI/blob/v4.12.1/LICENSE) | CPU اختياري خلف profile؛ لا ينزل نموذجًا تلقائيًا؛ اختيار يدوي ممكن لـAPI التشخيص فقط |
 | [GitHub MCP Server](https://github.com/github/github-mcp-server/tree/v2.1.0) | v2.1.0؛ المصدر `4bcdcdf8d7beee98c9448e73e257308280924cc4` وصورة OCI مثبتة على `sha256:f6056fc10bfffcc8c81a6417a2e9ca12808647e8dd6049642a4feaadee0e0f8a` | [MIT](https://github.com/github/github-mcp-server/blob/v2.1.0/LICENSE) | خادم محلي اختياري لـCodex، أدوات GitHub للقراءة فقط ولمستودعات عامة؛ لا يدخل في CI أو تشغيل التطبيق، ولا يُفعّل تلقائيًا |
 | [Grafana MCP](https://github.com/grafana/mcp-grafana/tree/v2.3.0) | v2.3.0؛ المصدر `c8cafb67854c45e79f8f9b5fca7d9b3a403f1771`؛ بصمة حزمة Windows x64 في [الدليل](docs/GRAFANA_MCP_INTEGRATION.md) | [Apache-2.0](https://github.com/grafana/mcp-grafana/blob/v2.3.0/LICENSE) | خادم Codex محلي اختياري؛ لوحات Grafana وPrometheus فقط، مع حجب الكتابة وAPI؛ غير مفعّل افتراضيًا |
+| [Kubernetes MCP Server](https://github.com/containers/kubernetes-mcp-server/tree/v0.1.2) | v0.1.2؛ المصدر `66553fed5c16454e5814b41e331b4357f15806d8`؛ بصمة Windows x64 في [الدليل](docs/KUBERNETES_MCP_INTEGRATION.md) | [Apache-2.0](https://github.com/containers/kubernetes-mcp-server/blob/v0.1.2/LICENSE) | Codex محلي اختياري؛ أحداث namespace محدد فقط مع `read_only` وRBAC فعلي؛ لا سجلات أو أسرار أو تعديل |
 | [K8sGPT](https://github.com/k8sgpt-ai/k8sgpt) | v0.4.41؛ أمثلة CLI فقط | [Apache-2.0](https://github.com/k8sgpt-ai/k8sgpt/blob/v0.4.41/LICENSE) | فحص يدوي محدود بالـnamespace؛ أمر المثال لا يطلب شرحًا من نموذج |
 | [HolmesGPT](https://github.com/HolmesGPT/holmesgpt) | 0.46.0؛ أمثلة إعداد فقط | [Apache-2.0](https://github.com/HolmesGPT/holmesgpt/blob/0.46.0/LICENSE) | إعداد toolset وصلاحيات قراءة فقط؛ لا تثبيت أو استدلال تلقائي |
 
@@ -43,6 +44,7 @@
 - **تكامل OpenArt الاختياري:** [حوكمة طلبات الصور والفيديو عبر MCP](docs/OPENART_MCP_INTEGRATION.md) — صيغة طلب خاصة آمنة دون شبكة أو كلفة، مع موافقة منفصلة قبل أي توليد.
 - **GitHub MCP للمطورين:** [إعداد اختياري محلي للقراءة فقط](docs/GITHUB_MCP_INTEGRATION.md) — يستعمل الخادم الرسمي من صورة مثبتة؛ لا تُحفظ أسرار في المستودع ولا يعمل تلقائيًا.
 - **Grafana MCP للمطورين:** [إعداد اختياري محلي للقراءة فقط](docs/GRAFANA_MCP_INTEGRATION.md) — يقتصر على لوحات Grafana ومقاييس Prometheus؛ لا يُفعّل في إعداد المستودع.
+- **Kubernetes MCP للمطورين:** [إعداد اختياري لأحداث namespace واحد](docs/KUBERNETES_MCP_INTEGRATION.md) — أداة أحداث فقط، مع صلاحية Kubernetes `list` الفعلية؛ لا يُفعّل في إعداد المستودع.
 - [Devobs AI DevOps Control Room](docs/AI_DEVOPS_CONTROL_ROOM.md): توثيق مسارات AI وCI وحالة التحقق من المصدر مقابل التشغيل.
 - [استقبال أحداث AI-1 محليًا](docs/AI_EVENT_INGESTION.md): صيغة موحّدة وملف JSONL محلي؛ بلا اتصالات أو خدمات خارجية.
 - [كشف الشذوذ AI-2 محليًا](docs/AI_ANOMALY_DETECTION.md): مؤشرات إحصائية قابلة للتفسير على أحداث مقاييس محلية اصطناعية.

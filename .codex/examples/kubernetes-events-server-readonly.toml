@@ -1,0 +1,10 @@
+# OPTIONAL upstream Kubernetes MCP server configuration.
+# Copy to the per-user path referenced in kubernetes-events-readonly.toml.
+# KUBECONFIG must identify a dedicated principal restricted by Kubernetes RBAC.
+
+kubeconfig = "C:/Users/YOUR_WINDOWS_USER/AppData/Local/Devobs/kubernetes-events-reader.kubeconfig"
+toolsets = ["core"]
+read_only = true
+enabled_tools = ["events_list"]
+max_backend_response_bytes = 262144
+server_instructions = "Use events_list only. Always pass the authorized non-production namespace and a limit no greater than 100. Do not request or summarize production/customer data."
