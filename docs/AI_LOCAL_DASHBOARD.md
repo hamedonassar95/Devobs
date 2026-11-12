@@ -28,9 +28,29 @@ node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--
 
 هذا التكامل يخص لوحة AI-7 المحلية فقط؛ لا يضيف حفظًا إلى موقع Devobs الثابت أو خدمة SaaS مستضافة. اختبارات المستودع تستخدم تقريرًا اصطناعيًا وطلبات Google وهمية، ولا تسجّل الدخول أو تتصل بحساب Google.
 
-مراجع Google الرسمية:
+## جدولة مراجعة متابعة في Google Calendar (اختياري)
 
-- [OAuth 2.0 token model for web apps](https://developers.google.com/identity/oauth2/web/guides/use-token-model)
+الميزة معطلة افتراضيًا. لتجربتها محليًا، أضف معرّف OAuth العام للويب:
+
+```sh
+node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> --google-calendar-client-id <public-oauth-client-id>
+```
+
+سجّل `http://127.0.0.1:8765` كأصل JavaScript مسموح، وفعّل Google Calendar API وجهّز شاشة موافقة OAuth. معرّف العميل العام ليس سرًا؛ لا تنشئ client secret للواجهة ولا ترسله. لا تطلب اللوحة صلاحية `calendar.app.created` إلا بعد اختيار موعد مستقبلي وتأكيده. تتيح هذه الصلاحية إنشاء تقاويم ثانوية خاصة بالتطبيق وإدارة أحداث تلك التقاويم. ينشئ التكامل تقويمًا واحدًا باسم `Devobs AI-7 Follow-ups`، ثم موعدًا ثابت العنوان مدته 30 دقيقة. لا يضيف مدعوين أو رابط Meet أو سجلات أو تفاصيل حادثة أو أسماء عملاء؛ الوقت الذي تختاره هو البيانات الوحيدة التي يرسلها إلى Google.
+
+رمز الوصول يبقى في ذاكرة الصفحة للطلب ولا يُحفظ في ملفات أو تخزين المتصفح. يُحفظ معرّف التقويم الذي أنشأه التطبيق فقط في `localStorage` على هذا المتصفح لتجنب إنشاء تقويم جديد كل مرة؛ المعرّف ليس رمز دخول. إذا بدّلت حساب Google ولم يعد التقويم متاحًا، يمسح التكامل المعرّف المحلي ويطلب منك إعادة المحاولة لإنشاء تقويم للحساب الحالي. يُشتق معرّف الموعد محليًا من توقيته لتسهيل إعادة المحاولة؛ وإذا أعاد Google تعارضًا، يتحقق التكامل من الحدث الموجود قبل اعتباره الموعد نفسه. لا يضمن Google اكتشاف كل تصادم محتمل للمعرّفات. إذا نجح إنشاء التقويم وفشل إنشاء الموعد، قد يبقى التقويم فارغًا؛ راجعه قبل إعادة المحاولة. لم نربط حساب Google ولم ننشئ تقويمًا حقيقيًا. نجاح الاختبارات المحلية لا يثبت اتصال OAuth أو التشغيل الفعلي.
+
+مراجع Google Calendar الرسمية:
+
+- [نطاقات Google Calendar API](https://developers.google.com/workspace/calendar/api/auth)
+- [قراءة تقويم محدد](https://developers.google.com/workspace/calendar/api/v3/reference/calendars/get)
+- [إنشاء تقويم ثانوي](https://developers.google.com/workspace/calendar/api/v3/reference/calendars/insert)
+- [قراءة حدث محدد للتحقق من إعادة المحاولة](https://developers.google.com/workspace/calendar/api/v3/reference/events/get)
+- [إنشاء حدث في التقويم](https://developers.google.com/workspace/calendar/api/v3/reference/events/insert)
+- [نموذج الرموز في Google Identity Services](https://developers.google.com/identity/oauth2/web/guides/use-token-model)
+
+مراجع Google Docs الرسمية:
+
 - [Google Docs API authorization scopes](https://developers.google.com/workspace/docs/api/auth)
 - [Create a document](https://developers.google.com/workspace/docs/api/reference/rest/v1/documents/create)
 - [Batch update a document](https://developers.google.com/workspace/docs/api/reference/rest/v1/documents/batchUpdate)
@@ -43,8 +63,11 @@ node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--
 node --check scripts/ai_intelligence/dashboard_server.mjs
 node --check scripts/ai_intelligence/dashboard_assets/dashboard.js
 node --check scripts/ai_intelligence/dashboard_assets/google_docs_export.mjs
+node --check scripts/ai_intelligence/dashboard_assets/google_calendar_followup.mjs
 node --check tests/ai_dashboard_api.test.mjs
+node --check tests/google_calendar_followup.test.mjs
 node --test tests/ai_dashboard_api.test.mjs tests/google_docs_export.test.mjs tests/ai_anomaly_detector.test.mjs tests/ai_trend_forecast.test.mjs
+node --test tests/google_calendar_followup.test.mjs
 ```
 
 الخادم يستخدم مكتبة [Node.js HTTP](https://nodejs.org/api/http.html) وواجهة [URL](https://nodejs.org/api/url.html) المدمجتين؛ الاختبارات تستخدم [Node.js Test Runner](https://nodejs.org/api/test.html) وHTTP محليًا على loopback فقط. لا تثبت هذه الفحوص أمان خدمة عامة أو جاهزية نشر.
