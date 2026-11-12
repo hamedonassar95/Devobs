@@ -2204,6 +2204,61 @@
       "limitations": "The 73 tracked source files are preserved under apps/ai-intelligence-console except three inactive nested workflows and the bundled Firebase config, documented in CONSOLIDATION.md. The source repository remains untouched. The console is still a prototype with mock infrastructure/GitHub actions; Firebase, Google and Gemini are disabled, no credentials or customer data were connected, and this import does not make it a production control plane or add it to the GitHub Pages artifact. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
     },
     {
+      "id": "claude-code-action-1-0-270",
+      "area": "CI_SECURITY",
+      "title": "Update Claude Code Action pin to 1.0.270",
+      "pr_number": 566,
+      "pr_head_sha": "ed7b087b75cc5b25570784c5f25b307ad9f5e638",
+      "merge_sha": "615b3e69fbc5347ee2bbf8ef5390cda888de706f",
+      "ci_run_id": 43298409810,
+      "verification": "VERIFIED 2026-11-12: PR #566 merged at 615b3e69fbc5347ee2bbf8ef5390cda888de706f from exact reviewed head ed7b087b75cc5b25570784c5f25b307ad9f5e638. PR CI 43298409810 and exact-head push CI 43298398902 passed. Post-merge main CI 43298650379 and CodeQL 43298648964 passed on the merge SHA.",
+      "limitations": "Action pin update only. Advisory AI Code Review and PR-Agent workflows skipped by their conditions; no inference/runtime capability is claimed. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
+    },
+    {
+      "id": "ai-console-tailwindcss-4-3-5",
+      "area": "PLATFORM",
+      "title": "Update AI Intelligence Console Tailwind CSS to 4.3.5",
+      "pr_number": 568,
+      "pr_head_sha": "43fe83f4ef6e77731d0c481d7d3a7b4e2e28486f",
+      "merge_sha": "85aebd84004b723ad1d7a60438c6c57b25b7769c",
+      "ci_run_id": 43298692797,
+      "verification": "VERIFIED 2026-11-12: PR #568 merged at 85aebd84004b723ad1d7a60438c6c57b25b7769c from exact reviewed head 43fe83f4ef6e77731d0c481d7d3a7b4e2e28486f. PR CI 43298692797 and exact-head push CI 43298685049 passed. Post-merge main CI 43299034541 and CodeQL 43299032793 passed on the merge SHA.",
+      "limitations": "Dependency update only; no service or deployment configuration changed. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
+    },
+    {
+      "id": "ai-console-google-genai-3-compat",
+      "area": "PLATFORM",
+      "title": "Upgrade Google GenAI SDK to v3 with explicit v1beta API compatibility",
+      "pr_number": 569,
+      "pr_head_sha": "79796537880c4f37473f3dc5bccbec9d1c0bfcb2",
+      "merge_sha": "d3f6e3741596fe30aeaff9f5c4f48b08d169385a",
+      "ci_run_id": 43301133050,
+      "verification": "VERIFIED 2026-11-12: PR #569 merged at d3f6e3741596fe30aeaff9f5c4f48b08d169385a from exact reviewed head 79796537880c4f37473f3dc5bccbec9d1c0bfcb2. PR CI 43301133050 and exact-head push CI 43301122335 passed. Post-merge main CI 43301723091 and CodeQL 43301721827 passed on the merge SHA. Local app verification passed npm audit --audit-level=high (0 vulnerabilities), npm test (10/10), npm run lint, and npm run build.",
+      "limitations": "The SDK v3 default API version is explicitly pinned to v1beta to preserve prior application behavior. No live Gemini API request or credential was used; compatibility is code/CI verified only. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
+    },
+    {
+      "id": "ai-console-tailwind-vite-4-3-5",
+      "area": "PLATFORM",
+      "title": "Update AI Intelligence Console Tailwind Vite plugin to 4.3.5",
+      "pr_number": 570,
+      "pr_head_sha": "bec6deeba442e2e96434bd9324de8f482bc70223",
+      "merge_sha": "d8ff193645569134ba6ede21b1030f45f6a9242c",
+      "ci_run_id": 43299432384,
+      "verification": "VERIFIED 2026-11-12: PR #570 merged at d8ff193645569134ba6ede21b1030f45f6a9242c from exact reviewed head bec6deeba442e2e96434bd9324de8f482bc70223. PR CI 43299432384 and exact-head push CI 43299422181 passed. Post-merge main CI 43299907117 and CodeQL 43299901601 passed on the merge SHA.",
+      "limitations": "Dependency update only. Dependabot refreshed its branch after a lockfile conflict; the reviewed head contains the refreshed dependency diff and was merged without force-pushing. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
+    },
+    {
+      "id": "ai-console-lucide-react-1-70-0",
+      "area": "PLATFORM",
+      "title": "Upgrade AI Intelligence Console Lucide React icons to 1.70.0",
+      "pr_number": 571,
+      "pr_head_sha": "c04ac00c52495b4caa093791529f0934d722271f",
+      "merge_sha": "60f0b98180040d237aa9d90a3598430d010b99bd",
+      "ci_run_id": 43300241509,
+      "verification": "VERIFIED 2026-11-12: PR #571 merged at 60f0b98180040d237aa9d90a3598430d010b99bd from exact reviewed head c04ac00c52495b4caa093791529f0934d722271f. PR CI 43300241509 and exact-head push CI 43300226318 passed. Post-merge main CI 43300687014 and CodeQL 43300687061 passed on the merge SHA.",
+      "limitations": "Major icon-library update was validated by the existing application and repository checks; no separate visual/user acceptance session was run. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
+    },
+    {
       "id": "milestone-ledger-sync-pr572",
       "area": "DOCUMENTATION",
       "title": "Record the AI Intelligence consolidation merge in durable project state",
@@ -2224,6 +2279,17 @@
       "ci_run_id": 43246268485,
       "verification": "VERIFIED 2026-11-12: PR #574 merged at f28c5bfec3641239ba96fe79d7fc3892ccd2d11c from exact head e3d4463407e077c4934798e0bc6e63c1c22f2187. PR CI 43245875730, exact-head push CI 43245817095, CodeQL 43245865565, and advisory Codex review 43245875825 passed. Post-merge main CI 43246268485 and CodeQL 43246266737 passed on the merge SHA. Python 3.12 and 3.15, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, and validate passed; Node path-selected checks passed. GitHub Pages production publication and verify-production passed. Local unittest discovery passed 1,048 tests on Python 3.12.14 and 1,048 tests on Python 3.15.1 (25 skipped under existing conditions); actionlint 1.7.12, ShellCheck 0.11.0, Bandit, both pip-audit lock scans, agent-spec, milestone-ledger, and synthetic evaluation fixture validation passed.",
       "limitations": "Adds CI compatibility coverage and an offline reader for downloaded Copilot BYOK metrics only. The report makes no API calls, writes no GitHub setting, does not estimate USD spend, and does not set DEVOBS_AI_BUDGET_APPROVED. No duplicate CodeQL/Gitleaks pipeline, model routing, MCP connection, credential, or inference permission was added. GitHub Pages published the repository's static site and does not prove AI-9 or P01 readiness; AI-9 and P01 remain BLOCKED and Codex runtime acceptance remains OPEN. Controlled incident checks and PR-Agent review skipped by conditions."
+    },
+    {
+      "id": "ai-console-remove-unused-motion",
+      "area": "PLATFORM",
+      "title": "Remove unused Motion package instead of applying an unnecessary major upgrade",
+      "pr_number": 576,
+      "pr_head_sha": "c5cce7c196e8f9a4ef3cbfdc0a9bffa5c65e59a0",
+      "merge_sha": "3eadca1727671f4990255b6e609e47b719926547",
+      "ci_run_id": 43301989268,
+      "verification": "VERIFIED 2026-11-12: PR #576 merged at 3eadca1727671f4990255b6e609e47b719926547 from exact reviewed head c5cce7c196e8f9a4ef3cbfdc0a9bffa5c65e59a0. PR CI 43301989268 and exact-head push CI 43301968297 passed, including Node app tests and CodeQL. Post-merge main CI 43302413818 and CodeQL 43302411900 passed on the merge SHA; static Pages publication and verify-production passed. Local app verification passed npm audit (0 vulnerabilities), npm test (10/10), lint, and build.",
+      "limitations": "The Motion package had no application imports and was removed with its unused transitive packages; PR #567 was closed as superseded. No runtime animation behavior was removed because none used this package. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
     }
   ],
   "gates": [

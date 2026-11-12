@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_latest_recorded_merges_through_pr574_do_not_promote_gates(self):
+    def test_pr574_history_remains_recorded_and_gates_unpromoted(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 574)
-        self.assertEqual(result["merged_milestones"], 202)
+        self.assertEqual(result["latest_pr"], 576)
+        self.assertEqual(result["merged_milestones"], 208)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         self.assertEqual(records[550]["pr_head_sha"], "0e681cb62b4359f99d59caaaab99bfbc911e1879")
         self.assertEqual(records[550]["merge_sha"], "b68031d1b11c20d2f6fa29e46b687aa2010186b3")
@@ -1922,6 +1922,72 @@ class MilestoneLedgerTests(unittest.TestCase):
                 "codex-agent-runtime-acceptance": "OPEN",
             },
         )
+
+    def test_verified_dependency_batch_is_recorded_without_gate_promotion(self):
+        result = validate(self.data)
+        records = {entry["pr_number"]: entry for entry in self.data["milestones"]}
+        expected = {
+            566: (
+                "ed7b087b75cc5b25570784c5f25b307ad9f5e638",
+                "615b3e69fbc5347ee2bbf8ef5390cda888de706f",
+                43298409810,
+                43298650379,
+                43298648964,
+            ),
+            568: (
+                "43fe83f4ef6e77731d0c481d7d3a7b4e2e28486f",
+                "85aebd84004b723ad1d7a60438c6c57b25b7769c",
+                43298692797,
+                43299034541,
+                43299032793,
+            ),
+            569: (
+                "79796537880c4f37473f3dc5bccbec9d1c0bfcb2",
+                "d3f6e3741596fe30aeaff9f5c4f48b08d169385a",
+                43301133050,
+                43301723091,
+                43301721827,
+            ),
+            570: (
+                "bec6deeba442e2e96434bd9324de8f482bc70223",
+                "d8ff193645569134ba6ede21b1030f45f6a9242c",
+                43299432384,
+                43299907117,
+                43299901601,
+            ),
+            571: (
+                "c04ac00c52495b4caa093791529f0934d722271f",
+                "60f0b98180040d237aa9d90a3598430d010b99bd",
+                43300241509,
+                43300687014,
+                43300687061,
+            ),
+            576: (
+                "c5cce7c196e8f9a4ef3cbfdc0a9bffa5c65e59a0",
+                "3eadca1727671f4990255b6e609e47b719926547",
+                43301989268,
+                43302413818,
+                43302411900,
+            ),
+        }
+        for number, (head, merged, ci, main_ci, codeql) in expected.items():
+            with self.subTest(pr=number):
+                entry = records[number]
+                self.assertEqual(entry["pr_head_sha"], head)
+                self.assertEqual(entry["merge_sha"], merged)
+                self.assertEqual(entry["ci_run_id"], ci)
+                self.assertIn(str(main_ci), entry["verification"])
+                self.assertIn(str(codeql), entry["verification"])
+                self.assertIn("passed", entry["verification"])
+        self.assertNotIn(567, records)
+        self.assertEqual(result["merged_milestones"], 208)
+        self.assertEqual(result["latest_pr"], 576)
+        self.assertIn("v1beta", records[569]["limitations"])
+        self.assertIn("verify-production passed", records[576]["verification"])
+        gates = {entry["id"]: entry["status"] for entry in self.data["gates"]}
+        self.assertEqual(gates["ai9-detection-quality"], "BLOCKED")
+        self.assertEqual(gates["p01-managed-saas"], "BLOCKED")
+        self.assertEqual(gates["codex-agent-runtime-acceptance"], "OPEN")
 
     def test_duplicate_achievement_rejected(self):
         self.data["milestones"].append(copy.deepcopy(self.data["milestones"][-1]))
