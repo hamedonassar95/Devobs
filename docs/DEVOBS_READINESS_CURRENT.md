@@ -1,3 +1,9 @@
+## استكمال جرد التكاملات بعد PR #560 — 2026-11-12 (VERIFIED)
+
+- كان كتالوج الخدمات يعدّ 13 سجلًا ولم يذكر تكامل Google Docs المحلي الموجود منذ PR #532. أضاف PR [#560](https://github.com/hamedonassar95/Devobs/pull/560) سجلًا دقيقًا له؛ لم يضف موصلًا أو سلوكًا تشغيليًا جديدًا. العدد الحالي 14 سجلًا.
+- نجح PR CI [43185989403](https://github.com/hamedonassar95/Devobs/actions/runs/43185989403) وexact-head push CI [43185964960](https://github.com/hamedonassar95/Devobs/actions/runs/43185964960) وCodeQL [43185983382](https://github.com/hamedonassar95/Devobs/actions/runs/43185983382) على HEAD `843dc2356e838761e26730634cddaaa77b1b27e`. بعد الدمج عند `a0c0b568f3f09302051c51cc197fd84c2c735ade` نجح main CI [43186249132](https://github.com/hamedonassar95/Devobs/actions/runs/43186249132) وCodeQL [43186249030](https://github.com/hamedonassar95/Devobs/actions/runs/43186249030). اجتازت فحوص الأمن/Gitleaks وPython وPostgreSQL RLS والحاوية/Trivy وTerraform وعقد الموقع و`validate`. Node نجح في exact-head push CI وتخطّاه PR وmain باختيار المسارات. نُشرت Pages واجتازت `verify-production`؛ incident drill والاستعادة تخطّتا شروطهما. محليًا نجحت 24 حالة للكتالوج وفحص JSON.
+- **UNVERIFIED:** تكامل Google Docs الموثّق هو تنفيذ PR #532 المحلي الاختياري باستخدام `drive.file`، وليس اختبارًا حيًا. لم يُضبط OAuth Client ID أو يوصل حساب Google، ولم يُنشأ مستند فعلي. لوحة AI-7 خارج أصول Pages؛ النشر لا يستضيفها ولا يثبت جاهزية SaaS. AI-9 وP01 ما زالا **BLOCKED** وقبول Codex runtime **OPEN**. سجل الإنجازات بعد هذا التحديث 198.
+
 ## تحديث بوابات الجاهزية بعد PR #558 — 2026-11-12 (VERIFIED)
 
 - أضاف PR [#558](https://github.com/hamedonassar95/Devobs/pull/558) خيارًا محليًا اختياريًا لإنشاء مهمة Google Tasks واحدة في القائمة الافتراضية، بعد معاينة التفاصيل وتأكيد المستخدم. النص والحقول مقتصرة على قالب ثابت ومجاميع AI-7 المسموحة وتاريخ استحقاق يختاره المستخدم؛ لا توجد قراءة للقوائم أو المهام أو عمليات تعديل وحذف.
