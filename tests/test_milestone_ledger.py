@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_latest_recorded_merges_through_pr565_do_not_promote_gates(self):
+    def test_latest_recorded_merges_through_pr572_do_not_promote_gates(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 565)
-        self.assertEqual(result["merged_milestones"], 200)
+        self.assertEqual(result["latest_pr"], 572)
+        self.assertEqual(result["merged_milestones"], 201)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         self.assertEqual(records[550]["pr_head_sha"], "0e681cb62b4359f99d59caaaab99bfbc911e1879")
         self.assertEqual(records[550]["merge_sha"], "b68031d1b11c20d2f6fa29e46b687aa2010186b3")
@@ -1078,6 +1078,19 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("GitHub Pages publication", records[565]["verification"])
         self.assertIn("Vercel Production", records[565]["verification"])
         self.assertIn("AI-9 and P01 remain BLOCKED", records[565]["limitations"])
+        self.assertEqual(
+            records[572]["pr_head_sha"],
+            "15e017fadc9e9978da4e782ee35853e71db3dfda",
+        )
+        self.assertEqual(
+            records[572]["merge_sha"],
+            "3a0c768572d49759565a5b6b947a0134194f13f9",
+        )
+        self.assertEqual(records[572]["ci_run_id"], 43233982170)
+        self.assertIn("CodeQL 43233980719", records[572]["verification"])
+        self.assertIn("verify-production passed", records[572]["verification"])
+        self.assertIn("dpl_GTBXPmwQGVpQFbMtLVshteKoJLrX", records[572]["verification"])
+        self.assertIn("AI-9 and P01 remain BLOCKED", records[572]["limitations"])
         self.assertEqual(
             records[530]["merge_sha"],
             "1dbc2d811b317b9f060bf46fa2376aaf083f0aec",
