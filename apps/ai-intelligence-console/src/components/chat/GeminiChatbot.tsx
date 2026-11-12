@@ -184,7 +184,7 @@ export function GeminiChatbot({
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
-  const isMountedRef = useRef(true);
+  const isMountedRef = useRef(false);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -254,6 +254,7 @@ export function GeminiChatbot({
 
   // Audio Recording with Microphone for Audio Transcription (gemini-3.5-transcribe)
   const toggleRecording = async () => {
+    if (!isMountedRef.current) return;
     if (isRecording) {
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
         mediaRecorderRef.current.stop();
