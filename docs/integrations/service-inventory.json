@@ -170,6 +170,26 @@
       ]
     },
     {
+      "id": "google-docs-ai7",
+      "name": "Google Docs API",
+      "integration_status": "local_feature_unverified",
+      "runtime_verified": false,
+      "provider_writes_authorized": false,
+      "cost_authorized": false,
+      "repository_scope": "local AI-7 dashboard only; no Google account connected",
+      "observed_branch": "main",
+      "observed_directory": "scripts/ai_intelligence/dashboard_assets/google_docs_export.mjs",
+      "verified_capability": "PR #532 added an optional local export that creates a new Google Doc after user confirmation, from allowlisted AI-7 aggregate counts, using the drive.file scope. It does not read existing documents; tests use mocked Google responses.",
+      "blocker": "No OAuth Client ID or Google account was configured and no live Google Docs API call or document creation was performed. The AI-7 dashboard is local and outside static Pages assets.",
+      "evidence": [
+        "PR #532 merged at b518ad23affac0bc04e76497c52067afb494119a from exact head 2cded308474161764b282af245e63460f70b668d; push CI 43128813654, PR CI 43128872855, CodeQL 43128869229, and merge CI 43129410896 / CodeQL 43129410388 passed",
+        "Implementation: scripts/ai_intelligence/dashboard_assets/google_docs_export.mjs; mocked request tests: tests/google_docs_export.test.mjs",
+        "Google Docs documents.create: https://developers.google.com/workspace/docs/api/reference/rest/v1/documents/create",
+        "Google Docs documents.batchUpdate: https://developers.google.com/workspace/docs/api/reference/rest/v1/documents/batchUpdate",
+        "OAuth drive.file scope: https://developers.google.com/identity/protocols/oauth2/scopes#drive"
+      ]
+    },
+    {
       "id": "google-sheets-ai7",
       "name": "Google Sheets API",
       "integration_status": "local_feature_unverified",

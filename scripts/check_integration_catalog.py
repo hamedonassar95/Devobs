@@ -22,6 +22,7 @@ EXPECTED_IDS = {
     "openai-docs-mcp",
     "argocd-mcp",
     "google-calendar-ai7",
+    "google-docs-ai7",
     "google-sheets-ai7",
     "google-slides-ai7",
     "google-chat-ai7",
@@ -138,6 +139,13 @@ def validate_catalog(data: Any) -> list[str]:
                 errors.append("Google Calendar source path must match the local AI-7 integration.")
             if svc.get("runtime_verified") is True:
                 errors.append("Google Calendar OAuth/runtime is not verified.")
+        elif identifier == "google-docs-ai7":
+            if svc.get("integration_status") != "local_feature_unverified":
+                errors.append("Google Docs must remain optional and local until OAuth runtime is verified.")
+            if svc.get("observed_directory") != "scripts/ai_intelligence/dashboard_assets/google_docs_export.mjs":
+                errors.append("Google Docs source path must match the local AI-7 integration.")
+            if svc.get("runtime_verified") is True:
+                errors.append("Google Docs OAuth/runtime is not verified.")
         elif identifier == "google-sheets-ai7":
             if svc.get("integration_status") != "local_feature_unverified":
                 errors.append("Google Sheets must remain optional and local until OAuth runtime is verified.")
@@ -172,7 +180,7 @@ def validate_catalog(data: Any) -> list[str]:
     if len(ids) != len(set(ids)):
         errors.append("Duplicate service ids are forbidden.")
     if set(ids) != EXPECTED_IDS:
-        errors.append("Service ids must match the thirteen explicitly scoped providers.")
+        errors.append(f"Service ids must match the {len(EXPECTED_IDS)} explicitly scoped providers.")
     return errors
 
 
@@ -190,7 +198,7 @@ def main() -> int:
         for error in errors:
             print(f"FAIL: {error}", file=sys.stderr)
         return 1
-    print("PASS: thirteen integration records, evidence and default-deny controls validated locally.")
+    print(f"PASS: {len(EXPECTED_IDS)} integration records, evidence and default-deny controls validated locally.")
     return 0
 
 
