@@ -1927,6 +1927,17 @@
       "ci_run_id": 43121075788,
       "verification": "VERIFIED 2026-11-11: PR #530 merged as 1dbc2d811b317b9f060bf46fa2376aaf083f0aec from exact head 670b25fa022ec26cd6b8c3e2a621b73d3f61f6e9. PR CI 43121075788, ShellCheck 43121075639, and AI Code Review 43121075640 passed. Hosted Python validation, Node tests, security, Terraform, PostgreSQL RLS, container scan, site-contract, and validate passed. Local focused suite passed 56 Python and 1 Node test; local full unittest discovery could not import psycopg/opentelemetry.",
       "limitations": "Fixes five regression cases and adds an optional interactive Aider/Ollama path with cloud inference and automatic commits disabled. CC BY 4.0 applies only to original Devobs content; third-party material retains its own terms. No model weights were downloaded and no local inference was run. Does not establish production readiness or change gates: AI-9 remains BLOCKED, P01 remains BLOCKED, and Codex runtime remains OPEN."
+    },
+    {
+      "id": "google-docs-export-local-ai7-pr532",
+      "area": "PLATFORM",
+      "title": "Opt-in Google Docs export for aggregate local AI-7 incident summaries",
+      "pr_number": 532,
+      "pr_head_sha": "2cded308474161764b282af245e63460f70b668d",
+      "merge_sha": "b518ad23affac0bc04e76497c52067afb494119a",
+      "ci_run_id": 43129410896,
+      "verification": "VERIFIED 2026-11-12: owner merged PR #532 at b518ad23affac0bc04e76497c52067afb494119a from exact head 2cded308474161764b282af245e63460f70b668d. PR CI 43128872855 and AI Code Review 43128872811 passed; post-merge main CI 43129410896 passed on the merge SHA. Node tests, security, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication, and verify-production passed. Python validation and controlled incident drill were skipped by workflow/path conditions.",
+      "limitations": "Adds a manual, opt-in export from the loopback-only local AI-7 dashboard using drive.file and aggregate counts/allowlisted categories only. No OAuth Client ID, Google login, or live Docs API request was used; the feature is not part of the static site or a hosted SaaS. Does not change readiness gates: AI-9 remains BLOCKED, P01 remains BLOCKED, and Codex runtime remains OPEN."
     }
   ],
   "gates": [

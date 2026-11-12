@@ -1,3 +1,10 @@
+## أحدث لقطة موثّقة: دمج PR #532 — تحقق 2026-11-12
+
+- **VERIFIED من GitHub:** دمج مالك المستودع PR [#532](https://github.com/hamedonassar95/Devobs/pull/532) عند `b518ad23affac0bc04e76497c52067afb494119a` من HEAD `2cded308474161764b282af245e63460f70b668d`. نجح [CI على الرأس 43128872855](https://github.com/hamedonassar95/Devobs/actions/runs/43128872855) و[مراجعة AI Code Review 43128872811](https://github.com/hamedonassar95/Devobs/actions/runs/43128872811). نجح [CI بعد الدمج 43129410896](https://github.com/hamedonassar95/Devobs/actions/runs/43129410896) على SHA الدمج.
+- **VERIFIED:** اجتازت Node tests وsecurity وPostgreSQL RLS وcontainer/Trivy وTerraform وsite-contract و`validate` ونشر GitHub Pages الثابت و`verify-production`. تخطّت Python validation وcontrolled incident drill شروط المسارات. النشر الثابت لا يشغّل لوحة AI-7 المحلية.
+- **الميزة والحدود:** أضاف PR تصديرًا يدويًا اختياريًا لملخصات مجمعة من لوحة AI-7 المحلية إلى مستند Google جديد، بنطاق `drive.file` فقط، وبعد تأكيد المستخدم. لا تُرسل نصوص السجلات أو معرّفات العملاء/المشاريع/الخوادم. لم يُضبط OAuth Client ID ولم يحدث تسجيل دخول Google أو طلب Docs حي؛ الميزة ليست جزءًا من موقع Devobs الثابت أو SaaS مستضاف.
+- **الحالة لم تتغير:** AI-9 **BLOCKED**، P01 **BLOCKED**، وقبول تشغيل Codex **OPEN**. لا يُثبت نجاح CI أن ربط Google يعمل حيًا.
+
 ## أحدث لقطة موثّقة: دمج PR #522 — تحقق 2026-11-11
 
 - **VERIFIED من GitHub:** دمج مالك المستودع PR [#522](https://github.com/hamedonassar95/Devobs/pull/522) عند `cc29c7635ca817b13dbf92d6875e2386b81e1c6e` من رأس `df397841a3d9309de724fb6829d6c75346e7f72b`. نجح CI على الرأس [43010992882](https://github.com/hamedonassar95/Devobs/actions/runs/43010992882) وCodeQL [43010987811](https://github.com/hamedonassar95/Devobs/actions/runs/43010987811)، ونجح CI بعد الدمج [43022732431](https://github.com/hamedonassar95/Devobs/actions/runs/43022732431) وCodeQL [43022731578](https://github.com/hamedonassar95/Devobs/actions/runs/43022731578) على SHA الدمج.
