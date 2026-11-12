@@ -8,6 +8,7 @@ import { buildGoogleDocsReport, createGoogleDoc } from './google_docs_export.mjs
 import { deriveFollowupEventId, GOOGLE_CALENDAR_SCOPE, scheduleGoogleCalendarFollowup } from './google_calendar_followup.mjs';
 import { buildGoogleSheetsReport, createGoogleSheet } from './google_sheets_export.mjs';
 import { buildGoogleSlidesReport, createGoogleSlidesPresentation } from './google_slides_export.mjs';
+import { buildGoogleChatReport, GOOGLE_CHAT_SCOPE, isValidGoogleChatSpaceName, sendGoogleChatSummary } from './google_chat_export.mjs';
 
 const RUNBOOK_STORAGE_KEY = 'devobs_ai7_runbook_notes';
 const GOOGLE_CALENDAR_STORAGE_KEY = 'devobs_ai7_followup_calendar_id';
@@ -23,6 +24,11 @@ let googleSheetsBusy = false;
 let googleSlidesClientId = '';
 let googleSlidesConfigured = false;
 let googleSlidesBusy = false;
+let googleChatClientId = '';
+let googleChatConfigured = false;
+let googleChatBusy = false;
+let googleChatAttempted = false;
+let googleChatReport = null;
 let googleCalendarClientId = '';
 let googleCalendarConfigured = false;
 let googleCalendarBusy = false;
@@ -638,6 +644,75 @@ function initializeGoogleSlidesExport() {
   });
 }
 
+function setGoogleChatStatus(message) {
+  document.querySelector('#google-chat-status').textContent = message;
+}
+
+function updateGoogleChatButton() {
+  const spaceName = document.querySelector('#google-chat-space-name').value.trim();
+  document.querySelector('#google-chat-send').disabled = !googleChatConfigured
+    || googleChatBusy || googleChatAttempted || !googleChatReport
+    || !isValidGoogleChatSpaceName(spaceName);
+}
+
+function updateGoogleChatPreview() {
+  const preview = document.querySelector('#google-chat-preview');
+  preview.value = googleChatReport ? googleChatReport.message : '';
+  updateGoogleChatButton();
+}
+
+function initializeGoogleChatExport() {
+  const button = document.querySelector('#google-chat-send');
+  const spaceInput = document.querySelector('#google-chat-space-name');
+  spaceInput.addEventListener('input', updateGoogleChatButton);
+  button.addEventListener('click', async () => {
+    const spaceName = spaceInput.value.trim();
+    if (!googleChatReport || !googleChatClientId || button.disabled
+      || !isValidGoogleChatSpaceName(spaceName)) return;
+    const approved = window.confirm(
+      `سيُرسل النص الظاهر في المعاينة كما هو إلى ${spaceName}. سيظهر باسم حسابك لأعضاء المساحة. لا نقرأ الرسائل أو المساحات. هل تريد الإرسال؟`,
+    );
+    if (!approved) return;
+
+    googleChatBusy = true;
+    updateGoogleChatButton();
+    setGoogleChatStatus('بانتظار تسجيل الدخول وموافقتك على صلاحية الإرسال المحدودة…');
+    let accessToken = '';
+    let requestStarted = false;
+    try {
+      accessToken = await requestGoogleAccessToken(googleChatClientId, GOOGLE_CHAT_SCOPE);
+      requestStarted = true;
+      googleChatAttempted = true;
+      updateGoogleChatButton();
+      await sendGoogleChatSummary({ accessToken, spaceName, report: googleChatReport });
+      setGoogleChatStatus('أكّدت Google إرسال رسالة واحدة. أوقفنا إعادة الإرسال من هذه الصفحة لتجنب التكرار.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      setGoogleChatStatus(requestStarted || message === 'google_chat_invalid_response'
+        ? 'لم نتمكن من تأكيد النتيجة. راجع مساحة Google Chat قبل أي محاولة أخرى؛ قد تكون الرسالة وصلت.'
+        : 'لم يُرسل طلب الرسالة؛ لم تكتمل موافقة Google.');
+    } finally {
+      accessToken = '';
+      googleChatBusy = false;
+      updateGoogleChatButton();
+    }
+  });
+
+  void load('/api/v1/google-chat-config').then(async config => {
+    if (!config.enabled || typeof config.client_id !== 'string' || !config.client_id) {
+      setGoogleChatStatus('الميزة غير مفعّلة. أعد تشغيل اللوحة مع إعداد OAuth الاختياري الموضح في الدليل.');
+      return;
+    }
+    googleChatClientId = config.client_id;
+    await loadGoogleIdentityServices();
+    googleChatConfigured = true;
+    updateGoogleChatButton();
+    setGoogleChatStatus('جاهز عند الطلب. لا يتصل بحساب Google ولا يرسل رسالة حتى تختار مساحة وتؤكد.');
+  }).catch(() => {
+    setGoogleChatStatus('تعذر تحميل إعداد Google Chat؛ بقيت الميزة معطّلة.');
+  });
+}
+
 function setGoogleCalendarStatus(message) {
   document.querySelector('#google-calendar-status').textContent = message;
 }
@@ -773,6 +848,12 @@ async function render() {
     updateGoogleDocsButton();
     updateGoogleSheetsButton();
     updateGoogleSlidesButton();
+    try {
+      googleChatReport = buildGoogleChatReport(intelligence);
+    } catch {
+      googleChatReport = null;
+    }
+    updateGoogleChatPreview();
     renderSummary(intelligence.summary);
     renderPipeline(intelligence.pipeline.stages);
     renderAnomalies(intelligence.anomaly_analysis);
@@ -790,5 +871,6 @@ bindRunbookNotes();
 initializeGoogleDocsExport();
 initializeGoogleSheetsExport();
 initializeGoogleSlidesExport();
+initializeGoogleChatExport();
 initializeGoogleCalendarFollowup();
 void render();

@@ -5,7 +5,7 @@
 ## التشغيل
 
 ```sh
-node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--feedback-ledger <private-jsonl-file>] [--google-docs-client-id <public-oauth-client-id>] [--google-sheets-client-id <public-oauth-client-id>] [--google-slides-client-id <public-oauth-client-id>] [--port 8765]
+node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--feedback-ledger <private-jsonl-file>] [--google-docs-client-id <public-oauth-client-id>] [--google-sheets-client-id <public-oauth-client-id>] [--google-slides-client-id <public-oauth-client-id>] [--google-chat-client-id <public-oauth-client-id>] [--port 8765]
 ```
 
 افتح الرابط المحلي الذي يطبعه الأمر على `127.0.0.1`. لإيقاف الخادم اضغط `Ctrl+C`. يقرأ الخادم لقطة مرة واحدة عند البدء؛ أعد تشغيله بعد تحديث سجل الأحداث أو سجل التغذية الراجعة. كل تكامل Google اختياري ومنفصل؛ لا يُفعّل إلا بإضافة معرّف OAuth الخاص به. استخدم بيانات اصطناعية حتى اعتماد سياسة الخصوصية والاحتفاظ.
@@ -58,6 +58,21 @@ node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--
 - [تطبيق تحديثات العرض دفعة واحدة](https://developers.google.com/workspace/slides/api/reference/rest/v1/presentations/batchUpdate)
 - [نموذج الرموز في Google Identity Services](https://developers.google.com/identity/oauth2/web/guides/use-token-model)
 
+## إرسال موجز مجمّع إلى Google Chat (اختياري)
+
+هذا خيار محلي معطّل افتراضيًا. فعّل Google Chat API، وأنشئ OAuth client من نوع Web application، وأضف `http://127.0.0.1:8765` إلى JavaScript origins. شغّل اللوحة مع `--google-chat-client-id <public-oauth-client-id>`. لا تنشئ client secret للواجهة ولا ترسله. تطلب الميزة نطاق المستخدم `https://www.googleapis.com/auth/chat.messages.create` فقط بعد معاينة النص وتأكيد الإرسال.
+
+أدخل اسم مورد مساحة موجودة بصيغة `spaces/{space}` بنفسك. لا تسرد اللوحة المساحات ولا تقرأ الرسائل. بعد التأكيد وإتاحة رمز OAuth بالنطاق المطلوب، ترسل رسالة نصية واحدة إلى تلك المساحة؛ يراها أعضاؤها وتظهر باسم حساب Google الذي وافق. الرسالة مبنية من تسميات وأعداد AI-7 المجمّعة ووقت الإنشاء فقط، ولا تحتوي نصوص سجلات أو حوادث أو أسماء عملاء أو معرفات مصادر. لا تُرسل الرسالة قبل تأكيد المتصفح، ولا تعيد الصفحة المحاولة تلقائيًا. إذا كانت النتيجة غير مؤكدة، افحص مساحة Chat قبل أي إرسال جديد لاحتمال وصول الرسالة.
+
+هذا تكامل محلي اختياري وليس موصلًا حيًا أو خدمة مستضافة. الاختبارات تستخدم مساحة ورسالة ورمزًا اصطناعيًا وطلبات HTTP وهمية؛ لم نسجل الدخول أو نرسل إلى مساحة حقيقية. تفعيل OAuth يتطلب إعداد Google Workspace/Chat مناسبًا، ولا تثبت الاختبارات صلاحيات حسابك أو إعداد المؤسسة.
+
+مراجع Google Chat الرسمية:
+
+- [إنشاء الرسائل](https://developers.google.com/workspace/chat/create-messages)
+- [مرجع إنشاء رسالة في مساحة](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages/create)
+- [مصادقة المستخدم وتفويضه في Google Chat](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user)
+- [نموذج الرموز في Google Identity Services](https://developers.google.com/identity/oauth2/web/guides/use-token-model)
+
 ## جدولة مراجعة متابعة في Google Calendar (اختياري)
 
 الميزة معطلة افتراضيًا. لتجربتها محليًا، أضف معرّف OAuth العام للويب:
@@ -96,11 +111,13 @@ node --check scripts/ai_intelligence/dashboard_assets/google_docs_export.mjs
 node --check scripts/ai_intelligence/dashboard_assets/google_calendar_followup.mjs
 node --check scripts/ai_intelligence/dashboard_assets/google_sheets_export.mjs
 node --check scripts/ai_intelligence/dashboard_assets/google_slides_export.mjs
+node --check scripts/ai_intelligence/dashboard_assets/google_chat_export.mjs
 node --check tests/ai_dashboard_api.test.mjs
 node --check tests/google_calendar_followup.test.mjs
 node --check tests/google_sheets_export.test.mjs
 node --check tests/google_slides_export.test.mjs
-node --test tests/ai_dashboard_api.test.mjs tests/google_docs_export.test.mjs tests/ai_anomaly_detector.test.mjs tests/ai_trend_forecast.test.mjs
+node --check tests/google_chat_export.test.mjs
+node --test tests/ai_dashboard_api.test.mjs tests/google_docs_export.test.mjs tests/google_chat_export.test.mjs tests/ai_anomaly_detector.test.mjs tests/ai_trend_forecast.test.mjs
 node --test tests/google_calendar_followup.test.mjs
 node --test tests/google_sheets_export.test.mjs
 node --test tests/google_slides_export.test.mjs

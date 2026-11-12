@@ -41,6 +41,12 @@ footer { margin-top: 2.5rem; font-size: .92rem; }
 .calendar-form label { font-weight: 700; }
 .calendar-form input { width: min(100%, 22rem); min-width: 0; padding: .7rem .8rem; border: 1px solid var(--line); border-radius: .65rem; background: #0c1218; color: var(--ink); font: inherit; }
 .calendar-form button { justify-self: start; }
+.google-chat-export { display: grid; gap: .65rem; }
+.google-chat-export input, .google-chat-export textarea { width: 100%; min-width: 0; padding: .7rem .8rem; border: 1px solid var(--line); border-radius: .65rem; background: #0c1218; color: var(--ink); font: inherit; }
+.google-chat-export input { direction: ltr; text-align: left; }
+.google-chat-export textarea { resize: vertical; direction: rtl; }
+.google-chat-export button { justify-self: start; padding: .7rem 1rem; border: 1px solid var(--accent); border-radius: .65rem; background: var(--accent); color: #071c18; font: inherit; font-weight: 800; }
+.google-chat-export button:disabled { border-color: var(--line); background: #202d38; color: var(--muted); cursor: not-allowed; }
 .note-form button:hover, .note-toolbar button:hover, .runbook-action:hover, .note-dialog-actions button:hover { border-color: var(--accent); }
 .note-form button[type="submit"] { justify-self: start; color: #071c18; background: var(--accent); border-color: var(--accent); }
 .note-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .55rem; margin: 1rem 0; }
