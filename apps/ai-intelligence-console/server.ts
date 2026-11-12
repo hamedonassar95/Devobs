@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import path from 'node:path';
 import rateLimit from 'express-rate-limit';
 import { fileURLToPath } from 'node:url';
+import { createSpaFallbackHandler } from './spaFallback.ts';
 
 dotenv.config();
 
@@ -1004,11 +1005,11 @@ Include standard GitHub PR template sections:
 async function startServer() {
   if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.resolve(appRoot, 'dist')));
-    app.get('*', staticFallbackRateLimit, (req, res) => {
-      res.sendFile(path.resolve(appRoot, 'dist', 'index.html'), (error) => {
-        if (error) res.status(404).end();
-      });
-    });
+    app.get(
+      '/{*splat}',
+      staticFallbackRateLimit,
+      createSpaFallbackHandler(path.resolve(appRoot, 'dist')),
+    );
   } else {
     const vite = await createViteServer({
       server: { middlewareMode: true },
