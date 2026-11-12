@@ -116,16 +116,23 @@ test('read-only local API returns bounded aggregates and hides raw log/path/hash
   const port = await listen(server);
   t.after(() => new Promise(resolve => server.close(resolve)));
 
-  const [intelligenceResponse, summaryResponse, incidentsResponse, recommendationsResponse] = await Promise.all([
+  const [intelligenceResponse, summaryResponse, incidentsResponse, recommendationsResponse, googleConfigResponse] = await Promise.all([
     request(port, '/api/v1/intelligence'),
     request(port, '/api/v1/summary'),
     request(port, '/api/v1/incidents'),
     request(port, '/api/v1/recommendations'),
+    request(port, '/api/v1/google-docs-config'),
   ]);
   assert.equal(intelligenceResponse.status, 200);
   assert.equal(summaryResponse.status, 200);
   assert.equal(incidentsResponse.status, 200);
   assert.equal(recommendationsResponse.status, 200);
+  assert.equal(googleConfigResponse.status, 200);
+  assert.deepEqual(JSON.parse(googleConfigResponse.body), {
+    enabled: false,
+    client_id: '',
+    scope: 'https://www.googleapis.com/auth/drive.file',
+  });
   const intelligence = JSON.parse(intelligenceResponse.body);
   const summary = JSON.parse(summaryResponse.body);
   const incidents = JSON.parse(incidentsResponse.body);
@@ -161,6 +168,8 @@ test('server is loopback-only, same-origin, read-only, and emits browser hardeni
   const page = await request(port, '/', { origin });
   assert.equal(page.status, 200);
   assert.match(page.headers['content-security-policy'], /default-src 'none'/);
+  assert.match(page.headers['content-security-policy'], /accounts\.google\.com/);
+  assert.match(page.headers['content-security-policy'], /docs\.googleapis\.com/);
   assert.equal(page.headers['access-control-allow-origin'], undefined);
   assert.match(page.body, /lang="ar" dir="rtl"/);
   assert.match(page.body, /dashboard\.js/);
@@ -172,20 +181,54 @@ test('server is loopback-only, same-origin, read-only, and emits browser hardeni
   assert.match(script.body, /textContent/);
   assert.match(script.body, /localStorage/);
   assert.match(script.body, /runbook_notes\.mjs/);
+  assert.match(script.body, /google-docs-export/);
+  assert.match(script.body, /drive\.file/);
   assert.doesNotMatch(script.body, /innerHTML/);
-  assert.doesNotMatch(script.body, /https?:\/\//);
 
   const noteModule = await request(port, '/runbook_notes.mjs', { origin });
   assert.equal(noteModule.status, 200);
   assert.match(noteModule.headers['content-type'], /javascript/);
   assert.doesNotMatch(noteModule.body, /https?:\/\//);
 
+  const docsModule = await request(port, '/google_docs_export.mjs', { origin });
+  assert.equal(docsModule.status, 200);
+  assert.match(docsModule.headers['content-type'], /javascript/);
+  assert.match(docsModule.body, /https:\/\/docs\.googleapis\.com/);
+  assert.doesNotMatch(docsModule.body, /innerHTML/);
+  assert.deepEqual(JSON.parse((await request(port, '/api/v1/google-docs-config', { origin })).body), {
+    enabled: false,
+    client_id: '',
+    scope: 'https://www.googleapis.com/auth/drive.file',
+  });
+
   assert.equal((await request(port, '/api/v1/summary', { host: `localhost:${port}` })).status, 421);
   assert.equal((await request(port, '/api/v1/summary', { origin: 'https://untrusted.example' })).status, 403);
   assert.equal((await request(port, '/api/v1/summary?extra=1', { origin })).status, 404);
   assert.equal((await request(port, '/api/v1/summary', { method: 'POST', origin })).status, 405);
   assert.equal((await request(port, '/runbook_notes.mjs', { method: 'POST', origin })).status, 405);
+  assert.equal((await request(port, '/api/v1/google-docs-config', { method: 'POST', origin })).status, 405);
   assert.equal((await request(port, '/unknown', { origin })).status, 404);
+});
+
+test('Google Docs OAuth configuration is opt-in, public-client-only, and bounded', async t => {
+  const { storePath } = await makeStore(t);
+  const server = await createDashboardServer({
+    storePath,
+    googleDocsClientId: '1234567890-publicclient.apps.googleusercontent.com',
+  });
+  const port = await listen(server);
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const configResponse = await request(port, '/api/v1/google-docs-config');
+  assert.equal(configResponse.status, 200);
+  assert.deepEqual(JSON.parse(configResponse.body), {
+    enabled: true,
+    client_id: '1234567890-publicclient.apps.googleusercontent.com',
+    scope: 'https://www.googleapis.com/auth/drive.file',
+  });
+
+  await assert.rejects(createDashboardServer({ storePath, googleDocsClientId: 'not-a-client-secret' }), {
+    code: 'invalid_google_docs_client_id',
+  });
 });
 
 test('dashboard snapshot never embeds event messages or source identifiers', () => {

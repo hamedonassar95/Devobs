@@ -5,10 +5,10 @@
 ## التشغيل
 
 ```sh
-node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--feedback-ledger <private-jsonl-file>] [--port 8765]
+node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--feedback-ledger <private-jsonl-file>] [--google-docs-client-id <public-oauth-client-id>] [--port 8765]
 ```
 
-افتح الرابط المحلي الذي يطبعه الأمر على `127.0.0.1`. لإيقاف الخادم اضغط `Ctrl+C`. يقرأ الخادم لقطة مرة واحدة عند البدء؛ أعد تشغيله بعد تحديث سجل الأحداث أو سجل التغذية الراجعة. لا يتصل بوجهة خارج الجهاز ولا يكتب إلى أي ملف. استخدم بيانات اصطناعية حتى اعتماد سياسة الخصوصية والاحتفاظ.
+افتح الرابط المحلي الذي يطبعه الأمر على `127.0.0.1`. لإيقاف الخادم اضغط `Ctrl+C`. يقرأ الخادم لقطة مرة واحدة عند البدء؛ أعد تشغيله بعد تحديث سجل الأحداث أو سجل التغذية الراجعة. من دون `--google-docs-client-id` لا تحاول اللوحة الاتصال بخدمة خارجية. استخدم بيانات اصطناعية حتى اعتماد سياسة الخصوصية والاحتفاظ.
 
 ## الواجهة والحدود الأمنية
 
@@ -20,6 +20,21 @@ node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--
 - جميع المراحل تعمل على لقطة عند بدء الخادم؛ أعد تشغيله بعد تحديث السجل أو الملاحظات. التحليل لا يثبت صحة مصدر الأحداث أو سبب العطل، ولا توجد موصلات حيّة.
 - **VERIFIED من المصدر:** أصول اللوحة محفوظة تحت `scripts/ai_intelligence/` وخارج نشر الموقع؛ ينسخ `scripts/stage_site.py` ملف `index.html` وجذر `assets/` فقط.
 
+## إنشاء تقرير جديد في Google Docs (اختياري)
+
+الميزة محلية واختيارية، ولا تعمل إلا إذا شُغّلت اللوحة مع OAuth Client ID عام. أنشئ OAuth client من نوع Web application في Google Cloud، وفعّل Google Docs API، وأضف الأصل `http://127.0.0.1:8765` إلى JavaScript origins المسموحة. لا تنشئ client secret للواجهة ولا ترسله للمحادثة. شغّل اللوحة مع `--google-docs-client-id <client-id>`؛ معرّف العميل ليس كلمة مرور.
+
+عند الضغط على زر الحفظ، تعرض اللوحة تأكيدًا، ثم تطلب موافقتك من Google على نطاق `drive.file`. تنشئ مستندًا جديدًا وتكتب فيه أعداد الأحداث وفئات عامة وتاريخ الإنشاء. لا تقرأ ملفات Drive الموجودة ولا ترسل نصوص السجلات أو أسماء العملاء أو معرّفات المشاريع والخوادم. رمز الوصول يبقى في ذاكرة الصفحة للطلب الحالي ولا يُحفظ في `localStorage` أو ملفات Devops. إذا نجح إنشاء المستند وفشلت الكتابة، قد يبقى مستند فارغ في Drive؛ افحص Drive قبل إعادة المحاولة.
+
+هذا التكامل يخص لوحة AI-7 المحلية فقط؛ لا يضيف حفظًا إلى موقع Devobs الثابت أو خدمة SaaS مستضافة. اختبارات المستودع تستخدم تقريرًا اصطناعيًا وطلبات Google وهمية، ولا تسجّل الدخول أو تتصل بحساب Google.
+
+مراجع Google الرسمية:
+
+- [OAuth 2.0 token model for web apps](https://developers.google.com/identity/oauth2/web/guides/use-token-model)
+- [Google Docs API authorization scopes](https://developers.google.com/workspace/docs/api/auth)
+- [Create a document](https://developers.google.com/workspace/docs/api/reference/rest/v1/documents/create)
+- [Batch update a document](https://developers.google.com/workspace/docs/api/reference/rest/v1/documents/batchUpdate)
+
 ## التقييم الاصطناعي والفحوص
 
 **VERIFIED في اختبار هذه النسخة:** يحتوي اختبار التغطية ست حالات اصطناعية لقواعد AI-3 (timeout، اتصال، DNS، صلاحية، اعتماد، ذاكرة)، ومطابقة 6/6 للفئة المحددة. هذه **مطابقة لمجموعة قواعد صغيرة أنشأها المطور**، وليست دقة تنبؤية أو تقييمًا على حوادث حقيقية.
@@ -27,8 +42,9 @@ node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--
 ```sh
 node --check scripts/ai_intelligence/dashboard_server.mjs
 node --check scripts/ai_intelligence/dashboard_assets/dashboard.js
+node --check scripts/ai_intelligence/dashboard_assets/google_docs_export.mjs
 node --check tests/ai_dashboard_api.test.mjs
-node --test tests/ai_dashboard_api.test.mjs tests/ai_anomaly_detector.test.mjs tests/ai_trend_forecast.test.mjs
+node --test tests/ai_dashboard_api.test.mjs tests/google_docs_export.test.mjs tests/ai_anomaly_detector.test.mjs tests/ai_trend_forecast.test.mjs
 ```
 
 الخادم يستخدم مكتبة [Node.js HTTP](https://nodejs.org/api/http.html) وواجهة [URL](https://nodejs.org/api/url.html) المدمجتين؛ الاختبارات تستخدم [Node.js Test Runner](https://nodejs.org/api/test.html) وHTTP محليًا على loopback فقط. لا تثبت هذه الفحوص أمان خدمة عامة أو جاهزية نشر.
