@@ -181,8 +181,28 @@ export function GeminiChatbot({
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      const recorder = mediaRecorderRef.current;
+      if (recorder && recorder.state !== 'inactive') {
+        recorder.ondataavailable = null;
+        recorder.onstop = null;
+        recorder.stop();
+      }
+      mediaRecorderRef.current = null;
+      mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+      mediaStreamRef.current = null;
+      currentAudioRef.current?.pause();
+      currentAudioRef.current = null;
+    };
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -244,12 +264,17 @@ export function GeminiChatbot({
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      if (!isMountedRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+      mediaStreamRef.current = stream;
       audioChunksRef.current = [];
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
 
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
+        if (isMountedRef.current && event.data.size > 0) {
           audioChunksRef.current.push(event.data);
         }
       };
@@ -257,11 +282,18 @@ export function GeminiChatbot({
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         stream.getTracks().forEach((track) => track.stop());
+        if (mediaStreamRef.current === stream) mediaStreamRef.current = null;
+        if (mediaRecorderRef.current === mediaRecorder) mediaRecorderRef.current = null;
+        if (!isMountedRef.current) {
+          audioChunksRef.current = [];
+          return;
+        }
 
         setIsTranscribing(true);
         const reader = new FileReader();
         reader.readAsDataURL(audioBlob);
         reader.onloadend = async () => {
+          if (!isMountedRef.current || typeof reader.result !== 'string') return;
           const base64Data = (reader.result as string).split(',')[1];
           try {
             const res = await fetch('/api/ai/transcribe-audio', {
@@ -279,7 +311,7 @@ export function GeminiChatbot({
           } catch (err) {
             console.error('Audio transcription error:', err);
           } finally {
-            setIsTranscribing(false);
+            if (isMountedRef.current) setIsTranscribing(false);
           }
         };
       };
@@ -287,6 +319,9 @@ export function GeminiChatbot({
       mediaRecorder.start();
       setIsRecording(true);
     } catch (err) {
+      mediaStreamRef.current?.getTracks().forEach((track) => track.stop());
+      mediaStreamRef.current = null;
+      if (!isMountedRef.current) return;
       console.error('Microphone access denied:', err);
       alert('يرجى السماح بالوصول إلى الميكروفون للتسجيل والتفريغ الصوتي.');
     }
@@ -426,7 +461,22 @@ export function GeminiChatbot({
         }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
+      if (!response.ok || !data || typeof data.error === 'string') {
+        const safeError = response.status === 429 && typeof data?.error === 'string'
+          ? data.error
+          : 'عذراً، تعذّر إكمال الطلب. حاول مرة أخرى بعد قليل.';
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `error_${Date.now()}`,
+            role: 'model',
+            text: safeError,
+            timestamp: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+          },
+        ]);
+        return;
+      }
 
       const modelMsg: ChatMessage = {
         id: `model_${Date.now()}`,
