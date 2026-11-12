@@ -1,4 +1,10 @@
-## أحدث لقطة موثّقة: دمج PR #545 — تحقق 2026-11-12
+## أحدث لقطة موثّقة: دمج PR #546 — تحقق 2026-11-12
+
+- **VERIFIED من GitHub:** دُمج PR [#546](https://github.com/hamedonassar95/Devobs/pull/546) عند `9a6eef149a3c942757867875883acbd34764499d` من HEAD الدقيق `01d165bb76af08857b6e4478330e55a93e503961`. نجح push CI [43147104876](https://github.com/hamedonassar95/Devobs/actions/runs/43147104876) وPR CI [43147123864](https://github.com/hamedonassar95/Devobs/actions/runs/43147123864) وCodeQL [43147120630](https://github.com/hamedonassar95/Devobs/actions/runs/43147120630) على HEAD؛ ثم نجح main CI [43147378625](https://github.com/hamedonassar95/Devobs/actions/runs/43147378625) وCodeQL [43147377568](https://github.com/hamedonassar95/Devobs/actions/runs/43147377568) على SHA الدمج.
+- **VERIFIED:** اجتازت فحوص Python وNode والأمن/Gitleaks وPostgreSQL RLS والحاوية/Trivy وTerraform وعقد الموقع و`validate`. نشرت CI صفحة Pages الثابتة واجتازت `verify-production`. تخطّى controlled incident drill شروطه. نجح اختبار التكامل المحلي 4 اختبارات واختبار السجل 50 اختبارًا.
+- **النطاق والحدود:** يضيف PR #546 مثال Codex محليًا واختياريًا لـKubernetes MCP يسمح بأداة `events_list` مع RBAC على namespace واحد. لا يُحمّل في `.codex/config.toml` ولم نتصل بعنقود أو نشغّل خادم MCP حيًا. السجل الآن 190 إنجازًا. AI-9 وP01 باقيان **BLOCKED** وقبول Codex runtime **OPEN**.
+
+## لقطة موثّقة سابقة: دمج PR #545 — تحقق 2026-11-12
 
 - **VERIFIED من GitHub:** دُمج PR [#545](https://github.com/hamedonassar95/Devobs/pull/545) عند `dc4f9834fe011985a93bbc4dd2bafef046fb9712` من HEAD الدقيق `9b3bdd5da890af9dd2f345a68fbd78a2d12eb0a6`. نجح push CI [43145024725](https://github.com/hamedonassar95/Devobs/actions/runs/43145024725) وPR CI [43145039361](https://github.com/hamedonassar95/Devobs/actions/runs/43145039361) وCodeQL [43145035968](https://github.com/hamedonassar95/Devobs/actions/runs/43145035968) على HEAD؛ ثم نجح main CI [43145332069](https://github.com/hamedonassar95/Devobs/actions/runs/43145332069) وCodeQL [43145330688](https://github.com/hamedonassar95/Devobs/actions/runs/43145330688) على SHA الدمج.
 - **VERIFIED:** اجتازت فحوص Python وNode وsecurity/Gitleaks وPostgreSQL RLS وcontainer/Trivy وTerraform وsite-contract و`validate`. نشرت CI صفحة Pages الثابتة واجتازت `verify-production`. تخطّى incident drill وفحوص الاستعادة شروطها. نجحت اختبارات سجل الإنجازات محليًا: 50 اختبارًا.

@@ -1,3 +1,9 @@
+## تحديث بوابات الجاهزية بعد PR #546 — 2026-11-12 (VERIFIED)
+
+- أضاف PR [#546](https://github.com/hamedonassar95/Devobs/pull/546) مثالًا اختياريًا محليًا لـKubernetes MCP بقراءة أحداث namespace واحد. يسمح خادم MCP وCodex بأداة `events_list` فقط، ويقيّد RBAC القراءة بـ`list` على أحداث namespace المحدد. الإعداد لا يدخل في `.codex/config.toml` أو CI أو النشر.
+- نجح push CI [43147104876](https://github.com/hamedonassar95/Devobs/actions/runs/43147104876) وPR CI [43147123864](https://github.com/hamedonassar95/Devobs/actions/runs/43147123864) وCodeQL [43147120630](https://github.com/hamedonassar95/Devobs/actions/runs/43147120630) على HEAD `01d165bb76af08857b6e4478330e55a93e503961`. بعد الدمج عند `9a6eef149a3c942757867875883acbd34764499d` نجح main CI [43147378625](https://github.com/hamedonassar95/Devobs/actions/runs/43147378625) وCodeQL [43147377568](https://github.com/hamedonassar95/Devobs/actions/runs/43147377568). اجتازت Python وNode والأمن/Gitleaks وPostgreSQL RLS والحاوية/Trivy وTerraform وعقد الموقع و`validate`، ونُشرت صفحة Pages الثابتة واجتازت `verify-production`.
+- **UNVERIFIED:** لم نستخدم kubeconfig أو اعتماد، ولم نطبق RBAC أو نتصل بعنقود أو نشغّل MCP حيًا. القبول التشغيلي لـCodex ما زال **OPEN**؛ AI-9 وP01 ما زالا **BLOCKED**.
+
 ## تزامن السجل بعد PR #545 — 2026-11-12 (VERIFIED)
 
 - PR [#545](https://github.com/hamedonassar95/Devobs/pull/545) حدّث الحالة وسجل الإنجازات واختبارات السجل لدمج #544. دُمج عند `dc4f9834fe011985a93bbc4dd2bafef046fb9712` من HEAD `9b3bdd5da890af9dd2f345a68fbd78a2d12eb0a6`.
