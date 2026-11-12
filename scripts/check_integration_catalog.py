@@ -25,6 +25,7 @@ EXPECTED_IDS = {
     "google-sheets-ai7",
     "google-slides-ai7",
     "google-chat-ai7",
+    "google-tasks-ai7",
 }
 VALID_STATUSES = {"import_confirmed", "github_app_installed", "account_connected_unlinked",
                   "draft_handoff_only", "config_committed_unverified", "local_feature_unverified"}
@@ -158,13 +159,20 @@ def validate_catalog(data: Any) -> list[str]:
                 errors.append("Google Chat source path must match the local AI-7 integration.")
             if svc.get("runtime_verified") is True:
                 errors.append("Google Chat OAuth/runtime is not verified.")
+        elif identifier == "google-tasks-ai7":
+            if svc.get("integration_status") != "local_feature_unverified":
+                errors.append("Google Tasks must remain optional and local until OAuth runtime is verified.")
+            if svc.get("observed_directory") != "scripts/ai_intelligence/dashboard_assets/google_tasks_followup.mjs":
+                errors.append("Google Tasks source path must match the local AI-7 integration.")
+            if svc.get("runtime_verified") is True:
+                errors.append("Google Tasks OAuth/runtime is not verified.")
         elif svc.get("runtime_verified") is True:
             errors.append(f"{label}: runtime is not verified for this provider.")
 
     if len(ids) != len(set(ids)):
         errors.append("Duplicate service ids are forbidden.")
     if set(ids) != EXPECTED_IDS:
-        errors.append("Service ids must match the twelve explicitly scoped providers.")
+        errors.append("Service ids must match the thirteen explicitly scoped providers.")
     return errors
 
 
@@ -182,7 +190,7 @@ def main() -> int:
         for error in errors:
             print(f"FAIL: {error}", file=sys.stderr)
         return 1
-    print("PASS: twelve integration records, evidence and default-deny controls validated locally.")
+    print("PASS: thirteen integration records, evidence and default-deny controls validated locally.")
     return 0
 
 

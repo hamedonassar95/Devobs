@@ -5,7 +5,7 @@
 ## التشغيل
 
 ```sh
-node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--feedback-ledger <private-jsonl-file>] [--google-docs-client-id <public-oauth-client-id>] [--google-sheets-client-id <public-oauth-client-id>] [--google-slides-client-id <public-oauth-client-id>] [--google-chat-client-id <public-oauth-client-id>] [--port 8765]
+node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> [--feedback-ledger <private-jsonl-file>] [--google-docs-client-id <public-oauth-client-id>] [--google-sheets-client-id <public-oauth-client-id>] [--google-slides-client-id <public-oauth-client-id>] [--google-chat-client-id <public-oauth-client-id>] [--google-tasks-client-id <public-oauth-client-id>] [--port 8765]
 ```
 
 افتح الرابط المحلي الذي يطبعه الأمر على `127.0.0.1`. لإيقاف الخادم اضغط `Ctrl+C`. يقرأ الخادم لقطة مرة واحدة عند البدء؛ أعد تشغيله بعد تحديث سجل الأحداث أو سجل التغذية الراجعة. كل تكامل Google اختياري ومنفصل؛ لا يُفعّل إلا بإضافة معرّف OAuth الخاص به. استخدم بيانات اصطناعية حتى اعتماد سياسة الخصوصية والاحتفاظ.
@@ -100,6 +100,20 @@ node scripts/ai_intelligence/dashboard_server.mjs --store <local-jsonl-file> --g
 - [Create a document](https://developers.google.com/workspace/docs/api/reference/rest/v1/documents/create)
 - [Batch update a document](https://developers.google.com/workspace/docs/api/reference/rest/v1/documents/batchUpdate)
 
+## إنشاء مهمة متابعة واحدة في Google Tasks (اختياري)
+
+الميزة محلية ومعطّلة افتراضيًا. فعّل Google Tasks API، وسجّل `http://127.0.0.1:8765` كـJavaScript origin في OAuth client من نوع Web application، ثم شغّل اللوحة مع `--google-tasks-client-id <public-oauth-client-id>`. لا تنشئ client secret للواجهة ولا ترسله. قبل أي اتصال، تعرض اللوحة عنوان المهمة وملاحظاتها وتاريخ استحقاقها وتطلب تأكيدك.
+
+بعد التأكيد، تنشئ اللوحة مهمة واحدة بعنوان ثابت في قائمة Google Tasks الافتراضية، مع أعداد AI-7 المسموحة وتاريخ تختاره. لا تسرد القوائم ولا تقرأ أو تعدّل أو تحذف أي مهمة. نطاق Google `https://www.googleapis.com/auth/tasks` يسمح بإدارة المهام عمومًا؛ الكود هنا يستخدمه لطلب `tasks.insert` واحد فقط. رمز الوصول يبقى في ذاكرة الصفحة. إذا لم تتأكد من نتيجة الطلب، افحص Google Tasks قبل إعادة المحاولة لاحتمال إنشاء المهمة.
+
+هذا تكامل محلي غير موصول بحساب Google ولا يثبت جاهزية SaaS. الاختبارات تستخدم بيانات اصطناعية واستجابة وهمية؛ لم ننشئ مهمة فعلية.
+
+مراجع Google Tasks الرسمية:
+
+- [Google Tasks API: إدراج مهمة](https://developers.google.com/tasks/reference/rest/v1/tasks/insert)
+- [نطاقات OAuth في Google Tasks](https://developers.google.com/identity/protocols/oauth2/scopes#tasks)
+- [Google Identity Services: نموذج الرموز](https://developers.google.com/identity/oauth2/web/guides/use-token-model)
+
 ## التقييم الاصطناعي والفحوص
 
 **VERIFIED في اختبار هذه النسخة:** يحتوي اختبار التغطية ست حالات اصطناعية لقواعد AI-3 (timeout، اتصال، DNS، صلاحية، اعتماد، ذاكرة)، ومطابقة 6/6 للفئة المحددة. هذه **مطابقة لمجموعة قواعد صغيرة أنشأها المطور**، وليست دقة تنبؤية أو تقييمًا على حوادث حقيقية.
@@ -112,15 +126,18 @@ node --check scripts/ai_intelligence/dashboard_assets/google_calendar_followup.m
 node --check scripts/ai_intelligence/dashboard_assets/google_sheets_export.mjs
 node --check scripts/ai_intelligence/dashboard_assets/google_slides_export.mjs
 node --check scripts/ai_intelligence/dashboard_assets/google_chat_export.mjs
+node --check scripts/ai_intelligence/dashboard_assets/google_tasks_followup.mjs
 node --check tests/ai_dashboard_api.test.mjs
 node --check tests/google_calendar_followup.test.mjs
 node --check tests/google_sheets_export.test.mjs
 node --check tests/google_slides_export.test.mjs
 node --check tests/google_chat_export.test.mjs
+node --check tests/google_tasks_followup.test.mjs
 node --test tests/ai_dashboard_api.test.mjs tests/google_docs_export.test.mjs tests/google_chat_export.test.mjs tests/ai_anomaly_detector.test.mjs tests/ai_trend_forecast.test.mjs
 node --test tests/google_calendar_followup.test.mjs
 node --test tests/google_sheets_export.test.mjs
 node --test tests/google_slides_export.test.mjs
+node --test tests/google_tasks_followup.test.mjs
 ```
 
 الخادم يستخدم مكتبة [Node.js HTTP](https://nodejs.org/api/http.html) وواجهة [URL](https://nodejs.org/api/url.html) المدمجتين؛ الاختبارات تستخدم [Node.js Test Runner](https://nodejs.org/api/test.html) وHTTP محليًا على loopback فقط. لا تثبت هذه الفحوص أمان خدمة عامة أو جاهزية نشر.

@@ -225,6 +225,25 @@
         "Google Chat user authentication and authorization: https://developers.google.com/workspace/chat/authenticate-authorize-chat-user",
         "AI-7 implementation and mocked tests are covered by PR #556; no real OAuth or message send was performed"
       ]
+    },
+    {
+      "id": "google-tasks-ai7",
+      "name": "Google Tasks API",
+      "integration_status": "local_feature_unverified",
+      "runtime_verified": false,
+      "provider_writes_authorized": false,
+      "cost_authorized": false,
+      "repository_scope": "local AI-7 dashboard only; no Google account connected",
+      "observed_branch": "main",
+      "observed_directory": "scripts/ai_intelligence/dashboard_assets/google_tasks_followup.mjs",
+      "verified_capability": "Adds one explicitly confirmed follow-up task to the default Google Tasks list from allowlisted AI-7 aggregate counts and a chosen due date. It never lists, reads, updates, or deletes tasks; automated tests use mocked Google responses.",
+      "blocker": "No OAuth Client ID or Google account was configured and no live API call or task was created. The tasks scope allows task management; the local feature only sends one create request after preview and confirmation.",
+      "evidence": [
+        "Source capability reviewed in hamedonassar95/ops at f2af2044f75a8af87738013fbfdbd82f4187f84a; source implementation also reads incident fields and uses the broader task service, which were not copied",
+        "Google Tasks tasks.insert: https://developers.google.com/tasks/reference/rest/v1/tasks/insert",
+        "Google Tasks OAuth scope: https://developers.google.com/identity/protocols/oauth2/scopes#tasks",
+        "Devobs implementation uses fixed text and mocked API requests; no live OAuth or task creation was performed"
+      ]
     }
   ]
 }
