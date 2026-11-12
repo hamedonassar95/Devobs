@@ -2191,6 +2191,17 @@
       "ci_run_id": 43191054462,
       "verification": "VERIFIED 2026-11-12: PR #562 merged at 66f04316838870b095e0ab1ee9e104660b534f73 from exact head 3003b924abdc24151f4188cb1279bba1609eb5e5. PR CI 43190661267 and exact-head push CI 43190653455 passed; CodeQL 43190653769 passed for Actions, JavaScript/TypeScript, and Python. Post-merge main CI 43191054462 and CodeQL 43191053490 passed on the merge SHA. Main CI passed Node/Python, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract and validate; static Pages publication and verify-production passed. Incident drill and restoration checks skipped by conditions. Local relevant Node tests passed (102), integration catalog tests passed (25), 15 catalog records validated, and AI DevKit lint passed 16 checks. The advisory Codex workflow completed with inference skipped because budget approval was absent; PR-Agent skipped by condition.",
       "limitations": "Adds an optional local AI-7 action that sends one explicitly confirmed message to one validated recipient using gmail.send and fixed aggregate counts; it does not read the inbox or send raw logs or incident text. No OAuth Client ID/account was configured and no live Gmail API call or email was sent. The AI-7 dashboard is outside static Pages assets, so Pages publication does not host it or establish SaaS readiness. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
+    },
+    {
+      "id": "ai-intelligence-console-consolidation",
+      "area": "PLATFORM",
+      "title": "Consolidate the AI Intelligence prototype under the canonical Devobs repository",
+      "pr_number": 565,
+      "pr_head_sha": "b64d4e1f50893024a5e96e672e9e02493f12ded2",
+      "merge_sha": "b6179ba440018c67936aca06ab92c562566cfd6e",
+      "ci_run_id": 43231162103,
+      "verification": "VERIFIED 2026-11-12: PR #565 merged at b6179ba440018c67936aca06ab92c562566cfd6e from reviewed head b64d4e1f50893024a5e96e672e9e02493f12ded2. PR CI 43230036787, CodeQL 43230028515, and advisory review 43230036770 passed. Post-merge main CI 43231162103 and CodeQL 43231160983 passed; Node, Python, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract and validate succeeded. GitHub Pages publication and verify-production succeeded; Vercel Production deployment 7739085232 succeeded. Local console tests passed 10/10, TypeScript/build passed, and npm audit found 0 vulnerabilities.",
+      "limitations": "The 73 tracked source files are preserved under apps/ai-intelligence-console except three inactive nested workflows and the bundled Firebase config, documented in CONSOLIDATION.md. The source repository remains untouched. The console is still a prototype with mock infrastructure/GitHub actions; Firebase, Google and Gemini are disabled, no credentials or customer data were connected, and this import does not make it a production control plane or add it to the GitHub Pages artifact. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
     }
   ],
   "gates": [
