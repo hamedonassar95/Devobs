@@ -2015,6 +2015,28 @@
       "ci_run_id": 43134970833,
       "verification": "VERIFIED 2026-11-12: PR #539 merged at 47004a850ebdc376711bf763ec9ca5458532a538 from exact head a843db5b8bdaff34ae509171a3959e7698c58e9a. PR CI 43134546161 and CodeQL workflow 43134542025 passed. Post-merge main CI 43134970833 and Push on main CodeQL 43134970567 passed on the merge SHA. Post-merge Python validation, security, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, production site publication and verify-production passed. Node tests were skipped by path; controlled incident drill and recovery checks were skipped by workflow conditions. The milestone ledger suite passed 50 tests locally before merge. AI Code Review workflow 43134546012 completed, but its model review was skipped because budget approval was absent; Advisory PR-Agent review was skipped.",
       "limitations": "Documentation, ledger and ledger-test synchronization only; no application behavior or readiness gate changed. The existing main CI workflow automatically published and verified the static production site; this is not evidence of SaaS readiness. The optional Google Docs export remains untested with live OAuth or a Docs API call. AI-9 remains BLOCKED, P01 remains BLOCKED, and Codex runtime remains OPEN. No model inference ran because budget approval was absent."
+    },
+    {
+      "id": "ledger-sync-pr540",
+      "area": "DOCUMENTATION",
+      "title": "Record PR 540 merge evidence for the PR 539 ledger sync",
+      "pr_number": 540,
+      "pr_head_sha": "d7d728ea877efa8f6c67a73da4cda75ef1d59cd9",
+      "merge_sha": "a1fdb646dc05be6105f5d3f2f38009b9221c9ead",
+      "ci_run_id": 43136775234,
+      "verification": "VERIFIED 2026-11-12: PR #540 merged at a1fdb646dc05be6105f5d3f2f38009b9221c9ead from exact head d7d728ea877efa8f6c67a73da4cda75ef1d59cd9. PR CI 43136550856 and CodeQL 43136547740 passed; post-merge main CI 43136775234 and CodeQL 43136775021 passed on the merge SHA. This PR synchronizes the verified PR #539 evidence into STATE.md, readiness and ledger records.",
+      "limitations": "Documentation, state, ledger and regression-test synchronization only; no application behavior or readiness gate changed. AI-9 remains BLOCKED, P01 remains BLOCKED, and Codex runtime remains OPEN. The main CI published and verified the existing static Pages artifact; this is not SaaS readiness evidence."
+    },
+    {
+      "id": "github-mcp-readonly-codex",
+      "area": "AGENT_OPERATIONS",
+      "title": "Add optional read-only local GitHub MCP integration for Codex",
+      "pr_number": 541,
+      "pr_head_sha": "2c1f92905780473f17f49fb065ae7514058d5cd2",
+      "merge_sha": "f6f627bbb0a8c215f79e260265dc8a939f820019",
+      "ci_run_id": 43141603760,
+      "verification": "VERIFIED 2026-11-12: PR #541 merged at f6f627bbb0a8c215f79e260265dc8a939f820019 from exact head 2c1f92905780473f17f49fb065ae7514058d5cd2. PR CI 43141315305 and CodeQL 43141309945 passed; post-merge main CI 43141603760 and CodeQL 43141602707 passed. Post-merge Python, Node, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, Pages publication and verify-production passed. The full local Python suite passed 1021 tests with 25 skipped after installing requirements-api.lock. Advisory Codex review workflow 43141315261 completed without model inference because budget approval was absent; PR-Agent was skipped.",
+      "limitations": "Adds an optional local Codex configuration example and documentation only; it is not enabled in the repository config, CI or published site. Docker, OAuth and a live GitHub MCP call were not run, so integration runtime remains UNVERIFIED and Codex runtime gate remains OPEN. The read-only MCP tool filter does not reduce the underlying OAuth grant; use a fine-grained read-only token when account-level read-only permission is required. AI-9 and P01 remain BLOCKED."
     }
   ],
   "gates": [
