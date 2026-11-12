@@ -1,3 +1,9 @@
+## موجز Gmail محلي اختياري لـAI-7 بعد PR #562 — 2026-11-12 (VERIFIED)
+
+- أضاف PR [#562](https://github.com/hamedonassar95/Devobs/pull/562) خيار إرسال رسالة واحدة إلى مستلم واحد بعد معاينة المستخدم وتأكيده، باستخدام نطاق Google `gmail.send` ومجاميع AI-7 الثابتة. لا يقرأ Gmail ولا يرسل نصوص الحوادث أو السجلات الخام. عولجت ملاحظة المراجعة التي وجدت أن CSP تمنع `gmail.googleapis.com`، وأضيف اختبار للسياسة.
+- نجح PR CI [43190661267](https://github.com/hamedonassar95/Devobs/actions/runs/43190661267) وexact-head push CI [43190653455](https://github.com/hamedonassar95/Devobs/actions/runs/43190653455) وCodeQL [43190653769](https://github.com/hamedonassar95/Devobs/actions/runs/43190653769) على HEAD `3003b924abdc24151f4188cb1279bba1609eb5e5`. بعد الدمج عند `66f04316838870b095e0ab1ee9e104660b534f73` نجح main CI [43191054462](https://github.com/hamedonassar95/Devobs/actions/runs/43191054462) وCodeQL [43191053490](https://github.com/hamedonassar95/Devobs/actions/runs/43191053490). اجتازت Node وPython والأمن/Gitleaks وPostgreSQL RLS والحاوية/Trivy وTerraform وsite-contract و`validate`؛ نُشرت Pages واجتازت `verify-production`. تخطّى incident drill والاستعادة شروطهما. محليًا نجحت مجموعة Node ذات الصلة (102)، واختبارات الكتالوج (25)، وفحص الكتالوج (15 سجلًا)، وAI DevKit lint (16 فحصًا).
+- **UNVERIFIED:** لم يُضبط OAuth Client ID أو حساب Google؛ لم تحدث مكالمة Gmail API أو رسالة فعلية. الميزة محلية وليست ضمن أصول Pages المنشورة، والنشر لا يستضيفها ولا يثبت جاهزية SaaS. مراجعة Codex لم تشغّل استدلالًا مدفوعًا لغياب موافقة الميزانية، وPR-Agent تخطّى شرطه. عدد سجلات التكاملات 15 وسجل الإنجازات 199؛ AI-9 وP01 ما زالا **BLOCKED** وقبول Codex runtime **OPEN**.
+
 ## استكمال جرد التكاملات بعد PR #560 — 2026-11-12 (VERIFIED)
 
 - كان كتالوج الخدمات يعدّ 13 سجلًا ولم يذكر تكامل Google Docs المحلي الموجود منذ PR #532. أضاف PR [#560](https://github.com/hamedonassar95/Devobs/pull/560) سجلًا دقيقًا له؛ لم يضف موصلًا أو سلوكًا تشغيليًا جديدًا. العدد الحالي 14 سجلًا.

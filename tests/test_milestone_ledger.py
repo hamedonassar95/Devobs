@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_latest_recorded_merges_through_pr560_do_not_promote_gates(self):
+    def test_latest_recorded_merges_through_pr562_do_not_promote_gates(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 560)
-        self.assertEqual(result["merged_milestones"], 198)
+        self.assertEqual(result["latest_pr"], 562)
+        self.assertEqual(result["merged_milestones"], 199)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         self.assertEqual(records[550]["pr_head_sha"], "0e681cb62b4359f99d59caaaab99bfbc911e1879")
         self.assertEqual(records[550]["merge_sha"], "b68031d1b11c20d2f6fa29e46b687aa2010186b3")
@@ -1060,6 +1060,12 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(records[560]["ci_run_id"], 43186249132)
         self.assertIn("Catalog-only correction", records[560]["limitations"])
         self.assertIn("no live API call", records[560]["limitations"])
+        self.assertEqual(records[562]["pr_head_sha"], "3003b924abdc24151f4188cb1279bba1609eb5e5")
+        self.assertEqual(records[562]["merge_sha"], "66f04316838870b095e0ab1ee9e104660b534f73")
+        self.assertEqual(records[562]["ci_run_id"], 43191054462)
+        self.assertIn("gmail.send", records[562]["limitations"])
+        self.assertIn("no live Gmail API call", records[562]["limitations"])
+        self.assertIn("inference skipped", records[562]["verification"])
         self.assertEqual(
             records[530]["merge_sha"],
             "1dbc2d811b317b9f060bf46fa2376aaf083f0aec",
