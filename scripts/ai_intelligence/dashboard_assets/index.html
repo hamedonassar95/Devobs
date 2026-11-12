@@ -72,6 +72,19 @@
       </div>
     </section>
 
+    <section aria-labelledby="google-chat-title">
+      <h2 id="google-chat-title">إرسال موجز مجمّع إلى Google Chat</h2>
+      <p class="notice">لا تبحث اللوحة عن المساحات ولا تقرأ الرسائل. أدخل اسم مساحة موجودة، راجع نص الموجز أدناه، ثم أكّد الإرسال. سيظهر النص باسم حسابك لأعضاء تلك المساحة؛ لا يتضمن إلا مجاميع AI-7 الثابتة.</p>
+      <div class="card google-chat-export">
+        <label for="google-chat-space-name">اسم المساحة (مثل <code>spaces/AAAA...</code>)</label>
+        <input id="google-chat-space-name" type="text" required maxlength="135" pattern="spaces/[A-Za-z0-9_-]{1,128}" autocomplete="off" placeholder="spaces/AAAA...">
+        <label for="google-chat-preview">معاينة الرسالة التي ستُرسل</label>
+        <textarea id="google-chat-preview" rows="12" readonly aria-describedby="google-chat-status"></textarea>
+        <button type="button" id="google-chat-send" disabled>إرسال الموجز إلى هذه المساحة</button>
+        <p id="google-chat-status" class="muted" role="status" aria-live="polite">ميزة Google Chat غير مفعّلة حتى إعداد OAuth اختياري.</p>
+      </div>
+    </section>
+
     <section aria-labelledby="google-calendar-title">
       <h2 id="google-calendar-title">جدولة مراجعة متابعة في Google Calendar</h2>
       <p class="notice">خيار محلي. ينشئ موعدًا عامًا لمدة 30 دقيقة في تقويم منفصل تابع لـDevobs AI-7. لا يرسل سجلات أو بيانات حوادث أو أسماء عملاء، ولا يضيف مدعوين أو رابط اجتماع. يلزم اختيار موعد وتأكيده قبل الاتصال. يُحفظ معرّف التقويم في هذا المتصفح لإعادة استخدامه؛ رمز الدخول لا يُحفظ.</p>

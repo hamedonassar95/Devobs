@@ -116,7 +116,7 @@ test('read-only local API returns bounded aggregates and hides raw log/path/hash
   const port = await listen(server);
   t.after(() => new Promise(resolve => server.close(resolve)));
 
-  const [intelligenceResponse, summaryResponse, incidentsResponse, recommendationsResponse, googleConfigResponse, googleCalendarConfigResponse, googleSheetsConfigResponse, googleSlidesConfigResponse] = await Promise.all([
+  const [intelligenceResponse, summaryResponse, incidentsResponse, recommendationsResponse, googleConfigResponse, googleCalendarConfigResponse, googleSheetsConfigResponse, googleSlidesConfigResponse, googleChatConfigResponse] = await Promise.all([
     request(port, '/api/v1/intelligence'),
     request(port, '/api/v1/summary'),
     request(port, '/api/v1/incidents'),
@@ -125,6 +125,7 @@ test('read-only local API returns bounded aggregates and hides raw log/path/hash
     request(port, '/api/v1/google-calendar-config'),
     request(port, '/api/v1/google-sheets-config'),
     request(port, '/api/v1/google-slides-config'),
+    request(port, '/api/v1/google-chat-config'),
   ]);
   assert.equal(intelligenceResponse.status, 200);
   assert.equal(summaryResponse.status, 200);
@@ -134,6 +135,7 @@ test('read-only local API returns bounded aggregates and hides raw log/path/hash
   assert.equal(googleCalendarConfigResponse.status, 200);
   assert.equal(googleSheetsConfigResponse.status, 200);
   assert.equal(googleSlidesConfigResponse.status, 200);
+  assert.equal(googleChatConfigResponse.status, 200);
   assert.deepEqual(JSON.parse(googleConfigResponse.body), {
     enabled: false,
     client_id: '',
@@ -153,6 +155,11 @@ test('read-only local API returns bounded aggregates and hides raw log/path/hash
     enabled: false,
     client_id: '',
     scope: 'https://www.googleapis.com/auth/drive.file',
+  });
+  assert.deepEqual(JSON.parse(googleChatConfigResponse.body), {
+    enabled: false,
+    client_id: '',
+    scope: 'https://www.googleapis.com/auth/chat.messages.create',
   });
   const intelligence = JSON.parse(intelligenceResponse.body);
   const summary = JSON.parse(summaryResponse.body);
@@ -193,6 +200,7 @@ test('server is loopback-only, same-origin, read-only, and emits browser hardeni
   assert.match(page.headers['content-security-policy'], /docs\.googleapis\.com/);
   assert.match(page.headers['content-security-policy'], /sheets\.googleapis\.com/);
   assert.match(page.headers['content-security-policy'], /slides\.googleapis\.com/);
+  assert.match(page.headers['content-security-policy'], /chat\.googleapis\.com/);
   assert.match(page.headers['content-security-policy'], /www\.googleapis\.com/);
   assert.equal(page.headers['access-control-allow-origin'], undefined);
   assert.match(page.body, /lang="ar" dir="rtl"/);
@@ -201,6 +209,8 @@ test('server is loopback-only, same-origin, read-only, and emits browser hardeni
   assert.match(page.body, /google-calendar-followup-form/);
   assert.match(page.body, /google-sheets-export/);
   assert.match(page.body, /google-slides-export/);
+  assert.match(page.body, /google-chat-space-name/);
+  assert.match(page.body, /google-chat-send/);
   assert.match(page.body, /لا يضيف مدعوين أو رابط اجتماع/);
 
   const script = await request(port, '/dashboard.js', { origin });
@@ -217,6 +227,9 @@ test('server is loopback-only, same-origin, read-only, and emits browser hardeni
   assert.match(script.body, /google-sheets-config/);
   assert.match(script.body, /google_slides_export\.mjs/);
   assert.match(script.body, /google-slides-config/);
+  assert.match(script.body, /google_chat_export\.mjs/);
+  assert.match(script.body, /google-chat-config/);
+  assert.match(script.body, /GOOGLE_CHAT_SCOPE/);
   assert.match(script.body, /drive\.file/);
   assert.doesNotMatch(script.body, /innerHTML/);
 
@@ -247,6 +260,12 @@ test('server is loopback-only, same-origin, read-only, and emits browser hardeni
   assert.match(slidesModule.headers['content-type'], /javascript/);
   assert.match(slidesModule.body, /https:\/\/slides\.googleapis\.com/);
   assert.doesNotMatch(slidesModule.body, /innerHTML|CUSTOMER_RAW_MARKER/);
+  const chatModule = await request(port, '/google_chat_export.mjs', { origin });
+  assert.equal(chatModule.status, 200);
+  assert.match(chatModule.headers['content-type'], /javascript/);
+  assert.match(chatModule.body, /https:\/\/chat\.googleapis\.com/);
+  assert.match(chatModule.body, /chat\.messages\.create/);
+  assert.doesNotMatch(chatModule.body, /innerHTML|CUSTOMER_RAW_MARKER/);
   assert.deepEqual(JSON.parse((await request(port, '/api/v1/google-docs-config', { origin })).body), {
     enabled: false,
     client_id: '',
@@ -262,6 +281,11 @@ test('server is loopback-only, same-origin, read-only, and emits browser hardeni
     client_id: '',
     scope: 'https://www.googleapis.com/auth/drive.file',
   });
+  assert.deepEqual(JSON.parse((await request(port, '/api/v1/google-chat-config', { origin })).body), {
+    enabled: false,
+    client_id: '',
+    scope: 'https://www.googleapis.com/auth/chat.messages.create',
+  });
 
   assert.equal((await request(port, '/api/v1/summary', { host: `localhost:${port}` })).status, 421);
   assert.equal((await request(port, '/api/v1/summary', { origin: 'https://untrusted.example' })).status, 403);
@@ -272,6 +296,7 @@ test('server is loopback-only, same-origin, read-only, and emits browser hardeni
   assert.equal((await request(port, '/api/v1/google-calendar-config', { method: 'POST', origin })).status, 405);
   assert.equal((await request(port, '/api/v1/google-sheets-config', { method: 'POST', origin })).status, 405);
   assert.equal((await request(port, '/api/v1/google-slides-config', { method: 'POST', origin })).status, 405);
+  assert.equal((await request(port, '/api/v1/google-chat-config', { method: 'POST', origin })).status, 405);
   assert.equal((await request(port, '/unknown', { origin })).status, 404);
 });
 
@@ -283,6 +308,7 @@ test('Google OAuth configuration is opt-in, public-client-only, and bounded', as
     googleCalendarClientId: '1234567890-publicclient.apps.googleusercontent.com',
     googleSheetsClientId: '1234567890-publicclient.apps.googleusercontent.com',
     googleSlidesClientId: '1234567890-publicclient.apps.googleusercontent.com',
+    googleChatClientId: '1234567890-publicclient.apps.googleusercontent.com',
   });
   const port = await listen(server);
   t.after(() => new Promise(resolve => server.close(resolve)));
@@ -314,6 +340,13 @@ test('Google OAuth configuration is opt-in, public-client-only, and bounded', as
     client_id: '1234567890-publicclient.apps.googleusercontent.com',
     scope: 'https://www.googleapis.com/auth/drive.file',
   });
+  const chatConfigResponse = await request(port, '/api/v1/google-chat-config');
+  assert.equal(chatConfigResponse.status, 200);
+  assert.deepEqual(JSON.parse(chatConfigResponse.body), {
+    enabled: true,
+    client_id: '1234567890-publicclient.apps.googleusercontent.com',
+    scope: 'https://www.googleapis.com/auth/chat.messages.create',
+  });
 
   await assert.rejects(createDashboardServer({ storePath, googleDocsClientId: 'not-a-client-secret' }), {
     code: 'invalid_google_docs_client_id',
@@ -326,6 +359,9 @@ test('Google OAuth configuration is opt-in, public-client-only, and bounded', as
   });
   await assert.rejects(createDashboardServer({ storePath, googleSlidesClientId: 'not-a-client-secret' }), {
     code: 'invalid_google_slides_client_id',
+  });
+  await assert.rejects(createDashboardServer({ storePath, googleChatClientId: 'not-a-client-secret' }), {
+    code: 'invalid_google_chat_client_id',
   });
 });
 
