@@ -58,13 +58,18 @@ jobs:
         run: python3 scripts/assess_change.py
 
   python-tests:
+    name: Python ${{ matrix.python_version }} tests
     needs: change-analysis
     if: inputs.validation_profile == 'rollback' || needs.change-analysis.outputs.python_required == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        python_version: ["3.12", "3.15"]
     permissions:
       contents: read
     uses: ./.github/workflows/reusable-python-ci.yml
     with:
-      python_version: "3.12"
+      python_version: ${{ matrix.python_version }}
       requirements_file: requirements-api.lock
       require_hashes: true
       compile_paths_json: '["scripts", "tests"]'

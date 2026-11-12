@@ -2191,6 +2191,39 @@
       "ci_run_id": 43191054462,
       "verification": "VERIFIED 2026-11-12: PR #562 merged at 66f04316838870b095e0ab1ee9e104660b534f73 from exact head 3003b924abdc24151f4188cb1279bba1609eb5e5. PR CI 43190661267 and exact-head push CI 43190653455 passed; CodeQL 43190653769 passed for Actions, JavaScript/TypeScript, and Python. Post-merge main CI 43191054462 and CodeQL 43191053490 passed on the merge SHA. Main CI passed Node/Python, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract and validate; static Pages publication and verify-production passed. Incident drill and restoration checks skipped by conditions. Local relevant Node tests passed (102), integration catalog tests passed (25), 15 catalog records validated, and AI DevKit lint passed 16 checks. The advisory Codex workflow completed with inference skipped because budget approval was absent; PR-Agent skipped by condition.",
       "limitations": "Adds an optional local AI-7 action that sends one explicitly confirmed message to one validated recipient using gmail.send and fixed aggregate counts; it does not read the inbox or send raw logs or incident text. No OAuth Client ID/account was configured and no live Gmail API call or email was sent. The AI-7 dashboard is outside static Pages assets, so Pages publication does not host it or establish SaaS readiness. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
+    },
+    {
+      "id": "ai-intelligence-console-consolidation",
+      "area": "PLATFORM",
+      "title": "Consolidate the AI Intelligence prototype under the canonical Devobs repository",
+      "pr_number": 565,
+      "pr_head_sha": "b64d4e1f50893024a5e96e672e9e02493f12ded2",
+      "merge_sha": "b6179ba440018c67936aca06ab92c562566cfd6e",
+      "ci_run_id": 43231162103,
+      "verification": "VERIFIED 2026-11-12: PR #565 merged at b6179ba440018c67936aca06ab92c562566cfd6e from reviewed head b64d4e1f50893024a5e96e672e9e02493f12ded2. PR CI 43230036787, CodeQL 43230028515, and advisory review 43230036770 passed. Post-merge main CI 43231162103 and CodeQL 43231160983 passed; Node, Python, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract and validate succeeded. GitHub Pages publication and verify-production succeeded; Vercel Production deployment 7739085232 succeeded. Local console tests passed 10/10, TypeScript/build passed, and npm audit found 0 vulnerabilities.",
+      "limitations": "The 73 tracked source files are preserved under apps/ai-intelligence-console except three inactive nested workflows and the bundled Firebase config, documented in CONSOLIDATION.md. The source repository remains untouched. The console is still a prototype with mock infrastructure/GitHub actions; Firebase, Google and Gemini are disabled, no credentials or customer data were connected, and this import does not make it a production control plane or add it to the GitHub Pages artifact. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
+    },
+    {
+      "id": "milestone-ledger-sync-pr572",
+      "area": "DOCUMENTATION",
+      "title": "Record the AI Intelligence consolidation merge in durable project state",
+      "pr_number": 572,
+      "pr_head_sha": "15e017fadc9e9978da4e782ee35853e71db3dfda",
+      "merge_sha": "3a0c768572d49759565a5b6b947a0134194f13f9",
+      "ci_run_id": 43233982170,
+      "verification": "VERIFIED 2026-11-12: PR #572 merged at 3a0c768572d49759565a5b6b947a0134194f13f9 from exact reviewed head 15e017fadc9e9978da4e782ee35853e71db3dfda. PR CI 43232671701 and 43232703990 passed; CodeQL 43232699002 and advisory Codex review 43232703791 passed. Post-merge main CI 43233982170 and CodeQL 43233980719 passed. Python, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract and validate passed. Node was skipped on main by path selection but passed in PR CI 43232671701. GitHub Pages publication and verify-production passed; Vercel Production deployment dpl_GTBXPmwQGVpQFbMtLVshteKoJLrX reached READY.",
+      "limitations": "Documentation and milestone regression-test synchronization only; no application behavior or readiness gates changed. GitHub Pages and Vercel Production deployed automatically after the approved merge. The controlled incident drill and PR-Agent review skipped by conditions. AI-9 and P01 remain BLOCKED; Codex runtime acceptance remains OPEN."
+    },
+    {
+      "id": "github-november-updates-copilot-metrics-python315",
+      "area": "PLATFORM",
+      "title": "Add Python 3.15 CI coverage, workflow trigger guard, and read-only Copilot metrics reporting",
+      "pr_number": 574,
+      "pr_head_sha": "e3d4463407e077c4934798e0bc6e63c1c22f2187",
+      "merge_sha": "f28c5bfec3641239ba96fe79d7fc3892ccd2d11c",
+      "ci_run_id": 43246268485,
+      "verification": "VERIFIED 2026-11-12: PR #574 merged at f28c5bfec3641239ba96fe79d7fc3892ccd2d11c from exact head e3d4463407e077c4934798e0bc6e63c1c22f2187. PR CI 43245875730, exact-head push CI 43245817095, CodeQL 43245865565, and advisory Codex review 43245875825 passed. Post-merge main CI 43246268485 and CodeQL 43246266737 passed on the merge SHA. Python 3.12 and 3.15, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, and validate passed; Node path-selected checks passed. GitHub Pages production publication and verify-production passed. Local unittest discovery passed 1,048 tests on Python 3.12.14 and 1,048 tests on Python 3.15.1 (25 skipped under existing conditions); actionlint 1.7.12, ShellCheck 0.11.0, Bandit, both pip-audit lock scans, agent-spec, milestone-ledger, and synthetic evaluation fixture validation passed.",
+      "limitations": "Adds CI compatibility coverage and an offline reader for downloaded Copilot BYOK metrics only. The report makes no API calls, writes no GitHub setting, does not estimate USD spend, and does not set DEVOBS_AI_BUDGET_APPROVED. No duplicate CodeQL/Gitleaks pipeline, model routing, MCP connection, credential, or inference permission was added. GitHub Pages published the repository's static site and does not prove AI-9 or P01 readiness; AI-9 and P01 remain BLOCKED and Codex runtime acceptance remains OPEN. Controlled incident checks and PR-Agent review skipped by conditions."
     }
   ],
   "gates": [
