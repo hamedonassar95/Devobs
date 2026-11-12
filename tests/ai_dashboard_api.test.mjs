@@ -209,6 +209,7 @@ test('server is loopback-only, same-origin, read-only, and emits browser hardeni
   assert.match(page.headers['content-security-policy'], /slides\.googleapis\.com/);
   assert.match(page.headers['content-security-policy'], /chat\.googleapis\.com/);
   assert.match(page.headers['content-security-policy'], /tasks\.googleapis\.com/);
+  assert.match(page.headers['content-security-policy'], /gmail\.googleapis\.com/);
   assert.match(page.headers['content-security-policy'], /www\.googleapis\.com/);
   assert.equal(page.headers['access-control-allow-origin'], undefined);
   assert.match(page.body, /lang="ar" dir="rtl"/);

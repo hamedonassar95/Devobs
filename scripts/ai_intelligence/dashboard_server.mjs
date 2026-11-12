@@ -238,7 +238,7 @@ function send(response, status, contentType, body, method) {
     'X-Content-Type-Options': 'nosniff',
     'Referrer-Policy': 'no-referrer',
     'Cross-Origin-Resource-Policy': 'same-origin',
-    'Content-Security-Policy': "default-src 'none'; script-src 'self' https://accounts.google.com; style-src 'self'; connect-src 'self' https://docs.googleapis.com https://sheets.googleapis.com https://slides.googleapis.com https://chat.googleapis.com https://tasks.googleapis.com https://www.googleapis.com; frame-src https://accounts.google.com/gsi/; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'",
+    'Content-Security-Policy': "default-src 'none'; script-src 'self' https://accounts.google.com; style-src 'self'; connect-src 'self' https://docs.googleapis.com https://sheets.googleapis.com https://slides.googleapis.com https://chat.googleapis.com https://tasks.googleapis.com https://gmail.googleapis.com https://www.googleapis.com; frame-src https://accounts.google.com/gsi/; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'",
   });
   response.end(method === 'HEAD' ? undefined : body);
 }
