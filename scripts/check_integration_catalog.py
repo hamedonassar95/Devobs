@@ -21,9 +21,10 @@ EXPECTED_IDS = {
     "openart",
     "openai-docs-mcp",
     "argocd-mcp",
+    "google-calendar-ai7",
 }
 VALID_STATUSES = {"import_confirmed", "github_app_installed", "account_connected_unlinked",
-                  "draft_handoff_only", "config_committed_unverified"}
+                  "draft_handoff_only", "config_committed_unverified", "local_feature_unverified"}
 DENIED_POLICY_FLAGS = (
     "default_branch_changes_allowed",
     "production_deploy_allowed",
@@ -126,13 +127,20 @@ def validate_catalog(data: Any) -> list[str]:
                 errors.append("Argo CD MCP source must remain an opt-in local example.")
             if svc.get("runtime_verified") is True:
                 errors.append("Argo CD MCP runtime is not verified.")
+        elif identifier == "google-calendar-ai7":
+            if svc.get("integration_status") != "local_feature_unverified":
+                errors.append("Google Calendar must remain an optional local feature until OAuth runtime is verified.")
+            if svc.get("observed_directory") != "scripts/ai_intelligence/dashboard_assets/google_calendar_followup.mjs":
+                errors.append("Google Calendar source path must match the local AI-7 integration.")
+            if svc.get("runtime_verified") is True:
+                errors.append("Google Calendar OAuth/runtime is not verified.")
         elif svc.get("runtime_verified") is True:
             errors.append(f"{label}: runtime is not verified for this provider.")
 
     if len(ids) != len(set(ids)):
         errors.append("Duplicate service ids are forbidden.")
     if set(ids) != EXPECTED_IDS:
-        errors.append("Service ids must match the eight explicitly scoped providers.")
+        errors.append("Service ids must match the nine explicitly scoped providers.")
     return errors
 
 
@@ -150,7 +158,7 @@ def main() -> int:
         for error in errors:
             print(f"FAIL: {error}", file=sys.stderr)
         return 1
-    print("PASS: eight integration records, evidence and default-deny controls validated locally.")
+    print("PASS: nine integration records, evidence and default-deny controls validated locally.")
     return 0
 
 

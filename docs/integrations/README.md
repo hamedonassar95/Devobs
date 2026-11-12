@@ -6,7 +6,7 @@
 
 ## Scope and source of truth
 
-- `service-inventory.json` is the machine-readable evidence and decision ledger for the eight named integrations.
+- `service-inventory.json` is the machine-readable evidence and decision ledger for the nine named integrations.
 - `RUNBOOK.md` defines the human approval gates and next diagnostic steps. The read-only validator is `scripts/check_integration_catalog.py`.
 - Existing documentation remains authoritative for the CI/automation architecture: [Automation Hub](../AUTOMATION_HUB.md), [integration workflow](../INTEGRATION_WORKFLOW.md), [AI DevKit](../AI_DEVKIT.md), and [SaaS readiness](../PRODUCT_SAAS_READINESS.md).
 - The optional local OpenTelemetry Collector is documented in the [OpenTelemetry integration guide](opentelemetry.md). It reuses the existing Prometheus stack and is not a hosted provider connection or production-readiness claim.
@@ -24,6 +24,7 @@
 | OpenArt MCP | PR #330 merged a private DRAFT validator and opt-in example. OpenArt account checked read-only 2026-10-31: Free, **0 credits**. | Codex OAuth, actual generation, or approved credits. | Keep generation disabled until exact cost quote and separate approval. |
 | OpenAI Developer Docs MCP | Public docs MCP endpoint recorded in repo-scoped `.codex/config.toml` for trusted Codex checkouts. | Actual MCP handshake, tool discovery, or live Codex use. | Verify `codex mcp list` and an innocuous read-only query locally; never send private logs or secrets. |
 | Argo CD MCP | Optional local Codex config pins upstream image v0.9.0 by OCI digest and exposes `list_applications` only. | No Docker run, Argo CD endpoint/token, app data, or MCP handshake. | Owner scopes a dedicated read-only token to one non-production project and verifies locally before use. |
+| Google Calendar API | PR #550 adds optional local AI-7 follow-up scheduling with `calendar.app.created` in a dedicated app-created calendar. | No OAuth Client ID, account grant, API call, calendar or event has been verified. | Owner configures an approved public OAuth client locally and grants the scope; no token belongs in the repository. |
 
 ### Verification vocabulary
 

@@ -2114,6 +2114,17 @@
       "ci_run_id": 43149872811,
       "verification": "VERIFIED 2026-11-12: PR #548 merged at 74607bcdb1723274bae1516707d691ef583bbde0 from exact head c5ef51fac267da555f01aeb2c13dd1d80620246b. Exact-head push CI 43149581922 and PR CI 43149606708 passed; CodeQL 43149605577 passed for Actions, JavaScript/TypeScript, and Python. Post-merge main CI 43149872811 and CodeQL 43149871935 passed on the merge SHA. Main CI passed Python, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, Pages publication, and verify-production. Node passed on the push run and was skipped by path selection in PR/main CI; controlled incident and restore checks skipped by conditions. Vercel preview completed. Local Python tests passed (1,030; 25 skipped), including 2 Argo CD contract tests, 18 integration catalog tests, and 13 Codex capability tests. The Codex budget-gated AI review was skipped; no paid inference ran.",
       "limitations": "Adds an optional local Codex example and documentation only; no Docker runtime, Argo CD endpoint/token, application data, or live MCP handshake was used. The example is not loaded in repository Codex configuration. The upstream image is pinned to its OCI digest. Codex runtime remains OPEN; AI-9 and P01 remain BLOCKED."
+    },
+    {
+      "id": "google-calendar-ai7-followup",
+      "area": "OPERATIONS",
+      "title": "Add optional local AI-7 follow-up scheduling to a dedicated Google Calendar",
+      "pr_number": 550,
+      "pr_head_sha": "0e681cb62b4359f99d59caaaab99bfbc911e1879",
+      "merge_sha": "b68031d1b11c20d2f6fa29e46b687aa2010186b3",
+      "ci_run_id": 43153169533,
+      "verification": "VERIFIED 2026-11-12: PR #550 merged at b68031d1b11c20d2f6fa29e46b687aa2010186b3 from exact head 0e681cb62b4359f99d59caaaab99bfbc911e1879. PR CI 43152880215 and CodeQL 43152876688 passed on the head; advisory Codex review 43152880169 succeeded. Post-merge main CI 43153169533 and CodeQL 43153168695 passed on the merge SHA. Main CI passed Python, Node, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication, and verify-production. Incident/restore checks skipped by conditions. Local focused Node suite passed (83 tests).",
+      "limitations": "Adds only an optional local AI-7 UI integration using calendar.app.created. No Google OAuth Client ID/account was configured; no Google API call, calendar or event was created. The access token is not stored; only the created calendar ID is kept in browser storage. AI-7 remains local and is not served by Pages. Codex runtime remains OPEN; AI-9 and P01 remain BLOCKED."
     }
   ],
   "gates": [
