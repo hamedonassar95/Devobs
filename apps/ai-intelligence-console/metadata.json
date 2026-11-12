@@ -1,0 +1,6 @@
+{
+  "name": "دليل ومحراب البناء الذكي | AI Studio Guide",
+  "description": "دليل تفاعلي متكامل لتعلم كيفية استخدام وتوجيه مهندس البرمجيات الذكي لبناء تطبيقات ومشاريع ويب كاملة ومميزة.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
