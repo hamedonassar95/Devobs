@@ -1,4 +1,10 @@
-## أحدث لقطة موثّقة: دمج PR #544 — تحقق 2026-11-12
+## أحدث لقطة موثّقة: دمج PR #545 — تحقق 2026-11-12
+
+- **VERIFIED من GitHub:** دُمج PR [#545](https://github.com/hamedonassar95/Devobs/pull/545) عند `dc4f9834fe011985a93bbc4dd2bafef046fb9712` من HEAD الدقيق `9b3bdd5da890af9dd2f345a68fbd78a2d12eb0a6`. نجح push CI [43145024725](https://github.com/hamedonassar95/Devobs/actions/runs/43145024725) وPR CI [43145039361](https://github.com/hamedonassar95/Devobs/actions/runs/43145039361) وCodeQL [43145035968](https://github.com/hamedonassar95/Devobs/actions/runs/43145035968) على HEAD؛ ثم نجح main CI [43145332069](https://github.com/hamedonassar95/Devobs/actions/runs/43145332069) وCodeQL [43145330688](https://github.com/hamedonassar95/Devobs/actions/runs/43145330688) على SHA الدمج.
+- **VERIFIED:** اجتازت فحوص Python وNode وsecurity/Gitleaks وPostgreSQL RLS وcontainer/Trivy وTerraform وsite-contract و`validate`. نشرت CI صفحة Pages الثابتة واجتازت `verify-production`. تخطّى incident drill وفحوص الاستعادة شروطها. نجحت اختبارات سجل الإنجازات محليًا: 50 اختبارًا.
+- **النطاق والحدود:** PR #545 مزامنة حالة وسجل واختبارات فقط؛ لم يغيّر سلوك التطبيق أو بوابات الجاهزية. تكامل Grafana في PR #543 ما زال اختياريًا محليًا ولم يُختبر runtime حيًا. السجل بعد هذا التحديث يوثق 189 إنجازًا وآخر PR موثّق #545.
+
+## لقطة موثّقة سابقة: دمج PR #544 — تحقق 2026-11-12
 
 - **VERIFIED من GitHub:** دُمج PR [#544](https://github.com/hamedonassar95/Devobs/pull/544) عند `882053b0a6c8c0264871aaa8a4121059190bb471` من HEAD الدقيق `36dcf9fafb994cda153c95c6ff75a7b0109de68e`. نجح push CI `43144462445` وPR CI `43144483235` وCodeQL `43144478678` على HEAD؛ ثم نجح main CI [43144634329](https://github.com/hamedonassar95/Devobs/actions/runs/43144634329) وCodeQL [43144633820](https://github.com/hamedonassar95/Devobs/actions/runs/43144633820) على SHA الدمج.
 - **VERIFIED:** اجتازت فحوص Python وNode وsecurity/Gitleaks وPostgreSQL RLS وcontainer/Trivy وTerraform وsite-contract و`validate`. نشرت CI صفحة Pages الثابتة واجتازت `verify-production`. تخطّى incident drill وفحوص الاستعادة شروطها. نجحت اختبارات سجل الإنجازات محليًا: 50 اختبارًا.

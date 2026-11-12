@@ -2070,6 +2070,17 @@
       "ci_run_id": 43144634329,
       "verification": "VERIFIED 2026-11-12: PR #544 merged at 882053b0a6c8c0264871aaa8a4121059190bb471 from exact head 36dcf9fafb994cda153c95c6ff75a7b0109de68e. Exact-head push CI 43144462445 and PR CI 43144483235 passed; CodeQL 43144478678 passed for Actions, JavaScript/TypeScript, and Python. Post-merge main CI 43144634329 and CodeQL 43144633820 passed on the merge SHA. Main CI passed Python, Node, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication, and verify-production. Incident drill and recovery jobs skipped by conditions. Local milestone ledger tests passed (50 tests).",
       "limitations": "Documentation, readiness, ledger, and ledger-test synchronization only; no application behavior or readiness gate changed. Grafana MCP remains an optional local example and has no live runtime verification. AI-9 and P01 remain BLOCKED; Codex runtime remains OPEN."
+    },
+    {
+      "id": "ledger-sync-pr545-grafana-mcp",
+      "area": "DOCUMENTATION",
+      "title": "Record PR 545 merge evidence for the PR 544 Grafana MCP ledger sync",
+      "pr_number": 545,
+      "pr_head_sha": "9b3bdd5da890af9dd2f345a68fbd78a2d12eb0a6",
+      "merge_sha": "dc4f9834fe011985a93bbc4dd2bafef046fb9712",
+      "ci_run_id": 43145332069,
+      "verification": "VERIFIED 2026-11-12: PR #545 merged at dc4f9834fe011985a93bbc4dd2bafef046fb9712 from exact head 9b3bdd5da890af9dd2f345a68fbd78a2d12eb0a6. Exact-head push CI 43145024725 and PR CI 43145039361 passed; CodeQL 43145035968 passed for Actions, JavaScript/TypeScript, and Python. Post-merge main CI 43145332069 and CodeQL 43145330688 passed on the merge SHA. Main CI passed Python, Node, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication, and verify-production. Incident drill and recovery jobs skipped by conditions. Local milestone ledger tests passed (50 tests).",
+      "limitations": "Documentation, readiness, ledger, and ledger-test synchronization only; no application behavior or readiness gate changed. Grafana MCP remains an optional local example and has no live runtime verification. AI-9 and P01 remain BLOCKED; Codex runtime remains OPEN."
     }
   ],
   "gates": [

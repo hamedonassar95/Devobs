@@ -1,8 +1,8 @@
-## تزامن السجل بعد PR #544 — 2026-11-12 (VERIFIED)
+## تزامن السجل بعد PR #545 — 2026-11-12 (VERIFIED)
 
-- PR [#544](https://github.com/hamedonassar95/Devobs/pull/544) حدّث الحالة وسجل الإنجازات واختبارات السجل لدمج #543. دُمج عند `882053b0a6c8c0264871aaa8a4121059190bb471` من HEAD `36dcf9fafb994cda153c95c6ff75a7b0109de68e`.
-- نجح push CI `43144462445` وPR CI `43144483235` وCodeQL `43144478678` على الرأس؛ وبعد الدمج نجح main CI [43144634329](https://github.com/hamedonassar95/Devobs/actions/runs/43144634329) وCodeQL [43144633820](https://github.com/hamedonassar95/Devobs/actions/runs/43144633820). اجتازت فحوص Pages الثابتة `verify-production`.
-- لم يغيّر PR #544 التطبيق أو بوابات الجاهزية. تبقى AI-9 وP01 **BLOCKED** وقبول Codex runtime **OPEN**.
+- PR [#545](https://github.com/hamedonassar95/Devobs/pull/545) حدّث الحالة وسجل الإنجازات واختبارات السجل لدمج #544. دُمج عند `dc4f9834fe011985a93bbc4dd2bafef046fb9712` من HEAD `9b3bdd5da890af9dd2f345a68fbd78a2d12eb0a6`.
+- نجح push CI [43145024725](https://github.com/hamedonassar95/Devobs/actions/runs/43145024725) وPR CI [43145039361](https://github.com/hamedonassar95/Devobs/actions/runs/43145039361) وCodeQL [43145035968](https://github.com/hamedonassar95/Devobs/actions/runs/43145035968) على الرأس؛ وبعد الدمج نجح main CI [43145332069](https://github.com/hamedonassar95/Devobs/actions/runs/43145332069) وCodeQL [43145330688](https://github.com/hamedonassar95/Devobs/actions/runs/43145330688). اجتازت فحوص Pages الثابتة `verify-production`.
+- لم يغيّر PR #545 التطبيق أو بوابات الجاهزية. تبقى AI-9 وP01 **BLOCKED** وقبول Codex runtime **OPEN**.
 
 ## تحديث بوابات الجاهزية بعد PR #543 — 2026-11-12 (VERIFIED)
 

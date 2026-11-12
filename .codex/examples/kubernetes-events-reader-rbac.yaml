@@ -1,0 +1,31 @@
+# Example only. Replace the namespace with an existing non-production namespace.
+# A cluster administrator must review and apply this manifest to the target cluster.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: devobs-events-reader
+  namespace: devobs-development
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: devobs-events-reader
+  namespace: devobs-development
+rules:
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: devobs-events-reader
+  namespace: devobs-development
+subjects:
+  - kind: ServiceAccount
+    name: devobs-events-reader
+    namespace: devobs-development
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: devobs-events-reader

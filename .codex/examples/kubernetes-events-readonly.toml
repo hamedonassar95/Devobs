@@ -1,0 +1,18 @@
+# OPTIONAL Kubernetes MCP example. NOT loaded by Devobs by default.
+# Install the pinned upstream Windows binary and prepare the separate server config.
+# Use only a non-production namespace with a dedicated least-privilege identity.
+
+[mcp_servers.kubernetes_events]
+command = "C:/Users/YOUR_WINDOWS_USER/AppData/Local/Devobs/kubernetes-mcp-server/v0.1.2/kubernetes-mcp-server-windows-amd64.exe"
+args = [
+  "--config",
+  "C:/Users/YOUR_WINDOWS_USER/.codex/kubernetes-mcp-server-readonly.toml",
+]
+startup_timeout_sec = 20
+tool_timeout_sec = 60
+enabled_tools = ["events_list"]
+default_tools_approval_mode = "prompt"
+
+[mcp_servers.kubernetes_events.tools.events_list]
+approval_mode = "prompt"
+output_token_limit = 3000
