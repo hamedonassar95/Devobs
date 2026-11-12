@@ -105,8 +105,12 @@ def is_python(path: PurePosixPath) -> bool:
     return path.suffix == ".py" and path.parts[:1] in {("scripts",), ("tests",)}
 
 
+def is_ai_intelligence_console(path: PurePosixPath) -> bool:
+    return path.parts[:2] == ("apps", "ai-intelligence-console")
+
+
 def is_node(path: PurePosixPath) -> bool:
-    return (
+    return is_ai_intelligence_console(path) or (
         path.suffix in {".js", ".cjs", ".mjs"}
         and path.parts[:1] in {("scripts",), ("tests",)}
     ) or path.name in {"package.json", "package-lock.json"}
@@ -214,10 +218,15 @@ def main() -> None:
     node_required = full_scan or level == "high" or any(
         is_node(PurePosixPath(path)) for path in paths
     )
+    console_required = os.environ.get("VALIDATION_PROFILE") != "rollback" and (
+        full_scan
+        or any(is_ai_intelligence_console(PurePosixPath(path)) for path in paths)
+    )
 
     outputs = {
         "python_required": str(python_required).lower(),
         "node_required": str(node_required).lower(),
+        "console_required": str(console_required).lower(),
         "risk_score": str(score),
         "risk_level": level,
     }
@@ -235,6 +244,7 @@ def main() -> None:
         f"- Changed files considered: {len(paths)}",
         f"- Python test suite: {python_selection}",
         f"- Node guard tests: {'selected' if node_required else 'skipped (unrelated changes)'}",
+        f"- AI Intelligence Console npm checks: {'selected' if console_required else 'skipped (unrelated changes)'}",
         "- Security scan and published-site contract checks remain required.",
         "- This is an explainable, local heuristic based on file class, change size, and 90-day file churn; it is advisory and does not call an external AI service or block deployment.",
         "",
