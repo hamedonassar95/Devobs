@@ -7,6 +7,7 @@ import {
 import { buildGoogleDocsReport, createGoogleDoc } from './google_docs_export.mjs';
 import { deriveFollowupEventId, GOOGLE_CALENDAR_SCOPE, scheduleGoogleCalendarFollowup } from './google_calendar_followup.mjs';
 import { buildGoogleSheetsReport, createGoogleSheet } from './google_sheets_export.mjs';
+import { buildGoogleSlidesReport, createGoogleSlidesPresentation } from './google_slides_export.mjs';
 
 const RUNBOOK_STORAGE_KEY = 'devobs_ai7_runbook_notes';
 const GOOGLE_CALENDAR_STORAGE_KEY = 'devobs_ai7_followup_calendar_id';
@@ -19,6 +20,9 @@ let googleDocsConfigured = false;
 let googleSheetsClientId = '';
 let googleSheetsConfigured = false;
 let googleSheetsBusy = false;
+let googleSlidesClientId = '';
+let googleSlidesConfigured = false;
+let googleSlidesBusy = false;
 let googleCalendarClientId = '';
 let googleCalendarConfigured = false;
 let googleCalendarBusy = false;
@@ -566,6 +570,74 @@ function initializeGoogleSheetsExport() {
   });
 }
 
+function setGoogleSlidesStatus(message) {
+  document.querySelector('#google-slides-status').textContent = message;
+}
+
+function updateGoogleSlidesButton() {
+  document.querySelector('#google-slides-export').disabled = !googleSlidesConfigured
+    || googleSlidesBusy || !intelligenceSnapshot;
+}
+
+function initializeGoogleSlidesExport() {
+  const button = document.querySelector('#google-slides-export');
+  button.addEventListener('click', async () => {
+    if (!intelligenceSnapshot || !googleSlidesClientId || button.disabled) return;
+    let report;
+    try {
+      report = buildGoogleSlidesReport(intelligenceSnapshot);
+    } catch {
+      setGoogleSlidesStatus('تعذر تجهيز المجاميع؛ لم تُرسل أي بيانات.');
+      return;
+    }
+    const approved = window.confirm(
+      'سيُنشأ عرض Google Slides جديد من شريحتين ويحتوي تاريخ الإنشاء وأعدادًا وفئات ثابتة فقط. لن نقرأ عروضك الحالية أو نرسل نصوص الحوادث أو معرّفاتها. هل تريد المتابعة؟',
+    );
+    if (!approved) return;
+
+    googleSlidesBusy = true;
+    updateGoogleSlidesButton();
+    setGoogleSlidesStatus('بانتظار تسجيل الدخول وموافقتك من Google…');
+    let accessToken = '';
+    try {
+      accessToken = await requestGoogleAccessToken(googleSlidesClientId, 'https://www.googleapis.com/auth/drive.file');
+      const { presentationId } = await createGoogleSlidesPresentation({ accessToken, report });
+      const link = document.createElement('a');
+      link.href = `https://docs.google.com/presentation/d/${encodeURIComponent(presentationId)}/edit`;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = 'افتح العرض التنفيذي الذي أُنشئ في Google Slides';
+      const status = document.querySelector('#google-slides-status');
+      status.replaceChildren(link);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      setGoogleSlidesStatus(message === 'google_slides_update_failed'
+        ? 'أُنشئ العرض لكن تعذر إكمال الشريحتين؛ قد يبقى فارغًا أو جزئيًا. راجع Google Drive قبل إعادة المحاولة.'
+        : message === 'google_slides_invalid_response'
+          ? 'لم تصل استجابة مكتملة؛ افحص Google Drive لاحتمال وجود عرض جديد قبل إعادة المحاولة.'
+          : 'لم يكتمل التصدير؛ لم تُعرض تفاصيل Google أو رمز الدخول. افحص Google Drive قبل إعادة المحاولة.');
+    } finally {
+      accessToken = '';
+      googleSlidesBusy = false;
+      updateGoogleSlidesButton();
+    }
+  });
+
+  void load('/api/v1/google-slides-config').then(async config => {
+    if (!config.enabled || typeof config.client_id !== 'string' || !config.client_id) {
+      setGoogleSlidesStatus('الميزة غير مفعّلة. أعد تشغيل اللوحة مع إعداد OAuth الاختياري الموضح في الدليل.');
+      return;
+    }
+    googleSlidesClientId = config.client_id;
+    await loadGoogleIdentityServices();
+    googleSlidesConfigured = true;
+    updateGoogleSlidesButton();
+    setGoogleSlidesStatus('جاهز عند الطلب. لن يتصل بحساب Google أو ينشئ عرضًا حتى تضغط الزر وتؤكد الإرسال.');
+  }).catch(() => {
+    setGoogleSlidesStatus('تعذر تحميل إعداد Google Slides؛ بقيت الميزة معطّلة.');
+  });
+}
+
 function setGoogleCalendarStatus(message) {
   document.querySelector('#google-calendar-status').textContent = message;
 }
@@ -700,6 +772,7 @@ async function render() {
     intelligenceSnapshot = intelligence;
     updateGoogleDocsButton();
     updateGoogleSheetsButton();
+    updateGoogleSlidesButton();
     renderSummary(intelligence.summary);
     renderPipeline(intelligence.pipeline.stages);
     renderAnomalies(intelligence.anomaly_analysis);
@@ -716,5 +789,6 @@ initializeRunbookNotes();
 bindRunbookNotes();
 initializeGoogleDocsExport();
 initializeGoogleSheetsExport();
+initializeGoogleSlidesExport();
 initializeGoogleCalendarFollowup();
 void render();
