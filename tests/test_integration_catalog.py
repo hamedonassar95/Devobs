@@ -84,6 +84,18 @@ class IntegrationCatalogTests(unittest.TestCase):
         record["observed_directory"] = "unknown.toml"
         self.invalid(data, "source path is not verified")
 
+    def test_argocd_mcp_must_remain_unverified_and_opt_in(self):
+        record = next(s for s in self.inventory["services"] if s["id"] == "argocd-mcp")
+        self.assertEqual(record["integration_status"], "config_committed_unverified")
+        self.assertIs(record["runtime_verified"], False)
+        self.assertEqual(
+            record["observed_directory"], ".codex/examples/argocd-mcp-readonly.toml"
+        )
+
+        data = copy.deepcopy(self.inventory)
+        next(s for s in data["services"] if s["id"] == "argocd-mcp")["runtime_verified"] = True
+        self.invalid(data, "Argo CD MCP runtime is not verified")
+
     def test_no_provider_can_claim_cost_authorization(self):
         for index in range(len(self.inventory["services"])):
             data = copy.deepcopy(self.inventory)

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "review_date": "2026-10-31",
+  "review_date": "2026-11-12",
   "repository": "hamedonassar95/Devobs",
   "classification": "PUBLIC_REPOSITORY_SAFE_METADATA_ONLY",
   "policy": {
@@ -131,6 +131,24 @@
       "evidence": [
         "Official docs: https://developers.openai.com/resources/docs-mcp",
         "Repository .codex/config.toml integration branch configuration, 2026-10-31"
+      ]
+    },
+    {
+      "id": "argocd-mcp",
+      "name": "Argo CD MCP Server",
+      "integration_status": "config_committed_unverified",
+      "runtime_verified": false,
+      "provider_writes_authorized": false,
+      "cost_authorized": false,
+      "repository_scope": "optional local Codex example only; no Argo CD account connected",
+      "observed_branch": "feature-argocd-mcp",
+      "observed_directory": ".codex/examples/argocd-mcp-readonly.toml",
+      "verified_capability": "Reviewed the official v0.9.0 source and digest-pinned OCI image; the example exposes only list_applications with MCP_READ_ONLY=true and per-call approval.",
+      "blocker": "No Docker runtime, Argo CD endpoint or token was used and no live MCP handshake was performed. Owner must configure a dedicated token scoped to one non-production project and verify it locally before use.",
+      "evidence": [
+        "Official source commit 28d15ca69b0c31387cc6ec73d201fd13c5d22b6a; Apache-2.0 license",
+        "OCI index sha256:dffc6c719d8635be2d5f2c8ad1c0178540325da4b40da0b373307e12b4c48f86; SLSA statements bind platform manifests to the source commit",
+        "Upstream Docker release workflow 31507615066 passed; Devobs example and runbook added on 2026-11-12"
       ]
     }
   ]

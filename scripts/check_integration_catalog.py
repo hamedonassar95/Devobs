@@ -12,7 +12,16 @@ from pathlib import Path
 from typing import Any
 
 INVENTORY = Path(__file__).resolve().parents[1] / "docs/integrations/service-inventory.json"
-EXPECTED_IDS = {"gitbook", "codex", "aictrl", "flyio", "lovable", "openart", "openai-docs-mcp"}
+EXPECTED_IDS = {
+    "gitbook",
+    "codex",
+    "aictrl",
+    "flyio",
+    "lovable",
+    "openart",
+    "openai-docs-mcp",
+    "argocd-mcp",
+}
 VALID_STATUSES = {"import_confirmed", "github_app_installed", "account_connected_unlinked",
                   "draft_handoff_only", "config_committed_unverified"}
 DENIED_POLICY_FLAGS = (
@@ -110,13 +119,20 @@ def validate_catalog(data: Any) -> list[str]:
                 errors.append("Docs MCP configuration source path is not verified.")
             if svc.get("runtime_verified") is True:
                 errors.append("Docs MCP runtime handshake is not verified.")
+        elif identifier == "argocd-mcp":
+            if svc.get("integration_status") != "config_committed_unverified":
+                errors.append("Argo CD MCP example must remain unverified until a live handshake.")
+            if svc.get("observed_directory") != ".codex/examples/argocd-mcp-readonly.toml":
+                errors.append("Argo CD MCP source must remain an opt-in local example.")
+            if svc.get("runtime_verified") is True:
+                errors.append("Argo CD MCP runtime is not verified.")
         elif svc.get("runtime_verified") is True:
             errors.append(f"{label}: runtime is not verified for this provider.")
 
     if len(ids) != len(set(ids)):
         errors.append("Duplicate service ids are forbidden.")
     if set(ids) != EXPECTED_IDS:
-        errors.append("Service ids must match the seven explicitly scoped providers.")
+        errors.append("Service ids must match the eight explicitly scoped providers.")
     return errors
 
 
@@ -134,7 +150,7 @@ def main() -> int:
         for error in errors:
             print(f"FAIL: {error}", file=sys.stderr)
         return 1
-    print("PASS: seven integration records, evidence and default-deny controls validated locally.")
+    print("PASS: eight integration records, evidence and default-deny controls validated locally.")
     return 0
 
 
