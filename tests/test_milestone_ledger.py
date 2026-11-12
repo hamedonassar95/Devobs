@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_latest_recorded_merges_through_pr534_do_not_promote_gates(self):
+    def test_latest_recorded_merges_through_pr535_do_not_promote_gates(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 534)
-        self.assertEqual(result["merged_milestones"], 178)
+        self.assertEqual(result["latest_pr"], 535)
+        self.assertEqual(result["merged_milestones"], 179)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         self.assertEqual(
             records[530]["merge_sha"],
@@ -1050,6 +1050,11 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("AI Code Review workflow 43130859436 completed", records[534]["verification"])
         self.assertIn("No AI model review ran", records[534]["limitations"])
         self.assertIn("remains untested with a real OAuth client", records[534]["limitations"])
+        self.assertEqual(records[535]["merge_sha"], "b1f71c354c757a02c638d9ff31a9fab72d7b6b32")
+        self.assertEqual(records[535]["pr_head_sha"], "5f172f878923acdbda831fdca7eca0f4db0beece")
+        self.assertEqual(records[535]["ci_run_id"], 43131851220)
+        self.assertIn("Node tests (push run)", records[535]["verification"])
+        self.assertIn("No AI model review ran", records[535]["limitations"])
         expected_recent = {
             502: ("0f6168681b08f687bc7a3aefa8238c0a7f3de691", "917b481694c4e3607f93890681e39c23e5dcad21", 42689426462),
             503: ("dd7a59bc3cf68070cfde419c442bdc7c2c52eb8f", "8b1ad57f5761fa86b6e606b8610ca3d643a8c0c6", 42737489501),
@@ -1068,6 +1073,7 @@ class MilestoneLedgerTests(unittest.TestCase):
             521: ("777db154fb62a2d07acdf440cc7709b05bf0c97b", "1028e1c8fd02c1afe0ec40fce864b82b4134a147", 43010472818),
             522: ("df397841a3d9309de724fb6829d6c75346e7f72b", "cc29c7635ca817b13dbf92d6875e2386b81e1c6e", 43022732431),
             534: ("82ef6f6551851c5f3899b25f163873f4e97b0d8b", "933adefc3fbce277d431f253b3b6e96db992564f", 43131087636),
+            535: ("5f172f878923acdbda831fdca7eca0f4db0beece", "b1f71c354c757a02c638d9ff31a9fab72d7b6b32", 43131851220),
         }
         for number, (head_sha, merge_sha, ci_run_id) in expected_recent.items():
             with self.subTest(pr=number):
