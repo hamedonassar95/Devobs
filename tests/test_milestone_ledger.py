@@ -1026,11 +1026,15 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_latest_recorded_merges_through_pr548_do_not_promote_gates(self):
+    def test_latest_recorded_merges_through_pr550_do_not_promote_gates(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 548)
-        self.assertEqual(result["merged_milestones"], 192)
+        self.assertEqual(result["latest_pr"], 550)
+        self.assertEqual(result["merged_milestones"], 193)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
+        self.assertEqual(records[550]["pr_head_sha"], "0e681cb62b4359f99d59caaaab99bfbc911e1879")
+        self.assertEqual(records[550]["merge_sha"], "b68031d1b11c20d2f6fa29e46b687aa2010186b3")
+        self.assertEqual(records[550]["ci_run_id"], 43153169533)
+        self.assertIn("no Google API call", records[550]["limitations"])
         self.assertEqual(
             records[530]["merge_sha"],
             "1dbc2d811b317b9f060bf46fa2376aaf083f0aec",

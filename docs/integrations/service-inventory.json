@@ -150,6 +150,24 @@
         "OCI index sha256:dffc6c719d8635be2d5f2c8ad1c0178540325da4b40da0b373307e12b4c48f86; SLSA statements bind platform manifests to the source commit",
         "Upstream Docker release workflow 31507615066 passed; Devobs example and runbook added on 2026-11-12"
       ]
+    },
+    {
+      "id": "google-calendar-ai7",
+      "name": "Google Calendar API",
+      "integration_status": "local_feature_unverified",
+      "runtime_verified": false,
+      "provider_writes_authorized": false,
+      "cost_authorized": false,
+      "repository_scope": "local AI-7 dashboard only; no Google account connected",
+      "observed_branch": "main",
+      "observed_directory": "scripts/ai_intelligence/dashboard_assets/google_calendar_followup.mjs",
+      "verified_capability": "PR #550 added optional local scheduling to a dedicated app-created secondary calendar using calendar.app.created. The feature sends a fixed 30-minute follow-up event without incident logs, customer identifiers, attendees or a Meet link; tests use mocked Google responses.",
+      "blocker": "No OAuth Client ID or Google account was configured and no live API call was made. Owner must configure an approved public OAuth client and grant the narrow scope locally before runtime use; no calendar or event has been created.",
+      "evidence": [
+        "PR #550 merged at b68031d1b11c20d2f6fa29e46b687aa2010186b3; main CI 43153169533 passed",
+        "Google Calendar API scopes: https://developers.google.com/workspace/calendar/api/auth",
+        "AI-7 implementation and mocked tests are covered by PR #550"
+      ]
     }
   ]
 }

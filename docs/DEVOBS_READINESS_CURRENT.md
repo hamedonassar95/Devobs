@@ -1,3 +1,9 @@
+## تحديث بوابات الجاهزية بعد PR #550 — 2026-11-12 (VERIFIED)
+
+- أضاف PR [#550](https://github.com/hamedonassar95/Devobs/pull/550) خيارًا محليًا معطّلًا افتراضيًا لجدولة موعد متابعة ثابت في تقويم Google ثانوي خاص بالتطبيق. يستخدم `calendar.app.created` ولا يسرد تقاويم الحساب؛ لا يرسل سجلات أو بيانات حوادث ولا يضيف مدعوين أو رابط اجتماع. لا يدخل OAuth Client ID أو اتصال Google في إعداد المستودع.
+- نجح PR CI [43152880215](https://github.com/hamedonassar95/Devobs/actions/runs/43152880215) وCodeQL [43152876688](https://github.com/hamedonassar95/Devobs/actions/runs/43152876688) على HEAD `0e681cb62b4359f99d59caaaab99bfbc911e1879`. بعد الدمج عند `b68031d1b11c20d2f6fa29e46b687aa2010186b3` نجح main CI [43153169533](https://github.com/hamedonassar95/Devobs/actions/runs/43153169533) وCodeQL [43153168695](https://github.com/hamedonassar95/Devobs/actions/runs/43153168695). اجتازت Python وNode وsecurity/Gitleaks وPostgreSQL RLS وcontainer/Trivy وTerraform وsite-contract و`validate`، ونُشرت صفحة Pages الثابتة واجتازت `verify-production`.
+- **UNVERIFIED:** لم يُضبط OAuth Client ID ولم يُربط حساب Google ولم تُنشأ تقاويم أو أحداث فعلية. لا يثبت التكامل تشغيل خدمة Devobs أو جاهزية SaaS. سجل الإنجازات يوثق 193 PR؛ AI-9 وP01 ما زالا **BLOCKED** وقبول Codex runtime ما زال **OPEN**.
+
 ## تحديث بوابات الجاهزية بعد PR #548 — 2026-11-12 (VERIFIED)
 
 - أضاف PR [#548](https://github.com/hamedonassar95/Devobs/pull/548) إعدادًا محليًا واختياريًا لـArgo CD MCP يعرض `list_applications` فقط، ويضبط `MCP_READ_ONLY=true` وموافقة لكل استدعاء، ويثبت صورة upstream على OCI digest. لا يدخل التكامل في إعداد Codex بالمستودع أو CI.
