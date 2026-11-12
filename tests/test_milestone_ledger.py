@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_latest_recorded_merges_through_pr539_do_not_promote_gates(self):
+    def test_latest_recorded_merges_through_pr541_do_not_promote_gates(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 539)
-        self.assertEqual(result["merged_milestones"], 183)
+        self.assertEqual(result["latest_pr"], 541)
+        self.assertEqual(result["merged_milestones"], 185)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         self.assertEqual(
             records[530]["merge_sha"],
@@ -1073,6 +1073,13 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(records[539]["merge_sha"], "47004a850ebdc376711bf763ec9ca5458532a538")
         self.assertEqual(records[539]["pr_head_sha"], "a843db5b8bdaff34ae509171a3959e7698c58e9a")
         self.assertEqual(records[539]["ci_run_id"], 43134970833)
+        self.assertEqual(records[540]["merge_sha"], "a1fdb646dc05be6105f5d3f2f38009b9221c9ead")
+        self.assertEqual(records[540]["pr_head_sha"], "d7d728ea877efa8f6c67a73da4cda75ef1d59cd9")
+        self.assertEqual(records[540]["ci_run_id"], 43136775234)
+        self.assertEqual(records[541]["merge_sha"], "f6f627bbb0a8c215f79e260265dc8a939f820019")
+        self.assertEqual(records[541]["pr_head_sha"], "2c1f92905780473f17f49fb065ae7514058d5cd2")
+        self.assertEqual(records[541]["ci_run_id"], 43141603760)
+        self.assertIn("Docker, OAuth and a live GitHub MCP call were not run", records[541]["limitations"])
         self.assertIn("Post-merge main CI 43134970833", records[539]["verification"])
         self.assertIn("43134970567", records[539]["verification"])
         self.assertIn("AI-9 remains BLOCKED", records[539]["limitations"])
