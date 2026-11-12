@@ -2081,6 +2081,17 @@
       "ci_run_id": 43145332069,
       "verification": "VERIFIED 2026-11-12: PR #545 merged at dc4f9834fe011985a93bbc4dd2bafef046fb9712 from exact head 9b3bdd5da890af9dd2f345a68fbd78a2d12eb0a6. Exact-head push CI 43145024725 and PR CI 43145039361 passed; CodeQL 43145035968 passed for Actions, JavaScript/TypeScript, and Python. Post-merge main CI 43145332069 and CodeQL 43145330688 passed on the merge SHA. Main CI passed Python, Node, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication, and verify-production. Incident drill and recovery jobs skipped by conditions. Local milestone ledger tests passed (50 tests).",
       "limitations": "Documentation, readiness, ledger, and ledger-test synchronization only; no application behavior or readiness gate changed. Grafana MCP remains an optional local example and has no live runtime verification. AI-9 and P01 remain BLOCKED; Codex runtime remains OPEN."
+    },
+    {
+      "id": "kubernetes-events-codex-mcp",
+      "area": "AGENT_OPERATIONS",
+      "title": "Add optional namespace-scoped Kubernetes events MCP example",
+      "pr_number": 546,
+      "pr_head_sha": "01d165bb76af08857b6e4478330e55a93e503961",
+      "merge_sha": "9a6eef149a3c942757867875883acbd34764499d",
+      "ci_run_id": 43147378625,
+      "verification": "VERIFIED 2026-11-12: PR #546 merged at 9a6eef149a3c942757867875883acbd34764499d from exact head 01d165bb76af08857b6e4478330e55a93e503961. Exact-head push CI 43147104876 and PR CI 43147123864 passed; CodeQL 43147120630 passed for Actions, JavaScript/TypeScript, and Python. Post-merge main CI 43147378625 and CodeQL 43147377568 passed on the merge SHA. Main CI passed Python, Node, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication, and verify-production. The controlled incident drill skipped by condition. Focused local Kubernetes MCP tests passed (4); milestone ledger tests passed (50).",
+      "limitations": "Adds an optional local Codex example and RBAC sample only; no cluster, kubeconfig, credentials, or live MCP runtime were used. The example is not loaded in repository Codex configuration. Codex runtime remains OPEN; AI-9 and P01 remain BLOCKED."
     }
   ],
   "gates": [
