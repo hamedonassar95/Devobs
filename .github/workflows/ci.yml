@@ -41,6 +41,7 @@ jobs:
     outputs:
       python_required: ${{ steps.assess.outputs.python_required }}
       node_required: ${{ steps.assess.outputs.node_required }}
+      console_required: ${{ steps.assess.outputs.console_required }}
       risk_score: ${{ steps.assess.outputs.risk_score }}
       risk_level: ${{ steps.assess.outputs.risk_level }}
     steps:
@@ -113,7 +114,7 @@ jobs:
     needs: change-analysis
     if: inputs.validation_profile != 'rollback' && needs.change-analysis.outputs.node_required == 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 20
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -187,6 +188,29 @@ jobs:
           node --test tests/ai9_coherent_onset_v3.test.mjs
           node --test tests/ai9_coherent_onset_v3_replay.test.mjs
           node --test tests/ai9_v3_frozen_holdout_contract.test.mjs
+
+      - name: Set up Node.js for the AI Intelligence Console
+        if: needs.change-analysis.outputs.console_required == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: apps/ai-intelligence-console/package-lock.json
+      - name: Install AI Intelligence Console dependencies
+        if: needs.change-analysis.outputs.console_required == 'true'
+        working-directory: apps/ai-intelligence-console
+        run: npm ci
+      - name: Audit AI Intelligence Console dependencies
+        if: needs.change-analysis.outputs.console_required == 'true'
+        working-directory: apps/ai-intelligence-console
+        run: npm audit --audit-level=high
+      - name: Run AI Intelligence Console tests, type check, and production build
+        if: needs.change-analysis.outputs.console_required == 'true'
+        working-directory: apps/ai-intelligence-console
+        run: |
+          npm test
+          npm run lint
+          npm run build
 
   security:
     if: inputs.validation_profile != 'rollback'
@@ -553,6 +577,7 @@ jobs:
           CHANGE_ANALYSIS_RESULT: ${{ needs.change-analysis.result }}
           PYTHON_REQUIRED: ${{ needs.change-analysis.outputs.python_required }}
           NODE_REQUIRED: ${{ needs.change-analysis.outputs.node_required }}
+          CONSOLE_REQUIRED: ${{ needs.change-analysis.outputs.console_required }}
           VALIDATION_PROFILE: ${{ inputs.validation_profile || 'standard' }}
         run: |
           set -euo pipefail
@@ -562,11 +587,19 @@ jobs:
           fi
           if [[ "$VALIDATION_PROFILE" == "rollback" ]]; then
             required_results=("$PYTHON_RESULT" "$SITE_RESULT")
+            if [[ "$CONSOLE_REQUIRED" != "false" ]]; then
+              echo "::error::Rollback compatibility profile must not select the AI Intelligence Console checks."
+              exit 1
+            fi
             if [[ "$NODE_RESULT" != "skipped" || "$SECURITY_RESULT" != "skipped" || "$POSTGRES_RESULT" != "skipped" || "$CONTAINER_RESULT" != "skipped" || "$TERRAFORM_RESULT" != "skipped" ]]; then
               echo "::error::Rollback compatibility profile must skip Node, security, PostgreSQL, container, and Terraform jobs."
               exit 1
             fi
           else
+            if [[ "$CONSOLE_REQUIRED" == "true" && "$NODE_REQUIRED" != "true" ]]; then
+              echo "::error::AI Intelligence Console changes must select the Node job."
+              exit 1
+            fi
             if [[ "$PYTHON_REQUIRED" == "true" && "$PYTHON_RESULT" != "success" ]]; then
               echo "::error::The selected Python test suite did not succeed: $PYTHON_RESULT"
               exit 1

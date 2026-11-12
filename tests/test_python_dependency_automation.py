@@ -3,7 +3,7 @@ import re
 import unittest
 from pathlib import PurePosixPath
 
-from scripts.assess_change import is_python_dependency
+from scripts.assess_change import is_ai_intelligence_console, is_node, is_python_dependency
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -85,8 +85,36 @@ class PythonDependencyAutomationTests(unittest.TestCase):
             ),
         )
 
+        self.assertRegex(
+            config,
+            re.compile(
+                r'(?ms)^  - package-ecosystem: "npm"\s+'
+                r'directory: "/apps/ai-intelligence-console"\s+'
+                r'schedule:\s+interval: "weekly"(?:\s|$)'
+            ),
+        )
+
     def test_dependency_manifest_changes_select_python_ci(self):
         self.assertTrue(is_python_dependency(PurePosixPath("requirements-dev.txt")))
+
+    def test_ai_intelligence_console_changes_select_node_ci(self):
+        workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+        for name in (
+            "apps/ai-intelligence-console/src/App.tsx",
+            "apps/ai-intelligence-console/src/services/firebaseApp.ts",
+            "apps/ai-intelligence-console/package-lock.json",
+            "apps/ai-intelligence-console/README.md",
+        ):
+            with self.subTest(path=name):
+                path = PurePosixPath(name)
+                self.assertTrue(is_ai_intelligence_console(path))
+                self.assertTrue(is_node(path))
+
+        self.assertIn("console_required: ${{ steps.assess.outputs.console_required }}", workflow)
+        self.assertIn("npm ci", workflow)
+        self.assertIn("npm audit --audit-level=high", workflow)
+        self.assertIn("npm run lint", workflow)
+        self.assertIn("npm run build", workflow)
 
 
 if __name__ == "__main__":
