@@ -168,6 +168,25 @@
         "Google Calendar API scopes: https://developers.google.com/workspace/calendar/api/auth",
         "AI-7 implementation and mocked tests are covered by PR #550"
       ]
+    },
+    {
+      "id": "google-sheets-ai7",
+      "name": "Google Sheets API",
+      "integration_status": "local_feature_unverified",
+      "runtime_verified": false,
+      "provider_writes_authorized": false,
+      "cost_authorized": false,
+      "repository_scope": "local AI-7 dashboard only; no Google account connected",
+      "observed_branch": "main",
+      "observed_directory": "scripts/ai_intelligence/dashboard_assets/google_sheets_export.mjs",
+      "verified_capability": "PR #552 added an optional local export that creates a new spreadsheet with fixed AI-7 aggregate counts using drive.file and RAW values; tests use mocked Google responses.",
+      "blocker": "No OAuth Client ID or Google account was configured and no live API call or spreadsheet was made. Owner must configure the public OAuth client and grant drive.file locally before runtime use.",
+      "evidence": [
+        "PR #552 merged at 8c490b796994a842899db5e677eab6eff62bce7c; main CI 43155307706 and CodeQL 43155307263 passed",
+        "Google Sheets API scopes: https://developers.google.com/workspace/sheets/api/scopes",
+        "Google spreadsheets.create and spreadsheets.values.update list drive.file as an accepted scope",
+        "AI-7 implementation and mocked tests are covered by PR #552"
+      ]
     }
   ]
 }

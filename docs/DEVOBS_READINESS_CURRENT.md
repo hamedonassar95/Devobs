@@ -1,4 +1,10 @@
-## تحديث بوابات الجاهزية بعد PR #550 — 2026-11-12 (VERIFIED)
+## تحديث بوابات الجاهزية بعد PR #552 — 2026-11-12 (VERIFIED)
+
+- أضاف PR [#552](https://github.com/hamedonassar95/Devobs/pull/552) تصديرًا اختياريًا محليًا لمجاميع AI-7 إلى جدول Google جديد باستخدام `drive.file` و`RAW`، دون قراءة ملفات Drive الموجودة أو إرسال نصوص سجلات أو معرّفات أو أسماء عملاء.
+- نجح push CI [43155012146](https://github.com/hamedonassar95/Devobs/actions/runs/43155012146) وPR CI [43155034494](https://github.com/hamedonassar95/Devobs/actions/runs/43155034494) وCodeQL [43155031310](https://github.com/hamedonassar95/Devobs/actions/runs/43155031310) على HEAD `fb1375dc265f43436bdc0bccea3b0007b51cbea4`. بعد الدمج عند `8c490b796994a842899db5e677eab6eff62bce7c` نجح main CI [43155307706](https://github.com/hamedonassar95/Devobs/actions/runs/43155307706) وCodeQL [43155307263](https://github.com/hamedonassar95/Devobs/actions/runs/43155307263). اجتازت Python وNode والأمن/Gitleaks وPostgreSQL RLS والحاوية/Trivy وTerraform وعقد الموقع و`validate`؛ نُشرت صفحة Pages الثابتة واجتازت `verify-production`.
+- **UNVERIFIED:** لا يوجد OAuth Client ID أو حساب موصول، ولم تحصل مكالمة Google API أو إنشاء جدول فعلي. هذا تكامل محلي فقط ولا يثبت تشغيل SaaS. AI-9 وP01 ما زالا **BLOCKED**، وقبول Codex runtime ما زال **OPEN**. سجل الإنجازات يوثق 194 إنجازًا.
+
+## تحديث سابق لبوابات الجاهزية بعد PR #550 — 2026-11-12 (VERIFIED)
 
 - أضاف PR [#550](https://github.com/hamedonassar95/Devobs/pull/550) خيارًا محليًا معطّلًا افتراضيًا لجدولة موعد متابعة ثابت في تقويم Google ثانوي خاص بالتطبيق. يستخدم `calendar.app.created` ولا يسرد تقاويم الحساب؛ لا يرسل سجلات أو بيانات حوادث ولا يضيف مدعوين أو رابط اجتماع. لا يدخل OAuth Client ID أو اتصال Google في إعداد المستودع.
 - نجح PR CI [43152880215](https://github.com/hamedonassar95/Devobs/actions/runs/43152880215) وCodeQL [43152876688](https://github.com/hamedonassar95/Devobs/actions/runs/43152876688) على HEAD `0e681cb62b4359f99d59caaaab99bfbc911e1879`. بعد الدمج عند `b68031d1b11c20d2f6fa29e46b687aa2010186b3` نجح main CI [43153169533](https://github.com/hamedonassar95/Devobs/actions/runs/43153169533) وCodeQL [43153168695](https://github.com/hamedonassar95/Devobs/actions/runs/43153168695). اجتازت Python وNode وsecurity/Gitleaks وPostgreSQL RLS وcontainer/Trivy وTerraform وsite-contract و`validate`، ونُشرت صفحة Pages الثابتة واجتازت `verify-production`.

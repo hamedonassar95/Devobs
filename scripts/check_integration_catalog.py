@@ -22,6 +22,7 @@ EXPECTED_IDS = {
     "openai-docs-mcp",
     "argocd-mcp",
     "google-calendar-ai7",
+    "google-sheets-ai7",
 }
 VALID_STATUSES = {"import_confirmed", "github_app_installed", "account_connected_unlinked",
                   "draft_handoff_only", "config_committed_unverified", "local_feature_unverified"}
@@ -134,13 +135,20 @@ def validate_catalog(data: Any) -> list[str]:
                 errors.append("Google Calendar source path must match the local AI-7 integration.")
             if svc.get("runtime_verified") is True:
                 errors.append("Google Calendar OAuth/runtime is not verified.")
+        elif identifier == "google-sheets-ai7":
+            if svc.get("integration_status") != "local_feature_unverified":
+                errors.append("Google Sheets must remain optional and local until OAuth runtime is verified.")
+            if svc.get("observed_directory") != "scripts/ai_intelligence/dashboard_assets/google_sheets_export.mjs":
+                errors.append("Google Sheets source path must match the local AI-7 integration.")
+            if svc.get("runtime_verified") is True:
+                errors.append("Google Sheets OAuth/runtime is not verified.")
         elif svc.get("runtime_verified") is True:
             errors.append(f"{label}: runtime is not verified for this provider.")
 
     if len(ids) != len(set(ids)):
         errors.append("Duplicate service ids are forbidden.")
     if set(ids) != EXPECTED_IDS:
-        errors.append("Service ids must match the nine explicitly scoped providers.")
+        errors.append("Service ids must match the ten explicitly scoped providers.")
     return errors
 
 
@@ -158,7 +166,7 @@ def main() -> int:
         for error in errors:
             print(f"FAIL: {error}", file=sys.stderr)
         return 1
-    print("PASS: nine integration records, evidence and default-deny controls validated locally.")
+    print("PASS: ten integration records, evidence and default-deny controls validated locally.")
     return 0
 
 
