@@ -2037,6 +2037,28 @@
       "ci_run_id": 43141603760,
       "verification": "VERIFIED 2026-11-12: PR #541 merged at f6f627bbb0a8c215f79e260265dc8a939f820019 from exact head 2c1f92905780473f17f49fb065ae7514058d5cd2. PR CI 43141315305 and CodeQL 43141309945 passed; post-merge main CI 43141603760 and CodeQL 43141602707 passed. Post-merge Python, Node, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, Pages publication and verify-production passed. The full local Python suite passed 1021 tests with 25 skipped after installing requirements-api.lock. Advisory Codex review workflow 43141315261 completed without model inference because budget approval was absent; PR-Agent was skipped.",
       "limitations": "Adds an optional local Codex configuration example and documentation only; it is not enabled in the repository config, CI or published site. Docker, OAuth and a live GitHub MCP call were not run, so integration runtime remains UNVERIFIED and Codex runtime gate remains OPEN. The read-only MCP tool filter does not reduce the underlying OAuth grant; use a fine-grained read-only token when account-level read-only permission is required. AI-9 and P01 remain BLOCKED."
+    },
+    {
+      "id": "ledger-sync-pr542-github-mcp",
+      "area": "DOCUMENTATION",
+      "title": "Record PR 542 merge evidence for the PR 541 ledger sync",
+      "pr_number": 542,
+      "pr_head_sha": "5967024a5bf0fbf53f40984097348be2e4e5b39b",
+      "merge_sha": "1ee8e5f581173f01baf398936b98b26c49de1f47",
+      "ci_run_id": 43142370703,
+      "verification": "VERIFIED 2026-11-12: PR #542 merged at 1ee8e5f581173f01baf398936b98b26c49de1f47 from exact head 5967024a5bf0fbf53f40984097348be2e4e5b39b. Push CI 43142160390 and PR CI 43142177128 passed; CodeQL 43142174216 passed for Actions, JavaScript/TypeScript, and Python. Post-merge main CI 43142370703 and CodeQL 43142370226 passed on the merge SHA. The PR CI skipped production release; the main CI published the static Pages site. This was a ledger and readiness synchronization for PR #541.",
+      "limitations": "Documentation and ledger synchronization only; no application behavior or readiness gate changed. The static Pages publish is not evidence of SaaS readiness. AI-9 and P01 remain BLOCKED, and Codex runtime remains OPEN."
+    },
+    {
+      "id": "grafana-mcp-readonly-codex",
+      "area": "AGENT_OPERATIONS",
+      "title": "Add optional read-only local Grafana MCP integration for Codex",
+      "pr_number": 543,
+      "pr_head_sha": "a58a3550b04a2ab366bfbf8245fe8fe4c9ee25dc",
+      "merge_sha": "f34a1969c59780f3a77d027ec6e320f82e803ad3",
+      "ci_run_id": 43143834691,
+      "verification": "VERIFIED 2026-11-12: PR #543 merged at f34a1969c59780f3a77d027ec6e320f82e803ad3 from exact head a58a3550b04a2ab366bfbf8245fe8fe4c9ee25dc. Exact-head push CI 43143644469 and PR CI 43143666253 passed; CodeQL 43143663879 passed for Actions, JavaScript/TypeScript, and Python. Post-merge main CI 43143834691 and CodeQL 43143834529 passed on the exact merge SHA. Main CI passed Python, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, Pages publication, and verify-production. Node tests passed on the exact-head push run and were skipped in PR/main runs by path selection; controlled incident drill and restore checks skipped by conditions. The full local Python suite passed 1023 tests with 25 skipped; the focused Grafana MCP contract passed 2 tests. The Windows x64 release archive hash matched the official v2.3.0 checksums file.",
+      "limitations": "Adds an optional local Windows Codex example and documentation only; it is not enabled in repository Codex config, CI, or the published site. Grafana, Docker, OAuth, a service-account token, and a live MCP call were not run. Codex runtime remains OPEN; AI-9 and P01 remain BLOCKED. The example restricts the server tool categories and disables write tools and the generic API proxy, but Grafana RBAC remains authoritative and query results can disclose locally readable metric data to the active Codex model."
     }
   ],
   "gates": [

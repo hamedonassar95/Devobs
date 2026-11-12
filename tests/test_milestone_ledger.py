@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_latest_recorded_merges_through_pr541_do_not_promote_gates(self):
+    def test_latest_recorded_merges_through_pr543_do_not_promote_gates(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 541)
-        self.assertEqual(result["merged_milestones"], 185)
+        self.assertEqual(result["latest_pr"], 543)
+        self.assertEqual(result["merged_milestones"], 187)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         self.assertEqual(
             records[530]["merge_sha"],
@@ -1080,6 +1080,14 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(records[541]["pr_head_sha"], "2c1f92905780473f17f49fb065ae7514058d5cd2")
         self.assertEqual(records[541]["ci_run_id"], 43141603760)
         self.assertIn("Docker, OAuth and a live GitHub MCP call were not run", records[541]["limitations"])
+        self.assertEqual(records[542]["merge_sha"], "1ee8e5f581173f01baf398936b98b26c49de1f47")
+        self.assertEqual(records[542]["pr_head_sha"], "5967024a5bf0fbf53f40984097348be2e4e5b39b")
+        self.assertEqual(records[542]["ci_run_id"], 43142370703)
+        self.assertIn("no application behavior", records[542]["limitations"])
+        self.assertEqual(records[543]["merge_sha"], "f34a1969c59780f3a77d027ec6e320f82e803ad3")
+        self.assertEqual(records[543]["pr_head_sha"], "a58a3550b04a2ab366bfbf8245fe8fe4c9ee25dc")
+        self.assertEqual(records[543]["ci_run_id"], 43143834691)
+        self.assertIn("Grafana, Docker, OAuth", records[543]["limitations"])
         self.assertIn("Post-merge main CI 43134970833", records[539]["verification"])
         self.assertIn("43134970567", records[539]["verification"])
         self.assertIn("AI-9 remains BLOCKED", records[539]["limitations"])
@@ -1107,6 +1115,8 @@ class MilestoneLedgerTests(unittest.TestCase):
             537: ("8c0de0dc90dd0b23b46dfda34eb1ba07d494b3b2", "188693a06b3a9483a51175d1eb24d3ff01a29dbe", 43133228690),
             538: ("1ac5cdc695a9c698b5ad7e5147c0c89021284af6", "04ef9efdda824130a795c3909b73748621c6581d", 43133640879),
             539: ("a843db5b8bdaff34ae509171a3959e7698c58e9a", "47004a850ebdc376711bf763ec9ca5458532a538", 43134970833),
+            542: ("5967024a5bf0fbf53f40984097348be2e4e5b39b", "1ee8e5f581173f01baf398936b98b26c49de1f47", 43142370703),
+            543: ("a58a3550b04a2ab366bfbf8245fe8fe4c9ee25dc", "f34a1969c59780f3a77d027ec6e320f82e803ad3", 43143834691),
         }
         for number, (head_sha, merge_sha, ci_run_id) in expected_recent.items():
             with self.subTest(pr=number):

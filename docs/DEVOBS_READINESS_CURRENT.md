@@ -1,3 +1,9 @@
+## تحديث بوابات الجاهزية بعد PR #543 — 2026-11-12 (VERIFIED)
+
+- دمج PR [#543](https://github.com/hamedonassar95/Devobs/pull/543) تكامل Grafana MCP محليًا واختياريًا. يحصر الفئات في `search,datasource,prometheus,dashboard`، ويضبط `--disable-write` و`--disable-api` ويعطل إحصاءات الاستخدام. النسخة والمصدر وحزمة Windows مثبتة في [الدليل](GRAFANA_MCP_INTEGRATION.md). لا يُحمّل المثال في إعداد المستودع ولا CI.
+- على HEAD `a58a3550b04a2ab366bfbf8245fe8fe4c9ee25dc` نجح push CI [43143644469](https://github.com/hamedonassar95/Devobs/actions/runs/43143644469) وPR CI [43143666253](https://github.com/hamedonassar95/Devobs/actions/runs/43143666253) وCodeQL [43143663879](https://github.com/hamedonassar95/Devobs/actions/runs/43143663879). بعد الدمج عند `f34a1969c59780f3a77d027ec6e320f82e803ad3` نجح main CI [43143834691](https://github.com/hamedonassar95/Devobs/actions/runs/43143834691) وCodeQL [43143834529](https://github.com/hamedonassar95/Devobs/actions/runs/43143834529). نُشرت صفحة Pages الثابتة واجتازت `verify-production`.
+- **الحالة لم تتغير:** AI-9 **BLOCKED**، P01 **BLOCKED**، وقبول Codex runtime **OPEN**. لم نشغّل Grafana أو Docker أو OAuth أو MCP حيًا، ولم ننشئ Service Account أو token. إعداد المستخدم المحلي مطلوب؛ لا يثبت الدمج تشغيل التكامل.
+
 ## تحديث بوابات الجاهزية بعد PR #541 — 2026-11-12 (VERIFIED)
 
 - PR [#541](https://github.com/hamedonassar95/Devobs/pull/541) دمج مثالًا اختياريًا محليًا لخادم GitHub MCP معزولًا عن إعداد Codex الرئيسي وCI والموقع. لا يفعّل هذا التغيير اتصالًا حيًا أو استدلالًا مدفوعًا، ولا يثبت قبول Codex runtime.
