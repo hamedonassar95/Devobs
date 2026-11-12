@@ -1982,6 +1982,17 @@
       "ci_run_id": 43132602268,
       "verification": "VERIFIED 2026-11-12: owner merged PR #536 at 8d317f6b3f4db78c1d1a2338483a8f923ddba192 from exact head 2ed27a6f2e88f5cfbd6cfdc1fcd044744a9914d2. Exact-head push CI 43132336832 and PR CI 43132361446 passed; Python validation, Node tests (push run), security, PostgreSQL RLS, container/Trivy, Terraform, site-contract, and validate passed. Node was skipped by path selection in PR CI. CodeQL 43132357493 passed for Python, Actions, and JavaScript. Advisory Codex workflow 43132361309 completed but model-review steps were skipped because budget approval was absent; Advisory PR-Agent review was skipped. Post-merge main CI 43132602268 and Push on main 43132601217 passed on the merge SHA. Post-merge Python validation, security, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication, verify-production, and CodeQL passed; Node tests and controlled incident drill/recovery checks were skipped by workflow conditions. The ledger suite passed 50 tests before merge.",
       "limitations": "Documentation, ledger, STATE, and ledger-test synchronization only; no application behavior or readiness gate changed. This sync documents PR #535 and the earlier Google Docs ledger entries; no live Google OAuth or Docs API call has been verified. Static Pages publication does not establish SaaS readiness. No AI model review ran because the budget gate was not approved. AI-9 remains BLOCKED, P01 remains BLOCKED, and Codex runtime remains OPEN."
+    },
+    {
+      "id": "ledger-sync-pr537-google-docs-export",
+      "area": "DOCUMENTATION",
+      "title": "Record PR 537 merge evidence for the PR 536 ledger sync",
+      "pr_number": 537,
+      "pr_head_sha": "8c0de0dc90dd0b23b46dfda34eb1ba07d494b3b2",
+      "merge_sha": "188693a06b3a9483a51175d1eb24d3ff01a29dbe",
+      "ci_run_id": 43133228690,
+      "verification": "VERIFIED 2026-11-12: owner merged PR #537 at 188693a06b3a9483a51175d1eb24d3ff01a29dbe from head 8c0de0dc90dd0b23b46dfda34eb1ba07d494b3b2. Exact-head push CI 43132918332 and PR CI 43132943120 passed; Node tests passed on push and skipped in PR by path. Python validation, security, PostgreSQL RLS, container/Trivy, Terraform, site-contract, and validate passed. CodeQL 43132939826 passed for Python, Actions, and JavaScript. Advisory Codex 43132942932 skipped model review because budget approval was absent; PR-Agent skipped. Post-merge CI 43133228690 and Push on main 43133228894 passed. Python, security, RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication, verify-production, and CodeQL passed; Node, incident drill, and recovery skipped by conditions. Ledger tests passed 50 tests before merge.",
+      "limitations": "Documentation, ledger, STATE, and ledger-test synchronization only; no application behavior or readiness gate changed. This sync records PR #536; earlier entries document the optional Google Docs export, which has not been tested with live OAuth or a Docs API call. Static Pages publication does not establish SaaS readiness. No AI model review ran because the budget gate was not approved. AI-9 remains BLOCKED, P01 remains BLOCKED, and Codex runtime remains OPEN."
     }
   ],
   "gates": [
