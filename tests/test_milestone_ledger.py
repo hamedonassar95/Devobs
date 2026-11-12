@@ -1026,10 +1026,10 @@ class MilestoneLedgerTests(unittest.TestCase):
             },
         )
 
-    def test_latest_recorded_merges_through_pr546_do_not_promote_gates(self):
+    def test_latest_recorded_merges_through_pr548_do_not_promote_gates(self):
         result = validate(self.data)
-        self.assertEqual(result["latest_pr"], 546)
-        self.assertEqual(result["merged_milestones"], 190)
+        self.assertEqual(result["latest_pr"], 548)
+        self.assertEqual(result["merged_milestones"], 192)
         records = {item["pr_number"]: item for item in self.data["milestones"]}
         self.assertEqual(
             records[530]["merge_sha"],
@@ -1100,6 +1100,14 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(records[546]["pr_head_sha"], "01d165bb76af08857b6e4478330e55a93e503961")
         self.assertEqual(records[546]["ci_run_id"], 43147378625)
         self.assertIn("no cluster, kubeconfig", records[546]["limitations"])
+        self.assertEqual(records[547]["merge_sha"], "e1f0b7041bbf45659652a85b270aa4d218edd1e8")
+        self.assertEqual(records[547]["pr_head_sha"], "b2c3000082bddc5f6ab4314c7c777dbcf36dfdcc")
+        self.assertEqual(records[547]["ci_run_id"], 43148113880)
+        self.assertIn("synchronized state and readiness", records[547]["verification"])
+        self.assertEqual(records[548]["merge_sha"], "74607bcdb1723274bae1516707d691ef583bbde0")
+        self.assertEqual(records[548]["pr_head_sha"], "c5ef51fac267da555f01aeb2c13dd1d80620246b")
+        self.assertEqual(records[548]["ci_run_id"], 43149872811)
+        self.assertIn("no Docker runtime", records[548]["limitations"])
         self.assertIn("Post-merge main CI 43134970833", records[539]["verification"])
         self.assertIn("43134970567", records[539]["verification"])
         self.assertIn("AI-9 remains BLOCKED", records[539]["limitations"])
@@ -1132,6 +1140,8 @@ class MilestoneLedgerTests(unittest.TestCase):
             544: ("36dcf9fafb994cda153c95c6ff75a7b0109de68e", "882053b0a6c8c0264871aaa8a4121059190bb471", 43144634329),
             545: ("9b3bdd5da890af9dd2f345a68fbd78a2d12eb0a6", "dc4f9834fe011985a93bbc4dd2bafef046fb9712", 43145332069),
             546: ("01d165bb76af08857b6e4478330e55a93e503961", "9a6eef149a3c942757867875883acbd34764499d", 43147378625),
+            547: ("b2c3000082bddc5f6ab4314c7c777dbcf36dfdcc", "e1f0b7041bbf45659652a85b270aa4d218edd1e8", 43148113880),
+            548: ("c5ef51fac267da555f01aeb2c13dd1d80620246b", "74607bcdb1723274bae1516707d691ef583bbde0", 43149872811),
         }
         for number, (head_sha, merge_sha, ci_run_id) in expected_recent.items():
             with self.subTest(pr=number):
