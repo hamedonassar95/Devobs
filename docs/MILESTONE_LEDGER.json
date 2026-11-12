@@ -2125,6 +2125,17 @@
       "ci_run_id": 43153169533,
       "verification": "VERIFIED 2026-11-12: PR #550 merged at b68031d1b11c20d2f6fa29e46b687aa2010186b3 from exact head 0e681cb62b4359f99d59caaaab99bfbc911e1879. PR CI 43152880215 and CodeQL 43152876688 passed on the head; advisory Codex review 43152880169 succeeded. Post-merge main CI 43153169533 and CodeQL 43153168695 passed on the merge SHA. Main CI passed Python, Node, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication, and verify-production. Incident/restore checks skipped by conditions. Local focused Node suite passed (83 tests).",
       "limitations": "Adds only an optional local AI-7 UI integration using calendar.app.created. No Google OAuth Client ID/account was configured; no Google API call, calendar or event was created. The access token is not stored; only the created calendar ID is kept in browser storage. AI-7 remains local and is not served by Pages. Codex runtime remains OPEN; AI-9 and P01 remain BLOCKED."
+    },
+    {
+      "id": "google-sheets-ai7-summary-export",
+      "area": "OPERATIONS",
+      "title": "Add optional local AI-7 aggregate export to a new Google spreadsheet",
+      "pr_number": 552,
+      "pr_head_sha": "fb1375dc265f43436bdc0bccea3b0007b51cbea4",
+      "merge_sha": "8c490b796994a842899db5e677eab6eff62bce7c",
+      "ci_run_id": 43155307706,
+      "verification": "VERIFIED 2026-11-12: PR #552 merged at 8c490b796994a842899db5e677eab6eff62bce7c from exact head fb1375dc265f43436bdc0bccea3b0007b51cbea4. Exact-head push CI 43155012146 and PR CI 43155034494 passed; CodeQL 43155031310 passed for Actions, JavaScript/TypeScript and Python; advisory review run 43155034451 succeeded. Post-merge main CI 43155307706 and CodeQL 43155307263 passed on the merge SHA. Main CI passed Node/Python, security/Gitleaks, PostgreSQL RLS, container/Trivy, Terraform, site-contract, validate, static Pages publication and verify-production. Incident drill and restoration checks skipped by conditions. Local AI-7 Node suite passed (87 tests); existing Docs export tests passed (4).",
+      "limitations": "Adds an optional local AI-7 export that creates a new spreadsheet and writes only fixed aggregate counts using drive.file and RAW values. No OAuth Client ID/account was configured; no live Google API call or spreadsheet was created. It never lists or reads existing Drive files. The AI-7 dashboard remains outside deployed Pages; static publication does not host the integration. Codex runtime remains OPEN; AI-9 and P01 remain BLOCKED."
     }
   ],
   "gates": [
