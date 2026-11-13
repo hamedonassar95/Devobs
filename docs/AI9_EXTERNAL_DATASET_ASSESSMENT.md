@@ -72,6 +72,54 @@ set is present in the reviewed evidence. Rights or source claims not confirmed
 by the pinned publisher documentation remain **UNVERIFIED**. AI-9 remains
 **FAIL / BLOCKED**; P01 remains **NO-GO / BLOCKED**.
 
+## Additional natural-incident source search — 2026-11-13
+
+ChronoGraph was inspected as an additional public candidate because its paper
+describes production microservice telemetry and event annotations derived from
+incident reports. The checked repository snapshot is
+[`51a16b9b29a0ecb1b6f17d672ca1da97de9da99a`](https://github.com/bit-ml/ChronoGraph/tree/51a16b9b29a0ecb1b6f17d672ca1da97de9da99a);
+the pinned README and root license declare Apache-2.0 for the repository. The
+paper's [v2](https://arxiv.org/abs/2509.04449v2) reports six months of
+production microservice telemetry, 708 services, five metrics per service,
+30-minute sampling, and 17 labeled anomaly segments parsed from incident
+reports. No dataset files were downloaded.
+
+This is a useful lead, but **NOT_EVALUABLE** for the complete current AI-9 gate:
+
+- Thirty-minute sampling cannot satisfy the unchanged 60-second input contract;
+  resampling or interpolation would alter the preregistered protocol.
+- The 17 anomaly segments have no documented sample-size justification for
+  AI-9, and the paper does not document root-cause service labels.
+- The paper describes expert/event annotation but does not establish the required
+  independent double review and adjudication process.
+- The repository license is not sufficient evidence that the underlying
+  production telemetry may be used for this evaluation; dataset-specific rights
+  remain **UNVERIFIED**.
+- No immutable data-file checksum or privacy/retention approval was established
+  because no data were downloaded and the source materials reviewed do not
+  establish those approvals.
+
+Other public leads checked at the source-description level do not close these
+gaps: the [Cloud Uptime Archive at snapshot
+`508a31e32dd9aba4410014c159cf83b5b0f4c09b`](https://github.com/atlarge-research/cloud-uptime-archive/tree/508a31e32dd9aba4410014c159cf83b5b0f4c09b)
+describes outage traces and severity, but the checked description does not
+establish compatible service-level metric series and independent root-cause
+labels; the README says severity is a synthetic metric. The [Cloud Incident
+Reports record v1.0](https://zenodo.org/records/14010282) (DOI
+`10.5281/zenodo.14010282`) declares CC BY 4.0 and describes 3,087 textual
+reports, 460 of which are labeled, but does not establish the telemetry-to-service
+mapping or 60-second metric series required by AI-9.
+Both are **NOT_EVALUABLE** for the complete gate; no data were downloaded. These
+source-description checks are not a substitute for dataset inspection or
+privacy approval.
+
+**Result:** no qualifying corpus was identified. The next concrete prerequisite
+is an owner-authorized corpus with documented usage rights, native 60-second
+service metrics, incident and root-cause labels independently reviewed and
+adjudicated, privacy/retention approval, and a frozen manifest with checksums.
+Until then, do not run a new holdout evaluation; AI-9 remains **FAIL / BLOCKED**
+and P01 remains **NO-GO / BLOCKED**.
+
 ## References
 
 - [Microsoft dataset README](https://github.com/microsoft/cloud-monitoring-dataset/blob/master/README.md)
@@ -86,4 +134,6 @@ by the pinned publisher documentation remain **UNVERIFIED**. AI-9 remains
 - [Research paper describing AIOps Challenge dataset C and its injected failures](https://arxiv.org/html/2208.03938v1)
 - [AIOpsArena dataset and sampling/ground-truth description](https://github.com/AIOpsArena/dataset)
 - [OpenRCA 2.0 Lite dataset card and license](https://huggingface.co/datasets/anon-ops/ops-lite)
+- [ChronoGraph repository snapshot](https://github.com/bit-ml/ChronoGraph/tree/51a16b9b29a0ecb1b6f17d672ca1da97de9da99a), [pinned README](https://github.com/bit-ml/ChronoGraph/blob/51a16b9b29a0ecb1b6f17d672ca1da97de9da99a/README.md), [pinned license](https://github.com/bit-ml/ChronoGraph/blob/51a16b9b29a0ecb1b6f17d672ca1da97de9da99a/LICENSE), and [paper v2](https://arxiv.org/html/2509.04449v2)
+- [Cloud Uptime Archive snapshot](https://github.com/atlarge-research/cloud-uptime-archive/tree/508a31e32dd9aba4410014c159cf83b5b0f4c09b) and [Cloud Incident Reports, Zenodo record v1.0](https://zenodo.org/records/14010282); inspected at source-description level only. Cloud Incident Reports declares CC BY 4.0, but both are **NOT_EVALUABLE** for the complete AI-9 contract.
 - [AI-9 v3 independent-evaluation gate](AI9_V3_INDEPENDENT_EVAL_GATE.md)
