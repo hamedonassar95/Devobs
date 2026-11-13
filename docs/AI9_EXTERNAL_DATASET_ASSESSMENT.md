@@ -52,6 +52,26 @@ Schema and provenance inspection must be separated from detector outcomes. Do no
 - **UNVERIFIED:** a deterministic feature/service mapping for IBM; exact AIOps 2020 archive shape/size/cadence and rights-holder permission beyond non-commercial research; AIOpsArena reuse rights; production suitability of testbed datasets; and whether a preregistered combination can support every AI-9 gate.
 - **BLOCKED:** full AI-9 scoring on IBM is invalid under the current detector cadence and label contract. RCAEval's testbed baseline is not a production-detector or natural-incident evaluation. No complete external evaluation for AI-9 exists; AI-9 remains **FAIL / BLOCKED**.
 
+## Natural-incident preregistration update — 2026-11-13
+
+The [AI-9 Natural-Incident Evaluation preregistration](AI9_REAL_INCIDENT_PREREGISTRATION.md)
+sets admission, independent-label, privacy, sampling, holdout, metric, uncertainty,
+and one-time authorization requirements for a future natural-incident study. It
+is a design protocol only: no qualifying corpus has been identified or approved,
+no new data were downloaded or scored, and no AI-9 gate or threshold changed.
+
+Official source metadata and pinned snapshots were rechecked on 2026-11-13 for
+Microsoft Cloud Monitoring, IBM Zenodo 14062900, RCAEval, OpenRCA 2.0 Lite,
+AIOps Challenge 2020, and AIOpsArena. Existing assessments and results for
+RCAEval, IBM, Microsoft, and Devobs synthetic holdouts remain the detailed
+record; this update does not repeat or rerun those studies. Each source remains
+**NOT_EVALUABLE** for the complete natural-incident AI-9 gate because labels,
+cadence, injected-failure status, or usage rights do not meet all admission
+requirements. No owner-approved natural-incident manifest or independent label
+set is present in the reviewed evidence. Rights or source claims not confirmed
+by the pinned publisher documentation remain **UNVERIFIED**. AI-9 remains
+**FAIL / BLOCKED**; P01 remains **NO-GO / BLOCKED**.
+
 ## References
 
 - [Microsoft dataset README](https://github.com/microsoft/cloud-monitoring-dataset/blob/master/README.md)

@@ -1,5 +1,17 @@
 # Offline AI evaluation datasets
 
+## AI-9 natural-incident evidence boundary
+
+The fixtures and historical examples documented here are synthetic,
+unreviewed, retrospective, or generated-output grading examples. They are not
+an independently labeled natural-incident corpus and cannot close the AI-9
+gate. No qualifying, approved natural-incident dataset or immutable manifest is
+currently recorded in this repository. See the
+[AI-9 natural-incident preregistration protocol](AI9_REAL_INCIDENT_PREREGISTRATION.md)
+for admission, rights, labeling, privacy, sample-size, holdout, and reporting
+requirements. This link documents a future protocol only; it does not authorize
+private-data access or an evaluation.
+
 This repository has two separate, local evaluation paths. Both consume saved
 candidate outputs, make no provider calls, and report case IDs and metrics
 without echoing incident text. Dataset labels and generated candidate outputs
