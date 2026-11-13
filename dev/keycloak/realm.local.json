@@ -1,0 +1,7 @@
+{
+  "realm": "devobs-local",
+  "enabled": true,
+  "sslRequired": "external",
+  "clients": [],
+  "users": []
+}
