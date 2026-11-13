@@ -208,3 +208,4 @@ unset GRAFANA_ADMIN_PASSWORD
 إعداد AI DevKit للمساهمين ومراحل العمل موثق في [دليل AI DevKit](docs/AI_DEVKIT.md). هذا الإعداد منفصل عن تشغيل CI/CD؛ مركز وحدات الأتمتة القابلة لإعادة الاستخدام موجود في [مركز الأتمتة](docs/AUTOMATION_HUB.md).
 
 - [Manual P01 evidence completeness gate](docs/P01_ACTIVATION_READINESS.md#p01-offline-evidence-gate-review-only): fails closed on missing or stale launch evidence, but cannot approve P01, launch SaaS, or access provider accounts.
+- [Keycloak OIDC profile and local-only discovery/JWKS preflight](docs/P01_KEYCLOAK_OIDC_PROFILE.md): a disposable Keycloak 26.8.2 Compose fixture pinned by official Quay digest, loopback-only and without a bootstrap admin. Local HTTP results do not satisfy Devobs's HTTPS issuer policy or establish token compatibility/readiness.

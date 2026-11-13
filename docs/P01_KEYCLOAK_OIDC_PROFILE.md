@@ -17,8 +17,51 @@
 7. From the **trusted issuer's** HTTPS OIDC discovery, independently verify the exact issuer and same-origin JWKS URI. Inspect that public signing keys expose `kid`, RSA modulus/exponent, `alg=RS256`, `use=sig`, and at least 2048-bit modulus. No token-supplied `jku` or untrusted key URL may be trusted. Record only the public provenance and success/failure; **never** commit live tokens, private keys, URLs with embedded credentials, access logs or signing secrets.
 8. In a controlled offline smoke test, use the actual verified public metadata/JWKS and a short-lived test token with existing `trusted_oidc_verifier(...).verify(...)`. Explicitly demonstrate rejection of `typ=JWT`, array audience, wrong client ID, unknown key, bad subject, expired token and missing scope. Keep tokens out of GitHub CI logs. Only after a separately authorized operator review should the reviewed values be entered in Render's private environment and an **exact-SHA** redeploy considered.
 
+## Optional local-only Keycloak 26.8.2 discovery/JWKS preflight
+
+This is a disposable, operator-triggered development fixture. It does not modify the Devobs verifier or create an identity-provider account:
+
+- `dev/keycloak/compose.local.yaml` pins the official `quay.io/keycloak/keycloak:26.8.2` OCI image index by digest: `sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0`. **VERIFIED 2026-11-13:** `docker buildx imagetools inspect quay.io/keycloak/keycloak:26.8.2` reported OCI image-index media type and this digest; a Quay Registry v2 `HEAD` for the same tag returned HTTP 200 with the same `Docker-Content-Digest`. The official registry is [Quay's Keycloak repository](https://quay.io/repository/keycloak/keycloak?tab=tags). Re-resolve and compare the digest before intentionally updating the image pin.
+- The compose service uses Keycloak's documented `start-dev` and `--import-realm` development/import behavior, but publishes port 8080 only on `127.0.0.1`. It mounts the minimal `devobs-local` realm JSON read-only, uses no external database, and has no bootstrap administrator variables, users, clients, passwords, or committed keys. Do not use `start-dev` as a production configuration.
+- [The local preflight](../scripts/p01_keycloak_local_preflight.py) performs only two bounded GETs to the exact local origin and fixed `devobs-local` realm: discovery and its same-origin JWKS. It rejects redirects, unexpected origins/paths, malformed or oversized responses, non-RS256 signing keys, weak RSA modulus sizes, duplicate key IDs, and private JWK fields. It prints fixed status codes and a key count only, never document contents. It does not request tokens or contact any non-loopback address.
+- A `LOCAL_OIDC_PREFLIGHT_PASS` is only a response-shape and public-key-metadata check. The report always states `https_only_issuer_policy: NOT_COMPATIBLE_WITH_LOCAL_HTTP` and `readiness_claim: NOT_ESTABLISHED`. The existing production verifier requires an HTTPS issuer in [`oidc_tokens.py`](../scripts/devobs_intelligence/oidc_tokens.py); local HTTP discovery cannot populate or validate production configuration. The tool also cannot attest that a process answering on localhost is the pinned Keycloak container.
+
+### Manual disposable smoke procedure
+
+Tests do not start Docker, pull the Keycloak image, or run an IdP. To perform an explicitly local smoke test on an operator workstation with Docker Compose v2 and an available host port 8080:
+
+```sh
+docker compose -f dev/keycloak/compose.local.yaml config --quiet
+docker compose -f dev/keycloak/compose.local.yaml up -d
+python3 scripts/p01_keycloak_local_preflight.py
+docker compose -f dev/keycloak/compose.local.yaml down --remove-orphans
+```
+
+`up -d` downloads the pinned public image if it is not already present and starts the disposable service. The realm has no configured user or application client and Compose does not create an administrator. The preflight is read-only and needs no login. Stop and remove the service even if the preflight fails; `down --remove-orphans` removes its container and Compose network. There is no named data volume. Do not export or commit any Keycloak-generated internal signing data. If port 8080 is occupied, stop here; do not expose Keycloak on a non-loopback interface or change the script's fixed CLI origin.
+
+### Evidence required after this local preflight
+
+Local HTTP success does **not** satisfy Devobs's HTTPS-only issuer policy or prove access-token interoperability. A later separately approved test must use an HTTPS issuer with a valid certificate and a real, short-lived, synthetic test access token. Apply the existing strict verifier unchanged and verify all of the following from the signed token and trusted public JWKS:
+
+- JWT header `typ` is `at+jwt` (or `application/at+jwt`) and signature algorithm is RS256.
+- `iss` exactly matches the HTTPS realm issuer; `aud` is exactly the single string `devobs-api`; `client_id` exactly matches the registered Devobs client. `azp` alone is not a substitute.
+- `sub`, `jti`, integer `iat` and `exp` satisfy existing verifier bounds; required `devobs.read` scope is present. `devobs.ai.diagnose` needs a separate authorization decision.
+- JWKS is fetched and verified over HTTPS from the exact trusted issuer origin. Exercise an approved key rollover with the existing rotation verifier, checking old/new key overlap and rejection once an old key is removed. Never trust a token-provided key URL.
+
+Record only sanitized pass/fail evidence and the reviewed source SHA. Keep tokens, private keys and identity-provider values out of Git and CI logs. This future test requires a separate owner approval and still would not by itself clear PostgreSQL/RLS, backups, cost ceiling, hosted-service, AI-9, or other P01 gates.
+
+### Sources checked 2026-11-13
+
+- [Keycloak running in a container](https://www.keycloak.org/server/containers) — development-mode command, loopback port example, and `--import-realm` mount location.
+- [Keycloak Docker getting-started guide](https://www.keycloak.org/getting-started/getting-started-docker) — versioned `26.8.2` example and the administrator environment variables deliberately omitted here.
+- [Keycloak realm import/export](https://www.keycloak.org/server/importExport) — startup import behavior and `.json` import files.
+- [Keycloak 26.2.0 release notes](https://www.keycloak.org/2025/04/keycloak-2620-released) — `at+jwt` access-token header setting is opt-in; this remains a future token test, not part of local discovery.
+
+These official pages and Quay metadata were retrieved on the date above. They verify published instructions and the registry manifest digest, not a running Keycloak instance or future realm/token compatibility. Actual Docker runtime behavior remains **UNVERIFIED** until the operator executes the manual smoke procedure.
+
 ## Built-in verification
 - `python3 -m unittest discover -s tests -p 'test_intelligence_keycloak_profile.py' -v`
+- `python3 -m unittest discover -s tests -p 'test_p01_keycloak_local_preflight.py' -v`
 - `python3 -m unittest discover -s tests -p 'test_intelligence_oidc_metadata.py' -v`
 - `python3 -m unittest discover -s tests -p 'test_intelligence_oidc_rotation.py' -v`
 - `python3 -m unittest discover -s tests -v`
