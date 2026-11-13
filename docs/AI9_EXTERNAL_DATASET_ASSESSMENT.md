@@ -102,9 +102,11 @@ This is a useful lead, but **NOT_EVALUABLE** for the complete current AI-9 gate:
 Other public leads checked at the source-description level do not close these
 gaps: the [Cloud Uptime Archive at snapshot
 `508a31e32dd9aba4410014c159cf83b5b0f4c09b`](https://github.com/atlarge-research/cloud-uptime-archive/tree/508a31e32dd9aba4410014c159cf83b5b0f4c09b)
-describes outage traces and severity, but the checked description does not
-establish compatible service-level metric series and independent root-cause
-labels; the README says severity is a synthetic metric. The [Cloud Incident
+declares an MIT repository license, but the README says its raw traces are a
+separate Zenodo dataset; the payload license was not verified. The README
+describes outage traces and severity, but does not establish compatible
+service-level metric series or independent root-cause labels; it says severity
+is a synthetic metric. The [Cloud Incident
 Reports record v1.0](https://zenodo.org/records/14010282) (DOI
 `10.5281/zenodo.14010282`) declares CC BY 4.0 and describes 3,087 textual
 reports, 460 of which are labeled, but does not establish the telemetry-to-service
