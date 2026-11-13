@@ -11,6 +11,8 @@ from __future__ import annotations
 import atexit
 import json
 import os
+import threading
+import time
 from collections.abc import Mapping
 from typing import Callable
 
@@ -28,6 +30,70 @@ from .postgres_store import PostgresTenantStore
 
 class StagingConfigurationError(ValueError):
     """Non-sensitive startup error with a fixed public code."""
+
+
+READINESS_CACHE_SECONDS = 0.25
+MAX_READINESS_CACHE_SECONDS = 1.0
+
+
+class _ReadinessProbeCoordinator:
+    """Coalesce one app's concurrent probes and briefly cache their actual result."""
+
+    def __init__(self, probe: Callable[[], object], cache_seconds: float = READINESS_CACHE_SECONDS):
+        if (not callable(probe) or type(cache_seconds) not in (int, float)
+                or not 0 < cache_seconds <= MAX_READINESS_CACHE_SECONDS):
+            raise ValueError("invalid_readiness_cache_config")
+        self._probe = probe
+        self._cache_seconds = float(cache_seconds)
+        self._condition = threading.Condition()
+        self._cached_result: bool | None = None
+        self._cache_expires_at = 0.0
+        self._active_generation: int | None = None
+        self._next_generation = 0
+        self._waiters: dict[int, int] = {}
+        self._completed_results: dict[int, bool] = {}
+
+    def check(self) -> bool:
+        with self._condition:
+            if (self._cached_result is not None
+                    and time.monotonic() < self._cache_expires_at):
+                return self._cached_result
+
+            if self._active_generation is not None:
+                generation = self._active_generation
+                self._waiters[generation] = self._waiters.get(generation, 0) + 1
+                try:
+                    while self._active_generation == generation:
+                        self._condition.wait()
+                    return self._completed_results.get(generation, False) is True
+                finally:
+                    remaining = self._waiters.get(generation, 1) - 1
+                    if remaining <= 0:
+                        self._waiters.pop(generation, None)
+                        self._completed_results.pop(generation, None)
+                    else:
+                        self._waiters[generation] = remaining
+
+            self._cached_result = None
+            self._cache_expires_at = 0.0
+            self._next_generation += 1
+            generation = self._next_generation
+            self._active_generation = generation
+
+        result = False
+        try:
+            result = self._probe() is True
+        except Exception:
+            result = False
+        finally:
+            with self._condition:
+                self._cached_result = result
+                self._cache_expires_at = time.monotonic() + self._cache_seconds
+                if self._waiters.get(generation, 0) > 0:
+                    self._completed_results[generation] = result
+                self._active_generation = None
+                self._condition.notify_all()
+        return result
 
 
 def _decode_document(settings: Mapping[str, str], name: str, limit: int) -> dict:
@@ -89,6 +155,7 @@ def build_app(settings: Mapping[str, str]) -> Callable:
         jwks = _decode_document(settings, "DEVOBS_OIDC_JWKS_JSON", 65536)
         verifier = RotatingOIDCVerifier(issuer, audience, client_id, metadata, jwks)
         store = PostgresTenantStore(_database_dsn(settings))
+        readiness = _ReadinessProbeCoordinator(store.probe_readiness)
         enabled = settings.get("DEVOBS_AI_DIAGNOSTICS_ENABLED", "false")
         if enabled not in {"true", "false"}:
             raise StagingConfigurationError("invalid_staging_config")
@@ -129,29 +196,29 @@ def build_app(settings: Mapping[str, str]) -> Callable:
     def application(environ, start_response):
         path = environ.get("PATH_INFO")
         if path == "/healthz":
-            rejected = reject_request_body(environ, start_response)
-            if rejected is not None:
-                return rejected
             if environ.get("REQUEST_METHOD") != "GET":
                 start_response("405 Method Not Allowed", [("Allow", "GET"),
                                                            ("Content-Length", "0"),
                                                            ("Cache-Control", "no-store")])
-            else:
-                # Liveness only: not a proof of Postgres reachability/tenant safety.
-                start_response("204 No Content", [("Cache-Control", "no-store"),
-                                                   ("Content-Length", "0")])
-            return [b""]
-        if path == "/readyz":
+                return [b""]
             rejected = reject_request_body(environ, start_response)
             if rejected is not None:
                 return rejected
+            # Liveness only: not a proof of Postgres reachability/tenant safety.
+            start_response("204 No Content", [("Cache-Control", "no-store"),
+                                               ("Content-Length", "0")])
+            return [b""]
+        if path == "/readyz":
             if environ.get("REQUEST_METHOD") != "GET":
                 start_response("405 Method Not Allowed", [("Allow", "GET"),
                                                            ("Cache-Control", "no-store"),
                                                            ("Content-Length", "0")])
                 return [b""]
+            rejected = reject_request_body(environ, start_response)
+            if rejected is not None:
+                return rejected
             try:
-                ready = store.probe_readiness() is True
+                ready = readiness.check()
             except Exception:
                 ready = False
             # Do not leak DB configuration, SQL errors or identity information.
