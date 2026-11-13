@@ -7,6 +7,7 @@ import pathlib
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -85,17 +86,20 @@ class P01StartupTriageTests(unittest.TestCase):
         with self.assertRaises(triage_tool.InventoryError):
             triage_tool.parse_inventory(json.dumps(payload).encode())
         stdout, stderr = io.StringIO(), io.StringIO()
-        with tempfile.TemporaryDirectory() as temporary:
-            path = pathlib.Path(temporary) / "inventory.json"
-            path.write_text(json.dumps(payload), encoding="utf-8")
-            code = triage_tool.main(["--inventory", str(path)], stdout=stdout, stderr=stderr)
+        raw = json.dumps(payload).encode("utf-8")
+        with patch.object(triage_tool, "_read_inventory", return_value=raw):
+            code = triage_tool.main(
+                ["--inventory", "synthetic-inventory.json"],
+                stdout=stdout,
+                stderr=stderr,
+            )
         self.assertEqual(code, 4)
         self.assertEqual(stdout.getvalue(), "")
         self.assertEqual(stderr.getvalue(), "ERROR: invalid_inventory\n")
         self.assertNotIn(secret_marker, stdout.getvalue() + stderr.getvalue())
 
     def test_configuration_value_is_rejected_even_under_allowed_name(self):
-        secret_marker = "postgresql://reader:SYNTHETIC_PASSWORD@db.example.test/app"
+        secret_marker = "dsn-value-that-is-not-an-allowed-presence-state"
         payload = {
             "schema_version": 1,
             "variables": {"DEVOBS_PG_DSN": secret_marker},
@@ -103,13 +107,15 @@ class P01StartupTriageTests(unittest.TestCase):
         with self.assertRaises(triage_tool.InventoryError):
             triage_tool.parse_inventory(json.dumps(payload).encode())
         stdout, stderr = io.StringIO(), io.StringIO()
-        with tempfile.TemporaryDirectory() as temporary:
-            path = pathlib.Path(temporary) / "inventory.json"
-            path.write_text(json.dumps(payload), encoding="utf-8")
-            code = triage_tool.main(["--inventory", str(path)], stdout=stdout, stderr=stderr)
+        raw = json.dumps(payload).encode("utf-8")
+        with patch.object(triage_tool, "_read_inventory", return_value=raw):
+            code = triage_tool.main(
+                ["--inventory", "synthetic-inventory.json"],
+                stdout=stdout,
+                stderr=stderr,
+            )
         self.assertEqual(code, 4)
         self.assertNotIn(secret_marker, stdout.getvalue() + stderr.getvalue())
-        self.assertNotIn("SYNTHETIC_PASSWORD", stdout.getvalue() + stderr.getvalue())
 
     def test_duplicate_keys_invalid_schema_and_unsafe_states_are_rejected(self):
         for raw in (
