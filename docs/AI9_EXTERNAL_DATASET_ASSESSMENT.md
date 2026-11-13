@@ -115,12 +115,43 @@ Both are **NOT_EVALUABLE** for the complete gate; no data were downloaded. These
 source-description checks are not a substitute for dataset inspection or
 privacy approval.
 
+Two higher-relevance production studies were then checked against their official
+paper and artifact pages:
+
+- **LagRCA D1 — closest public lead, but not admissible yet.** The [FSE 2026
+  paper](https://doi.org/10.1145/3803437.3805219) describes D1 as real incident
+  data from a commercial bank's production microservice system: 146 failures,
+  46 instances, five failure categories, a five-day span, root-cause instance
+  labels, and metrics sampled every minute. The authors' [pinned public code
+  repository](https://github.com/kjhjk566/LagRCA/tree/27ba909210b722813e5febc4135585cef3f5911c)
+  documents D1 files, but the checked snapshot has no `LICENSE` file. The
+  paper's CC BY 4.0 article license does not establish reuse rights for the
+  separate telemetry files. The reviewed paper/repository also do not establish
+  independent label adjudication, sample-size adequacy for the frozen AI-9
+  metrics, data privacy/retention permission, or a cryptographic manifest for
+  the exact dataset files. We did not download or inspect the data. Therefore
+  D1 is **NOT_EVALUABLE** until the dataset rights holder supplies those
+  approvals and evidence.
+- **OScope's Alibaba OS incidents — production labels, wrong data contract.**
+  The [ICSE-SEIP 2026 paper](https://doi.org/10.1145/3786583.3786852) reports
+  101 Alibaba production Linux failure cases manually labeled with root causes
+  by experienced OCEs. It says metrics, logs, and stack traces are collected for
+  three hours before each alert. The reviewed article does not identify a public
+  dataset license/release, exact metric cadence, service-level mapping, or
+  independent adjudication for those 101 labels. Its separate description of
+  independent review for historical troubleshooting-document rewriting is not
+  evidence of independent review for the 101 evaluation labels. This source is
+  **NOT_EVALUABLE** for the complete AI-9 gate; no dataset was accessed.
+
 **Result:** no qualifying corpus was identified. The next concrete prerequisite
-is an owner-authorized corpus with documented usage rights, native 60-second
-service metrics, incident and root-cause labels independently reviewed and
-adjudicated, privacy/retention approval, and a frozen manifest with checksums.
-Until then, do not run a new holdout evaluation; AI-9 remains **FAIL / BLOCKED**
-and P01 remains **NO-GO / BLOCKED**.
+is an owner-authorized dataset-rights decision for LagRCA D1 (or a separate
+owner-provided corpus), followed by documentation of lawful usage, privacy and
+retention, native 60-second service metrics, independent incident/root-cause
+label review, sample-size rationale, and a frozen manifest with checksums. We
+cannot obtain the bank's permission or validate those labels from public paper
+metadata, and we did not contact the authors or access their files. Until these
+items are supplied and independently reviewed, do not run a new holdout
+evaluation; AI-9 remains **FAIL / BLOCKED** and P01 remains **NO-GO / BLOCKED**.
 
 ## References
 
@@ -138,4 +169,6 @@ and P01 remains **NO-GO / BLOCKED**.
 - [OpenRCA 2.0 Lite dataset card and license](https://huggingface.co/datasets/anon-ops/ops-lite)
 - [ChronoGraph repository snapshot](https://github.com/bit-ml/ChronoGraph/tree/51a16b9b29a0ecb1b6f17d672ca1da97de9da99a), [pinned README](https://github.com/bit-ml/ChronoGraph/blob/51a16b9b29a0ecb1b6f17d672ca1da97de9da99a/README.md), [pinned license](https://github.com/bit-ml/ChronoGraph/blob/51a16b9b29a0ecb1b6f17d672ca1da97de9da99a/LICENSE), and [paper v2](https://arxiv.org/html/2509.04449v2)
 - [Cloud Uptime Archive snapshot](https://github.com/atlarge-research/cloud-uptime-archive/tree/508a31e32dd9aba4410014c159cf83b5b0f4c09b) and [Cloud Incident Reports, Zenodo record v1.0](https://zenodo.org/records/14010282); inspected at source-description level only. Cloud Incident Reports declares CC BY 4.0, but both are **NOT_EVALUABLE** for the complete AI-9 contract.
+- [LagRCA FSE 2026 paper](https://doi.org/10.1145/3803437.3805219) and [pinned author repository snapshot](https://github.com/kjhjk566/LagRCA/tree/27ba909210b722813e5febc4135585cef3f5911c); D1 rights, privacy, independent annotation and file manifest remain **UNVERIFIED**.
+- [OScope ICSE-SEIP 2026 paper](https://doi.org/10.1145/3786583.3786852); its 101-case production evaluation is described, but a reusable data release/license and service-level cadence were not identified in the reviewed source.
 - [AI-9 v3 independent-evaluation gate](AI9_V3_INDEPENDENT_EVAL_GATE.md)
