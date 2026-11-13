@@ -1,3 +1,9 @@
+## أحدث لقطة موثّقة: تسجيل دمج PR #591 — 2026-11-13
+
+- **VERIFIED من GitHub:** دُمج PR [#591](https://github.com/hamedonassar95/Devobs/pull/591) عند `7e8ea4ba2d4644b02b82ccfc2b31b221cfc79b23` من الرأس `df90282a1813af29775e7d3153275fef89071705`. نجح PR CI وCodeQL؛ وبعد الدمج نجح main CI [43425485774](https://github.com/hamedonassar95/Devobs/actions/runs/43425485774) وCodeQL [43425485178](https://github.com/hamedonassar95/Devobs/actions/runs/43425485178) على SHA الدمج. اجتازت Python 3.12/3.15 وRLS والأمن والحاوية/Trivy وTerraform وsite-contract و`validate`؛ نُشرت Pages الثابتة واجتازت `verify-production`. اجتاز Node في تشغيل push على الرأس ثم تخطاه CI بعد الدمج باختيار المسار؛ تخطى incident drill وفحوص الاستعادة شروطها.
+- PR #591 يزامن سجل PR #590 فقط. لا يثبت سعرًا نهائيًا شاملًا ولا يغيّر AWS أو ينشئ موارد أو يضبط النسخ الاحتياطي. لقطة AWS التي شاركها المالك قبل هذا الدمج أظهرت صفر مشاريع؛ الحالة الحالية للحساب/المشروع غير متحققة. لا يوجد دليل على إعداد نسخة RDS مشفّرة لسبعة أيام أو استعادة ناجحة.
+- **الحالة:** يسجل الدفتر 214 PR مدموجًا وآخرها #591. P01 ما زال **BLOCKED / NO-GO**، وAI-9 **BLOCKED**، وقبول Codex runtime **OPEN**.
+
 ## أحدث لقطة موثّقة: توثيق قيود مشروع AWS ودمج PR #590 — 2026-11-13
 
 - **VERIFIED من GitHub:** دُمج PR [#590](https://github.com/hamedonassar95/Devobs/pull/590) عند `c9495fca5ed4702b3e732137861577c62cb0025a` من الرأس `28154f9171a7c569fa28319fe91e50d3e817bc78`. نجح PR CI وCodeQL والمراجعة الاستشارية؛ وبعد الدمج نجح main CI [43423090500](https://github.com/hamedonassar95/Devobs/actions/runs/43423090500) وCodeQL [43423089043](https://github.com/hamedonassar95/Devobs/actions/runs/43423089043) على SHA الدمج. اجتازت Python 3.12/3.15 وRLS والأمن والحاوية/Trivy وTerraform وعقد الموقع و`validate`؛ نُشرت صفحة Pages الثابتة واجتازت `verify-production`. تخطى Node اختيار المسار، وتخطى incident drill شروطه.
