@@ -1,3 +1,9 @@
+## تسجيل دمج PR #591 — 2026-11-13 (VERIFIED)
+
+- دُمج PR [#591](https://github.com/hamedonassar95/Devobs/pull/591) عند `7e8ea4ba2d4644b02b82ccfc2b31b221cfc79b23` من الرأس `df90282a1813af29775e7d3153275fef89071705`. نجح CI بعد الدمج [43425485774](https://github.com/hamedonassar95/Devobs/actions/runs/43425485774) وCodeQL [43425485178](https://github.com/hamedonassar95/Devobs/actions/runs/43425485178). اجتازت Python 3.12/3.15 وRLS والأمن والحاوية/Trivy وTerraform وsite-contract و`validate`؛ نُشرت Pages الثابتة واجتازت `verify-production`. اجتاز Node في exact-head push CI؛ تخطّاه CI بعد الدمج باختيار المسار، كما تخطّت incident drill وفحوص الاستعادة شروطها.
+- هذا PR تحديث لسجل دمج PR #590 فقط. لا يضيف موارد أو يغيّر إعدادات AWS. لقطة AWS السابقة أظهرت صفر مشاريع؛ لا نعرف من المستودع إن كان المالك أنشأ مشروعًا بعد اللقطة. لم يُثبت حد إنفاق مؤهل، فاتورة أردنية شاملة، ولا إعداد أو استعادة نسخة احتياطية RDS مشفرة لسبعة أيام.
+- **P01 يبقى NO-GO / BLOCKED**، وAI-9 **BLOCKED**، وقبول Codex runtime **OPEN**. النشر الثابت لـPages لا ينشر API ولا يغيّر بوابات التشغيل.
+
 ## تسجيل دمج PR #590 — 2026-11-13 (VERIFIED)
 
 - دُمج PR [#590](https://github.com/hamedonassar95/Devobs/pull/590) عند `c9495fca5ed4702b3e732137861577c62cb0025a` من الرأس `28154f9171a7c569fa28319fe91e50d3e817bc78`. نجح CI بعد الدمج [43423090500](https://github.com/hamedonassar95/Devobs/actions/runs/43423090500) وCodeQL [43423089043](https://github.com/hamedonassar95/Devobs/actions/runs/43423089043). اجتازت Python 3.12/3.15 وRLS والأمن والحاوية/Trivy وTerraform وsite-contract و`validate`؛ نشر CI موقع Pages الثابت واجتاز `verify-production`. Node تخطى اختيار المسار، والـincident drill تخطى شرطه.
