@@ -22,9 +22,7 @@ To verify from the operator's own trusted Codex session, run `codex mcp list` an
 
 ### Upstream MCP approval prompts
 
-As checked on 2026-11-13, OpenAI Codex issue [#20289](https://github.com/openai/codex/issues/20289) remains open and reports that an encrypted tool payload can trigger an approval prompt even when the MCP server and tool use `approval_mode = "approve"`. The issue bot identified [#19430](https://github.com/openai/codex/issues/19430) as a possible duplicate; it also remains open. This is a Codex client approval-path report, not a Devobs application defect or a demonstrated Devobs runtime failure. The repository-scoped base config does not set `approval_mode` or `approval_policy = "never"`; it only declares the public read-only developer-docs MCP. Devobs runtime acceptance remains **OPEN**, so this behavior has not been reproduced here.
-
-If Codex presents an approval prompt, keep the interactive approval boundary in effect and review the displayed tool and arguments. Do not call the MCP server directly over HTTP or another shell path to bypass Codex's approval handling. If the prompt blocks a harmless docs lookup, record only sanitized client version, OS, server/tool name and prompt reason; never copy encrypted payloads, tokens or private logs into the repository.
+See the [reusable Codex MCP approval guidance](CODEX_MCP_APPROVAL_GUIDANCE.md) for upstream issue status and safe handling. Devobs' base config does not set an approval override, and this behavior has not been reproduced because runtime acceptance remains **OPEN**.
 
 ### Local registration smoke check (manual, cost-free)
 
