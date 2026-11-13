@@ -2389,6 +2389,17 @@
       "ci_run_id": 43477721949,
       "verification": "VERIFIED 2026-11-13: PR #596 merged at 6c9b0714fb7b019870df1f308274e9929a68e0b from head 2b32412dbbb2a51ef8d54fe77164bdfd4514b983. Exact-head CI 43477290975 and PR CI 43477339243 passed; exact-head CI passed Python 3.12/3.15 and Node, while path-scoped PR CI skipped those suites. PR CodeQL 43477335254 passed. Post-merge main CI 43477721949 and CodeQL 43477721344 passed on the exact merge SHA; main CI passed security, PostgreSQL RLS, container/Trivy, Terraform, site-contract and validate, then published static Pages and passed verify-production. The full local Python suite passed 1,060 tests with 25 skipped, including the focused MCP tests; offline MCP config, relative Markdown links, and git diff --check passed. Advisory Codex review skipped model invocation because explicit AI budget approval was absent.",
       "limitations": "Documentation only. /ide and /vim behavior and the Vim preference key are documented from official OpenAI CLI references; no CLI session, IDE connection, or Vim preference change was performed. No repository Codex/MCP config, live MCP call, external model inference, cloud resource, or API deployment changed. Pages deployment is static content only. P01 remains BLOCKED / NO-GO, AI-9 remains BLOCKED, and Codex runtime acceptance remains OPEN."
+    },
+    {
+      "id": "p01-staging-bootstrap-integration-pr601",
+      "area": "QUALITY",
+      "title": "Prove staging bootstrap and tenant RLS request path against disposable PostgreSQL",
+      "pr_number": 601,
+      "pr_head_sha": "4d510aeda07222a6660eb6870f41d6fdbaade557",
+      "merge_sha": "b29464d3699388c6115823cde2beb709ef09ef83",
+      "ci_run_id": 43524398864,
+      "verification": "VERIFIED 2026-11-13: PR #601 merged at b29464d3699388c6115823cde2beb709ef09ef83 from reviewed head 4d510aeda07222a6660eb6870f41d6fdbaade557. Exact-head push CI 43523906050 and PR CI 43523957913 passed; both ran the disposable postgres-rls job, including the 'Prove tenant row-level security on PostgreSQL' step. CodeQL run 43523954522 passed. Post-merge main CI 43524398864 and Push on main 43524397219 passed on the exact merge SHA.",
+      "limitations": "The integration uses synthetic OIDC identities and disposable PostgreSQL 17. A scoped test transport patch maps only the synthetic staging DSN to the loopback fixture and does not prove hosted certificate validation. No Render service, hosted database, secret, deployment setting, or paid inference was accessed. CI is not hosted startup evidence or P01 approval; P01 remains BLOCKED / NO-GO, AI-9 remains BLOCKED, and Codex runtime acceptance remains OPEN."
     }
   ],
   "gates": [
