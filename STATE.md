@@ -1,3 +1,10 @@
+## مطابقة مباشرة لحالة الموارد — 2026-11-13 17:08 UTC (VERIFIED، قراءة فقط)
+
+- أعاد Render خدمة `devobs-ai-staging` في Frankfurt بخطة Free، وفحص صحة `/readyz`، والنشر التلقائي متوقف، وقائمة الشبكة `0.0.0.0/0`. قاعدة `devobs-ai-staging-db` متاحة على Free وتنتهي في 2026-12-05؛ وما زال فيها إدخال سماح خارجي باسم `temporary-migration`، ولم يُسجل عنوانه هنا.
+- أحدث نشر أعادته القائمة بدأ من SHA `5b75be633b4fd5c797d9e4fdc1e960fd0d68e07e` في 2026-11-05: اكتمل البناء وفشل بدء الخدمة برمز خروج 1. لم يظهر نشر أحدث أو دليل `/readyz` حي. وصلتا Render أعادتا الموارد نفسها؛ إحداهما تتطلب إعادة مصادقة.
+- مشروع المؤسسة `Devobs AI Intelligence` الظاهر في Supabase حالته `INACTIVE` في `us-east-1`، ويعيد مستشار الأمان صفر تنبيهات. لا يثبت ذلك تشغيل قاعدة حية أو ضوابط P01 الحالية؛ بيانات الاتصال والأسرار والصفوف لم تُقرأ.
+- **الحالة دون تغيير:** P01 **NO-GO / BLOCKED**، وAI-9 **BLOCKED**، وقبول Codex runtime **OPEN**. هذه قراءة للبيانات الوصفية فقط ولم تُغيّر أي مورد أو إعداد أو نشر. تفاصيل التحقق في [لقطة الجاهزية الحالية](docs/DEVOBS_READINESS_CURRENT.md).
+
 ## أحدث لقطة موثّقة: تسجيل دمج PR #592 — 2026-11-13
 
 - **VERIFIED من GitHub:** دُمج PR [#592](https://github.com/hamedonassar95/Devobs/pull/592) عند `d531830c106f408145ab98ec97f81be451888bb2` من الرأس `2f11aec2afcdce82865b82cb57b28a1001ef4efe`. نجح main CI [43429442325](https://github.com/hamedonassar95/Devobs/actions/runs/43429442325) وCodeQL [43429442103](https://github.com/hamedonassar95/Devobs/actions/runs/43429442103) على SHA الدمج. اجتازت Python 3.12/3.15 وRLS والأمن والحاوية/Trivy وTerraform وsite-contract و`validate`؛ نُشرت Pages الثابتة واجتازت `verify-production`. اجتاز Node في push CI على رأس PR ثم تخطاه CI بعد الدمج باختيار المسار؛ تخطى incident drill وفحوص الاستعادة شروطها.

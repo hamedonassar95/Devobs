@@ -20,6 +20,10 @@ When doing OpenAI API/Plugins/Codex/MCP development, `AGENTS.md` now asks Codex 
 
 To verify from the operator's own trusted Codex session, run `codex mcp list` and then perform one innocuous public docs search. Record observed tool names, status and official source URLs but **never** record tokens or copied private logs. Configuration inspection or `codex mcp list` alone is **not** proof that remote tools were successfully called. Until an actual lookup succeeds, classify runtime as **UNVERIFIED**. This independent check does not prove Codex agent subagents have run; their acceptance gate stays OPEN.
 
+### Upstream MCP approval prompts
+
+See the [reusable Codex MCP approval guidance](CODEX_MCP_APPROVAL_GUIDANCE.md) for upstream issue status and safe handling. Devobs' base config does not set an approval override, and this behavior has not been reproduced because runtime acceptance remains **OPEN**.
+
 ### Local registration smoke check (manual, cost-free)
 
 From a trusted Devobs checkout with Python 3.12+:
