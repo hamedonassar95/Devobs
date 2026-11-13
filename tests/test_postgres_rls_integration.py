@@ -4,6 +4,8 @@ Never run with a production connection string. Run in a disposable DB with:
 PG_TEST_ADMIN_DSN, PG_TEST_READER_DSN.
 """
 import json
+import importlib
+import io
 import os
 import sys
 import time
@@ -17,15 +19,24 @@ try:
     import psycopg
     import jwt
     from cryptography.hazmat.primitives.asymmetric import rsa
+    from psycopg.conninfo import make_conninfo
     from devobs_intelligence.postgres_store import PostgresTenantStore, StorageUnavailable
-    from devobs_intelligence.api_app import make_app
-    from devobs_intelligence.oidc_tokens import AccessTokenVerifier
 except ImportError:
     psycopg = None
 
 ROOT = Path(__file__).resolve().parents[1]
 ADMIN_DSN = os.getenv("PG_TEST_ADMIN_DSN")
 READER_DSN = os.getenv("PG_TEST_READER_DSN")
+_REAL_PG_CONNECT = psycopg.connect if psycopg else None
+
+# GitHub's dedicated postgres-rls job must not silently skip the suite if its
+# disposable service or fixture DSNs are missing. GITHUB_JOB is a documented
+# default variable identifying the current job:
+# https://docs.github.com/en/actions/reference/workflows-and-actions/variables#default-environment-variables
+# Local and other CI jobs may skip without a disposable PostgreSQL service.
+if (os.getenv("GITHUB_JOB") == "postgres-rls"
+        and not (ADMIN_DSN and READER_DSN and psycopg)):
+    raise RuntimeError("disposable_postgres_fixture_required")
 
 
 @unittest.skipUnless(ADMIN_DSN and READER_DSN and psycopg, "requires disposable PostgreSQL service")
@@ -53,9 +64,94 @@ class PostgresTenantRLSTests(unittest.TestCase):
              "alpha", "hidden", "private-service"))
         cls.store = PostgresTenantStore(READER_DSN)
 
+        # The staging entrypoint validates production's normal TLS contract.
+        # Its synthetic DSN is rewritten only at the psycopg boundary below so
+        # the test does not claim certificate verification for this CI fixture.
+        cls.staging_dsn = make_conninfo(
+            READER_DSN,
+            password="synthetic-ci-only-password",
+            sslmode="verify-full",
+            sslrootcert="/tmp/devobs-disposable-ci-ca.pem",
+        )
+        cls.issuer = "https://issuer.example.test"
+        cls.audience = "devobs-api"
+        cls.client_id = "devobs-ci-staging"
+        cls.private_key = rsa.generate_private_key(
+            public_exponent=65537, key_size=2048)
+        public_jwk = json.loads(
+            jwt.algorithms.RSAAlgorithm.to_jwk(cls.private_key.public_key()))
+        public_jwk.update(kid="ci-rsa-one", alg="RS256", use="sig")
+        cls.staging_settings = {
+            "DEVOBS_OIDC_ISSUER": cls.issuer,
+            "DEVOBS_OIDC_AUDIENCE": cls.audience,
+            "DEVOBS_OIDC_CLIENT_ID": cls.client_id,
+            "DEVOBS_OIDC_METADATA_JSON": json.dumps({
+                "issuer": cls.issuer,
+                "jwks_uri": cls.issuer + "/.well-known/jwks.json",
+            }),
+            "DEVOBS_OIDC_JWKS_JSON": json.dumps({"keys": [public_jwk]}),
+            "DEVOBS_PG_DSN": cls.staging_dsn,
+            "DEVOBS_AI_DIAGNOSTICS_ENABLED": "false",
+            "DEVOBS_OTEL_METRICS_ENABLED": "false",
+            "DEVOBS_OTEL_METRICS_LOCAL_ONLY": "false",
+        }
+        # staging_app intentionally bootstraps from process environment on
+        # Gunicorn import. Import here under scoped synthetic settings; tests
+        # below call build_app() directly with the same non-production config.
+        with patch.dict(os.environ, cls.staging_settings, clear=True):
+            cls.staging_module = importlib.import_module(
+                "devobs_intelligence.staging_app")
+
     @classmethod
     def tearDownClass(cls):
         cls.admin.close()  # Ephemeral CI service destroys fixture DB.
+
+    def build_staging_app(self, settings=None):
+        return self.staging_module.build_app(
+            dict(self.staging_settings if settings is None else settings))
+
+    def issue_token(self, subject="alice", scope="devobs.read"):
+        now = int(time.time())
+        return jwt.encode(
+            {"iss": self.issuer, "aud": self.audience, "sub": subject,
+             "client_id": self.client_id, "iat": now, "exp": now + 300,
+             "jti": "synthetic-ci-token", "scope": scope},
+            self.private_key,
+            algorithm="RS256",
+            headers={"typ": "at+jwt", "kid": "ci-rsa-one"},
+        )
+
+    @staticmethod
+    def wsgi_request(app, path, *, token=None, method="GET", body=b""):
+        environ = {}
+        setup_testing_defaults(environ)
+        environ.update({
+            "REQUEST_METHOD": method,
+            "PATH_INFO": path,
+            "HTTP_AUTHORIZATION": "Bearer " + token if token else "",
+            "wsgi.input": io.BytesIO(body),
+            "CONTENT_LENGTH": str(len(body)) if body else "",
+        })
+        if body:
+            environ["CONTENT_TYPE"] = "application/json"
+        responses = []
+        response_body = b"".join(
+            app(environ, lambda status, headers: responses.append(
+                (status, dict(headers)))))
+        return responses[0][0], responses[0][1], response_body
+
+    def staging_reader_transport(self, calls, *, failure_message=None):
+        """Map only the synthetic TLS-verified DSN to the disposable CI reader."""
+        def connect(dsn, *args, **kwargs):
+            if dsn == self.staging_dsn:
+                calls.append("staging-reader")
+                if failure_message is not None:
+                    raise psycopg.OperationalError(failure_message)
+                return _REAL_PG_CONNECT(READER_DSN, *args, **kwargs)
+            return _REAL_PG_CONNECT(dsn, *args, **kwargs)
+
+        return patch(
+            "devobs_intelligence.postgres_store.psycopg.connect", new=connect)
 
     def test_database_enables_and_forces_rls(self):
         with self.admin.cursor() as cur:
@@ -430,70 +526,203 @@ class PostgresTenantRLSTests(unittest.TestCase):
                     self.store.read_status(subject,tenant,project)
 
     def test_wsgiread_verified_signed_token_to_rls(self):
-        private = rsa.generate_private_key(public_exponent=65537,key_size=2048)
-        public = json.loads(jwt.algorithms.RSAAlgorithm.to_jwk(private.public_key()))
-        public.update(kid="rsa-one",alg="RS256",use="sig")
-        verifier=AccessTokenVerifier("https://issuer.example.test","devobs-api","devobs-client",{"keys":[public]})
-        app=make_app(verifier,self.store)
-        def request(tenant,subject):
-            now=int(time.time())
-            token=jwt.encode({"iss":"https://issuer.example.test","aud":"devobs-api",
-                        "sub":subject,"client_id":"devobs-client","iat":now,"exp":now+300,
-                        "jti":"test-only","scope":"devobs.read"},
-                        private,algorithm="RS256",headers={"typ":"at+jwt","kid":"rsa-one"})
-            env={};setup_testing_defaults(env)
-            env["REQUEST_METHOD"]="GET"
-            env["PATH_INFO"]=f"/v1/tenants/{tenant}/projects/shared/ci"
-            env["HTTP_AUTHORIZATION"]="Bearer "+token
-            statuses=[]
-            response=b"".join(app(env,lambda status,headers:statuses.append(status)))
-            return statuses[0],json.loads(response)
-        self.assertEqual(request("alpha","alice")[1]["source_sha"],"a"*40)
-        self.assertEqual(request("beta","bob")[1]["source_sha"],"b"*40)
-        self.assertTrue(request("beta","alice")[0].startswith("403"))
-        self.assertTrue(request("alpha","bob")[0].startswith("403"))
+        app = self.build_staging_app()
+        calls = []
+        with self.staging_reader_transport(calls):
+            for tenant, subject, expected_state, expected_sha in (
+                ("alpha", "alice", "success", "a" * 40),
+                ("beta", "bob", "failed", "b" * 40),
+            ):
+                status, headers, body = self.wsgi_request(
+                    app, f"/v1/tenants/{tenant}/projects/shared/ci",
+                    token=self.issue_token(subject))
+                self.assertEqual(status, "200 OK")
+                self.assertEqual(headers["Cache-Control"], "no-store")
+                self.assertEqual(json.loads(body), {
+                    "ci_state": expected_state, "source_sha": expected_sha})
+
+            for tenant, subject in (("beta", "alice"), ("alpha", "bob")):
+                status, _, body = self.wsgi_request(
+                    app, f"/v1/tenants/{tenant}/projects/shared/ci",
+                    token=self.issue_token(subject))
+                self.assertEqual(status, "403 Forbidden")
+                self.assertEqual(body, b'{"error":"access_denied"}')
+        self.assertEqual(calls, ["staging-reader"] * 4)
 
     def test_wsgiread_verified_signed_token_to_service_registry_rls(self):
-        private = rsa.generate_private_key(public_exponent=65537,key_size=2048)
-        public = json.loads(jwt.algorithms.RSAAlgorithm.to_jwk(private.public_key()))
-        public.update(kid="service-rsa-one",alg="RS256",use="sig")
-        verifier=AccessTokenVerifier("https://issuer.example.test","devobs-api",
-                                     "devobs-client",{"keys":[public]})
-        app=make_app(verifier,self.store)
-        def request(tenant,project,service,subject):
-            now=int(time.time())
-            token=jwt.encode({"iss":"https://issuer.example.test","aud":"devobs-api",
-                        "sub":subject,"client_id":"devobs-client","iat":now,"exp":now+300,
-                        "jti":"service-test-only","scope":"devobs.read"},
-                        private,algorithm="RS256",
-                        headers={"typ":"at+jwt","kid":"service-rsa-one"})
-            env={};setup_testing_defaults(env)
-            env["REQUEST_METHOD"]="GET"
-            env["PATH_INFO"]=(f"/v1/tenants/{tenant}/projects/{project}/services/"
-                              f"{service}/authorization")
-            env["HTTP_AUTHORIZATION"]="Bearer "+token
-            responses=[]
-            body=b"".join(app(env,lambda status,headers:
-                              responses.append((status,dict(headers)))))
-            return responses[0][0],responses[0][1],body
+        app = self.build_staging_app()
+        calls = []
 
-        for tenant,project,service,subject in (
-            ("alpha","shared","collector","alice"),
-            ("beta","shared","collector","bob"),
-        ):
-            status,headers,body=request(tenant,project,service,subject)
-            self.assertEqual(status,"204 No Content")
-            self.assertEqual(headers["Cache-Control"],"no-store")
-            self.assertEqual(body,b"")
-        for tenant,project,service,subject in (
-            ("beta","shared","collector","alice"),
-            ("alpha","shared","collector","bob"),
-            ("alpha","hidden","private-service","alice"),
-            ("alpha","shared","missing-service","alice"),
-        ):
-            status,_,body=request(tenant,project,service,subject)
-            self.assertEqual(status,"403 Forbidden")
-            self.assertEqual(body,b'{"error":"access_denied"}')
+        with self.staging_reader_transport(calls):
+            for tenant, project, service, subject in (
+                ("alpha", "shared", "collector", "alice"),
+                ("beta", "shared", "collector", "bob"),
+            ):
+                path = (f"/v1/tenants/{tenant}/projects/{project}/services/"
+                        f"{service}/authorization")
+                status, headers, body = self.wsgi_request(
+                    app, path, token=self.issue_token(subject))
+                self.assertEqual(status, "204 No Content")
+                self.assertEqual(headers["Cache-Control"], "no-store")
+                self.assertEqual(body, b"")
+
+            for tenant, project, service, subject in (
+                ("beta", "shared", "collector", "alice"),
+                ("alpha", "shared", "collector", "bob"),
+                ("alpha", "hidden", "private-service", "alice"),
+                ("alpha", "shared", "missing-service", "alice"),
+            ):
+                path = (f"/v1/tenants/{tenant}/projects/{project}/services/"
+                        f"{service}/authorization")
+                status, _, body = self.wsgi_request(
+                    app, path, token=self.issue_token(subject))
+                self.assertEqual(status, "403 Forbidden")
+                self.assertEqual(body, b'{"error":"access_denied"}')
+        self.assertEqual(calls, ["staging-reader"] * 6)
+
+    def test_staging_entrypoint_health_and_readiness_use_real_ci_postgres(self):
+        app = self.build_staging_app()
+        self.assertTrue(callable(app))
+        calls = []
+        with self.staging_reader_transport(calls):
+            health_status, health_headers, health_body = self.wsgi_request(
+                app, "/healthz")
+            self.assertEqual(health_status, "204 No Content")
+            self.assertEqual(health_headers["Cache-Control"], "no-store")
+            self.assertEqual(health_body, b"")
+            self.assertEqual(calls, [], "healthz must not open a DB connection")
+
+            ready_status, ready_headers, ready_body = self.wsgi_request(
+                app, "/readyz")
+            self.assertEqual(ready_status, "204 No Content")
+            self.assertEqual(ready_headers["Cache-Control"], "no-store")
+            self.assertEqual(ready_body, b"")
+            self.assertEqual(calls, ["staging-reader"])
+
+    def test_staging_entrypoint_rejects_missing_or_invalid_bootstrap_settings(self):
+        missing_database = dict(self.staging_settings)
+        missing_database.pop("DEVOBS_PG_DSN")
+        invalid_tls_mode = {
+            **self.staging_settings,
+            "DEVOBS_PG_TLS_MODE": "disable-verification",
+        }
+        invalid_metadata = {
+            **self.staging_settings,
+            "DEVOBS_OIDC_METADATA_JSON": '{"issuer":"synthetic-secret-marker"}',
+        }
+        for settings in (missing_database, invalid_tls_mode, invalid_metadata):
+            with self.subTest(settings_invalid=True):
+                with self.assertRaises(
+                        self.staging_module.StagingConfigurationError) as caught:
+                    self.staging_module.build_app(settings)
+                self.assertEqual(str(caught.exception), "invalid_staging_config")
+                self.assertNotIn("synthetic-secret-marker", str(caught.exception))
+
+    def test_staging_entrypoint_rejects_anonymous_and_invalid_tokens_without_echo(self):
+        app = self.build_staging_app()
+        calls = []
+        invalid_token = "synthetic-invalid-token-marker"
+        with self.staging_reader_transport(calls):
+            anonymous = self.wsgi_request(
+                app, "/v1/tenants/alpha/projects/shared/ci")
+            invalid = self.wsgi_request(
+                app, "/v1/tenants/alpha/projects/shared/ci",
+                token=invalid_token)
+
+        for status, headers, body in (anonymous, invalid):
+            self.assertEqual(status, "401 Unauthorized")
+            self.assertEqual(json.loads(body), {"error": "invalid_token"})
+            self.assertEqual(headers["Cache-Control"], "no-store")
+            self.assertNotIn(invalid_token.encode(), body)
+            self.assertNotIn(b"synthetic-ci-only-password", body)
+        self.assertEqual(calls, [])
+
+    def test_staging_entrypoint_keeps_ai_diagnostics_disabled(self):
+        app = self.build_staging_app()
+        request_body = json.dumps({
+            "error_log": "Synthetic diagnostic fixture only",
+            "data_redacted": True,
+        }).encode("utf-8")
+        calls = []
+        with self.staging_reader_transport(calls):
+            status, headers, body = self.wsgi_request(
+                app,
+                "/v1/tenants/alpha/projects/shared/services/collector/diagnostics",
+                token=self.issue_token(scope="devobs.read devobs.ai.diagnose"),
+                method="POST",
+                body=request_body,
+            )
+        self.assertEqual(status, "503 Service Unavailable")
+        self.assertEqual(json.loads(body), {"error": "ai_not_configured"})
+        self.assertEqual(headers["Cache-Control"], "no-store")
+        self.assertEqual(calls, ["staging-reader"])
+
+    def test_staging_entrypoint_redacts_postgres_errors_tokens_and_dsn(self):
+        app = self.build_staging_app()
+        token = self.issue_token()
+        database_error = "synthetic-sql-error-marker"
+        calls = []
+        with self.staging_reader_transport(
+                calls, failure_message=database_error):
+            ready = self.wsgi_request(app, "/readyz")
+            response = self.wsgi_request(
+                app, "/v1/tenants/alpha/projects/shared/ci", token=token)
+
+        self.assertEqual(ready[0], "503 Service Unavailable")
+        self.assertEqual(ready[2], b"")
+        self.assertEqual(response[0], "503 Service Unavailable")
+        self.assertEqual(response[2], b'{"error":"backend_unavailable"}')
+        public_response = str((ready[1], ready[2], response[1], response[2]))
+        for private_value in (
+                database_error, token, "synthetic-ci-only-password"):
+            self.assertNotIn(private_value, public_response)
+        self.assertEqual(calls, ["staging-reader", "staging-reader"])
+
+    def test_staging_entrypoint_fails_closed_on_rls_policy_drift(self):
+        self.admin.execute(
+            "ALTER POLICY devobs_project_member_read ON devobs_ai.project_ci "
+            "USING (true)")
+        try:
+            app = self.build_staging_app()
+            calls = []
+            with self.staging_reader_transport(calls):
+                ready = self.wsgi_request(app, "/readyz")
+                response = self.wsgi_request(
+                    app, "/v1/tenants/alpha/projects/shared/ci",
+                    token=self.issue_token())
+            self.assertEqual(ready[0], "503 Service Unavailable")
+            self.assertEqual(ready[2], b"")
+            self.assertEqual(response[0], "503 Service Unavailable")
+            self.assertEqual(response[2], b'{"error":"backend_unavailable"}')
+            self.assertEqual(calls, ["staging-reader", "staging-reader"])
+        finally:
+            self.admin.execute(
+                "ALTER POLICY devobs_project_member_read ON devobs_ai.project_ci "
+                "USING (tenant_id = NULLIF(current_setting('devobs_ai.tenant_id', true), '') "
+                "AND EXISTS (SELECT 1 FROM devobs_ai.memberships AS m "
+                "WHERE m.tenant_id = project_ci.tenant_id "
+                "AND m.project_id = project_ci.project_id "
+                "AND m.subject_id = NULLIF(current_setting('devobs_ai.subject_id', true), '')))")
+        self.assertIs(self.store.probe_readiness(), True)
+
+    def test_staging_entrypoint_fails_closed_on_runtime_role_bypass_drift(self):
+        self.admin.execute("ALTER ROLE devobs_ci_reader BYPASSRLS")
+        try:
+            app = self.build_staging_app()
+            calls = []
+            with self.staging_reader_transport(calls):
+                ready = self.wsgi_request(app, "/readyz")
+                response = self.wsgi_request(
+                    app, "/v1/tenants/alpha/projects/shared/ci",
+                    token=self.issue_token())
+            self.assertEqual(ready[0], "503 Service Unavailable")
+            self.assertEqual(ready[2], b"")
+            self.assertEqual(response[0], "503 Service Unavailable")
+            self.assertEqual(response[2], b'{"error":"backend_unavailable"}')
+            self.assertEqual(calls, ["staging-reader", "staging-reader"])
+        finally:
+            self.admin.execute("ALTER ROLE devobs_ci_reader NOBYPASSRLS")
+        self.assertIs(self.store.probe_readiness(), True)
 
     def test_missing_database_not_claimed_as_denial(self):
         # Reject a credentialed runtime pointing to a wrong/inaccessible DB.
