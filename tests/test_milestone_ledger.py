@@ -2037,7 +2037,9 @@ class MilestoneLedgerTests(unittest.TestCase):
         for run_id in (43356823358, 43356817231, 43356823244, 43404391713):
             self.assertIn(str(run_id), entry["verification"])
         self.assertIn("250 ms", entry["limitations"])
-        self.assertIn("€11.24 is conditional", entry["limitations"])
+        self.assertIn("€11.24 only if Jordan 16% tax applies", entry["limitations"])
+        self.assertIn("AWS new-experience", entry["limitations"])
+        self.assertIn("$75 pre-tax", entry["limitations"])
         self.assertEqual(result["merged_milestones"], 211)
         self.assertEqual(result["latest_pr"], 588)
         gates = {gate["id"]: gate["status"] for gate in self.data["gates"]}
