@@ -1,3 +1,10 @@
+## تسجيل دمج PR #594 — 2026-11-13 (VERIFIED)
+
+- دُمج PR [#594](https://github.com/hamedonassar95/Devobs/pull/594) عند `efa596d5c9e0336dc911dfb90e3fe007743eb0ec` من الرأس `cf241b8e8444b94d78f4c61d49673c646c39c900`. نجح PR CI [43472885715](https://github.com/hamedonassar95/Devobs/actions/runs/43472885715) وفحص `validate`؛ نجحت فحوص الأمن وPostgreSQL RLS والحاوية/Trivy وTerraform وعقد الموقع. تخطّت Python وNode اختيار المسار، لكن المجموعة المحلية الكاملة نجحت بـ1,058 اختبارًا و25 تخطيًا. بعد الدمج نجح main CI [43473228398](https://github.com/hamedonassar95/Devobs/actions/runs/43473228398) وCodeQL [43473240909](https://github.com/hamedonassar95/Devobs/actions/runs/43473240909) على SHA الدمج، ونُشر الموقع الثابت واجتاز `verify-production`.
+- يسجل PR إعادة التحقق للموارد الحالية وإرشادًا قابلًا للنقل لبلاغات موافقة Codex MCP [#20289](https://github.com/openai/codex/issues/20289) و[#19430](https://github.com/openai/codex/issues/19430). لم يغيّر إعدادات موافقة Codex أو موارد سحابية أو أسرارًا، ولم يشغّل inference. فحص Codex advisory الفعلي تخطّى شرط الميزانية.
+- لم يظهر مستودع باسم DeepOps في البحث المتصل؛ ظهر `DevOps-Bash-tools` دون تكامل Codex/MCP في البحث. وُثّق الإرشاد بصيغة قابلة لإعادة الاستخدام، ولم تُجرَ تغييرات في مستودعات أخرى.
+- **الحالة:** يسجل الدفتر الآن 216 إنجازًا وآخرها PR #594. P01 **BLOCKED / NO-GO**، وAI-9 **BLOCKED**، وقبول Codex runtime **OPEN**. لا تثبت نتائج CI أو نشر Pages جاهزية API أو P01.
+
 ## مطابقة مباشرة لحالة الموارد — 2026-11-13 17:08 UTC (VERIFIED، قراءة فقط)
 
 - أعاد Render خدمة `devobs-ai-staging` في Frankfurt بخطة Free، وفحص صحة `/readyz`، والنشر التلقائي متوقف، وقائمة الشبكة `0.0.0.0/0`. قاعدة `devobs-ai-staging-db` متاحة على Free وتنتهي في 2026-12-05؛ وما زال فيها إدخال سماح خارجي باسم `temporary-migration`، ولم يُسجل عنوانه هنا.
@@ -5,7 +12,7 @@
 - مشروع المؤسسة `Devobs AI Intelligence` الظاهر في Supabase حالته `INACTIVE` في `us-east-1`، ويعيد مستشار الأمان صفر تنبيهات. لا يثبت ذلك تشغيل قاعدة حية أو ضوابط P01 الحالية؛ بيانات الاتصال والأسرار والصفوف لم تُقرأ.
 - **الحالة دون تغيير:** P01 **NO-GO / BLOCKED**، وAI-9 **BLOCKED**، وقبول Codex runtime **OPEN**. هذه قراءة للبيانات الوصفية فقط ولم تُغيّر أي مورد أو إعداد أو نشر. تفاصيل التحقق في [لقطة الجاهزية الحالية](docs/DEVOBS_READINESS_CURRENT.md).
 
-## أحدث لقطة موثّقة: تسجيل دمج PR #592 — 2026-11-13
+## تسجيل دمج PR #592 — 2026-11-13
 
 - **VERIFIED من GitHub:** دُمج PR [#592](https://github.com/hamedonassar95/Devobs/pull/592) عند `d531830c106f408145ab98ec97f81be451888bb2` من الرأس `2f11aec2afcdce82865b82cb57b28a1001ef4efe`. نجح main CI [43429442325](https://github.com/hamedonassar95/Devobs/actions/runs/43429442325) وCodeQL [43429442103](https://github.com/hamedonassar95/Devobs/actions/runs/43429442103) على SHA الدمج. اجتازت Python 3.12/3.15 وRLS والأمن والحاوية/Trivy وTerraform وsite-contract و`validate`؛ نُشرت Pages الثابتة واجتازت `verify-production`. اجتاز Node في push CI على رأس PR ثم تخطاه CI بعد الدمج باختيار المسار؛ تخطى incident drill وفحوص الاستعادة شروطها.
 - PR #592 يسجل PR #591 وسجلاته فقط. لا يثبت فاتورة AWS نهائية ولا يغير الحساب أو ينشئ موارد أو يضبط نسخًا احتياطيًا. لا توجد لقطة جديدة لحساب AWS؛ حالته الحالية غير متحققة. لم يُثبت إعداد نسخة مشفرة لسبعة أيام أو نجاح استعادة.
