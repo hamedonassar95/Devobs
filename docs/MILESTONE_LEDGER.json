@@ -2378,6 +2378,17 @@
       "ci_run_id": 43473228398,
       "verification": "VERIFIED 2026-11-13: PR #594 merged at efa596d5c9e0336dc911dfb90e3fe007743eb0ec from head cf241b8e8444b94d78f4c61d49673c646c39c900. PR CI 43472885715 passed validate, security, PostgreSQL RLS, container/Trivy, Terraform, and site-contract; Python and Node were skipped by path selection. Local full Python suite passed 1,058 tests with 25 skipped. Post-merge main CI 43473228398 and CodeQL 43473240909 passed on the exact merge SHA; production-release published the static site and verify-production passed. The Codex AI review step was skipped because explicit AI budget approval was absent.",
       "limitations": "Documentation only. Records the 2026-11-13 read-only Render and Supabase metadata checkpoint plus upstream Codex MCP issues #20289/#19430 and reusable approval guidance. No provider settings, resources, secrets, inference, or unrelated repositories were changed. The Codex Docs MCP offline configuration check passes, but --codex-list is BLOCKED and no live lookup was proven. A repository search found no DeepOps-named repository; DevOps-Bash-tools had no matching Codex/MCP approval references in the scoped code search. P01 remains BLOCKED / NO-GO, AI-9 remains BLOCKED, and Codex runtime acceptance remains OPEN."
+    },
+    {
+      "id": "codex-cli-ide-workflow-pr596",
+      "area": "DOCUMENTATION",
+      "title": "Document Devobs Codex CLI and IDE workflow",
+      "pr_number": 596,
+      "pr_head_sha": "2b32412dbbb2a51ef8d54fe77164bdfd4514b983",
+      "merge_sha": "6c9b0714fb7b019870df1f308274e9929a68e0b0",
+      "ci_run_id": 43477721949,
+      "verification": "VERIFIED 2026-11-13: PR #596 merged at 6c9b0714fb7b019870df1f308274e9929a68e0b from head 2b32412dbbb2a51ef8d54fe77164bdfd4514b983. Exact-head CI 43477290975 and PR CI 43477339243 passed; exact-head CI passed Python 3.12/3.15 and Node, while path-scoped PR CI skipped those suites. PR CodeQL 43477335254 passed. Post-merge main CI 43477721949 and CodeQL 43477721344 passed on the exact merge SHA; main CI passed security, PostgreSQL RLS, container/Trivy, Terraform, site-contract and validate, then published static Pages and passed verify-production. The full local Python suite passed 1,060 tests with 25 skipped, including the focused MCP tests; offline MCP config, relative Markdown links, and git diff --check passed. Advisory Codex review skipped model invocation because explicit AI budget approval was absent.",
+      "limitations": "Documentation only. /ide and /vim behavior and the Vim preference key are documented from official OpenAI CLI references; no CLI session, IDE connection, or Vim preference change was performed. No repository Codex/MCP config, live MCP call, external model inference, cloud resource, or API deployment changed. Pages deployment is static content only. P01 remains BLOCKED / NO-GO, AI-9 remains BLOCKED, and Codex runtime acceptance remains OPEN."
     }
   ],
   "gates": [
@@ -2399,7 +2410,7 @@
       "id": "codex-agent-runtime-acceptance",
       "status": "OPEN",
       "source": "docs/CODEX_AGENT_OPERATING_MODEL.md",
-      "reason": "HISTORICAL VERIFIED 2026-11-01: a public docs lookup succeeded through the ChatGPT OpenAI Docs connector, not the repository Codex endpoint; local registration checks do not prove runtime. VERIFIED 2026-11-13: python3 scripts/check_codex_docs_mcp.py passes offline and explicitly reports MCP_RUNTIME_UNVERIFIED; python3 scripts/check_codex_docs_mcp.py --codex-list is BLOCKED because this client did not confirm the configured public endpoint. No live repository-Codex lookup or subagent execution is verified. Upstream issues #20289 and #19430 report approval prompts under some MCP conditions; their status does not establish that Devobs reproduced the issue or resolve runtime acceptance.",
+      "reason": "HISTORICAL VERIFIED 2026-11-01: a public docs lookup succeeded through the ChatGPT OpenAI Docs connector, not the repository Codex endpoint; local registration checks do not prove runtime. VERIFIED 2026-11-13: python3 scripts/check_codex_docs_mcp.py passes offline and explicitly reports MCP_RUNTIME_UNVERIFIED; python3 scripts/check_codex_docs_mcp.py --codex-list is BLOCKED because this client did not confirm the configured public endpoint. No live repository-Codex lookup or subagent execution is verified. Upstream issues #20289 and #19430 report approval prompts under some MCP conditions; their status does not establish that Devobs reproduced the issue or resolve runtime acceptance. PR #596 adds operator-side /ide and /vim guidance but does not verify an IDE session, live Docs MCP request, or subagent execution; runtime acceptance remains OPEN.",
       "next_action": "In a trusted Codex session opened on this repository, verify configured server discovery and make one harmless public Docs MCP lookup. If Codex prompts for approval, follow docs/CODEX_MCP_APPROVAL_GUIDANCE.md; do not bypass its approval path. Keep the runtime gate OPEN until an actual lookup succeeds and tool evidence is recorded. Any subagent trial still requires separate owner approval."
     }
   ]
