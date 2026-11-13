@@ -126,7 +126,7 @@ python3 -m bandit -r scripts -x scripts/check_site.py
 pip-audit --requirement requirements-dev.txt
 ```
 
-يفحص GitHub Actions الأسرار باستخدام Gitleaks، ويتحقق من تثبيت الإجراءات الخارجية على SHA كامل. راجع [نطاق وضوابط DevSecOps](docs/DEVSECOPS.md). لا يحتاج تشغيل الموقع أو الاختبارات إلى مفاتيح أو حسابات خدمات خارجية.
+يفحص GitHub Actions الأسرار باستخدام Gitleaks CLI مثبت الإصدار والبصمة، ويتحقق من أن نطاق Git وفروقات commits الدمج يطابقان حدث CI وSHA المصدر. يضيف الملخص دليل النطاق والعدّادات دون طباعة الأسرار أو رفع تقرير النتائج. راجع [تفاصيل نطاق Gitleaks وحدوده](docs/CI.md) و[نطاق وضوابط DevSecOps](docs/DEVSECOPS.md). لا يحتاج تشغيل الموقع أو الاختبارات إلى مفاتيح أو حسابات خدمات خارجية.
 
 ## الإعداد والأسرار
 
