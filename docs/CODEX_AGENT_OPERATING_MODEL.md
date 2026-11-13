@@ -24,6 +24,8 @@ To verify from the operator's own trusted Codex session, run `codex mcp list` an
 
 See the [reusable Codex MCP approval guidance](CODEX_MCP_APPROVAL_GUIDANCE.md) for upstream issue status and safe handling. Devobs' base config does not set an approval override, and this behavior has not been reproduced because runtime acceptance remains **OPEN**.
 
+For IDE context, Vim mode, session diagnostics, and bounded scripted CLI work, see the [Devobs Codex CLI and IDE workflow](CODEX_CLI_IDE_WORKFLOW.md).
+
 ### Local registration smoke check (manual, cost-free)
 
 From a trusted Devobs checkout with Python 3.12+:
