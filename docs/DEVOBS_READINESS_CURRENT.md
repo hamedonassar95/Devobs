@@ -1,3 +1,8 @@
+## تسجيل دمج PR #590 — 2026-11-13 (VERIFIED)
+
+- دُمج PR [#590](https://github.com/hamedonassar95/Devobs/pull/590) عند `c9495fca5ed4702b3e732137861577c62cb0025a` من الرأس `28154f9171a7c569fa28319fe91e50d3e817bc78`. نجح CI بعد الدمج [43423090500](https://github.com/hamedonassar95/Devobs/actions/runs/43423090500) وCodeQL [43423089043](https://github.com/hamedonassar95/Devobs/actions/runs/43423089043). اجتازت Python 3.12/3.15 وRLS والأمن والحاوية/Trivy وTerraform وsite-contract و`validate`؛ نشر CI موقع Pages الثابت واجتاز `verify-production`. Node تخطى اختيار المسار، والـincident drill تخطى شرطه.
+- هذا الدمج يزامن سجل PR #589 ويوضح متطلبات مشروع AWS فقط؛ لم يغيّر إعدادات AWS أو ينشئ مشروعًا/موارد أو يشغّل API. لقطة المالك كانت تعرض صفر مشاريع؛ الأهلية، الحد الفعلي، الضريبة والرسوم خارج المشروع تظل غير مثبتة. P01 **NO-GO / BLOCKED**، وAI-9 **BLOCKED**، وقبول Codex runtime **OPEN**.
+
 ## مقارنة سقف AWS والضريبة للأردن بعد PR #589 — 2026-11-13 (VERIFIED)
 
 - دُمج PR [#589](https://github.com/hamedonassar95/Devobs/pull/589) عند `e23a75943a92dfae1757c75bc95a21f66b51dcb6` من الرأس `8bae3c2fae904cbc8b09e18fa567ecc1b9748c06`. نجح CI بعد الدمج [43411277843](https://github.com/hamedonassar95/Devobs/actions/runs/43411277843) وCodeQL [43411276926](https://github.com/hamedonassar95/Devobs/actions/runs/43411276926). اجتازت فحوص Python 3.12/3.15 وRLS والأمن والحاوية/Trivy وTerraform وعقد الموقع و`validate`. نشر CI موقع GitHub Pages الثابت واجتاز `verify-production`؛ تخطّت اختبارات Node وincident drill شروطها.
