@@ -1,9 +1,11 @@
 """Staging entrypoint: offline security tests without a real cloud account."""
+from concurrent.futures import ThreadPoolExecutor
 import importlib
 import io
 import json
 import os
 import sys
+import threading
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -15,6 +17,16 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 
 
 class StagingBootstrapTests(unittest.TestCase):
+    class FakeClock:
+        def __init__(self):
+            self.now = 100.0
+
+        def __call__(self):
+            return self.now
+
+        def advance(self, seconds):
+            self.now += seconds
+
     @classmethod
     def setUpClass(cls):
         key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
@@ -47,12 +59,26 @@ class StagingBootstrapTests(unittest.TestCase):
         return results[0][0], results[0][1], body
 
     def test_health_is_liveness_only_and_no_secrets(self):
-        app = self.module.build_app(self.base)
+        class ProbeStore:
+            calls = 0
+
+            def probe_readiness(self):
+                self.calls += 1
+                return True
+
+        store = ProbeStore()
+        with patch.object(self.module, "PostgresTenantStore", return_value=store):
+            app = self.module.build_app(self.base)
         status, headers, body = self.run_request(app, "/healthz")
         self.assertEqual(status, "204 No Content")
         self.assertEqual(body, b"")
         self.assertEqual(headers["Cache-Control"], "no-store")
         self.assertEqual(self.run_request(app, "/healthz", method="POST")[0][:3], "405")
+        unsupported_with_body = self.run_request(
+            app, "/healthz", method="POST", environ_overrides={
+                "CONTENT_LENGTH": "1", "wsgi.input": io.BytesIO(b"x")})
+        self.assertEqual(unsupported_with_body[0], "405 Method Not Allowed")
+        self.assertEqual(store.calls, 0)
 
     def test_api_remains_token_protected(self):
         app = self.module.build_app(self.base)
@@ -273,23 +299,127 @@ class StagingBootstrapTests(unittest.TestCase):
         # Avoid real credentials: readiness checks are isolated behind the store.
         class ProbeStore:
             healthy = True
+            calls = 0
+
             def probe_readiness(self):
+                self.calls += 1
                 if not self.healthy:
                     raise RuntimeError("SECRET_database_unavailable")
                 return True
 
         store = ProbeStore()
-        with patch.object(self.module, "PostgresTenantStore", return_value=store):
+        clock = self.FakeClock()
+        with patch.object(self.module, "PostgresTenantStore", return_value=store), \
+                patch.object(self.module.time, "monotonic", clock):
             app = self.module.build_app(self.base)
-        healthy = self.run_request(app, "/readyz")
-        self.assertEqual(healthy[0], "204 No Content")
-        self.assertEqual(healthy[2], b"")
-        store.healthy = False
-        unavailable = self.run_request(app, "/readyz")
-        self.assertEqual(unavailable[0], "503 Service Unavailable")
-        self.assertEqual(unavailable[2], b"")
-        self.assertNotIn("SECRET", str(unavailable))
-        self.assertEqual(self.run_request(app, "/readyz", method="POST")[0][:3], "405")
+            healthy = self.run_request(app, "/readyz")
+            self.assertEqual(healthy[0], "204 No Content")
+            self.assertEqual(healthy[2], b"")
+            self.assertEqual(store.calls, 1)
+            clock.advance(self.module.READINESS_CACHE_SECONDS)
+            store.healthy = False
+            unavailable = self.run_request(app, "/readyz")
+            self.assertEqual(unavailable[0], "503 Service Unavailable")
+            self.assertEqual(unavailable[2], b"")
+            self.assertNotIn("SECRET", str(unavailable))
+            self.assertEqual(unavailable[1]["Cache-Control"], "no-store")
+            self.assertEqual(store.calls, 2)
+            method_not_allowed = self.run_request(app, "/readyz", method="POST")
+            self.assertEqual(method_not_allowed[0], "405 Method Not Allowed")
+            unsupported_with_body = self.run_request(
+                app, "/readyz", method="POST", environ_overrides={
+                    "CONTENT_LENGTH": "20000", "wsgi.input": io.BytesIO(b"x" * 20000)})
+            self.assertEqual(unsupported_with_body[0], "405 Method Not Allowed")
+            self.assertEqual(store.calls, 2)
+
+    def test_readiness_caches_only_the_actual_result_until_expiration(self):
+        class ProbeStore:
+            result = True
+            calls = 0
+
+            def probe_readiness(self):
+                self.calls += 1
+                return self.result
+
+        store = ProbeStore()
+        clock = self.FakeClock()
+        with patch.object(self.module, "PostgresTenantStore", return_value=store), \
+                patch.object(self.module.time, "monotonic", clock):
+            app = self.module.build_app(self.base)
+
+            self.assertEqual(self.run_request(app, "/readyz")[0], "204 No Content")
+            store.result = False
+            # The bounded cache may briefly reflect the last real result.
+            self.assertEqual(self.run_request(app, "/readyz")[0], "204 No Content")
+            self.assertEqual(store.calls, 1)
+
+            clock.advance(self.module.READINESS_CACHE_SECONDS)
+            self.assertEqual(self.run_request(app, "/readyz")[0],
+                             "503 Service Unavailable")
+            self.assertEqual(store.calls, 2)
+
+            store.result = True
+            self.assertEqual(self.run_request(app, "/readyz")[0],
+                             "503 Service Unavailable")
+            self.assertEqual(store.calls, 2)
+            clock.advance(self.module.READINESS_CACHE_SECONDS)
+            self.assertEqual(self.run_request(app, "/readyz")[0], "204 No Content")
+            self.assertEqual(store.calls, 3)
+
+    def test_readiness_coalesces_concurrent_checks_and_bounds_probe_count(self):
+        calls = 0
+        calls_lock = threading.Lock()
+        probe_started = threading.Event()
+        release_probe = threading.Event()
+        clock = self.FakeClock()
+
+        def probe():
+            nonlocal calls
+            with calls_lock:
+                calls += 1
+            probe_started.set()
+            if not release_probe.wait(timeout=5):
+                raise RuntimeError("synthetic_probe_timeout")
+            return True
+
+        coordinator = self.module._ReadinessProbeCoordinator(probe)
+        condition = coordinator._condition
+        original_wait = self.module.threading.Condition.wait
+        waiting = 0
+        waiting_lock = threading.Lock()
+        all_waiting = threading.Event()
+        follower_count = 7
+
+        def tracked_wait(wait_condition, timeout=None):
+            nonlocal waiting
+            if wait_condition is condition:
+                with waiting_lock:
+                    waiting += 1
+                    if waiting == follower_count:
+                        all_waiting.set()
+            return original_wait(wait_condition, timeout)
+
+        with patch.object(self.module.time, "monotonic", clock), \
+                patch.object(self.module.threading.Condition, "wait", tracked_wait):
+            with ThreadPoolExecutor(max_workers=follower_count + 1) as pool:
+                leader = pool.submit(coordinator.check)
+                self.assertTrue(probe_started.wait(timeout=2))
+                followers = [pool.submit(coordinator.check)
+                             for _ in range(follower_count)]
+                self.assertTrue(all_waiting.wait(timeout=2))
+                release_probe.set()
+                self.assertTrue(leader.result(timeout=2))
+                self.assertEqual([future.result(timeout=2) for future in followers],
+                                 [True] * follower_count)
+
+            self.assertTrue(coordinator.check())
+            self.assertEqual(calls, 1)
+            clock.advance(self.module.READINESS_CACHE_SECONDS)
+            self.assertTrue(coordinator.check())
+            self.assertEqual(calls, 2)
+
+        with self.assertRaisesRegex(ValueError, "^invalid_readiness_cache_config$"):
+            self.module._ReadinessProbeCoordinator(lambda: True, cache_seconds=1.01)
 
     def test_declared_request_body_is_rejected_before_readiness_probe(self):
         class ProbeStore:
