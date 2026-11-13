@@ -1,3 +1,9 @@
+## تسجيل دمج PR #592 — 2026-11-13 (VERIFIED)
+
+- دُمج PR [#592](https://github.com/hamedonassar95/Devobs/pull/592) عند `d531830c106f408145ab98ec97f81be451888bb2` من الرأس `2f11aec2afcdce82865b82cb57b28a1001ef4efe`. نجح CI بعد الدمج [43429442325](https://github.com/hamedonassar95/Devobs/actions/runs/43429442325) وCodeQL [43429442103](https://github.com/hamedonassar95/Devobs/actions/runs/43429442103). اجتازت Python 3.12/3.15 وRLS والأمن والحاوية/Trivy وTerraform وsite-contract و`validate`؛ نُشرت Pages الثابتة واجتازت `verify-production`. اجتاز Node في push CI على الرأس؛ تخطّاه CI بعد الدمج باختيار المسار، كما تخطّت incident drill والاستعادة شروطها.
+- PR #592 توثيق ومزامنة سجل فقط. لا يغير AWS أو ينشئ موارد أو يضبط نسخًا احتياطيًا. حالة حساب AWS الحالية غير متحققة، ولا يوجد إثبات لفاتورة أردنية نهائية أو حد شامل لكل الرسوم أو نسخة مشفرة لسبعة أيام مع استعادة ناجحة.
+- **P01 يبقى NO-GO / BLOCKED**، وAI-9 **BLOCKED**، وقبول Codex runtime **OPEN**. نشر Pages الثابت لا ينشر API.
+
 ## تسجيل دمج PR #591 — 2026-11-13 (VERIFIED)
 
 - دُمج PR [#591](https://github.com/hamedonassar95/Devobs/pull/591) عند `7e8ea4ba2d4644b02b82ccfc2b31b221cfc79b23` من الرأس `df90282a1813af29775e7d3153275fef89071705`. نجح CI بعد الدمج [43425485774](https://github.com/hamedonassar95/Devobs/actions/runs/43425485774) وCodeQL [43425485178](https://github.com/hamedonassar95/Devobs/actions/runs/43425485178). اجتازت Python 3.12/3.15 وRLS والأمن والحاوية/Trivy وTerraform وsite-contract و`validate`؛ نُشرت Pages الثابتة واجتازت `verify-production`. اجتاز Node في exact-head push CI؛ تخطّاه CI بعد الدمج باختيار المسار، كما تخطّت incident drill وفحوص الاستعادة شروطها.

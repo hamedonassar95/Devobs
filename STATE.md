@@ -1,3 +1,9 @@
+## أحدث لقطة موثّقة: تسجيل دمج PR #592 — 2026-11-13
+
+- **VERIFIED من GitHub:** دُمج PR [#592](https://github.com/hamedonassar95/Devobs/pull/592) عند `d531830c106f408145ab98ec97f81be451888bb2` من الرأس `2f11aec2afcdce82865b82cb57b28a1001ef4efe`. نجح main CI [43429442325](https://github.com/hamedonassar95/Devobs/actions/runs/43429442325) وCodeQL [43429442103](https://github.com/hamedonassar95/Devobs/actions/runs/43429442103) على SHA الدمج. اجتازت Python 3.12/3.15 وRLS والأمن والحاوية/Trivy وTerraform وsite-contract و`validate`؛ نُشرت Pages الثابتة واجتازت `verify-production`. اجتاز Node في push CI على رأس PR ثم تخطاه CI بعد الدمج باختيار المسار؛ تخطى incident drill وفحوص الاستعادة شروطها.
+- PR #592 يسجل PR #591 وسجلاته فقط. لا يثبت فاتورة AWS نهائية ولا يغير الحساب أو ينشئ موارد أو يضبط نسخًا احتياطيًا. لا توجد لقطة جديدة لحساب AWS؛ حالته الحالية غير متحققة. لم يُثبت إعداد نسخة مشفرة لسبعة أيام أو نجاح استعادة.
+- **الحالة:** يسجل الدفتر 215 PR مدموجًا وآخرها #592. P01 ما زال **BLOCKED / NO-GO**، وAI-9 **BLOCKED**، وقبول Codex runtime **OPEN**.
+
 ## أحدث لقطة موثّقة: تسجيل دمج PR #591 — 2026-11-13
 
 - **VERIFIED من GitHub:** دُمج PR [#591](https://github.com/hamedonassar95/Devobs/pull/591) عند `7e8ea4ba2d4644b02b82ccfc2b31b221cfc79b23` من الرأس `df90282a1813af29775e7d3153275fef89071705`. نجح PR CI وCodeQL؛ وبعد الدمج نجح main CI [43425485774](https://github.com/hamedonassar95/Devobs/actions/runs/43425485774) وCodeQL [43425485178](https://github.com/hamedonassar95/Devobs/actions/runs/43425485178) على SHA الدمج. اجتازت Python 3.12/3.15 وRLS والأمن والحاوية/Trivy وTerraform وsite-contract و`validate`؛ نُشرت Pages الثابتة واجتازت `verify-production`. اجتاز Node في تشغيل push على الرأس ثم تخطاه CI بعد الدمج باختيار المسار؛ تخطى incident drill وفحوص الاستعادة شروطها.
