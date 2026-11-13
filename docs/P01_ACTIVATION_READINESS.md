@@ -106,6 +106,14 @@ The values below record owner-provided proposed selections for the bounded stagi
 
 P01's budget gate can close only when a separately selected provider supplies verifiable controls that cap the complete approved invoice at or below USD 100, including applicable usage, persistent storage, fixed/recurring fees, and taxes, with no unbounded overrun; any remaining exclusions must have owner-approved treatment without exceeding the ceiling. Railway's written response fails those conditions, and the pre-registered Compute-only test cannot establish them. A provider or region change requires an owner decision. Passing the budget sub-gate does not itself authorize provisioning or change the owner-signed NO-GO; all P01 security, identity, residency, recovery, and owner sign-off requirements still apply.
 
+### Provider cost-control alternatives — reviewed 2026-11-13
+
+**VERIFIED from current official documentation:** Google Cloud now offers spend-cap budgets, but they cannot enforce the approved P01 total-invoice ceiling. Each cap applies to one Google Cloud project and one eligible service for one calendar month; eligible services are Gemini API, Gemini Enterprise Agent Platform, Cloud Run, and Cloud Run functions. Google states that in-flight requests can finish and accrue charges, cost-reporting latency can cause overages billed normally, and persistent-resource charges (including compute/storage) continue after a cap triggers. Cloud Run's cap also excludes Compute Engine charges for VPC connector VMs. A budget for Cloud Run or Gemini therefore cannot cap Cloud SQL, networking or the rest of a combined P01 invoice. The current recorded P01 proposal is Render plus PostgreSQL plus OpenAI, not Google Cloud. Google caps could be considered only as service-level defense in depth after a separate provider decision; **REJECT** them as the complete P01 cap. Whether the owner's billing account is eligible and how its taxes would be calculated are **UNVERIFIED**; no account was accessed.
+
+**Candidate for a fixed-cost redesign, not selected or configured:** OVHcloud's public VPS pages advertise unmetered VPS bandwidth at a fixed monthly price (starting at USD 4.54/month), daily standard backup retained for 24 hours at no extra cost, and optional Premium backup with a seven-day rolling restore (starting at USD 1.40/month). Those are advertised starting prices, not a quote for the required region, disk size, tax treatment, or this account. Premium backup price varies with VPS storage; its reviewed page does not establish backup encryption. A single, non-autoscaling VPS could host the API and PostgreSQL with a fixed plan, but would replace the current Render-managed database architecture with a self-managed single host and introduce availability, patching, network, restore, and isolation work. The product's fixed price and no-traffic-overage terms are promising cost bounds; they do not prove the final tax-inclusive invoice or a provider-enforced account-wide limit. **DEFER** pending a written checkout quote under the $100 ceiling, proof of encrypted seven-day recovery, and an explicit owner decision on provider, region, and single-host tradeoffs. No account, resource, or deployment was created.
+
+**Applied decision:** retain the owner-signed USD 100 all-in requirement and P01 **NO-GO / BLOCKED**. Do not substitute service-level spend caps, estimates, alerts, or starting prices for a total-invoice guarantee. Local-only operation remains the zero-hosting-bill option for development, but it is not the managed staging service or evidence for P01. The next single milestone is a provider decision backed by an exact tax-inclusive monthly quote and evidence that every P01 charge—including seven-day encrypted recovery—is either fixed within the ceiling or automatically stopped before it can exceed it. Only after that decision may a separate offline architecture PR be prepared; provisioning and deployment still require the applicable human approval.
+
 ### Owner-signed decision record
 
 - Decision: **NO-GO / BLOCKED at this time.** The owner conditionally approves the bounded P01 scope with a USD 100/month total ceiling, contingent on verified automatic enforcement. That condition is unmet; no resource or integration may start.
@@ -143,6 +151,10 @@ The owner has authorized routine repository PRs, CI, and merges after green chec
 ## References
 
 - [Railway spend-enforcement evidence and pre-registered test design](P01_RAILWAY_SPEND_ENFORCEMENT_EVIDENCE.md)
+- [Google Cloud spend-cap budget scope and limitations](https://docs.cloud.google.com/billing/docs/how-to/budgets-spend-caps)
+- [Cloud Run billing settings and spend-cap limitations](https://docs.cloud.google.com/run/docs/configuring/billing-settings)
+- [OVHcloud unmetered VPS plans](https://www.ovhcloud.com/en/vps/unmetered-vps/)
+- [OVHcloud VPS backup options](https://www.ovhcloud.com/en/vps/vps-backup/)
 - [Canonical P00–P12 execution roadmap](plans/2026-10-26-devobs-production-execution-roadmap.md)
 - [Offline staging acceptance](STAGING_ACCEPTANCE.md)
 - [Managed staging proposal and prerequisites](RENDER_SUPABASE_STAGING.md)
