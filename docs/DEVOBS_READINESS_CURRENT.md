@@ -1,3 +1,9 @@
+## تسجيل دمج PR #594 — 2026-11-13 (VERIFIED)
+
+- دُمج PR [#594](https://github.com/hamedonassar95/Devobs/pull/594) عند `efa596d5c9e0336dc911dfb90e3fe007743eb0ec` من الرأس `cf241b8e8444b94d78f4c61d49673c646c39c900`. نجح PR CI [43472885715](https://github.com/hamedonassar95/Devobs/actions/runs/43472885715) و`validate`; اجتازت الأمن وRLS والحاوية/Trivy وTerraform وعقد الموقع. اختير تخطي Python وNode بحسب الملفات؛ محليًا اجتازت المجموعة 1,058 اختبارًا مع 25 تخطيًا. بعد الدمج نجح main CI [43473228398](https://github.com/hamedonassar95/Devobs/actions/runs/43473228398) وCodeQL [43473240909](https://github.com/hamedonassar95/Devobs/actions/runs/43473240909) على SHA الدمج؛ نشر الموقع الثابت واجتاز `verify-production`.
+- يسجل PR مطابقة Render/Supabase المباشرة وإرشاد MCP قابلًا للنقل. لم يغيّر خدمات أو إعدادات أو أسرارًا ولم يفعّل inference. تخطّى فحص Codex advisory خطوة استدعاء النموذج لغياب موافقة ميزانية AI؛ لذلك لم ينتج مراجعة نموذجية.
+- **بوابات الإصدار لم تتغير:** P01 **NO-GO / BLOCKED**، وAI-9 **BLOCKED**، وCodex runtime **OPEN**. لا تثبت فحوص المستودع أو نشر Pages تشغيل API أو جاهزية SaaS.
+
 ## مطابقة مباشرة لحالة موارد P01 — 2026-11-13 17:08 UTC (VERIFIED، قراءة فقط)
 
 - Render يعرض خدمة Frankfurt على Free مع `0.0.0.0/0` في قائمة الشبكة والنشر التلقائي متوقفًا. قاعدة Free متاحة وتنتهي في 2026-12-05، وبها إدخال سماح خارجي باسم `temporary-migration`؛ لم يُسجل عنوانه.
