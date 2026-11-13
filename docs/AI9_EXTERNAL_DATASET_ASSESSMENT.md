@@ -52,6 +52,107 @@ Schema and provenance inspection must be separated from detector outcomes. Do no
 - **UNVERIFIED:** a deterministic feature/service mapping for IBM; exact AIOps 2020 archive shape/size/cadence and rights-holder permission beyond non-commercial research; AIOpsArena reuse rights; production suitability of testbed datasets; and whether a preregistered combination can support every AI-9 gate.
 - **BLOCKED:** full AI-9 scoring on IBM is invalid under the current detector cadence and label contract. RCAEval's testbed baseline is not a production-detector or natural-incident evaluation. No complete external evaluation for AI-9 exists; AI-9 remains **FAIL / BLOCKED**.
 
+## Natural-incident preregistration update — 2026-11-13
+
+The [AI-9 Natural-Incident Evaluation preregistration](AI9_REAL_INCIDENT_PREREGISTRATION.md)
+sets admission, independent-label, privacy, sampling, holdout, metric, uncertainty,
+and one-time authorization requirements for a future natural-incident study. It
+is a design protocol only: no qualifying corpus has been identified or approved,
+no new data were downloaded or scored, and no AI-9 gate or threshold changed.
+
+Official source metadata and pinned snapshots were rechecked on 2026-11-13 for
+Microsoft Cloud Monitoring, IBM Zenodo 14062900, RCAEval, OpenRCA 2.0 Lite,
+AIOps Challenge 2020, and AIOpsArena. Existing assessments and results for
+RCAEval, IBM, Microsoft, and Devobs synthetic holdouts remain the detailed
+record; this update does not repeat or rerun those studies. Each source remains
+**NOT_EVALUABLE** for the complete natural-incident AI-9 gate because labels,
+cadence, injected-failure status, or usage rights do not meet all admission
+requirements. No owner-approved natural-incident manifest or independent label
+set is present in the reviewed evidence. Rights or source claims not confirmed
+by the pinned publisher documentation remain **UNVERIFIED**. AI-9 remains
+**FAIL / BLOCKED**; P01 remains **NO-GO / BLOCKED**.
+
+## Additional natural-incident source search — 2026-11-13
+
+ChronoGraph was inspected as an additional public candidate because its paper
+describes production microservice telemetry and event annotations derived from
+incident reports. The checked repository snapshot is
+[`51a16b9b29a0ecb1b6f17d672ca1da97de9da99a`](https://github.com/bit-ml/ChronoGraph/tree/51a16b9b29a0ecb1b6f17d672ca1da97de9da99a);
+the pinned README and root license declare Apache-2.0 for the repository. The
+paper's [v2](https://arxiv.org/abs/2509.04449v2) reports six months of
+production microservice telemetry, 708 services, five metrics per service,
+30-minute sampling, and 17 labeled anomaly segments parsed from incident
+reports. No dataset files were downloaded.
+
+This is a useful lead, but **NOT_EVALUABLE** for the complete current AI-9 gate:
+
+- Thirty-minute sampling cannot satisfy the unchanged 60-second input contract;
+  resampling or interpolation would alter the preregistered protocol.
+- The 17 anomaly segments have no documented sample-size justification for
+  AI-9, and the paper does not document root-cause service labels.
+- The paper describes expert/event annotation but does not establish the required
+  independent double review and adjudication process.
+- The repository license is not sufficient evidence that the underlying
+  production telemetry may be used for this evaluation; dataset-specific rights
+  remain **UNVERIFIED**.
+- No immutable data-file checksum or privacy/retention approval was established
+  because no data were downloaded and the source materials reviewed do not
+  establish those approvals.
+
+Other public leads checked at the source-description level do not close these
+gaps: the [Cloud Uptime Archive at snapshot
+`508a31e32dd9aba4410014c159cf83b5b0f4c09b`](https://github.com/atlarge-research/cloud-uptime-archive/tree/508a31e32dd9aba4410014c159cf83b5b0f4c09b)
+declares an MIT repository license, but the README says its raw traces are a
+separate Zenodo dataset; the payload license was not verified. The README
+describes outage traces and severity, but does not establish compatible
+service-level metric series or independent root-cause labels; it says severity
+is a synthetic metric. The [Cloud Incident
+Reports record v1.0](https://zenodo.org/records/14010282) (DOI
+`10.5281/zenodo.14010282`) declares CC BY 4.0 and describes 3,087 textual
+reports, 460 of which are labeled, but does not establish the telemetry-to-service
+mapping or 60-second metric series required by AI-9.
+Both are **NOT_EVALUABLE** for the complete gate; no data were downloaded. These
+source-description checks are not a substitute for dataset inspection or
+privacy approval.
+
+Two higher-relevance production studies were then checked against their official
+paper and artifact pages:
+
+- **LagRCA D1 — closest public lead, but not admissible yet.** The [FSE 2026
+  paper](https://doi.org/10.1145/3803437.3805219) describes D1 as real incident
+  data from a commercial bank's production microservice system: 146 failures,
+  46 instances, five failure categories, a five-day span, root-cause instance
+  labels, and metrics sampled every minute. The authors' [pinned public code
+  repository](https://github.com/kjhjk566/LagRCA/tree/27ba909210b722813e5febc4135585cef3f5911c)
+  documents D1 files, but the checked snapshot has no `LICENSE` file. The
+  paper's CC BY 4.0 article license does not establish reuse rights for the
+  separate telemetry files. The reviewed paper/repository also do not establish
+  independent label adjudication, sample-size adequacy for the frozen AI-9
+  metrics, data privacy/retention permission, or a cryptographic manifest for
+  the exact dataset files. We did not download or inspect the data. Therefore
+  D1 is **NOT_EVALUABLE** until the dataset rights holder supplies those
+  approvals and evidence.
+- **OScope's Alibaba OS incidents — production labels, wrong data contract.**
+  The [ICSE-SEIP 2026 paper](https://doi.org/10.1145/3786583.3786852) reports
+  101 Alibaba production Linux failure cases manually labeled with root causes
+  by experienced OCEs. It says metrics, logs, and stack traces are collected for
+  three hours before each alert. The reviewed article does not identify a public
+  dataset license/release, exact metric cadence, service-level mapping, or
+  independent adjudication for those 101 labels. Its separate description of
+  independent review for historical troubleshooting-document rewriting is not
+  evidence of independent review for the 101 evaluation labels. This source is
+  **NOT_EVALUABLE** for the complete AI-9 gate; no dataset was accessed.
+
+**Result:** no qualifying corpus was identified. The next concrete prerequisite
+is an owner-authorized dataset-rights decision for LagRCA D1 (or a separate
+owner-provided corpus), followed by documentation of lawful usage, privacy and
+retention, native 60-second service metrics, independent incident/root-cause
+label review, sample-size rationale, and a frozen manifest with checksums. We
+cannot obtain the bank's permission or validate those labels from public paper
+metadata, and we did not contact the authors or access their files. Until these
+items are supplied and independently reviewed, do not run a new holdout
+evaluation; AI-9 remains **FAIL / BLOCKED** and P01 remains **NO-GO / BLOCKED**.
+
 ## References
 
 - [Microsoft dataset README](https://github.com/microsoft/cloud-monitoring-dataset/blob/master/README.md)
@@ -66,4 +167,8 @@ Schema and provenance inspection must be separated from detector outcomes. Do no
 - [Research paper describing AIOps Challenge dataset C and its injected failures](https://arxiv.org/html/2208.03938v1)
 - [AIOpsArena dataset and sampling/ground-truth description](https://github.com/AIOpsArena/dataset)
 - [OpenRCA 2.0 Lite dataset card and license](https://huggingface.co/datasets/anon-ops/ops-lite)
+- [ChronoGraph repository snapshot](https://github.com/bit-ml/ChronoGraph/tree/51a16b9b29a0ecb1b6f17d672ca1da97de9da99a), [pinned README](https://github.com/bit-ml/ChronoGraph/blob/51a16b9b29a0ecb1b6f17d672ca1da97de9da99a/README.md), [pinned license](https://github.com/bit-ml/ChronoGraph/blob/51a16b9b29a0ecb1b6f17d672ca1da97de9da99a/LICENSE), and [paper v2](https://arxiv.org/html/2509.04449v2)
+- [Cloud Uptime Archive snapshot](https://github.com/atlarge-research/cloud-uptime-archive/tree/508a31e32dd9aba4410014c159cf83b5b0f4c09b) and [Cloud Incident Reports, Zenodo record v1.0](https://zenodo.org/records/14010282); inspected at source-description level only. Cloud Incident Reports declares CC BY 4.0, but both are **NOT_EVALUABLE** for the complete AI-9 contract.
+- [LagRCA FSE 2026 paper](https://doi.org/10.1145/3803437.3805219) and [pinned author repository snapshot](https://github.com/kjhjk566/LagRCA/tree/27ba909210b722813e5febc4135585cef3f5911c); D1 rights, privacy, independent annotation and file manifest remain **UNVERIFIED**.
+- [OScope ICSE-SEIP 2026 paper](https://doi.org/10.1145/3786583.3786852); its 101-case production evaluation is described, but a reusable data release/license and service-level cadence were not identified in the reviewed source.
 - [AI-9 v3 independent-evaluation gate](AI9_V3_INDEPENDENT_EVAL_GATE.md)
