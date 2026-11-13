@@ -1,3 +1,10 @@
+## مطابقة مباشرة لحالة موارد P01 — 2026-11-13 17:08 UTC (VERIFIED، قراءة فقط)
+
+- Render يعرض خدمة Frankfurt على Free مع `0.0.0.0/0` في قائمة الشبكة والنشر التلقائي متوقفًا. قاعدة Free متاحة وتنتهي في 2026-12-05، وبها إدخال سماح خارجي باسم `temporary-migration`؛ لم يُسجل عنوانه.
+- أحدث نشر تعرضه القائمة: بناء ناجح ثم فشل بدء الخدمة برمز خروج 1 عند SHA `5b75be633b4fd5c797d9e4fdc1e960fd0d68e07e` في 2026-11-05. لم يظهر نشر أحدث، ولا يوجد `/readyz` حي مثبت. لم تُقرأ إعدادات البيئة أو الأسرار.
+- مشروع المؤسسة `Devobs AI Intelligence` في Supabase يظهر `INACTIVE` في `us-east-1`، ومستشار الأمان يعيد صفر تنبيهات؛ هذه نتيجة بيانات وصفية لا تثبت جاهزية قاعدة حية. يتقدم هذا الفحص الحالي على لقطة 2026-11-04 التي سجلت المشروع نشطًا وقت اختبار RLS.
+- **P01 يبقى NO-GO / BLOCKED** حتى تثبت هوية OIDC وعزل المستأجرين وTLS والشبكة وسقف التكلفة الشامل والاستعادة وموافقة المالك. AI-9 **BLOCKED**، وقبول Codex runtime **OPEN**. لم يتغير أي مورد أو إعداد أو نشر. الملخص الدائم في [STATE.md](../STATE.md).
+
 ## تسجيل دمج PR #592 — 2026-11-13 (VERIFIED)
 
 - دُمج PR [#592](https://github.com/hamedonassar95/Devobs/pull/592) عند `d531830c106f408145ab98ec97f81be451888bb2` من الرأس `2f11aec2afcdce82865b82cb57b28a1001ef4efe`. نجح CI بعد الدمج [43429442325](https://github.com/hamedonassar95/Devobs/actions/runs/43429442325) وCodeQL [43429442103](https://github.com/hamedonassar95/Devobs/actions/runs/43429442103). اجتازت Python 3.12/3.15 وRLS والأمن والحاوية/Trivy وTerraform وsite-contract و`validate`؛ نُشرت Pages الثابتة واجتازت `verify-production`. اجتاز Node في push CI على الرأس؛ تخطّاه CI بعد الدمج باختيار المسار، كما تخطّت incident drill والاستعادة شروطها.
