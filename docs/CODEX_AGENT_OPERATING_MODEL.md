@@ -20,6 +20,12 @@ When doing OpenAI API/Plugins/Codex/MCP development, `AGENTS.md` now asks Codex 
 
 To verify from the operator's own trusted Codex session, run `codex mcp list` and then perform one innocuous public docs search. Record observed tool names, status and official source URLs but **never** record tokens or copied private logs. Configuration inspection or `codex mcp list` alone is **not** proof that remote tools were successfully called. Until an actual lookup succeeds, classify runtime as **UNVERIFIED**. This independent check does not prove Codex agent subagents have run; their acceptance gate stays OPEN.
 
+### Upstream MCP approval prompts
+
+As checked on 2026-11-13, OpenAI Codex issue [#20289](https://github.com/openai/codex/issues/20289) remains open and reports that an encrypted tool payload can trigger an approval prompt even when the MCP server and tool use `approval_mode = "approve"`. The issue bot identified [#19430](https://github.com/openai/codex/issues/19430) as a possible duplicate; it also remains open. This is a Codex client approval-path report, not a Devobs application defect or a demonstrated Devobs runtime failure. The repository-scoped base config does not set `approval_mode` or `approval_policy = "never"`; it only declares the public read-only developer-docs MCP. Devobs runtime acceptance remains **OPEN**, so this behavior has not been reproduced here.
+
+If Codex presents an approval prompt, keep the interactive approval boundary in effect and review the displayed tool and arguments. Do not call the MCP server directly over HTTP or another shell path to bypass Codex's approval handling. If the prompt blocks a harmless docs lookup, record only sanitized client version, OS, server/tool name and prompt reason; never copy encrypted payloads, tokens or private logs into the repository.
+
 ### Local registration smoke check (manual, cost-free)
 
 From a trusted Devobs checkout with Python 3.12+:
