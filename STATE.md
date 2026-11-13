@@ -1,3 +1,9 @@
+## أحدث لقطة موثّقة: توثيق قيود مشروع AWS ودمج PR #590 — 2026-11-13
+
+- **VERIFIED من GitHub:** دُمج PR [#590](https://github.com/hamedonassar95/Devobs/pull/590) عند `c9495fca5ed4702b3e732137861577c62cb0025a` من الرأس `28154f9171a7c569fa28319fe91e50d3e817bc78`. نجح PR CI وCodeQL والمراجعة الاستشارية؛ وبعد الدمج نجح main CI [43423090500](https://github.com/hamedonassar95/Devobs/actions/runs/43423090500) وCodeQL [43423089043](https://github.com/hamedonassar95/Devobs/actions/runs/43423089043) على SHA الدمج. اجتازت Python 3.12/3.15 وRLS والأمن والحاوية/Trivy وTerraform وعقد الموقع و`validate`؛ نُشرت صفحة Pages الثابتة واجتازت `verify-production`. تخطى Node اختيار المسار، وتخطى incident drill شروطه.
+- PR #590 يوثّق فقط دمج مقارنة سقف AWS وشروط Paid Plan ومسؤولية الفواتير؛ لا يثبت سعرًا نهائيًا ولا يغيّر الحساب أو ينشئ مشروعًا أو موارد. صورة AWS المعطاة أظهرت صفر مشاريع، لذلك حد الحساب والضريبة والرسوم خارج المشروع ما زالت غير مؤكدة. تصميم نسخ RDS مشفّرة لسبعة أيام لم يُفعّل ولم يُختبر باستعادة.
+- **الحالة:** يسجل الدفتر 213 PR مدموجًا وآخرها #590. P01 ما زال **BLOCKED / NO-GO**، وAI-9 **BLOCKED**، وقبول Codex runtime **OPEN**.
+
 ## أحدث لقطة موثّقة: مقارنة سقف AWS وضريبة الأردن عبر PR #589 — 2026-11-13
 
 - **VERIFIED من GitHub:** دُمج PR [#589](https://github.com/hamedonassar95/Devobs/pull/589) عند `e23a75943a92dfae1757c75bc95a21f66b51dcb6` من الرأس `8bae3c2fae904cbc8b09e18fa567ecc1b9748c06`. نجح PR CI وفحوص CodeQL والمراجعة الاستشارية؛ وبعد الدمج نجح CI [43411277843](https://github.com/hamedonassar95/Devobs/actions/runs/43411277843) وCodeQL [43411276926](https://github.com/hamedonassar95/Devobs/actions/runs/43411276926) على SHA الدمج. فحوص Python 3.12/3.15 وRLS والأمن والحاوية/Trivy وTerraform وعقد الموقع و`validate` نجحت. نُشرت صفحة GitHub Pages الثابتة واجتازت `verify-production`؛ Node تخطّى اختيار المسار، وتدريب الحوادث تخطّى شرطه.
