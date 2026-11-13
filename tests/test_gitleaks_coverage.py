@@ -74,6 +74,15 @@ if mode == 'missing-count':
     if report: open(report, 'w', encoding='utf-8').write('[]')
     print('scan completed')
     raise SystemExit(0)
+if mode == 'ansi-count':
+    if report: open(report, 'w', encoding='utf-8').write('[]')
+    print('\x1b[32m1 commits scanned.\x1b[0m')
+    raise SystemExit(0)
+if mode == 'ambiguous-count':
+    if report: open(report, 'w', encoding='utf-8').write('[]')
+    print('1 commits scanned.')
+    print('1 commits scanned.')
+    raise SystemExit(0)
 if mode == 'missing-report':
     print('1 commits scanned.')
     raise SystemExit(0)
@@ -98,6 +107,15 @@ if mode == 'scanner-failure':
             }], stream)
     print('SYNTHETIC_CANARY_NOT_A_CREDENTIAL')
     print('1 commits scanned.')
+    raise SystemExit(2)
+if mode == 'scanner-failure-missing-count':
+    if report:
+        with open(report, 'w', encoding='utf-8') as stream:
+            json.dump([{
+                'RuleID': 'synthetic', 'File': 'synthetic.txt', 'Commit': 'a' * 40,
+                'Secret': 'SYNTHETIC_CANARY_NOT_A_CREDENTIAL'
+            }], stream)
+    print('SYNTHETIC_CANARY_NOT_A_CREDENTIAL')
     raise SystemExit(2)
 parts = log_opts.split()
 if parts and parts[0] == '-m':
@@ -222,6 +240,23 @@ print(f'{count} commits scanned.')
         self.assertIn("scanner completion evidence", err)
         self.assertIn("Status: **FAIL**", summary)
 
+    def test_ansi_formatted_scan_count_is_valid_completion_evidence(self):
+        after = self._new_commit("ansi-count.txt")
+        event = {"before": self.base, "after": after}
+        code, _, err, summary = self._run("push", event, after, mode="ansi-count")
+
+        self.assertEqual(code, 0, err)
+        self.assertIn("Gitleaks-reported commits scanned: 1", summary)
+
+    def test_duplicate_scan_count_evidence_fails_closed(self):
+        after = self._new_commit("ambiguous-count.txt")
+        event = {"before": self.base, "after": after}
+        code, _, err, summary = self._run("push", event, after, mode="ambiguous-count")
+
+        self.assertEqual(code, 1)
+        self.assertIn("completion evidence is ambiguous", err)
+        self.assertIn("Status: **FAIL**", summary)
+
     def test_missing_report_fails_closed(self):
         after = self._new_commit("missing-report.txt")
         event = {"before": self.base, "after": after}
@@ -337,6 +372,19 @@ print(f'{count} commits scanned.')
         combined = out + err + summary
         self.assertIn("finding(s)", combined)
         self.assertIn("Gitleaks-reported commits scanned: 1", summary)
+        self.assertIn("Finding count: 1", summary)
+        self.assertNotIn("SYNTHETIC_CANARY_NOT_A_CREDENTIAL", combined)
+
+    def test_scanner_failure_without_count_preserves_only_safe_aggregates(self):
+        after = self._new_commit("scanner-failure-no-count.txt")
+        event = {"before": self.base, "after": after}
+        code, out, err, summary = self._run(
+            "push", event, after, mode="scanner-failure-missing-count"
+        )
+
+        self.assertEqual(code, 1)
+        combined = out + err + summary
+        self.assertIn("scanner exit code 2", combined)
         self.assertIn("Finding count: 1", summary)
         self.assertNotIn("SYNTHETIC_CANARY_NOT_A_CREDENTIAL", combined)
 

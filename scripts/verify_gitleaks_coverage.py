@@ -23,6 +23,7 @@ EXPECTED_GITLEAKS_VERSION = "8.24.3"
 SHA_RE = re.compile(r"[0-9a-f]{40}\Z")
 ZERO_SHA = "0" * 40
 SCAN_COUNT_RE = re.compile(r"\b([0-9]+)\s+commits scanned\.")
+ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 MAX_EVENT_BYTES = 16 * 1024 * 1024
 MAX_REPORT_BYTES = 20 * 1024 * 1024
 SCAN_TIMEOUT_SECONDS = 8 * 60
@@ -36,7 +37,7 @@ class CoverageFailure(ValueError):
 class ScanFailure(CoverageFailure):
     """A completed scan that failed policy but has safe aggregate evidence."""
 
-    def __init__(self, message: str, scan_count: int, finding_count: int) -> None:
+    def __init__(self, message: str, scan_count: int | None, finding_count: int) -> None:
         super().__init__(message)
         self.scan_count = scan_count
         self.finding_count = finding_count
@@ -208,13 +209,15 @@ def _scan_count(log_path: Path) -> int:
     try:
         with log_path.open("r", encoding="utf-8", errors="replace") as stream:
             for line in stream:
-                match = SCAN_COUNT_RE.search(line)
+                match = SCAN_COUNT_RE.search(ANSI_ESCAPE_RE.sub("", line))
                 if match:
                     matches.append(int(match.group(1)))
     except OSError as exc:
         raise CoverageFailure("scanner completion evidence is missing") from exc
-    if len(matches) != 1:
-        raise CoverageFailure("scanner completion evidence is missing or ambiguous")
+    if len(matches) == 0:
+        raise CoverageFailure("scanner completion evidence is missing or malformed")
+    if len(matches) > 1:
+        raise CoverageFailure("scanner completion evidence is ambiguous")
     return matches[0]
 
 
@@ -339,8 +342,18 @@ def run_scan(scope: ScanScope, repository: Path, gitleaks_bin: str) -> tuple[int
         except (OSError, subprocess.TimeoutExpired) as exc:
             raise CoverageFailure("pinned Gitleaks scanner could not complete") from exc
 
-        scan_count = _scan_count(log_path)
         findings = _read_report(report_path)
+        try:
+            scan_count = _scan_count(log_path)
+        except CoverageFailure as exc:
+            detail = f"{exc}; scanner exit code {result.returncode}"
+            if result.returncode != 0 and findings:
+                raise ScanFailure(
+                    f"{detail}; {len(findings)} finding(s) reported, contents suppressed",
+                    None,
+                    len(findings),
+                ) from exc
+            raise CoverageFailure(detail) from exc
         if scan_count > len(scope.commits):
             raise ScanFailure("scanner count exceeds the selected revision history", scan_count, len(findings))
         if result.returncode != 0:
