@@ -1,10 +1,10 @@
 # Devobs AI Intelligence roadmap — 2026
 
 **Status:** `READY_FOR_REVIEW`, not `PRODUCTION_COMPLETE`
-**Base:** `main` at `2ea1f58a6323f4ccc0e6553be4b2fb61e6017c99`
+**Base:** `main` at `67e03118c14a19d0cb6ef1c86b9abcaf1eb2a07a` (observed 2026-11-13 UTC)
 **Scope:** phased, evidence-based work for `hamedonassar95/Devobs`. This is a plan; it does not authorize services, costs, data transfer, deployments, inference, workflow dispatch, or gate changes.
 
-Read the [repository alignment and capability inventory](DEVOBS_AI_RESEARCH_ALIGNMENT_2026.md) first. The handoff and full research report named in the request were unavailable while this roadmap was prepared. Research-specific recommendations remain unverified until those sources are supplied and cited.
+Read the [repository alignment and capability inventory](DEVOBS_AI_RESEARCH_ALIGNMENT_2026.md) first. The owner supplied a curated research-to-Codex handoff on 2026-11-13; this documentation update reconciles its recommendations against the current repository. The complete original Deep Research report/export was not found in the workspace or connected Google Drive, so P0 remains partial. Research-derived claims absent from the supplied handoff remain unverified.
 
 ## Outcome and guardrails
 
@@ -21,8 +21,8 @@ Move from the existing local DevOps intelligence and repository checks toward a 
 
 | Priority | Milestone | Dependency | Exit result |
 | --- | --- | --- | --- |
-| P0 | Supply and reconcile the missing 2026 research handoff | Owner supplies `DEVOBS_AI_CODEX_HANDOFF_2026.md` and any full report | Each research recommendation is mapped to an existing capability, a real gap, a reject/defer decision, license, cost, security, exact files, and acceptance evidence. |
-| P1 | Resolve P01 provider and hosted-staging evidence | P0 source reconciliation; owner decision on provider, region, data scope, and enforceable all-in cap | Every unchanged P01 and Issue #237 criterion is backed by SHA-bound test/runtime evidence plus explicit owner GO. If cost enforcement cannot be proven, stop and keep NO-GO. |
+| P0 | Reconcile the available 2026 research handoff | Curated handoff supplied; the complete original Deep Research export remains unavailable | This PR maps the supplied recommendations to repository evidence and dispositions. P0 becomes **partial**, not complete, until the full report/bibliography is supplied or confirmed unavailable by the owner. No implementation is authorized. |
+| P1 | Resolve P01 provider and hosted-staging evidence | P0 handoff reconciliation plus owner decision on provider, region, data scope, and enforceable all-in cap | Every unchanged P01 and Issue #237 criterion is backed by SHA-bound test/runtime evidence plus explicit owner GO. If cost enforcement cannot be proven, stop and keep NO-GO. |
 | P2 | Conduct AI-9 natural-incident evaluation | Source provenance, license/privacy approval, independent labels/root causes, preregistration | A valid independent evaluation reports per-source/per-seed or per-slice results against unchanged thresholds; a failed or unsupported slice remains failed/inconclusive. Human release approval remains separate. |
 | P3 | Validate bounded staging operations and observability | P1 provider approval and secure staging; AI-9 can remain a separate gate | Measured health, tenant isolation, restore, SLO/alert and data-retention evidence on one exact candidate SHA; no public telemetry or automated remediation. |
 | P4 | Consider a restricted pilot | P01 GO, AI-9 decision, security/privacy review, support and rollback ownership | A one-service, one-tenant, advisory-only pilot with explicit owner scope and documented rollback. Not a general production release. |
@@ -34,14 +34,14 @@ P1 and P2 are distinct gates. P01 infrastructure evidence does not validate mode
 
 The tasks below are intentionally not implemented in this PR. Each task gets its own branch and PR. File lists are planned scopes; a future task must re-inspect current `main` and narrow them further before editing.
 
-### Task 0 — Reconcile the research source
+### Task 0 — Complete reconciliation if the full research export becomes available
 
-**Priority/dependency:** P0; next task. Requires the missing handoff and report.
-**Future branch:** `docs/devobs-ai-research-reconciliation`.
+**Priority/dependency:** P0 remains partial after the limited reconciliation in this documentation PR. Continue only if the owner supplies the full Deep Research export or an immutable source link.
+**Future branch:** `docs/devobs-ai-research-source-supplement`.
 
 **Proposed files:** `docs/strategy/DEVOBS_AI_RESEARCH_ALIGNMENT_2026.md`, `docs/strategy/DEVOBS_AI_ROADMAP_2026.md` only; update README only if the links or public summary change.
 
-**Work:** Extract recommendations and citations from the supplied report; map each to the current capability inventory. For every proposed tool/provider, verify official release/version, license for code and model separately, immutable action SHA or OCI digest, price/billing terms, data path, security boundary, duplicate overlap, and testable acceptance. Classify as adopt, research-only, defer, or reject with a cited reason. Do not install packages or import code.
+**Work:** Compare the newly supplied export against the current capability inventory and this PR's reconciliation. Add only additional source-supported recommendations/citations. For any proposed tool/provider, verify official release/version, license for code and model separately, immutable action SHA or OCI digest, price/billing terms, data path, security boundary, duplicate overlap, and testable acceptance. Classify as adopt, research-only, defer, or reject with a cited reason. Do not install packages or import code.
 
 **Acceptance:** Every source-backed recommendation has a source section/page, repository overlap, decision, owner decision if needed, and one-task implementation plan. Unsupported claims are marked `UNVERIFIED`; unresolved licensing or costs block that proposal. `git diff --check`, internal Markdown-link check, and documentation CI pass on the exact PR head.
 
@@ -136,4 +136,4 @@ PRs stay separate: no bundling a provider decision, evaluation, code change, and
 
 ## Immediate next task
 
-Supply `DEVOBS_AI_CODEX_HANDOFF_2026.md` and the full research report if it exists. Reconcile them against the current inventory in one docs-only follow-up PR before choosing a new tool, provider, image, or implementation. P01 evidence acquisition is the first operational workstream after that reconciliation; AI-9's natural-incident evaluation remains a separate workstream.
+Review this handoff-reconciliation PR against exact base/head evidence. If the full Deep Research export is available later, use Task 0 to supplement the source map before selecting any new tool, provider, image, or implementation. For staging, the next evidence prerequisite remains an owner decision on provider, region, data scope, and an enforceable all-in cap, followed by separately authorized staging evidence; **P01 stays NO-GO/BLOCKED** until all acceptance criteria and owner GO are met. **AI-9 remains separately BLOCKED** until lawful natural incidents, independent root-cause labels, preregistration, and valid evaluation evidence are available. Neither gate is changed by this roadmap or a green CI run.
