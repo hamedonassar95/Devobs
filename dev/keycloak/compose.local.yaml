@@ -1,0 +1,17 @@
+# Keycloak official Quay tag 26.8.2 resolved 2026-11-13 with
+# `docker buildx imagetools inspect quay.io/keycloak/keycloak:26.8.2`.
+# The pinned digest is the OCI multi-platform index returned by Quay.
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0
+    command: ["start-dev", "--import-realm"]
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - type: bind
+        source: ./realm.local.json
+        target: /opt/keycloak/data/import/devobs-local-realm.json
+        read_only: true
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
