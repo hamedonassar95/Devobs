@@ -1,3 +1,28 @@
+## متابعة Devobs AI Intelligence — 2026-11-14 (VERIFIED)
+
+- تم التحقق المباشر من الدمجات المدرجة أدناه ونجاح CI على رؤوسها؛ نتائج CI بعد الدمج موضحة منفصلة، بما فيها إخفاق Pages بعد #612. يسجل الدفتر الآن 229 إنجازًا؛ هذا سجل أدلة غير متصل، وليس فحصًا مستمرًا للخدمات.
+- #611 أصلح التواريخ المستحيلة في AI-1 واحتفاظ Calendar بهوية التقويم عند فشل إعادة المحاولة. أضاف #612 اختبار CloudEvents → AI-1 → AI-7، وفحص الدفعات المكررة ورفض POST، وربط اختبارات المسار واختيار ملفات الأمثلة بمهمة Node الحالية.
+
+| PR | SHA الدمج | CI بعد الدمج |
+|---|---|---|
+| [#606](https://github.com/hamedonassar95/Devobs/pull/606) | `cf2f879c2dfe8ed6498d850aeccbb25244255231` | [43591660408](https://github.com/hamedonassar95/Devobs/actions/runs/43591660408) — success |
+| [#607](https://github.com/hamedonassar95/Devobs/pull/607) | `5f1a4e6b909f7b1b7d1af218bc059e35c40b698c` | [43592555815](https://github.com/hamedonassar95/Devobs/actions/runs/43592555815) — success |
+| [#608](https://github.com/hamedonassar95/Devobs/pull/608) | `c65d904434bc70102ed5f1df5271611f99ff14bf` | [43593864381](https://github.com/hamedonassar95/Devobs/actions/runs/43593864381) — success |
+| [#609](https://github.com/hamedonassar95/Devobs/pull/609) | `719efee7df5ae6351c7ea09d94a02eee99a2a5f3` | [43594972771](https://github.com/hamedonassar95/Devobs/actions/runs/43594972771) — success |
+| [#610](https://github.com/hamedonassar95/Devobs/pull/610) | `503902717f4619e07109786e6463b2512de12ac4` | [43617738509](https://github.com/hamedonassar95/Devobs/actions/runs/43617738509) — success |
+| [#611](https://github.com/hamedonassar95/Devobs/pull/611) | `1ff687d288b22144539fd53e7523575a248e2d93` | [43618389255](https://github.com/hamedonassar95/Devobs/actions/runs/43618389255) — success |
+| [#612](https://github.com/hamedonassar95/Devobs/pull/612) | `691307aed3a4d846bf86d67ca11c19079598514b` | [43618844767](https://github.com/hamedonassar95/Devobs/actions/runs/43618844767) — failure |
+| [#614](https://github.com/hamedonassar95/Devobs/pull/614) | `7d28754af8c27b3ff7708f3f51eeb3bd26f42b5f` | [43619799969](https://github.com/hamedonassar95/Devobs/actions/runs/43619799969) — success |
+
+- دمج #614 عزل أسماء حزم Pages برقم التشغيل والمحاولة؛ نجاح CI بعد الدمج في الجدول دليل استعادة النشر الثابت فقط.
+- بعد #612 نجحت فحوص الكود وvalidate، وفشل نشر Pages بسبب بيانات الأثر ثم تكرار اسم الحزمة في إعادة المحاولة. الإصلاح منفصل في PR #614؛ لا يُوصف تشغيل #612 كناجح.
+- #606 و#607 إعدادات واختبارات Keycloak محلية؛ #608 و#609 سياسة استثناء محدودة لا تمنح قبول تشغيل تلقائيًا. لم يبدأ أي اختبار Keycloak فعلي في هذه الجولة.
+- **المرحلة التالية:** P01 يحتاج مزودًا ومنطقة وحد إنفاق شاملًا محددًا، ثم أدلة TLS وOIDC وعزل المستأجرين والاستعادة على بيئة مأذونة. AI-9 يحتاج مصدر حوادث مستقلًا ومراجعة خصوصية وتسميات مرجعية وبروتوكول تقييم مصرحًا به. تفاصيل GitHub في #221 و#237 و#320؛ نجاح المسار المحلي لا يغلقها.
+- **الحالة:** P01 **BLOCKED / NO-GO**، AI-9 **BLOCKED**، وقبول Codex runtime **OPEN**. لا بنية مدفوعة أو أسرار أو إعدادات مستضافة تغيرت.
+- الاستمرار يبدأ بقراءة هذا القسم و`docs/MILESTONE_LEDGER.json` والتحقق من GitHub؛ لا يعاد تنفيذ إنجاز موثق، ولا تمثل هذه اللقطة عاملًا يعمل في الخلفية.
+
+<!-- continuation-checkpoint-end -->
+
 ## إعداد عميل OAuth محلي مرشح — 2026-11-14 (فرع مراجعة غير مدموج)
 
 - آخر أساس موثق هو main عند `ca7b83d95ace8f7865b57136f2b2a5c91e116985` بعد PR #605. تحقق exact-SHA: CI [43589627226](https://github.com/hamedonassar95/Devobs/actions/runs/43589627226) وCodeQL [43589626696](https://github.com/hamedonassar95/Devobs/actions/runs/43589626696) نجحا على SHA نفسه.
