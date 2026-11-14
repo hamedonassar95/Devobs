@@ -1,0 +1,44 @@
+# REVIEW/PLAN ONLY. Not an approval to create billable resources.
+previews:
+  generation: off
+services:
+  - type: web
+    name: devobs-keycloak-hosted
+    runtime: docker
+    plan: 1c-2g
+    region: frankfurt
+    numInstances: 1
+    autoDeployTrigger: off
+    dockerfilePath: ./deploy/keycloak-hosted/Dockerfile
+    dockerContext: ./deploy/keycloak-hosted
+    healthCheckPath: /realms/devobs-hosted/.well-known/openid-configuration
+    envVars:
+      - key: DEVOBS_OIDC_REDIRECT_URI
+        sync: false
+      - key: DEVOBS_KEYCLOAK_DB_HOST
+        sync: false
+      - key: DEVOBS_KEYCLOAK_DB_NAME
+        fromDatabase:
+          name: devobs-keycloak-postgres
+          property: database
+      - key: KC_DB_USERNAME
+        fromDatabase:
+          name: devobs-keycloak-postgres
+          property: user
+      - key: KC_DB_PASSWORD
+        fromDatabase:
+          name: devobs-keycloak-postgres
+          property: password
+      - key: KC_BOOTSTRAP_ADMIN_USERNAME
+        value: devobs-bootstrap
+      - key: KC_BOOTSTRAP_ADMIN_PASSWORD
+        generateValue: true
+databases:
+  - name: devobs-keycloak-postgres
+    databaseName: keycloak_identity
+    user: keycloak_idp
+    postgresMajorVersion: "17"
+    plan: 0.1c-256mb
+    diskSizeGB: 5
+    region: frankfurt
+    ipAllowList: []
