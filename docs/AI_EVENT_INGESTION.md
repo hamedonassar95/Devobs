@@ -15,7 +15,7 @@
 | الحقل | المعنى |
 |---|---|
 | `schema_version` | العدد `1` |
-| `occurred_at` | وقت ISO-8601 يتضمن منطقة زمنية؛ يُحوّل إلى UTC |
+| `occurred_at` | وقت بالتنسيق `YYYY-MM-DDTHH:mm:ss[.fraction]Z` أو بإزاحة `±HH:mm`؛ تاريخ تقويمي صالح وساعة 00–23، ويُحوّل إلى UTC بسنة من أربع خانات |
 | `source` | `application` أو `github_actions` أو `gitlab_ci` أو `server` أو `operator` |
 | `kind` | `log` أو `incident` أو `ci_result` أو `server_metric` |
 | `severity` | `debug` أو `info` أو `warning` أو `error` أو `critical` أو `unknown` |

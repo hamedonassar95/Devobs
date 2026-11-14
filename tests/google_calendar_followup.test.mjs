@@ -175,3 +175,44 @@ test('fails closed on foreign calendars, API errors, conflicts, invalid input, a
     accessToken: 'short', startDateTime, eventId, now,
   }), { message: 'invalid_google_calendar_request' });
 });
+
+
+test('temporary calendar lookup failures preserve identity and retries reuse the calendar', async () => {
+  const failures = [
+    async () => { throw new Error('PRIVATE_NETWORK_DETAIL'); },
+    ...[401, 403, 429, 500, 503].map(status => async () => jsonResponse({}, status)),
+    async () => ({ ok: true, status: 200, json: async () => { throw new Error('PRIVATE_JSON'); } }),
+  ];
+  for (const failure of failures) {
+    const options = { accessToken: token, startDateTime,
+      eventId: deriveFollowupEventId(startDateTime), calendarId, now };
+    let attempts = 0;
+    await assert.rejects(scheduleGoogleCalendarFollowup({ ...options,
+      fetchImpl: async () => { attempts++; return failure(); },
+    }), { message: 'google_calendar_lookup_failed' });
+    assert.equal(attempts, 1);
+    const calls = [];
+    const result = await scheduleGoogleCalendarFollowup({ ...options,
+      onCalendarCreated: () => assert.fail('must reuse the saved calendar'),
+      fetchImpl: async (url, request) => {
+        calls.push({ url, request });
+        return calls.length === 1
+          ? jsonResponse({ id: calendarId, summary: FOLLOWUP_CALENDAR_NAME, description: FOLLOWUP_CALENDAR_MARKER })
+          : jsonResponse({ id: options.eventId, summary: 'Devobs follow-up review' });
+      },
+    });
+    assert.equal(result.calendarCreated, false);
+    assert.equal(calls[0].request.method, 'GET');
+    assert.equal(calls.length, 2);
+    assert.equal(calls.some(call => call.url.endsWith('/calendars')), false);
+  }
+});
+
+test('confirmed missing calendars still return the cache reset signal', async () => {
+  for (const status of [404, 410]) {
+    await assert.rejects(scheduleGoogleCalendarFollowup({
+      accessToken: token, startDateTime, eventId: deriveFollowupEventId(startDateTime),
+      calendarId, now, fetchImpl: async () => jsonResponse({}, status),
+    }), { message: 'google_calendar_saved_calendar_unavailable' });
+  }
+});

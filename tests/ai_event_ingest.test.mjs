@@ -181,3 +181,41 @@ test('offline CLI stores synthetic records and prints counts without event conte
   assert.equal(result.stdout.includes(storePath), false);
   assert.equal((await readEventStore(storePath)).length, 1);
 });
+
+
+test('rejects impossible dates, non-ISO dates, and years outside four-digit UTC', () => {
+  for (const occurred_at of [
+    '2026-02-30T00:00:00Z', '2025-02-29T00:00:00Z',
+    '1900-02-29T00:00:00Z', '2026-04-31T00:00:00+03:00',
+    '11/14/2026 12:00:00Z', '2026-11-14 12:00:00Z',
+    '2026-11-14T24:00:00Z', '+010000-01-01T00:00:00Z',
+    '9999-12-31T23:30:00-01:00', '0000-01-01T00:30:00+01:00',
+  ]) {
+    assert.throws(() => normalizeEvent({ ...fixtures[0], occurred_at }),
+      { code: 'invalid_timestamp' }, occurred_at);
+  }
+});
+
+test('valid leap dates and timezone offsets keep canonical UTC timestamps and IDs', () => {
+  for (const [occurred_at, expected] of [
+    ['2024-02-29T23:59:59.123Z', '2024-02-29T23:59:59.123Z'],
+    ['2000-02-29T00:00:00Z', '2000-02-29T00:00:00.000Z'],
+    ['2026-03-01T00:30:00+01:00', '2026-02-28T23:30:00.000Z'],
+    ['2026-12-31T23:30:00-01:00', '2027-01-01T00:30:00.000Z'],
+    ['0099-03-01T00:00:00z', '0099-03-01T00:00:00.000Z'],
+  ]) {
+    const event = normalizeEvent({ ...fixtures[0], occurred_at });
+    assert.equal(event.occurred_at, expected);
+    assert.equal(event.event_id, normalizeEvent({ ...fixtures[0], occurred_at: expected }).event_id);
+  }
+});
+
+test('an impossible timestamp rejects a batch without changing existing storage', async t => {
+  const { storePath } = await temporaryStore(t);
+  await ingestText(toJsonl([fixtures[0]]), storePath);
+  const before = await readFile(storePath);
+  await assert.rejects(ingestText(toJsonl([
+    fixtures[1], { ...fixtures[2], occurred_at: '2026-02-30T00:00:00Z' },
+  ]), storePath), { code: 'invalid_timestamp' });
+  assert.deepEqual(await readFile(storePath), before);
+});
