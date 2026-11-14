@@ -2521,6 +2521,28 @@
       "ci_run_id": 43619799969,
       "verification": "VERIFIED 2026-11-14 from GitHub API: PR #614 merged; exact-head PR CI 43619584460 SUCCESS and CodeQL check SUCCESS. Exact-merge main CI 43619799969 SUCCESS. Source/head/merge SHAs and run metadata were read back; no hosted readiness inferred.",
       "limitations": "Attempt-specific Pages upload/deploy inputs and regression only; preserves tested-source validation, action pins, permissions and existing release gates. Does not guarantee upstream API visibility or prove hosted staging. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-devobs-progress-pr615",
+      "area": "DOCUMENTATION",
+      "title": "docs(progress): record AI pipeline milestones and verified Pages recovery",
+      "pr_number": 615,
+      "pr_head_sha": "81f693dd6ad4dbe501fdc54c12df256686030def",
+      "merge_sha": "f4b5eb9ea434510abd5cb6c4a3c85c8f1c170c7a",
+      "ci_run_id": 43620551488,
+      "verification": "VERIFIED 2026-11-14 from GitHub API: exact-head PR CI 43620311381 SUCCESS and CodeQL check SUCCESS. PR merged at the recorded SHA; exact-merge main CI 43620551488 SUCCESS. Hosted Render diagnostic result is recorded separately and is not a successful API deployment.",
+      "limitations": "State, ledger and ledger tests only; records historical local AI and Pages recovery evidence without changing readiness gates. P01 remains BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-devobs-progress-pr616",
+      "area": "RELIABILITY",
+      "title": "fix(staging): diagnose configuration failures without exposing values",
+      "pr_number": 616,
+      "pr_head_sha": "ae03733b4cf915c4813bb30078c7c1aa76b7d52a",
+      "merge_sha": "1f1fd774f02579a500c07bd667865e51ed187948",
+      "ci_run_id": 43623219682,
+      "verification": "VERIFIED 2026-11-14 from GitHub API: exact-head PR CI 43623041699 SUCCESS and CodeQL check SUCCESS. PR merged at the recorded SHA; exact-merge main CI 43623219682 SUCCESS. Hosted Render diagnostic result is recorded separately and is not a successful API deployment.",
+      "limitations": "Value-free startup diagnostics only. A bounded Free Render deployment of this merge failed with stage=oidc after paid AI flags were set false. This identifies the first rejected validation stage, not a specific missing value or later-stage readiness. No private credentials, identity issuer, hosted isolation, backup/restore or independent AI-9 evaluation is established. P01 remains BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
