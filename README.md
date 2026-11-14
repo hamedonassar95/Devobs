@@ -57,6 +57,7 @@
 - **Argo CD MCP للمطورين:** [قراءة حالة التطبيقات](docs/ARGOCD_MCP_INTEGRATION.md) — أداة `list_applications` فقط، مع موافقة Codex ورمز Argo CD مخصص للقراءة؛ غير مفعّل افتراضيًا.
 - [Devobs AI DevOps Control Room](docs/AI_DEVOPS_CONTROL_ROOM.md): توثيق مسارات AI وCI وحالة التحقق من المصدر مقابل التشغيل.
 - [استقبال أحداث AI-1 محليًا](docs/AI_EVENT_INGESTION.md): صيغة موحّدة وملف JSONL محلي؛ بلا اتصالات أو خدمات خارجية.
+- [جسر CloudEvents لنتائج CI](docs/integrations/CLOUDEVENTS_CI_BRIDGE.md): محوّل محلي غير موثّق المصدر إلى مخطط AI-1 القائم، مع مدخلات اصطناعية فقط ودون شبكة أو تخزين تلقائي.
 - [كشف الشذوذ AI-2 محليًا](docs/AI_ANOMALY_DETECTION.md): مؤشرات إحصائية قابلة للتفسير على أحداث مقاييس محلية اصطناعية.
 - [تحليل الحوادث AI-3 محليًا](docs/AI_INCIDENT_ANALYSIS.md): تجميع سجلات اصطناعية وفرضيات أسباب محتملة وسياق CI فقط.
 - [توصيات AI-4 المحلية](docs/AI_RECOMMENDATIONS.md): مطابقة فرضيات AI-3 مع runbooks ثابتة، بوضع الاقتراح فقط.
