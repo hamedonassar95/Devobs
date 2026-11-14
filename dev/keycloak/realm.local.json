@@ -2,6 +2,68 @@
   "realm": "devobs-local",
   "enabled": true,
   "sslRequired": "external",
-  "clients": [],
+  "defaultSignatureAlgorithm": "RS256",
+  "accessTokenLifespan": 300,
+  "clients": [
+    {
+      "clientId": "devobs-local-public",
+      "name": "Devobs local public PKCE test client",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "authorizationServicesEnabled": false,
+      "fullScopeAllowed": false,
+      "redirectUris": [
+        "http://localhost:8765/callback",
+        "http://127.0.0.1:8765/callback"
+      ],
+      "webOrigins": [
+        "http://localhost:8765",
+        "http://127.0.0.1:8765"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "access.token.header.type.rfc9068": "true"
+      },
+      "defaultClientScopes": [],
+      "optionalClientScopes": [
+        "devobs.read"
+      ],
+      "protocolMappers": [
+        {
+          "name": "devobs-api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "devobs-api",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "devobs-local-client-id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-hardcoded-claim-mapper",
+          "config": {
+            "claim.name": "client_id",
+            "claim.value": "devobs-local-public",
+            "jsonType.label": "String",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "clientScopes": [
+    {
+      "name": "devobs.read",
+      "description": "Optional, explicitly requested read scope for disposable local Devobs interoperability testing.",
+      "protocol": "openid-connect",
+      "protocolMappers": []
+    }
+  ],
   "users": []
 }
