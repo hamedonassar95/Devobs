@@ -338,7 +338,7 @@ export default function App() {
             resolved: true,
             resolvedAt: new Date().toISOString().replace('T', ' ').slice(0, 19),
           };
-          addToast(`✅ تم حل وإغلاق الحادثة [${inc.code}] بنجاح`, 'success');
+          addToast(`✅ تم تحديث سجل الحادثة [${inc.code}] إلى محلولة`, 'success');
           return resolvedItem;
         }
         return inc;
@@ -415,26 +415,6 @@ export default function App() {
     }
 
     addToast(`⚠️ [Chaos Test]: تم حقن الحادثة [${picked.code}] على الخادم ${pickedServer.name}`, 'warning');
-  };
-
-  // Automated Hotfix CI/CD Deployment
-  const handleDeployHotfix = (serviceName: string, changeLog: string) => {
-    const newDep: Deployment = {
-      id: createRecordId('dep'),
-      version: `v2.5.${Math.floor(Math.random() * 8) + 1}-hotfix`,
-      commitHash: Math.random().toString(16).substring(2, 9),
-      serviceName,
-      branch: 'hotfix/sre-auto-remediation',
-      author: 'SRE-Copilot',
-      timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
-      status: 'successful',
-      durationSeconds: 16,
-      changeLog,
-      targetServers: servers.filter((s) => s.name === serviceName).map((s) => s.id),
-    };
-    setDeployments((prev) => [newDep, ...prev]);
-    saveDeploymentToFirestore(newDep);
-    addToast(`🚀 تم نشر التصحيح البرمجي (${newDep.version}) بنجاح عبر مسار CI/CD!`, 'success');
   };
 
   // Deployment Actions
@@ -1170,7 +1150,6 @@ export default function App() {
           server={targetServerForAi}
           onClose={() => setSelectedIncidentForAi(null)}
           onResolveIncident={handleResolveIncident}
-          onDeployHotfix={handleDeployHotfix}
         />
       )}
 

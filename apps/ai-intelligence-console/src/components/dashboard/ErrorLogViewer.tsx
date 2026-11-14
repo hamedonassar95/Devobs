@@ -317,7 +317,7 @@ export const ErrorLogViewer: React.FC<ErrorLogViewerProps> = ({
                     className="px-3 py-1.5 text-xs font-bold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors flex items-center gap-1.5 shadow-sm"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
-                    <span>تحليل بـ Gemini</span>
+                    <span>تحليل استشاري بـ Devobs</span>
                   </button>
 
                   {/* Mark as resolved */}
