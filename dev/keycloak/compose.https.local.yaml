@@ -1,0 +1,45 @@
+name: devobs-keycloak-https-local
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_HOSTNAME: "https://localhost:8443"
+      KC_HOSTNAME_STRICT: "true"
+      KC_HTTP_ENABLED: "false"
+      KC_HTTPS_PORT: "8443"
+      KC_HTTPS_CERTIFICATE_FILE: /run/keycloak-tls/tls.crt
+      KC_HTTPS_CERTIFICATE_KEY_FILE: /run/keycloak-tls/tls.key
+    ports:
+      - "127.0.0.1:8443:8443"
+    volumes:
+      - type: bind
+        source: ./realm.local.json
+        target: /opt/keycloak/data/import/devobs-local-realm.json
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${DEVOBS_KEYCLOAK_TLS_CERT_FILE:-./operator-certs/localhost.crt}
+        target: /run/keycloak-tls/tls.crt
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${DEVOBS_KEYCLOAK_TLS_KEY_FILE:-./operator-certs/localhost.key}
+        target: /run/keycloak-tls/tls.key
+        read_only: true
+        bind:
+          create_host_path: false
+    networks:
+      - isolated
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+networks:
+  isolated:
+    internal: true

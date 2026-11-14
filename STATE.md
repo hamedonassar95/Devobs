@@ -1,3 +1,9 @@
+## تسجيل دمج PR #604 — 2026-11-14 (VERIFIED)
+
+- دُمج PR [#604](https://github.com/hamedonassar95/Devobs/pull/604) عند SHA `3ff67552daea5e03fa52d294ab5f868f4c645832` من الرأس `461b3b668e2ab269f17368a0a6ce8128aee62d46`. نجح post-merge CI [43532120776](https://github.com/hamedonassar95/Devobs/actions/runs/43532120776) وCodeQL [43532120146](https://github.com/hamedonassar95/Devobs/actions/runs/43532120146) على SHA الدمج.
+- أضاف PR #604 صورة Keycloak 26.8.2 المثبتة بالـdigest وتهيئة Compose اختيارية محلية وفحصًا غير متصل لاكتشاف OIDC وJWKS العام عبر HTTP. لا يثبت ذلك TLS أو قبول توكن موقّع أو جاهزية مستضافة؛ ولا يُضاف مستخدم أو عميل OAuth.
+- **الحالة لا تتغير:** P01 **BLOCKED / NO-GO**، وAI-9 **BLOCKED**، وقبول Codex runtime **OPEN**.
+
 ## تسجيل دمج PR #603 — 2026-11-13 (VERIFIED)
 
 - دُمج PR [#603](https://github.com/hamedonassar95/Devobs/pull/603) عند SHA `6966e67b48a84113c430b8b6697c3c566cbcdcb0` من الرأس `d527fd72736aa77373a4203a7a14e1365b5beeea`. نجح PR CI [43529276788](https://github.com/hamedonassar95/Devobs/actions/runs/43529276788) وpush CI [43529226998](https://github.com/hamedonassar95/Devobs/actions/runs/43529226998) وCodeQL [43529273225](https://github.com/hamedonassar95/Devobs/actions/runs/43529273225) على الرأس. نجح post-merge CI [43530151710](https://github.com/hamedonassar95/Devobs/actions/runs/43530151710) وCodeQL [43530151098](https://github.com/hamedonassar95/Devobs/actions/runs/43530151098) على SHA الدمج.
