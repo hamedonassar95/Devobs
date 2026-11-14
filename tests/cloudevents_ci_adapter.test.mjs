@@ -202,7 +202,7 @@ test('CLI reads a file or stdin and writes only a complete normalized batch', as
 test('CLI reports only fixed error categories and never echoes sensitive-looking input', async t => {
   const directory = await tempDir(t);
   const inputPath = path.join(directory, 'sensitive.jsonl');
-  const marker = 'ghp_synthetic_marker_that_must_not_leak_123456';
+  const marker = 'operator@example.invalid';
   await writeFile(inputPath, jsonl([event({ id: marker })]), 'utf8');
   const result = spawnSync(process.execPath, [SCRIPT, '--input', inputPath], {
     encoding: 'utf8', timeout: 10_000,
