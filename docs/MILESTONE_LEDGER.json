@@ -2433,6 +2433,94 @@
       "ci_run_id": 43589627226,
       "verification": "VERIFIED GitHub 2026-11-14: PR #605 merged at exact SHA ca7b83d95ace8f7865b57136f2b2a5c91e116985 from reviewed head ad8a521f2839f39b37a37807d98f596c0bcf9b2a. Exact-SHA post-merge CI 43589627226 SUCCESS and CodeQL 43589626696 SUCCESS.",
       "limitations": "Adds a digest-pinned local Keycloak 26.8.2 HTTPS discovery/JWKS preflight contract only. No OAuth client, user, credential, or token was created and no live HTTPS acceptance was run; token compatibility remains UNVERIFIED. P01 remains BLOCKED / NO-GO and AI-9 remains BLOCKED."
+    },
+    {
+      "id": "verified-devobs-progress-pr606",
+      "area": "PLATFORM",
+      "title": "feat(keycloak): add local public PKCE test client",
+      "pr_number": 606,
+      "pr_head_sha": "2f4505ef60d4fafcd6a334e6e6195ad7f3747315",
+      "merge_sha": "cf2f879c2dfe8ed6498d850aeccbb25244255231",
+      "ci_run_id": 43591660408,
+      "verification": "VERIFIED 2026-11-14 from GitHub API: PR #606 merged; exact-head PR CI 43591281042 SUCCESS and CodeQL check SUCCESS. Exact-merge main CI 43591660408 SUCCESS. Source/head/merge SHAs and run metadata were read back; no hosted readiness inferred.",
+      "limitations": "Offline public PKCE client configuration only; no users, credentials, tokens, live Keycloak acceptance or hosted identity established. Runtime tests require separately scoped approval. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-devobs-progress-pr607",
+      "area": "RELIABILITY",
+      "title": "fix(keycloak): align local OIDC fixture with HTTPS 443",
+      "pr_number": 607,
+      "pr_head_sha": "6c1e650cdf12ec5c5c672f60521812c588849178",
+      "merge_sha": "5f1a4e6b909f7b1b7d1af218bc059e35c40b698c",
+      "ci_run_id": 43592555815,
+      "verification": "VERIFIED 2026-11-14 from GitHub API: PR #607 merged; exact-head PR CI 43592346182 SUCCESS and CodeQL check SUCCESS. Exact-merge main CI 43592555815 SUCCESS. Source/head/merge SHAs and run metadata were read back; no hosted readiness inferred.",
+      "limitations": "Loopback HTTPS fixture and mocked discovery/JWKS tests only; no operator TLS files inspected and no runtime or hosted acceptance demonstrated. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-devobs-progress-pr608",
+      "area": "CI_SECURITY",
+      "title": "docs(security): propose disposable local Keycloak test exception",
+      "pr_number": 608,
+      "pr_head_sha": "39cf6e708a4dae854a964874263c479ff9853c12",
+      "merge_sha": "c65d904434bc70102ed5f1df5271611f99ff14bf",
+      "ci_run_id": 43593864381,
+      "verification": "VERIFIED 2026-11-14 from GitHub API: PR #608 merged; exact-head PR CI 43593338875 SUCCESS and CodeQL check SUCCESS. Exact-merge main CI 43593864381 SUCCESS. Source/head/merge SHAs and run metadata were read back; no hosted readiness inferred.",
+      "limitations": "Historical policy proposal only; PR 609 reconciles activation. No Keycloak runtime started, private material inspected, token issued or hosted setting changed. Per-run approval remains required. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-devobs-progress-pr609",
+      "area": "CI_SECURITY",
+      "title": "docs(security): reconcile disposable Keycloak test exception",
+      "pr_number": 609,
+      "pr_head_sha": "debbe6be716e12bfdb22d8ea22f771165a99268d",
+      "merge_sha": "719efee7df5ae6351c7ea09d94a02eee99a2a5f3",
+      "ci_run_id": 43594972771,
+      "verification": "VERIFIED 2026-11-14 from GitHub API: PR #609 merged; exact-head PR CI 43594709477 SUCCESS and CodeQL check SUCCESS. Exact-merge main CI 43594972771 SUCCESS. Source/head/merge SHAs and run metadata were read back; no hosted readiness inferred.",
+      "limitations": "Merged policy reconciliation only. Every disposable Keycloak runtime test still needs its exact SHA, unique project and scope approved separately. No runtime or hosted operation executed. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-devobs-progress-pr610",
+      "area": "PLATFORM",
+      "title": "feat(integrations): add offline CloudEvents CI adapter",
+      "pr_number": 610,
+      "pr_head_sha": "c8a23f5c3b5db67d2f1193ad20ffe24e4949d414",
+      "merge_sha": "503902717f4619e07109786e6463b2512de12ac4",
+      "ci_run_id": 43617738509,
+      "verification": "VERIFIED 2026-11-14 from GitHub API: PR #610 merged; exact-head PR CI 43599229129 SUCCESS and CodeQL check SUCCESS. Exact-merge main CI 43617738509 SUCCESS. Source/head/merge SHAs and run metadata were read back; no hosted readiness inferred.",
+      "limitations": "Synthetic offline CloudEvents conversion only; source/id are untrusted claims and no live sender authentication, account, connector or model inference is established. CI coverage is extended separately by PR 612. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-devobs-progress-pr611",
+      "area": "RELIABILITY",
+      "title": "fix(ai7): reject invalid event dates and preserve Calendar retries",
+      "pr_number": 611,
+      "pr_head_sha": "3c22859b82e412aa5a022b31d97c9294bd8517ca",
+      "merge_sha": "1ff687d288b22144539fd53e7523575a248e2d93",
+      "ci_run_id": 43618389255,
+      "verification": "VERIFIED 2026-11-14 from GitHub API: PR #611 merged; exact-head PR CI 43618154050 SUCCESS and CodeQL check SUCCESS. Exact-merge main CI 43618389255 SUCCESS. Source/head/merge SHAs and run metadata were read back; no hosted readiness inferred.",
+      "limitations": "Local event timestamp validation and mocked Calendar retry behavior only. Previously tolerated invalid dates now reject; no record migration, real Google OAuth, hosted setting, reserved holdout or production rollout. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-devobs-progress-pr612",
+      "area": "QUALITY",
+      "title": "ci(ai): verify CloudEvents through the local AI-7 pipeline",
+      "pr_number": 612,
+      "pr_head_sha": "0318473917497dc2bffdded738636a8d321b12af",
+      "merge_sha": "691307aed3a4d846bf86d67ca11c19079598514b",
+      "ci_run_id": 43618560541,
+      "verification": "VERIFIED 2026-11-14 from GitHub API: PR #612 merged; exact-head PR CI 43618560541 SUCCESS and CodeQL check SUCCESS. Exact-merge main CI 43618844767 FAILURE. Source/head/merge SHAs and run metadata were read back; no hosted readiness inferred.",
+      "limitations": "Synthetic CloudEvents-to-AI-7 loopback coverage only. Post-merge run 43618844767 passed validate/tests but Pages deployment failed; a failed-job retry exposed duplicate default artifact names. Recovery is tracked separately in PR 614. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-devobs-progress-pr614",
+      "area": "RELIABILITY",
+      "title": "fix(pages): isolate artifacts across failed-job retries",
+      "pr_number": 614,
+      "pr_head_sha": "29c716fa9d2f3b8fd0606abb63f12104e591342b",
+      "merge_sha": "7d28754af8c27b3ff7708f3f51eeb3bd26f42b5f",
+      "ci_run_id": 43619799969,
+      "verification": "VERIFIED 2026-11-14 from GitHub API: PR #614 merged; exact-head PR CI 43619584460 SUCCESS and CodeQL check SUCCESS. Exact-merge main CI 43619799969 SUCCESS. Source/head/merge SHAs and run metadata were read back; no hosted readiness inferred.",
+      "limitations": "Attempt-specific Pages upload/deploy inputs and regression only; preserves tested-source validation, action pins, permissions and existing release gates. Does not guarantee upstream API visibility or prove hosted staging. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
     }
   ],
   "gates": [
