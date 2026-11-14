@@ -1,11 +1,11 @@
 # P01 local Keycloak HTTPS discovery and JWKS preflight
 
-**Live runtime status: NOT_TESTED.** This change aligns the disposable local fixture with Devobs's HTTPS-only issuer policy. No Keycloak service was started, and no certificate, private key, password, token, or production setting was accessed. The automated tests use synthetic public JWKS and injected responses; they are offline contract evidence only.
+**Live runtime status: NOT_TESTED.** This PR proposes a review-only exception for the disposable Keycloak runtime check; it does not authorize or start a service. No certificate, private key, password, token, or production setting was accessed. Existing automated tests use synthetic public JWKS and injected responses; they are offline contract evidence only.
 
 ## Verified baseline
 
-- Base and tested source SHA: `cf2f879c2dfe8ed6498d850aeccbb25244255231`.
-- PR [#606](https://github.com/hamedonassar95/Devobs/pull/606) merged at this SHA. Exact-SHA post-merge CI run [43591660408](https://github.com/hamedonassar95/Devobs/actions/runs/43591660408) and CodeQL run [43591660220](https://github.com/hamedonassar95/Devobs/actions/runs/43591660220) succeeded. The incident-response and Claude issue-comment workflows were skipped because their events did not apply.
+- Current base/source SHA: `5f1a4e6b909f7b1b7d1af218bc059e35c40b698c`. PR [#607](https://github.com/hamedonassar95/Devobs/pull/607) merged at this SHA; exact-SHA post-merge CI [43592555815](https://github.com/hamedonassar95/Devobs/actions/runs/43592555815) and CodeQL [43592555702](https://github.com/hamedonassar95/Devobs/actions/runs/43592555702) succeeded. Incident Response run [43592679051](https://github.com/hamedonassar95/Devobs/actions/runs/43592679051) was skipped by its condition.
+- PR [#606](https://github.com/hamedonassar95/Devobs/pull/606) added the disposable public OAuth client configuration at merge SHA `cf2f879c2dfe8ed6498d850aeccbb25244255231`. Its exact-SHA post-merge CI run [43591660408](https://github.com/hamedonassar95/Devobs/actions/runs/43591660408) and CodeQL run [43591660220](https://github.com/hamedonassar95/Devobs/actions/runs/43591660220) succeeded; the incident-response and Claude issue-comment workflows were skipped because their events did not apply.
 - Compose retains the pinned Keycloak image `quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0` and the existing `devobs-local` realm, including the public PKCE client configured by PR #606.
 
 ## Port and issuer contract
@@ -23,9 +23,23 @@ If host port 443 is already occupied or cannot be bound, treat the local runtime
 
 ## Operator-only local runtime procedure
 
-This procedure is for a future operator-run smoke test with an already approved local TLS certificate chain, matching private key, and public CA certificate. The server certificate must contain `DNS:localhost` in its SAN and be valid for TLS server authentication. Store the private key outside the repository and do not paste, print, or upload it. The `--ca-cert` argument accepts a public CA certificate only.
+### Proposed policy exception — PROPOSED, not active
 
-First verify that loopback port 443 is free. For example, on PowerShell:
+The current root policy prohibits creating secrets and keys. That blocks starting Keycloak for runtime acceptance because the official [Keycloak 26.8.2 Server Administration Guide](https://www.keycloak.org/docs/26.8.2/server_admin/#realm_keys) says realm creation automatically generates a signing key pair and self-signed certificate. This PR proposes a narrow exception for Keycloak to generate and use that realm signing material only inside the existing disposable local container. The proposal is **not authorization to run the test**: until the owner reviews and merges the policy PR, the current prohibition remains in force.
+
+After the policy PR is merged, the owner must explicitly approve each individual run, tied to the exact source SHA and unique Compose project. A standing approval does not suffice. The approval should use this exact template with both placeholders filled:
+
+> I approve one local Keycloak HTTPS runtime test for source SHA `<full-reviewed-SHA>` using Compose project `<unique-project-name>`. I authorize only the pinned Keycloak 26.8.2 container to generate and use temporary realm signing material inside that disposable local container. Use synthetic identities only, the existing loopback-only `127.0.0.1:443:8443` fixture, and operator-managed TLS files mounted read-only. Do not access production accounts, inspect or export private keys, log credentials or tokens, copy private material into Git, or change hosted settings. Verify project-scoped container and network cleanup and return sanitized PASS/FAIL/BLOCKED evidence.
+
+This approval authorizes no user, password, client secret, access token, administrator credential, hosted identity, or production operation. This preflight does not need an authenticated identity. If a future token-acceptance test needs synthetic users or tokens, it requires its own reviewed scope and per-run approval.
+
+### Runtime procedure after policy approval
+
+Only after the proposed exception is approved and merged **and** the owner has given the per-run approval above may an operator run this procedure. Use an already approved local TLS certificate chain, matching private key, and public CA certificate. The server certificate must contain `DNS:localhost` in its SAN and be valid for TLS server authentication. Store the private key outside the repository; the agent must not open or inspect it. The existing Compose file mounts it read-only, and the `--ca-cert` argument accepts a public CA certificate only.
+
+Before running Docker, check the active context and inspect its Docker endpoint using the official [`docker context show`](https://docs.docker.com/reference/cli/docker/context/show/) and [`docker context inspect`](https://docs.docker.com/reference/cli/docker/context/inspect/) commands. A remote Docker endpoint is **BLOCKED**. Also check that loopback port 443 is free; if not, stop without terminating another process or choosing a different port. Use a unique project name; the fixture has no named data volume and the generated Keycloak signing material must remain only in the disposable container layer.
+
+On PowerShell, confirm that no process is listening on port 443:
 
 ```powershell
 Get-NetTCPConnection -LocalPort 443 -State Listen -ErrorAction SilentlyContinue
@@ -59,10 +73,10 @@ Hosted Render configuration, database connectivity and RLS, tenant isolation, pr
 
 ## Verification evidence and limits
 
-- Base SHA, PR #606, and its exact post-merge CI/CodeQL runs are recorded above; those historical checks are not evidence for changes in this branch.
+- Base SHA, PR #607, and its exact post-merge CI/CodeQL runs are recorded above. PR #606 evidence is included only as earlier client-configuration history; neither historical run is evidence for changes in this branch.
 - `docker compose -f dev/keycloak/compose.https.local.yaml config --quiet` validates only the Compose document.
 - `tests/test_p01_keycloak_https_preflight.py` uses synthetic public-only JWKs and injected HTTP response data. It does not establish a live TLS connection or test a running Keycloak service.
-- Host port availability checked on the implementation environment: **available at check time**. This does not establish availability on an operator's machine.
+- Port availability and live Docker context were not checked in this policy-only task.
 - Actual HTTPS runtime acceptance and signed-token acceptance: **NOT_TESTED**.
 
 ## Official references
@@ -77,4 +91,4 @@ Hosted Render configuration, database connectivity and RLS, tenant isolation, pr
 
 ## Rollback
 
-This change only modifies the local fixture, offline checker/tests, and documentation. Revert the PR to roll it back. If an operator has run the fixture, remove only its uniquely named Compose project with `docker compose -p <project> -f dev/keycloak/compose.https.local.yaml down --remove-orphans` and clear the process-local path variables. No named volumes or persistent credentials are configured.
+This change modifies policy guidance and documentation only; it creates no container, key, certificate, identity, token, or persistent data. Revert the PR to roll it back. If a separately approved future run starts the fixture, remove only its uniquely named Compose project with `docker compose -p <project> -f dev/keycloak/compose.https.local.yaml down --remove-orphans`, verify its container and network are gone, and clear process-local path variables. No named volumes or persistent credentials are configured.

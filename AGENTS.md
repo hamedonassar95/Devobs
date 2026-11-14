@@ -12,6 +12,24 @@
 - Final report format: summary, `git diff --stat`, exact test commands with the final output lines, checks that could not run, open assumptions.
 - If the same mistake happens twice, propose an update to this file.
 
+## Proposed exception: disposable local Keycloak runtime tests — PROPOSED
+
+**This is a review-only proposal, not an active exception.** While its policy PR is open, the prohibition above remains fully binding: do not start Keycloak or cause it to generate realm signing material. This proposal takes effect only if the owner reviews and merges that policy PR. After merge, every individual runtime test still requires explicit owner approval for that exact source SHA and test scope; approval is never persistent.
+
+The proposed exception covers only the automatic generation and in-process use of disposable Keycloak realm signing material inside the existing local test container. The official [Keycloak 26.8.2 Server Administration Guide](https://www.keycloak.org/docs/26.8.2/server_admin/#realm_keys) states that creating a realm automatically generates a key pair and self-signed certificate. The exception would permit that unavoidable runtime behavior only when all of these conditions are met:
+
+- Use a local Docker Engine context only. Confirm the selected context and endpoint with Docker's documented [`docker context show`](https://docs.docker.com/reference/cli/docker/context/show/) and [`docker context inspect`](https://docs.docker.com/reference/cli/docker/context/inspect/) commands; any SSH, TCP, cloud, or otherwise remote endpoint is BLOCKED.
+- Use only the existing `quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0` image pin. Never use a tag-only or `latest` image.
+- Publish ports on loopback only; for the HTTPS fixture, use exactly `127.0.0.1:443:8443`. Do not add a public listener or another network path.
+- Use a unique Compose project name and no named, persistent, or durable secret volume for Keycloak state or signing material. The generated realm key may exist only in the disposable container's writable layer and must be destroyed by project-scoped cleanup. The existing operator-managed TLS key is not copied into a Docker volume and may only be bind-mounted read-only by the operator.
+- Use synthetic identities only. This exception does not authorize creating users, passwords, client secrets, access tokens, administrator credentials, or any production identity; those require a separate reviewed task and explicit scope.
+- Never access production accounts, hosted identity providers, Render, PostgreSQL, Supabase, cloud resources, or production environment settings.
+- Do not export, inspect, copy, print, or commit any private signing material. Do not log credentials or tokens, capture raw container logs, inspect secret-bearing environment output, or copy private material into Git. The agent must not open the operator-managed TLS private key; if needed, the operator may supply it only through the existing read-only mount.
+- Always remove only the uniquely named Compose project and verify that its container and network are gone. Do not use broad Docker cleanup commands or remove unrelated resources.
+- Return only sanitized PASS/FAIL/BLOCKED evidence: exact source SHA, pinned image digest, test result categories, and project-scoped cleanup status. Never include credentials, token contents, private-key data, secret-bearing environment values, or raw logs.
+
+If any condition or per-run approval is missing, do not start the service; report BLOCKED. This proposal does not authorize hosted configuration, signed-token issuance, deployment, production changes, or a P01/AI-9 gate change.
+
 ## Google Cloud (owner's machine only)
 - Project ID: tensile-verve-352716
 - You run in a cloud sandbox with no access to my gcloud or Google Cloud account. Do not run gcloud or try to deploy.
