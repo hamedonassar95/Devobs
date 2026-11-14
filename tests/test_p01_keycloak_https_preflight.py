@@ -112,7 +112,14 @@ class KeycloakHTTPSPreflightTests(unittest.TestCase):
 
     def test_valid_discovery_and_jwks_report_https_only_preflight(self):
         result, requested = self.run_with_documents()
+        self.assertEqual(preflight.PORT, 443)
+        self.assertEqual(
+            preflight.ISSUER, "https://localhost/realms/devobs-local")
+        self.assertEqual(
+            preflight.JWKS_URI,
+            "https://localhost/realms/devobs-local/protocol/openid-connect/certs")
         self.assertEqual(result["result"], "LOCAL_HTTPS_OIDC_PREFLIGHT_PASS")
+        self.assertEqual(result["origin"], "https://localhost")
         self.assertEqual(result["certificate_verification"], "PASS")
         self.assertEqual(result["public_rs256_signing_keys"], 1)
         self.assertEqual(result["signed_token_acceptance"], "NOT_TESTED")
@@ -127,12 +134,21 @@ class KeycloakHTTPSPreflightTests(unittest.TestCase):
             "issuer_mismatch", discovery=_discovery(issuer="https://other.test/realm"))
         self.assertEqual(requested, [preflight.DISCOVERY_PATH])
 
+    def test_nonstandard_https_issuer_port_is_rejected(self):
+        requested = self.assert_preflight_error(
+            "issuer_mismatch",
+            discovery=_discovery(
+                issuer="https://localhost:8443/realms/devobs-local"))
+        self.assertEqual(requested, [preflight.DISCOVERY_PATH])
+
     def test_non_local_or_wrong_jwks_uri_fails_before_fetch(self):
         for uri in (
-            "http://localhost:8443" + preflight.JWKS_PATH,
-            "https://127.0.0.1:8443" + preflight.JWKS_PATH,
-            "https://attacker.test:8443" + preflight.JWKS_PATH,
+            "http://localhost" + preflight.JWKS_PATH,
+            "https://127.0.0.1" + preflight.JWKS_PATH,
+            "https://attacker.test" + preflight.JWKS_PATH,
+            "https://localhost:8443" + preflight.JWKS_PATH,
             "https://localhost:9443" + preflight.JWKS_PATH,
+            "https://localhost:443" + preflight.JWKS_PATH,
             preflight.JWKS_URI + "?redirect=https://attacker.test",
             preflight.JWKS_URI + "#fragment",
         ):
@@ -201,6 +217,38 @@ class KeycloakHTTPSPreflightTests(unittest.TestCase):
         self.assertEqual(raised.exception.category, "tls_verification_not_enabled")
         fetch.assert_not_called()
 
+    def test_loopback_dns_failure_fails_closed_without_external_fallback(self):
+        with mock.patch.object(
+                preflight.socket, "getaddrinfo", side_effect=socket.gaierror):
+            with self.assertRaises(preflight.PreflightError) as raised:
+                preflight.run_preflight(
+                    "public-ca.pem", context_factory=lambda _path: self.context())
+        self.assertEqual(raised.exception.category, "loopback_resolution_failed")
+
+    def test_loopback_connection_failure_fails_closed(self):
+        addresses = [(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP,
+                      "", ("127.0.0.1", 443))]
+
+        class FailingSocket:
+            def settimeout(self, _timeout):
+                pass
+
+            def connect(self, _address):
+                raise OSError("synthetic transport failure")
+
+            def close(self):
+                pass
+
+        with (
+            mock.patch.object(preflight.socket, "getaddrinfo", return_value=addresses),
+            mock.patch.object(preflight.socket, "socket", return_value=FailingSocket()),
+        ):
+            with self.assertRaises(preflight.PreflightError) as raised:
+                preflight.run_preflight(
+                    "public-ca.pem", context_factory=lambda _path: self.context())
+        self.assertEqual(raised.exception.category, "loopback_connection_failed")
+        self.assertNotIn("synthetic transport failure", str(raised.exception))
+
     def test_non_loopback_dns_answer_is_rejected(self):
         non_loopback = [(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP,
                          "", ("192.0.2.10", preflight.PORT))]
@@ -254,6 +302,20 @@ class KeycloakHTTPSPreflightTests(unittest.TestCase):
         self.assertEqual(status, 2)
         self.assertNotIn("untrusted.test", output.getvalue())
         self.assertNotIn("secret-value", output.getvalue())
+
+    def test_compose_uses_loopback_standard_https_port_and_pinned_image(self):
+        compose = (Path(__file__).resolve().parents[1]
+                   / "dev/keycloak/compose.https.local.yaml").read_text(
+                       encoding="utf-8")
+        self.assertIn(
+            "quay.io/keycloak/keycloak:26.8.2@sha256:"
+            "c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0",
+            compose)
+        self.assertIn('KC_HOSTNAME: "https://localhost"', compose)
+        self.assertIn('KC_HTTPS_PORT: "8443"', compose)
+        self.assertIn('KC_HTTP_ENABLED: "false"', compose)
+        self.assertIn('"127.0.0.1:443:8443"', compose)
+        self.assertIn("read_only: true", compose)
 
 
 if __name__ == "__main__":

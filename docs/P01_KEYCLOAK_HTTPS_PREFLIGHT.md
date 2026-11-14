@@ -1,19 +1,37 @@
 # P01 local Keycloak HTTPS discovery and JWKS preflight
 
-**Live runtime status: BLOCKED.** The checker and isolated Compose definition are ready for an operator-provided local TLS certificate, private-key mount, and public CA certificate. No TLS material was provided in this work session, so no HTTPS container or live request was started. The offline tests are contract tests only; they do not establish a real certificate-verified connection.
+**Live runtime status: NOT_TESTED.** This change aligns the disposable local fixture with Devobs's HTTPS-only issuer policy. No Keycloak service was started, and no certificate, private key, password, token, or production setting was accessed. The automated tests use synthetic public JWKS and injected responses; they are offline contract evidence only.
 
-## Scope and verified baseline
+## Verified baseline
 
-- Based on `main` SHA `3ff67552daea5e03fa52d294ab5f868f4c645832`.
-- PR [#604](https://github.com/hamedonassar95/Devobs/pull/604) merged at that SHA from head `461b3b668e2ab269f17368a0a6ce8128aee62d46`. Exact-SHA post-merge CI [43532120776](https://github.com/hamedonassar95/Devobs/actions/runs/43532120776) and CodeQL [43532120146](https://github.com/hamedonassar95/Devobs/actions/runs/43532120146) passed.
-- Compose uses the existing Keycloak image pin `quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0` and imports the existing `devobs-local` realm. No users or OAuth clients are added.
-- The HTTPS service publishes only `127.0.0.1:8443`, disables HTTP, uses an internal Compose network, and mounts the operator's TLS certificate and private key read-only. It does not create host directories for absent certificate paths.
+- Base and tested source SHA: `cf2f879c2dfe8ed6498d850aeccbb25244255231`.
+- PR [#606](https://github.com/hamedonassar95/Devobs/pull/606) merged at this SHA. Exact-SHA post-merge CI run [43591660408](https://github.com/hamedonassar95/Devobs/actions/runs/43591660408) and CodeQL run [43591660220](https://github.com/hamedonassar95/Devobs/actions/runs/43591660220) succeeded. The incident-response and Claude issue-comment workflows were skipped because their events did not apply.
+- Compose retains the pinned Keycloak image `quay.io/keycloak/keycloak:26.8.2@sha256:c68e286cacd87b942ac1939a0a1481461109d6acd3a57dc496969a319a76bbf0` and the existing `devobs-local` realm, including the public PKCE client configured by PR #606.
 
-## Operator-only runtime procedure
+## Port and issuer contract
 
-Use an already approved local certificate chain and matching private key from a trusted local CA. The server certificate must contain a `DNS:localhost` SAN and be valid for TLS server authentication. Include `IP:127.0.0.1` as a SAN if your local certificate policy requires it. Keep the private key on the operator's machine; do not copy it into the repository, chat, logs, or CI. The `--ca-cert` argument must point to a public CA certificate PEM file only.
+The fixture publishes **host `127.0.0.1:443` to container port `8443`**. Keycloak's internal HTTPS listener remains on 8443, HTTP remains disabled, and the externally advertised hostname is `https://localhost` with the standard HTTPS port omitted. The exact issuer and JWKS URL are:
 
-In PowerShell, set process-local paths to the existing files (these variables contain paths, never certificate or key contents):
+- Issuer: `https://localhost/realms/devobs-local`
+- JWKS: `https://localhost/realms/devobs-local/protocol/openid-connect/certs`
+
+The image digest, internal HTTPS listener, isolated network, and operator-managed certificate and private-key bind mounts remain unchanged. The certificate and key mounts are read-only and use `create_host_path: false`; this repository neither creates nor reads the private key.
+
+The checker accepts only those exact documents over verified HTTPS. It resolves `localhost`, rejects any non-loopback answer, pins its connection to the resolved loopback address on port 443, requires `CERT_REQUIRED` and `check_hostname=True`, uses only the operator-supplied public CA, limits response sizes and time, and rejects redirects. It passes the authenticated discovery document and JWKS to the existing `trusted_oidc_verifier` contract. That helper continues to enforce HTTPS on the standard port, exact issuer equality, same-origin JWKS, and the repository's public RS256 key requirements. The production verifier and its policies are unchanged.
+
+If host port 443 is already occupied or cannot be bound, treat the local runtime attempt as **BLOCKED**. Do not stop another process or substitute port 8443 or another port: doing so would change the issuer and fail the intended policy check.
+
+## Operator-only local runtime procedure
+
+This procedure is for a future operator-run smoke test with an already approved local TLS certificate chain, matching private key, and public CA certificate. The server certificate must contain `DNS:localhost` in its SAN and be valid for TLS server authentication. Store the private key outside the repository and do not paste, print, or upload it. The `--ca-cert` argument accepts a public CA certificate only.
+
+First verify that loopback port 443 is free. For example, on PowerShell:
+
+```powershell
+Get-NetTCPConnection -LocalPort 443 -State Listen -ErrorAction SilentlyContinue
+```
+
+If a listener is returned, stop and report **BLOCKED**. Do not terminate it. Then set process-local variables to paths only and use a unique Compose project name:
 
 ```powershell
 $env:DEVOBS_KEYCLOAK_TLS_CERT_FILE = (Resolve-Path 'C:\path\to\localhost-chain.pem').Path
@@ -27,30 +45,25 @@ Remove-Item Env:DEVOBS_KEYCLOAK_TLS_CERT_FILE
 Remove-Item Env:DEVOBS_KEYCLOAK_TLS_KEY_FILE
 ```
 
-Run cleanup even if the preflight fails. The project name must be unique; cleanup is scoped to that name. The checker makes at most two HTTPS GET requests, each with a four-second timeout and bounded response/header sizes. It accepts no arbitrary URL. It resolves only `localhost`, rejects any non-loopback DNS answer, pins the socket to the checked loopback address, verifies the TLS chain using only the supplied CA, and verifies the certificate hostname with `check_hostname=True` and `CERT_REQUIRED`. Redirects are rejected without following their `Location`.
+Run the project-scoped `down` command and remove the process-local variables after every attempt, including a failed startup or preflight. Do not set Keycloak admin bootstrap variables. Do not use a remote Docker context. `docker compose config --quiet` checks Compose syntax but does not check certificate availability, bind permission, or a live Keycloak response.
 
-The Compose defaults point at `dev/keycloak/operator-certs/localhost.crt` and `localhost.key`, but `create_host_path: false` means missing files are not created. Prefer the process-local path variables above. The compose configuration command can be checked without mounting or reading key contents. Do not set any Keycloak admin bootstrap variables.
+The preflight makes at most two fixed-path HTTPS GET requests. It follows no redirects and does not accept arbitrary hosts or URLs. Its successful result is `LOCAL_HTTPS_OIDC_PREFLIGHT_PASS`, with `certificate_verification: PASS`, `signed_token_acceptance: NOT_TESTED`, and `readiness_claim: NOT_ESTABLISHED`.
 
-## What the checker proves
+## What this does and does not establish
 
-The fixed issuer is `https://localhost:8443/realms/devobs-local`. On a live run it requires:
+Offline tests can establish that the checker uses the exact standard-port URLs, rejects a nonstandard issuer port and mismatched JWKS origin, requires TLS chain and hostname verification, rejects redirects and network failures, and fails closed on incompatible public signing keys. A live run, when an operator performs it, can establish only certificate-verified local discovery and public-JWKS compatibility.
 
-- a certificate chain that validates against the operator-supplied public CA and a certificate valid for `localhost`;
-- HTTP 200 JSON discovery with the exact issuer above;
-- the exact same-origin JWKS URI `https://localhost:8443/realms/devobs-local/protocol/openid-connect/certs`;
-- one to ten public RSA signing JWKs acceptable to the existing `AccessTokenVerifier` (RS256, `use=sig`, unique `kid`, public key material only, and at least 2048-bit modulus).
+Neither offline tests nor this discovery/JWKS preflight establish that a Keycloak-issued access token passes Devobs validation. A separate approved test would need an actual Keycloak-issued token and must verify its signature and claims, including `typ=at+jwt`, exact single-string audience, exact `client_id`, subject, token ID, issue/expiry times, maximum 900-second lifetime, and the required `devobs.read` scope. This work creates no user, client credential, token, signing key, or identity.
 
-The checker reuses the production verifier's public-key validation but does not call `trusted_oidc_verifier`: that metadata builder accepts only the standard HTTPS port, whereas this deliberately loopback-only fixture uses 8443. The checker validates the exact local issuer and JWKS URI itself. No production OIDC setting or verifier is changed.
-
-A successful result is `LOCAL_HTTPS_OIDC_PREFLIGHT_PASS`, with `signed_token_acceptance: NOT_TESTED` and `readiness_claim: NOT_ESTABLISHED`. It does **not** prove that Keycloak issues a Devobs-acceptable access token. It does not test `typ=at+jwt`, `aud`, `client_id`, `sub`, `jti`, `iat`, `exp`, the 900-second lifetime, `devobs.read`, token signatures, RLS, staging, or production readiness. No user, OAuth client, token, signing key, or identity is created by this preflight.
+Hosted Render configuration, database connectivity and RLS, tenant isolation, provider billing, backup/restore, production TLS, AI-9 natural-incident validation, and staging acceptance are outside this local preflight. **P01 remains NO-GO / BLOCKED and AI-9 remains BLOCKED.** No result here authorizes a production change.
 
 ## Verification evidence and limits
 
-- Base SHA and PR #604 merge/CI are verified above.
-- `docker compose -f dev/keycloak/compose.https.local.yaml config --quiet` validates Compose structure only; it does not prove the TLS paths exist or the container starts.
-- `tests/test_p01_keycloak_https_preflight.py` uses injected JSON documents and a synthetic **public-only** JWK. It verifies fail-closed validation behavior, not TLS, discovery, or JWKS served by a running Keycloak instance.
-- Live HTTPS acceptance remains **BLOCKED** until the operator has approved, existing TLS materials and runs the procedure above. Do not replace that evidence with the unit-test result.
-- P01 remains **NO-GO / BLOCKED** and AI-9 remains **BLOCKED**.
+- Base SHA, PR #606, and its exact post-merge CI/CodeQL runs are recorded above; those historical checks are not evidence for changes in this branch.
+- `docker compose -f dev/keycloak/compose.https.local.yaml config --quiet` validates only the Compose document.
+- `tests/test_p01_keycloak_https_preflight.py` uses synthetic public-only JWKs and injected HTTP response data. It does not establish a live TLS connection or test a running Keycloak service.
+- Host port availability checked on the implementation environment: **available at check time**. This does not establish availability on an operator's machine.
+- Actual HTTPS runtime acceptance and signed-token acceptance: **NOT_TESTED**.
 
 ## Official references
 
@@ -58,9 +71,10 @@ A successful result is `LOCAL_HTTPS_OIDC_PREFLIGHT_PASS`, with `signed_token_acc
 - Keycloak hostname configuration: https://www.keycloak.org/server/hostname
 - Keycloak TLS configuration: https://www.keycloak.org/server/enabletls
 - Python TLS client verification: https://docs.python.org/3/library/ssl.html#ssl.create_default_context
-- Docker Compose bind mounts: https://docs.docker.com/reference/compose-file/services/#volumes
-- Devobs's strict token contract: [`oidc_tokens.py`](../scripts/devobs_intelligence/oidc_tokens.py)
+- Docker Compose port publishing: https://docs.docker.com/reference/compose-file/services/#ports
+- Devobs strict metadata contract: [`oidc_metadata.py`](../scripts/devobs_intelligence/oidc_metadata.py)
+- Devobs token contract: [`oidc_tokens.py`](../scripts/devobs_intelligence/oidc_tokens.py)
 
 ## Rollback
 
-This change adds only local tooling and documentation. To roll it back, revert the PR. A local operator should run the project-scoped `docker compose ... down --remove-orphans` command above and remove process-local path variables; no named volumes or persistent credentials are configured.
+This change only modifies the local fixture, offline checker/tests, and documentation. Revert the PR to roll it back. If an operator has run the fixture, remove only its uniquely named Compose project with `docker compose -p <project> -f dev/keycloak/compose.https.local.yaml down --remove-orphans` and clear the process-local path variables. No named volumes or persistent credentials are configured.

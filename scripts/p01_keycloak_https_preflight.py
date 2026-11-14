@@ -16,16 +16,19 @@ import sys
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from devobs_intelligence.oidc_tokens import AccessTokenVerifier
+from devobs_intelligence.oidc_metadata import (
+    IssuerConfigurationError,
+    trusted_oidc_verifier,
+)
 
 
 HOST = "localhost"
-PORT = 8443
+PORT = 443
 REALM = "devobs-local"
-ISSUER = f"https://{HOST}:{PORT}/realms/{REALM}"
+ISSUER = f"https://{HOST}/realms/{REALM}"
 DISCOVERY_PATH = f"/realms/{REALM}/.well-known/openid-configuration"
 JWKS_PATH = f"/realms/{REALM}/protocol/openid-connect/certs"
-JWKS_URI = f"https://{HOST}:{PORT}{JWKS_PATH}"
+JWKS_URI = f"https://{HOST}{JWKS_PATH}"
 DISCOVERY_LIMIT = 16 * 1024
 JWKS_LIMIT = 64 * 1024
 HEADER_COUNT_LIMIT = 64
@@ -217,7 +220,7 @@ def _validate_jwks_uri(discovery: object) -> None:
         port = parsed.port
     except ValueError:
         raise PreflightError("invalid_jwks_uri") from None
-    if (parsed.scheme != "https" or parsed.hostname != HOST or port != PORT
+    if (parsed.scheme != "https" or parsed.hostname != HOST or port not in (None, 443)
             or parsed.username is not None or parsed.password is not None
             or parsed.path != JWKS_PATH or parsed.query or parsed.fragment
             or jwks_uri != JWKS_URI):
@@ -232,11 +235,12 @@ def _validate_documents(discovery: object, jwks: object) -> int:
     if not 1 <= len(keys) <= MAX_KEYS:
         raise PreflightError("no_compatible_public_signing_key")
     try:
-        # Reuse the production token verifier's public-JWK validation without
-        # relaxing its HTTPS or RS256 rules. These fixed values only satisfy its
-        # constructor; no token is created or verified by this preflight.
-        AccessTokenVerifier(ISSUER, "devobs-api", "devobs-local-preflight", jwks)
-    except (TypeError, ValueError):
+        # Reuse the production trust-bound metadata/JWKS contract. The fetched
+        # documents have already passed bounded HTTPS transport validation; no
+        # token is created or verified by this preflight.
+        trusted_oidc_verifier(
+            ISSUER, "devobs-api", "devobs-local-preflight", discovery, jwks)
+    except (IssuerConfigurationError, TypeError, ValueError):
         raise PreflightError("incompatible_public_jwks") from None
     return len(keys)
 
@@ -261,7 +265,7 @@ def run_preflight(ca_certificate: str | Path, *, fetch_json=None,
     key_count = _validate_documents(discovery, jwks)
     return {
         "result": "LOCAL_HTTPS_OIDC_PREFLIGHT_PASS",
-        "origin": f"https://{HOST}:{PORT}",
+        "origin": f"https://{HOST}",
         "realm": REALM,
         "certificate_verification": "PASS",
         "discovery_http_status": 200,
@@ -281,7 +285,7 @@ def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     if args == ["--help"]:
         print("Usage: python3 scripts/p01_keycloak_https_preflight.py --ca-cert PUBLIC_CA_PEM")
-        print("Checks HTTPS discovery and public JWKS only at https://localhost:8443.")
+        print("Checks HTTPS discovery and public JWKS only at https://localhost (TCP 443).")
         return 0
     if len(args) != 2 or args[0] != "--ca-cert":
         _json_output({
