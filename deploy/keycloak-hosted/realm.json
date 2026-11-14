@@ -1,0 +1,70 @@
+{
+  "realm": "devobs-hosted",
+  "enabled": true,
+  "sslRequired": "all",
+  "defaultSignatureAlgorithm": "RS256",
+  "accessTokenLifespan": 300,
+  "clients": [
+    {
+      "clientId": "devobs-hosted-public",
+      "name": "Devobs hosted public PKCE client",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "authorizationServicesEnabled": false,
+      "fullScopeAllowed": false,
+      "redirectUris": [
+        "${DEVOBS_OIDC_REDIRECT_URI}"
+      ],
+      "webOrigins": [
+        "${DEVOBS_OIDC_CLIENT_ORIGIN}"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "access.token.header.type.rfc9068": "true"
+      },
+      "defaultClientScopes": [],
+      "optionalClientScopes": [
+        "devobs.read"
+      ],
+      "protocolMappers": [
+        {
+          "name": "devobs-api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "devobs-api",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "devobs-hosted-client-id",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-hardcoded-claim-mapper",
+          "config": {
+            "claim.name": "client_id",
+            "claim.value": "devobs-hosted-public",
+            "jsonType.label": "String",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "clientScopes": [
+    {
+      "name": "devobs.read",
+      "description": "Read-only Devobs scope; request explicitly for an authorized synthetic staging identity.",
+      "protocol": "openid-connect",
+      "protocolMappers": []
+    }
+  ],
+  "users": [],
+  "registrationAllowed": false,
+  "resetPasswordAllowed": false,
+  "bruteForceProtected": true
+}
