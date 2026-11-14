@@ -58,6 +58,39 @@ class StagingBootstrapTests(unittest.TestCase):
                             lambda status, headers: results.append((status, dict(headers)))))
         return results[0][0], results[0][1], body
 
+    def test_startup_failures_identify_only_a_fixed_configuration_stage(self):
+        marker = "PRIVATE_CONFIGURATION_MARKER"
+        cases = [
+            ({**self.base, "DEVOBS_OIDC_METADATA_JSON": marker}, "oidc"),
+            ({**self.base, "DEVOBS_PG_DSN": marker}, "database"),
+            ({**self.base, "DEVOBS_AI_DIAGNOSTICS_ENABLED": marker}, "diagnostics"),
+            ({**self.base, "DEVOBS_OTEL_METRICS_ENABLED": marker}, "telemetry"),
+        ]
+        for config, expected_stage in cases:
+            with self.subTest(stage=expected_stage):
+                output = io.StringIO()
+                with patch("sys.stderr", output), self.assertRaises(self.module.StagingConfigurationError) as failure:
+                    self.module.bootstrap_application(config)
+                self.assertEqual(str(failure.exception), "invalid_staging_config")
+                self.assertEqual(failure.exception.stage, expected_stage)
+                self.assertEqual(output.getvalue(), f"devobs-startup: invalid_staging_config stage={expected_stage}\n")
+                self.assertNotIn(marker, output.getvalue())
+                self.assertNotIn("synthetic", output.getvalue())
+                self.assertIsNone(failure.exception.__cause__)
+                self.assertTrue(failure.exception.__suppress_context__)
+
+    def test_successful_bootstrap_does_not_log_configuration(self):
+        output = io.StringIO()
+        with patch("sys.stderr", output):
+            app = self.module.bootstrap_application(self.base)
+        self.assertTrue(callable(app))
+        self.assertEqual(output.getvalue(), "")
+
+    def test_untrusted_stage_cannot_be_used_as_a_log_message(self):
+        failure = self.module.StagingConfigurationError("PRIVATE_MESSAGE", stage="PRIVATE_STAGE")
+        self.assertEqual(str(failure), "invalid_staging_config")
+        self.assertEqual(failure.stage, "unclassified")
+
     def test_health_is_liveness_only_and_no_secrets(self):
         class ProbeStore:
             calls = 0

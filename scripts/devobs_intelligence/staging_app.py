@@ -11,6 +11,7 @@ from __future__ import annotations
 import atexit
 import json
 import os
+import sys
 import threading
 import time
 from collections.abc import Mapping
@@ -28,8 +29,15 @@ from .otel_metrics import create_local_metrics
 from .postgres_store import PostgresTenantStore
 
 
+STARTUP_STAGES = frozenset({"oidc", "database", "diagnostics", "api", "telemetry"})
+
+
 class StagingConfigurationError(ValueError):
-    """Non-sensitive startup error with a fixed public code."""
+    """Fixed public error and an allowlisted, value-free diagnostic stage."""
+
+    def __init__(self, _message="invalid_staging_config", *, stage="unclassified"):
+        super().__init__("invalid_staging_config")
+        self.stage = stage if type(stage) is str and stage in STARTUP_STAGES else "unclassified"
 
 
 READINESS_CACHE_SECONDS = 0.25
@@ -147,6 +155,7 @@ def _database_dsn(settings: Mapping[str, str]) -> str:
 
 def build_app(settings: Mapping[str, str]) -> Callable:
     """Construct scoped API; model inference is disabled unless explicitly configured."""
+    stage = "oidc"
     try:
         issuer = settings["DEVOBS_OIDC_ISSUER"]
         audience = settings["DEVOBS_OIDC_AUDIENCE"]
@@ -154,8 +163,10 @@ def build_app(settings: Mapping[str, str]) -> Callable:
         metadata = _decode_document(settings, "DEVOBS_OIDC_METADATA_JSON", 16384)
         jwks = _decode_document(settings, "DEVOBS_OIDC_JWKS_JSON", 65536)
         verifier = RotatingOIDCVerifier(issuer, audience, client_id, metadata, jwks)
+        stage = "database"
         store = PostgresTenantStore(_database_dsn(settings))
         readiness = _ReadinessProbeCoordinator(store.probe_readiness)
+        stage = "diagnostics"
         enabled = settings.get("DEVOBS_AI_DIAGNOSTICS_ENABLED", "false")
         if enabled not in {"true", "false"}:
             raise StagingConfigurationError("invalid_staging_config")
@@ -188,10 +199,12 @@ def build_app(settings: Mapping[str, str]) -> Callable:
                 )
             else:
                 raise StagingConfigurationError("invalid_staging_config")
+        stage = "api"
         api = make_app(verifier, store, diagnostician=diagnostician)
+        stage = "telemetry"
         local_metrics = create_local_metrics(settings)
     except (KeyError, ValueError, TypeError):
-        raise StagingConfigurationError("invalid_staging_config") from None
+        raise StagingConfigurationError("invalid_staging_config", stage=stage) from None
 
     def application(environ, start_response):
         path = environ.get("PATH_INFO")
@@ -236,6 +249,16 @@ def build_app(settings: Mapping[str, str]) -> Callable:
     return application
 
 
+def bootstrap_application(settings: Mapping[str, str]) -> Callable:
+    """Log only a fixed stage when configuration validation rejects startup."""
+    try:
+        return build_app(settings)
+    except StagingConfigurationError as error:
+        stage = error.stage if type(error.stage) is str and error.stage in STARTUP_STAGES else "unclassified"
+        print(f"devobs-startup: invalid_staging_config stage={stage}", file=sys.stderr)
+        raise
+
+
 # Gunicorn loads this only in an explicitly configured staging service.
 # Missing or unsafe credentials fail startup; no default demo/anonymous mode.
-application = build_app(os.environ)
+application = bootstrap_application(os.environ)

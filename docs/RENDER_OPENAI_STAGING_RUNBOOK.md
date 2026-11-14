@@ -1,5 +1,53 @@
 # Render + OpenAI synthetic staging runbook
 
+## Verified recheck — 2026-11-14 (metadata and owner attestation)
+
+- In the owner-confirmed Render workspace, the existing `devobs-ai-staging`
+  service is still Free in Frankfurt, on `main`, with automatic deploy disabled.
+  Its only listed deploy is `update_failed` at source
+  `5b75be633b4fd5c797d9e4fdc1e960fd0d68e07e` from 2026-11-05.
+- The existing Free PostgreSQL database is `available` and expires on
+  **2026-12-05**. That status does not prove schema, runtime-role, TLS or backup
+  correctness. No second service or database was created.
+- Bounded unauthenticated GETs to `/healthz` and `/readyz` timed out after
+  15 seconds. This is absence of a successful probe, not proof of a specific
+  missing configuration value or of the cause of the timeout.
+- A read-only catalog query through the provider connector returned connection/TLS
+  errors and no SQL result. No network allowlist was broadened and no schema or
+  tenant-isolation claim was made from that attempt.
+- The owner confirmed that this workspace has **no payment method**. This is an
+  owner attestation, not an independent billing-account inspection. Render's
+  [Free-service policy](https://render.com/docs/free) and
+  [bandwidth policy](https://render.com/docs/outbound-bandwidth) say that Free
+  services without a payment method are suspended when included usage is
+  exhausted, rather than billed for overages. This supports a bounded Free-only
+  diagnostic attempt; it does not authorize paid resources or model inference,
+  establish another provider's billing policy, or satisfy the remaining P01 gates.
+
+### Value-free startup diagnosis
+
+The WSGI entrypoint preserves the fixed `invalid_staging_config` error and
+fail-closed startup. A configuration rejection also emits one bounded stderr line:
+
+```text
+devobs-startup: invalid_staging_config stage=oidc
+```
+
+The stage is one of `oidc`, `database`, `diagnostics`, `api`, `telemetry`, or
+`unclassified`. It identifies the validation area only; it never prints supplied
+values, a DSN, credentials, raw metadata/JWKS or a nested exception message.
+Successful startup emits no configuration diagnostic. An OIDC-stage failure is
+not proof that the database or later stages are ready, because construction stops
+at the first failure. Do not remove authentication/TLS validation to obtain a
+successful process start.
+
+The existing [presence-only inventory](P01_STARTUP_TRIAGE.md), if used by the
+operator, remains separate and cannot prove the validity of any value. Identity
+metadata/public signing keys and the restricted runtime connection must come
+from an authenticated, operator-managed configuration source; do not copy
+credentials into chat or Git. Live tenant-denial, TLS, backup/restore, independent
+AI-9 incident labels and owner release evidence remain required before GO.
+
 ## Current verified runtime checkpoint — 2026-11-10 (read-only)
 
 **VERIFIED from the connected Render workspace:** the resources have already been created. The existing [devobs-ai-staging web service](https://dashboard.render.com/web/srv-dbm5msu1egvs73be46lg) and [devobs-ai-staging-db PostgreSQL 17](https://dashboard.render.com/d/dpg-dbm5msu1egvs73be46og-a) are in Frankfurt. The web service targets `main`, with automatic deploy disabled. Its only recorded deployment, `dep-dbm5mtm1egvs73be49a0`, built successfully but failed to start on 2026-11-05, at source SHA `5b75be633b4fd5c797d9e4fdc1e960fd0d68e07e`. Logs end with `devobs_intelligence.staging_app.StagingConfigurationError: invalid_staging_config` and exit code 1. This fixed, non-sensitive error does **not** identify which required value is absent/invalid; do not assume a specific missing secret.
