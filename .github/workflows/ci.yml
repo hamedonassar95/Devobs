@@ -459,7 +459,9 @@ jobs:
             docker inspect --format '{{json .State.Health}}' "$container_name" >&2
             exit 1
           fi
-          if ! curl --fail --silent --show-error http://127.0.0.1:18080/ | grep -qi '<!doctype html'; then
+          # Drain the response: grep -q can close the pipe early and make curl fail.
+          # https://www.gnu.org/software/grep/manual/html_node/General-Output-Control.html
+          if ! curl --fail --silent --show-error http://127.0.0.1:18080/ | grep -i '<!doctype html' >/dev/null; then
             echo 'Container did not serve the expected HTML page.' >&2
             exit 1
           fi
