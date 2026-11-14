@@ -2422,6 +2422,17 @@
       "ci_run_id": 43532120776,
       "verification": "VERIFIED 2026-11-14: PR #604 merged at 3ff67552daea5e03fa52d294ab5f868f4c645832 from reviewed head 461b3b668e2ab269f17368a0a6ce8128aee62d46. Exact-SHA post-merge CI 43532120776 and CodeQL 43532120146 passed.",
       "limitations": "Adds an optional local Keycloak 26.8.2 digest-pinned local HTTP discovery/JWKS fixture only. It does not establish TLS, signed-token interoperability, hosted identity, staging readiness, or production readiness; no users or OAuth clients were provisioned. P01 remains BLOCKED / NO-GO and AI-9 remains BLOCKED."
+    },
+    {
+      "id": "p01-keycloak-https-preflight-pr605-ledger-sync",
+      "area": "DOCUMENTATION",
+      "title": "Record PR 605 loopback-only Keycloak HTTPS discovery preflight evidence",
+      "pr_number": 605,
+      "pr_head_sha": "ad8a521f2839f39b37a37807d98f596c0bcf9b2a",
+      "merge_sha": "ca7b83d95ace8f7865b57136f2b2a5c91e116985",
+      "ci_run_id": 43589627226,
+      "verification": "VERIFIED GitHub 2026-11-14: PR #605 merged at exact SHA ca7b83d95ace8f7865b57136f2b2a5c91e116985 from reviewed head ad8a521f2839f39b37a37807d98f596c0bcf9b2a. Exact-SHA post-merge CI 43589627226 SUCCESS and CodeQL 43589626696 SUCCESS.",
+      "limitations": "Adds a digest-pinned local Keycloak 26.8.2 HTTPS discovery/JWKS preflight contract only. No OAuth client, user, credential, or token was created and no live HTTPS acceptance was run; token compatibility remains UNVERIFIED. P01 remains BLOCKED / NO-GO and AI-9 remains BLOCKED."
     }
   ],
   "gates": [

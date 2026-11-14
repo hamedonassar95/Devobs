@@ -1,3 +1,12 @@
+## إعداد عميل OAuth محلي مرشح — 2026-11-14 (فرع مراجعة غير مدموج)
+
+- آخر أساس موثق هو main عند `ca7b83d95ace8f7865b57136f2b2a5c91e116985` بعد PR #605. تحقق exact-SHA: CI [43589627226](https://github.com/hamedonassar95/Devobs/actions/runs/43589627226) وCodeQL [43589626696](https://github.com/hamedonassar95/Devobs/actions/runs/43589626696) نجحا على SHA نفسه.
+- الفرع `feature/p01-keycloak-local-oauth-client` يضيف تعريفًا اختياريًا واحدًا فقط للعميل العام `devobs-local-public` في realm محلي قابل للتخلص منه: Authorization Code مع PKCE S256، تحويلات loopback حرفية، RS256 و`at+jwt`، وscope اختياري `devobs.read`. لا ينشئ مستخدمًا أو كلمة مرور أو سر عميل أو مفتاحًا أو رمز وصول، ولا يغير إعدادات مستضافة.
+- اجتازت اختبارات JSON وعقد الإعداد محليًا، لكن Docker runtime وطلب التفويض **BLOCKED / NOT RUN**: مصدر Keycloak 26.8.2 الرسمي يسجل موفر RSA مُولّدًا عند إنشاء realm جديد، وهذا ينشئ مادة توقيع خاصة خلافًا لقيد المهمة. لم نشغّل الحاوية أو نطلب تفويضًا. موافقة المالك على مادة توقيع مؤقتة داخل حاوية disposable مطلوبة لأي اختبار runtime لاحق.
+- التحقق المحلي بعد تحديث عقد الاختبار: مجموعة Python كاملة **1,135 passed، 32 skipped**؛ اختبارات العميل الجديد **5 passed**، وpreflight الحالي **15 passed**، واختبارات Keycloak/OIDC/ledger والبناء وصيغة JSON وCompose وفحوص الموقع وpins نجحت. التخطيّات الـ32 تخص شروط/اختبارات قائمة في المستودع، ولا تمثل اختبار Keycloak runtime.
+- توافق رمز حقيقي مع مدقق Devobs وHTTPS والاستضافة: **UNVERIFIED / BLOCKED**. لا يصدر هذا التغيير رمزًا ولا يغيّر أي خدمة مستضافة.
+- **بوابات الإصدار لا تتغير:** P01 **NO-GO / BLOCKED**، وAI-9 **BLOCKED**، وقبول Codex runtime **OPEN**.
+
 ## تسجيل دمج PR #604 — 2026-11-14 (VERIFIED)
 
 - دُمج PR [#604](https://github.com/hamedonassar95/Devobs/pull/604) عند SHA `3ff67552daea5e03fa52d294ab5f868f4c645832` من الرأس `461b3b668e2ab269f17368a0a6ce8128aee62d46`. نجح post-merge CI [43532120776](https://github.com/hamedonassar95/Devobs/actions/runs/43532120776) وCodeQL [43532120146](https://github.com/hamedonassar95/Devobs/actions/runs/43532120146) على SHA الدمج.

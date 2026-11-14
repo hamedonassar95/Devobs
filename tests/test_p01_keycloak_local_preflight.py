@@ -118,7 +118,7 @@ class KeycloakLocalPreflightTests(unittest.TestCase):
         self.assertIn('"127.0.0.1:8080:8080"', compose)
         self.assertEqual(LOCAL_ORIGIN, "http://127.0.0.1:8080")
 
-    def test_realm_is_minimal_import_json_without_users_or_clients(self):
+    def test_realm_import_json_has_no_users_and_one_public_test_client(self):
         realm_path = (Path(__file__).resolve().parents[1]
                       / "dev/keycloak/realm.local.json")
         realm = json.loads(realm_path.read_text(encoding="utf-8"))
@@ -126,7 +126,10 @@ class KeycloakLocalPreflightTests(unittest.TestCase):
         self.assertIs(realm["enabled"], True)
         self.assertEqual(realm["sslRequired"], "external")
         self.assertEqual(realm["users"], [])
-        self.assertEqual(realm["clients"], [])
+        self.assertEqual(
+            [client["clientId"] for client in realm["clients"]],
+            ["devobs-local-public"],
+        )
 
     def test_rejects_non_exact_local_origin_without_request(self):
         for origin in (
