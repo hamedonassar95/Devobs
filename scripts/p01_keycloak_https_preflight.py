@@ -32,6 +32,7 @@ HEADER_COUNT_LIMIT = 64
 HEADER_BYTES_LIMIT = 16 * 1024
 REQUEST_TIMEOUT_SECONDS = 4
 MAX_KEYS = 10
+NOT_TESTED_STATUS = "NOT_TESTED"
 
 
 class PreflightError(ValueError):
@@ -267,7 +268,7 @@ def run_preflight(ca_certificate: str | Path, *, fetch_json=None,
         "issuer_match": "PASS",
         "jwks_uri_match": "PASS",
         "public_rs256_signing_keys": key_count,
-        "signed_token_acceptance": "NOT_TESTED",
+        "signed_token_acceptance": NOT_TESTED_STATUS,
         "readiness_claim": "NOT_ESTABLISHED",
     }
 
