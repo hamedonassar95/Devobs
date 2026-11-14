@@ -2400,6 +2400,17 @@
       "ci_run_id": 43524398864,
       "verification": "VERIFIED 2026-11-13: PR #601 merged at b29464d3699388c6115823cde2beb709ef09ef83 from reviewed head 4d510aeda07222a6660eb6870f41d6fdbaade557. Exact-head push CI 43523906050 and PR CI 43523957913 passed; both ran the disposable postgres-rls job, including the 'Prove tenant row-level security on PostgreSQL' step. CodeQL run 43523954522 passed. Post-merge main CI 43524398864 and Push on main 43524397219 passed on the exact merge SHA.",
       "limitations": "The integration uses synthetic OIDC identities and disposable PostgreSQL 17. A scoped test transport patch maps only the synthetic staging DSN to the loopback fixture and does not prove hosted certificate validation. No Render service, hosted database, secret, deployment setting, or paid inference was accessed. CI is not hosted startup evidence or P01 approval; P01 remains BLOCKED / NO-GO, AI-9 remains BLOCKED, and Codex runtime acceptance remains OPEN."
+    },
+    {
+      "id": "p01-keycloak-local-preflight-pr603",
+      "area": "QUALITY",
+      "title": "Add digest-pinned local Keycloak OIDC discovery and JWKS preflight",
+      "pr_number": 603,
+      "pr_head_sha": "d527fd72736aa77373a4203a7a14e1365b5beeea",
+      "merge_sha": "6966e67b48a84113c430b8b6697c3c566cbcdcb0",
+      "ci_run_id": 43530151710,
+      "verification": "VERIFIED 2026-11-13: PR #603 merged at 6966e67b48a84113c430b8b6697c3c566cbcdcb0 from head d527fd72736aa77373a4203a7a14e1365b5beeea. Push CI 43529226998 and PR CI 43529276788 succeeded on the exact head; CodeQL 43529273225 succeeded. Post-merge main CI 43530151710 and CodeQL 43530151098 succeeded on the exact merge SHA.",
+      "limitations": "The Keycloak 26.8.2 image is digest-pinned and the preflight is local HTTP only. It does not establish the production HTTPS-only issuer policy, signed-token interoperability, HTTPS certificate validation, Render readiness, or production identity acceptance. No users or OAuth clients were provisioned. P01 remains BLOCKED / NO-GO and AI-9 remains BLOCKED."
     }
   ],
   "gates": [
