@@ -6,6 +6,7 @@ import path from 'node:path';
 import rateLimit from 'express-rate-limit';
 import { fileURLToPath } from 'node:url';
 import { createSpaFallbackHandler } from './spaFallback.ts';
+import { createDiagnosticsHandler } from './diagnosticsProxy.ts';
 
 dotenv.config();
 
@@ -36,10 +37,24 @@ const staticFallbackRateLimit = rateLimit({
   message: { error: 'تم تجاوز عدد الطلبات المسموح به مؤقتًا.' },
 });
 
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use('/api', apiRateLimit);
 app.use('/api/ai', aiRateLimit);
+
+// Parse this credential-bearing route before the prototype's larger media bodies.
+const diagnosticsJson = express.json({ limit: '32kb' });
+app.post('/api/ai/analyze-incident', (req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  diagnosticsJson(req, res, error => {
+    if (error) {
+      res.status(error.status === 413 ? 413 : 400).json({ error: 'invalid_diagnostics_request' });
+      return;
+    }
+    next();
+  });
+}, createDiagnosticsHandler(process.env));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
 
 // Initialize Google GenAI client (Server-side only)
 const apiKey = process.env.GEMINI_API_KEY;
@@ -55,61 +70,6 @@ const ai = apiKey
       },
     })
   : null;
-
-// Route 1: Analyze server incident with Gemini
-app.post('/api/ai/analyze-incident', async (req, res) => {
-  try {
-    const { server, incident, allServers } = req.body;
-
-    if (!ai) {
-      return res.status(200).json({
-        analysis: `⚠️ لم يتم العثور على مفتاح GEMINI_API_KEY، إليك تحليل استدلالي محلي:
-- التشخيص الأولي: حدث تعطل أو ارتفاع في زمن الاستجابة على الخادم [${server?.name || 'غير محدد'}].
-- السبب المرجح: تجاوز حدود الذاكرة العشوائية أو اختناق في اتصالات قاعدة البيانات (Connection Pool Exhaustion).
-- الإجراء الفوري: قم بتنفيذ إعادة تشغيل سلسة (Graceful Restart) ومراقبة مؤشر استهلاك الذاكرة.`,
-      });
-    }
-
-    const prompt = `أنت مهندس موثوقية مواقع وخوادم محترف (Senior SRE & Cloud Architect).
-حلل حادثة الخادم التالية باللغة العربية بأسلوب هندسي دقيق وعملي:
-
-معلومات الخادم المعني:
-- الاسم: ${server?.name} (${server?.ip})
-- البيئة والمنطقة: ${server?.environment} - ${server?.region}
-- نوع الخدمة: ${server?.type}
-- استهلاك المعالج: ${server?.cpu}%
-- استهلاك الذاكرة: ${server?.memory}%
-- استهلاك القرص: ${server?.disk}%
-
-تفاصيل الخطأ المسجل:
-- كود الخطأ: ${incident?.code || 'N/A'}
-- الرسالة: ${incident?.message}
-- مستوى الخطورة: ${incident?.severity}
-- توقيت الحدوث: ${incident?.timestamp}
-- تفاصيل تتبع الخطأ (Stack Trace): ${incident?.stackTrace || 'غير متوفر'}
-
-يرجى تقديم التقرير بالصيغة التالية المنظمة:
-1. **تشخيص السبب الجذري (Root Cause Analysis)**: ما الذي تسبب في هذا الخطأ تقنياً؟
-2. **تقييم مدى الخطورة والأثر (Impact Assessment)**: كيف يؤثر هذا على المستخدمين وتدفق البيانات؟
-3. **خطة التدخل الفوري (Immediate Remediation)**: خطوات وأوامر تنفيذية محددة لحل المشكلة فوراً.
-4. **تدابير وقائية طويلة الأمد (Prevention & Hardening)**: كيف نتجنب تكرار هذا مستقبلاً؟`;
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-      config: {
-        systemInstruction: 'أنت مهندس بنية تحتية سحابية محترف يقدم تحليلات تقنية واضحة ودقيقة باللغة العربية.',
-      },
-    });
-
-    res.json({ analysis: response.text });
-  } catch (error: any) {
-    console.error('Incident analysis error:', error);
-    res.status(500).json({
-      error: error.message || 'فشل في توليد تحليل الذكاء الاصطناعي للحادثة',
-    });
-  }
-});
 
 // Route 2: Generate Infrastructure Health Audit Report
 app.post('/api/ai/generate-audit-report', async (req, res) => {

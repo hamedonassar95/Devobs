@@ -11,7 +11,7 @@ This is the preserved React/TypeScript prototype from the former `DevObs-ai-Inte
 - Firebase, Google Workspace, and Gemini integrations are disabled by default. Do not put OAuth client secrets, access tokens, Firebase private credentials, or real customer/server data in this repository.
 - Firestore rules deny all access. The prototype must not be connected to a customer or production database.
 - Google Workspace code includes broad OAuth scopes and has not been approved for live use. Keep it disabled.
-- Gemini models and responses shown without a key are prototype fallbacks, not verified model output.
+- Incident diagnosis uses the optional protected Devobs proxy described in [the integration guide](docs/DEVOBS_DIAGNOSTICS_INTEGRATION.md). It is disabled by default and requires an explicit reviewed request; missing configuration never fabricates a diagnosis. Other Gemini prototype routes and their fallbacks remain separate.
 - Gemini API calls can incur charges. Leave `GEMINI_API_KEY` blank unless a maintainer intentionally configures and reviews a separate test environment.
 - The optional Gemini SDK client pins API version `v1beta` to preserve the previous SDK behavior. No live Gemini request is part of CI or this prototype's release checks.
 
