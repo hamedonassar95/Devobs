@@ -1,3 +1,9 @@
+## تسجيل دمج PR #603 — 2026-11-13 (VERIFIED)
+
+- دُمج PR [#603](https://github.com/hamedonassar95/Devobs/pull/603) عند SHA `6966e67b48a84113c430b8b6697c3c566cbcdcb0` من الرأس `d527fd72736aa77373a4203a7a14e1365b5beeea`. نجح PR CI [43529276788](https://github.com/hamedonassar95/Devobs/actions/runs/43529276788) وpush CI [43529226998](https://github.com/hamedonassar95/Devobs/actions/runs/43529226998) وCodeQL [43529273225](https://github.com/hamedonassar95/Devobs/actions/runs/43529273225) على الرأس. نجح post-merge CI [43530151710](https://github.com/hamedonassar95/Devobs/actions/runs/43530151710) وCodeQL [43530151098](https://github.com/hamedonassar95/Devobs/actions/runs/43530151098) على SHA الدمج.
+- يثبت التقرير [P01_KEYCLOAK_DOCKER_SMOKE_EVIDENCE.md](docs/P01_KEYCLOAK_DOCKER_SMOKE_EVIDENCE.md) تشغيلًا محليًا مؤقتًا على SHA الدمج: realm `devobs-local` وdiscovery وJWKS المحلي نجحت، ثم أزيلت حاوية المشروع وشبكته. هذا HTTP محلي ولا يثبت توافق issuer المطلوب HTTPS أو قبول توكن موقّع أو جاهزية Render.
+- **الحالة لا تتغير:** P01 **BLOCKED / NO-GO**، وAI-9 **BLOCKED**، وقبول Codex runtime **OPEN**.
+
 ## تسجيل دمج PR #601 — 2026-11-13 (VERIFIED)
 
 - دُمج PR [#601](https://github.com/hamedonassar95/Devobs/pull/601) على SHA `b29464d3699388c6115823cde2beb709ef09ef83` من الرأس `4d510aeda07222a6660eb6870f41d6fdbaade557`. نجح exact-head push CI [43523906050](https://github.com/hamedonassar95/Devobs/actions/runs/43523906050) وPR CI [43523957913](https://github.com/hamedonassar95/Devobs/actions/runs/43523957913)، ونجح CodeQL [43523954522](https://github.com/hamedonassar95/Devobs/actions/runs/43523954522). نجح CI بعد الدمج [43524398864](https://github.com/hamedonassar95/Devobs/actions/runs/43524398864) وPush on main [43524397219](https://github.com/hamedonassar95/Devobs/actions/runs/43524397219) على SHA الدمج. شغّل كلا فحصي الرأس مهمة `postgres-rls` وخطوة إثبات RLS على قاعدة CI المؤقتة.
