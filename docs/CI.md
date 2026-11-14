@@ -108,3 +108,26 @@ https://github.com/hamedonassar95/Devobs/actions/runs/37334898335
 ## تحديث المرحلة 4 — 6 أكتوبر 2026
 
 أضيفت معاينة HTML قابلة للتنزيل بعد نجاح PR، مع احتفاظ 7 أيام، وشروط أكثر تحديدًا لمسار الإنتاج. راجع [ضوابط المعاينة والنشر والرجوع](DEPLOYMENT.md). وصف «هذا التغيير لا يضيف نشرًا آليًا» أعلاه يوثق تحسين CI القديم فقط؛ المستودع الآن يحتوي workflow مستقلًا للنشر بعد نجاح CI.
+
+
+## Pages artifacts across failed-job retries
+
+The normal Pages upload and deployment share the attempt-specific name
+`github-pages-candidate-<run_id>-<run_attempt>`, matching the existing manual
+candidate and automatic-rollback isolation pattern. A failed-job retry downloads
+and revalidates the same run-scoped `validated-site-main-<run_id>` input, then
+uploads a new attempt-specific Pages artifact. Older uploads remain distinct;
+the deployment action must select exactly the current attempt's name.
+
+Observed on main SHA `691307aed3a4d846bf86d67ca11c19079598514b`, run
+[43618844767](https://github.com/hamedonassar95/Devobs/actions/runs/43618844767):
+the first deployment reported no `github-pages` metadata even though the upload
+completed and the artifact was subsequently visible. Retrying only failed jobs
+uploaded a second artifact under the same default name; deployment then rejected
+the two matches. Validation, Node, Python, PostgreSQL RLS, security and container
+checks passed. Attempt-specific names fix that reproducible retry collision;
+they do not guarantee availability or immediate consistency of GitHub's API.
+
+References: [upload-pages-artifact inputs](https://github.com/actions/upload-pages-artifact#inputs),
+[deploy-pages inputs](https://github.com/actions/deploy-pages#inputs), and
+[GitHub run variables](https://docs.github.com/en/actions/reference/workflows-and-actions/variables#default-environment-variables).
