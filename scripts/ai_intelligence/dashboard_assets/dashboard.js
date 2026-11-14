@@ -993,6 +993,8 @@ function initializeGoogleCalendarFollowup() {
       const message = error instanceof Error ? error.message : '';
       setGoogleCalendarStatus(message === 'google_calendar_event_create_failed'
         ? 'تعذر إنشاء الموعد. قد يبقى التقويم المنفصل فارغًا؛ راجعه قبل إعادة المحاولة.'
+        : message === 'google_calendar_lookup_failed'
+          ? 'تعذّر التحقق من التقويم المحفوظ. احتُفظ بمعرّفه؛ تحقق من الاتصال وصلاحية الدخول ثم أعد المحاولة.'
         : message === 'google_calendar_saved_calendar_unavailable'
           ? (forgetGoogleCalendarId(), 'التقويم المحفوظ محليًا لم يعد متاحًا لهذا الحساب. أزيل معرّفه؛ أعد المحاولة لإنشاء تقويم مخصص للحساب الحالي.')
           : 'لم يكتمل الجدول؛ لم تُعرض تفاصيل Google أو رمز الدخول.');

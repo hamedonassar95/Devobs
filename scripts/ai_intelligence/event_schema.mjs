@@ -179,12 +179,20 @@ function boundedLabel(value) {
 }
 
 function normalizeTimestamp(value) {
-  if (typeof value !== 'string' || value.length > 40 || !/(?:Z|[+-]\d{2}:\d{2})$/i.test(value)) {
-    reject('invalid_timestamp');
-  }
+  if (typeof value !== 'string' || value.length > 40) reject('invalid_timestamp');
+  const parts = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/i.exec(value);
+  if (!parts) reject('invalid_timestamp');
+  const [year, month, day, hour, minute, second] = parts.slice(1).map(Number);
+  const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const daysInMonth = [31, leapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth[month - 1]
+    || hour > 23 || minute > 59 || second > 59) reject('invalid_timestamp');
   const milliseconds = Date.parse(value);
   if (!Number.isFinite(milliseconds)) reject('invalid_timestamp');
-  return new Date(milliseconds).toISOString();
+  const normalized = new Date(milliseconds).toISOString();
+  // Day-based reports require YYYY-MM-DD, including after timezone conversion.
+  if (!/^\d{4}-/.test(normalized)) reject('invalid_timestamp');
+  return normalized;
 }
 
 function normalizeData(kind, data) {

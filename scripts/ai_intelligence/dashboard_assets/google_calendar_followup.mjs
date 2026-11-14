@@ -82,9 +82,12 @@ async function getFollowupCalendar(accessToken, calendarId, fetchImpl) {
   try {
     response = await fetchImpl(`${CALENDAR_API_BASE}/calendars/${encodeURIComponent(calendarId)}`, requestOptions(accessToken, 'GET'));
   } catch {
+    throw new Error('google_calendar_lookup_failed');
+  }
+  if (response?.status === 404 || response?.status === 410) {
     throw new Error('google_calendar_saved_calendar_unavailable');
   }
-  const payload = await readJson(response, 'google_calendar_saved_calendar_unavailable');
+  const payload = await readJson(response, 'google_calendar_lookup_failed');
   if (payload.id !== calendarId || payload.summary !== FOLLOWUP_CALENDAR_NAME
     || payload.description !== FOLLOWUP_CALENDAR_MARKER) {
     throw new Error('google_calendar_saved_calendar_unavailable');
