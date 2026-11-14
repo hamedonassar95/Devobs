@@ -82,3 +82,21 @@ The adapter adds no CloudEvents package or external dependency; these links docu
 ## Rollback
 
 Revert the integration PR or remove the adapter, its tests, fixture, this document, and the README link. No existing deployment, CI workflow, production OIDC, PostgreSQL, AI-9 gate, persistence, or external integration is changed by this bridge.
+
+
+## Automated local pipeline verification
+
+The existing CI Node job runs the adapter tests and the local advisory acceptance
+suite. Fixture-only changes to the CloudEvents sample or local advisory input
+also select the Node job. The adapter integration test converts the six synthetic project fixtures,
+ingests them with AI-1, and reads the AI-7 HTTP API on an ephemeral loopback port.
+It verifies exact event/severity counts, repeat-ingestion deduplication, rejection
+of POST writes, and omission of source URLs, provider IDs and commit SHAs from
+the dashboard response. Temporary storage and the HTTP server are removed.
+
+```sh
+node --test tests/cloudevents_ci_adapter.test.mjs tests/local_advisory_acceptance.test.mjs
+```
+
+This proves the local synthetic data path only. Source authentication, live
+telemetry, hosted identity, tenant isolation, P01 and AI-9 remain separate gates.
