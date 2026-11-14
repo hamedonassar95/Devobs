@@ -1,6 +1,34 @@
 # Render + OpenAI synthetic staging runbook
 
-## Verified recheck — 2026-11-14 (metadata and owner attestation)
+## Latest bounded diagnostic attempt — 2026-11-14
+
+PR [#616](https://github.com/hamedonassar95/Devobs/pull/616) merged at
+`1f1fd774f02579a500c07bd667865e51ed187948`. GitHub CI on the merge
+[43623219682](https://github.com/hamedonassar95/Devobs/actions/runs/43623219682)
+passed; the Render runtime result is separate.
+
+The two non-secret paid-AI flags were merged as false without reading or replacing
+other environment values. Render automatically started
+`dep-dbs9uo5g1s2s73ejsgj0` on that source SHA; no duplicate deploy was dispatched.
+Its terminal status was `update_failed`. A server-side text-filtered log query
+returned only the safe startup diagnostic:
+
+```text
+devobs-startup: invalid_staging_config stage=oidc
+```
+
+The hosted configuration currently fails OIDC construction. This does not
+identify a specific missing/invalid field, prove the validity of any later stage,
+or justify weakening token validation. The actual issuer, registered public
+client, authenticated metadata/public JWKS and restricted runtime connection
+must be provisioned through an operator-managed secret/configuration interface.
+Do not fabricate those values or publish them from a secret store.
+
+The database remains temporary and backup/restore plus independent hosted
+isolation are still unproven. Real independently labeled incident evidence is
+also absent. P01 and AI-9 remain BLOCKED; this diagnostic attempt is not GO.
+
+## Pre-deploy metadata snapshot — 2026-11-14 (metadata and owner attestation)
 
 - In the owner-confirmed Render workspace, the existing `devobs-ai-staging`
   service is still Free in Frankfurt, on `main`, with automatic deploy disabled.
