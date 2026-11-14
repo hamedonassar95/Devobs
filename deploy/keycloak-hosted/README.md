@@ -10,19 +10,37 @@ fixed HTTPS issuer derived from the service's provider-supplied external URL.
 The backend listener uses `PORT`; management port 9000 is not a public endpoint.
 The discovery health check is startup evidence only, not full readiness.
 
+## Verified database blocker — 2026-11-14
+
+**The current private-only Render manifest is NOT APPLYABLE under the required
+TLS policy.** [Render's connection documentation](https://render.com/docs/postgresql-creating-connecting#ssl-modes-for-internal-connections)
+explicitly states that internal PostgreSQL connections do not support
+`sslmode=verify-ca` or `sslmode=verify-full`; their self-signed TLS path supports
+`require`. This contradicts the private-only design in `render.yaml`, whose
+database has `ipAllowList: []`, while `start.sh` requires certificate and hostname
+verification. Supplying a CA file does not establish a supported internal route.
+Do not create the paid resources from this manifest or weaken `verify-full`.
+
+A replacement design could use Render's external TLS endpoint with the exact
+database hostname/SNI, authenticated CA trust and an explicitly reviewed narrow
+allowlist for the service's verified outbound addresses, or a different provider
+with a supported certificate-verifying private route. External TLS is documented
+by Render, but that alternative's connectivity, certificate validation, egress
+addresses, residency and complete cost boundary have not been verified. It needs
+a separate reviewed manifest and network approval; do not open the database to
+all addresses or treat this paragraph as permission to change an allowlist.
+
 ## Before any application of the plan
 
 1. Approve a provider/account/region, exact source SHA and total budget boundary.
 2. Review the generated resource plan; leave existing resources unchanged.
 3. Supply a real exact HTTPS client callback through Render's private interface.
    The application callback/PKCE flow must exist; this bundle does not add a UI.
-4. Supply the dedicated database's certificate-validating DNS hostname and mount
-   its operator-authenticated public CA as `/etc/secrets/keycloak-db-ca.pem`.
-   Verify network access without opening the database to the public internet.
-   The template deliberately does not guess Render's private certificate identity
-   or weaken TLS to `require`. If hostname/CA/network verification is unavailable,
-   stop before approving the plan. The operator must finish this connectivity
-   design; the template does not establish Render database TLS compatibility.
+4. Resolve the verified database blocker above in a separately reviewed design.
+   Only then supply the dedicated database's certificate-validating DNS hostname
+   and operator-authenticated public CA at `/etc/secrets/keycloak-db-ca.pem`.
+   Prove the approved network route and a real certificate-verifying connection;
+   file presence and the existing offline shell test do not prove either.
 5. Password references and the bootstrap password are generated/resolved by
    Render, not put in Git or chat. Only the owner retrieves the temporary admin
    credential through the provider's private interface. Replace that temporary
