@@ -110,7 +110,10 @@ def is_ai_intelligence_console(path: PurePosixPath) -> bool:
 
 
 def is_node(path: PurePosixPath) -> bool:
-    return is_ai_intelligence_console(path) or (
+    return path.as_posix() in {
+        "examples/integrations/synthetic-ci-events.jsonl",
+        "tests/fixtures/intelligence_eval_cases.json",
+    } or is_ai_intelligence_console(path) or (
         path.suffix in {".js", ".cjs", ".mjs"}
         and path.parts[:1] in {("scripts",), ("tests",)}
     ) or path.name in {"package.json", "package-lock.json"}

@@ -214,3 +214,44 @@ test('CLI reports only fixed error categories and never echoes sensitive-looking
   assert.equal(result.stderr.includes(inputPath), false);
   assert.equal((await readFile(inputPath, 'utf8')).includes(marker), true);
 });
+
+
+test('synthetic CloudEvents reach the read-only AI-7 API through AI-1 without duplicate storage', async t => {
+  const { ingestText, readEventStore } = await import('../scripts/ai_intelligence/event_ingest.mjs');
+  const { createDashboardServer } = await import('../scripts/ai_intelligence/dashboard_server.mjs');
+  const directory = await tempDir(t);
+  const storePath = path.join(directory, 'events.jsonl');
+  const fixture = await readFile(path.join(ROOT, 'examples/integrations/synthetic-ci-events.jsonl'), 'utf8');
+  const converted = convertText(fixture);
+  assert.deepEqual(await ingestText(converted, storePath), { accepted: 6, duplicateIgnored: 0 });
+  const before = await readFile(storePath);
+  assert.deepEqual(await ingestText(converted, storePath), { accepted: 0, duplicateIgnored: 6 });
+  assert.deepEqual(await readFile(storePath), before);
+  assert.equal((await readEventStore(storePath)).length, 6);
+
+  const server = await createDashboardServer({ storePath });
+  t.after(() => new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve())));
+  await new Promise((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', resolve);
+  });
+  const url = `http://127.0.0.1:${server.address().port}/api/v1/intelligence`;
+  const response = await fetch(url, { signal: AbortSignal.timeout(5000) });
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.pipeline.mode, 'local_advisory_only');
+  assert.deepEqual(body.pipeline.stages.map(stage => stage.id), ['AI-1', 'AI-2', 'AI-3', 'AI-4', 'AI-5', 'AI-6', 'AI-7']);
+  assert.equal(body.summary.event_count, 6);
+  assert.equal(body.summary.ci_event_count, 6);
+  assert.equal(body.summary.kind_counts.ci_result, 6);
+  assert.deepEqual(body.summary.severity_counts, { debug: 0, info: 4, warning: 1, error: 1, critical: 0, unknown: 0 });
+  for (const raw of fixture.trim().split('\n').map(line => JSON.parse(line))) {
+    assert.equal(JSON.stringify(body).includes(raw.id), false);
+    assert.equal(JSON.stringify(body).includes(raw.source), false);
+    assert.equal(JSON.stringify(body).includes(raw.data.commit_sha), false);
+  }
+  const writeAttempt = await fetch(url, { method: 'POST', signal: AbortSignal.timeout(5000) });
+  assert.equal(writeAttempt.status, 405);
+  await writeAttempt.arrayBuffer();
+  assert.deepEqual(await readFile(storePath), before);
+});
