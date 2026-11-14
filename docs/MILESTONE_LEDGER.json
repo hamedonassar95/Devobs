@@ -2543,6 +2543,28 @@
       "ci_run_id": 43623219682,
       "verification": "VERIFIED 2026-11-14 from GitHub API: exact-head PR CI 43623041699 SUCCESS and CodeQL check SUCCESS. PR merged at the recorded SHA; exact-merge main CI 43623219682 SUCCESS. Hosted Render diagnostic result is recorded separately and is not a successful API deployment.",
       "limitations": "Value-free startup diagnostics only. A bounded Free Render deployment of this merge failed with stage=oidc after paid AI flags were set false. This identifies the first rejected validation stage, not a specific missing value or later-stage readiness. No private credentials, identity issuer, hosted isolation, backup/restore or independent AI-9 evaluation is established. P01 remains BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-devobs-progress-pr617",
+      "area": "DOCUMENTATION",
+      "title": "docs(p01): record the free diagnostic deploy and exact OIDC blocker",
+      "pr_number": 617,
+      "pr_head_sha": "55854cd940213656caa86735a79788bcb1958637",
+      "merge_sha": "a59ca99ecfd8da8651d51d9871a55ddd4c207d60",
+      "ci_run_id": 43624322424,
+      "verification": "VERIFIED 2026-11-14 from public GitHub API: PR #617 merged; exact-head PR CI 43624068055 SUCCESS and CodeQL check SUCCESS. Exact-merge main CI 43624322424 SUCCESS. CI is repository evidence only, not hosted runtime acceptance.",
+      "limitations": "Documentation records the failed Free Render startup diagnostic stage=oidc and owner billing attestation only; no successful hosted API, live identity, all-in budget enforcement or independent incident evaluation established. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-devobs-progress-pr618",
+      "area": "PLATFORM",
+      "title": "Prepare plan-only hosted Keycloak with fail-closed startup",
+      "pr_number": 618,
+      "pr_head_sha": "532243390c637302e40024106bab2bc9a961638c",
+      "merge_sha": "17d26e01945c388253cddc6da566c45bfd763f27",
+      "ci_run_id": 43634800291,
+      "verification": "VERIFIED 2026-11-14 from public GitHub API: PR #618 merged; exact-head PR CI 43634601625 SUCCESS and CodeQL check SUCCESS. Exact-merge main CI 43634800291 SUCCESS. CI is repository evidence only, not hosted runtime acceptance.",
+      "limitations": "Plan-only dedicated Keycloak profile and offline startup/realm checks; no hosted identity was created or accepted. Render documents that internal PostgreSQL does not support verify-full, so the private-only manifest is not applyable under the required TLS policy. No paid resource, allowlist change, secret handling or token issuance authorized by this record. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
     }
   ],
   "gates": [
