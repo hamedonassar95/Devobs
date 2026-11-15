@@ -1,6 +1,7 @@
 """Fail-closed, offline behavioral tests for the free-only capability preflight."""
 import copy
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -76,6 +77,28 @@ class FreeResourcePlanTests(unittest.TestCase):
         changed["unreviewed_provider"] = "new"
         self.assertTrue(validate_plan(changed, ROOT))
 
+
+
+    def test_cli_reports_only_checkout_evidence(self):
+        run = subprocess.run(
+            [sys.executable, str(ROOT / "scripts" / "check_free_resource_plan.py"), "--json"],
+            capture_output=True, text=True, check=False,
+        )
+        self.assertEqual(run.returncode, 0, run.stderr)
+        result = json.loads(run.stdout)
+        self.assertEqual(result["repository_files_verified"], len(EXPECTED))
+        for field in ("monthly_spend_verified", "external_runtime_verified",
+                      "hosted_saas_ready", "automatic_activation"):
+            self.assertIs(result[field], False, field)
+
+    def test_cli_rejects_unknown_options_without_activation(self):
+        run = subprocess.run(
+            [sys.executable, str(ROOT / "scripts" / "check_free_resource_plan.py"), "--activate"],
+            capture_output=True, text=True, check=False,
+        )
+        self.assertEqual(run.returncode, 2)
+        self.assertEqual(run.stdout, "")
+        self.assertIn("FAIL:", run.stderr)
 
 if __name__ == "__main__":
     unittest.main()
