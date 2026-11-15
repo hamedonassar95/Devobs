@@ -2796,6 +2796,28 @@
       "ci_run_id": 43752440502,
       "verification": "VERIFIED 2026-11-15 via GitHub PR #641 metadata and exact-head PR CI 43752440502: merged source and merge SHAs match; Python 3.12/3.15, security, postgres-rls, container scan, terraform, site-contract, and validate jobs succeeded. Node tests, production-release, and incident drill were skipped by workflow conditions. Independent exact-merge main CI and CodeQL results were not verified in this reconciliation.",
       "limitations": "Candidate-only offline manifest; other repositories remain NOT_CONNECTED, private source/CI data were not accessed, and ownership, interoperability, free billing, live runtime and hosted readiness were not established. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-milestone-ledger-reconcile-pr642",
+      "area": "DOCUMENTATION",
+      "title": "Reconcile merged milestones 639-641 and update regression expectations",
+      "pr_number": 642,
+      "pr_head_sha": "f7b8447a3b9cd01c2142093a296f406ccb88326d",
+      "merge_sha": "2eaa2b094313dd99aeb95136cbe17c37a4e6119b",
+      "ci_run_id": 43753409287,
+      "verification": "VERIFIED 2026-11-15: GitHub PR #642 merged at the stated full SHA from the stated exact head. Exact-head PR CI 43753409287 concluded success: Python 3.12/3.15, PostgreSQL RLS, security, validate, Terraform, container scan and site-contract jobs succeeded. Node, controlled incident and release jobs were skipped. Ledger was extended to 254 entries and the 32 obsolete count/latest-PR test expectations updated. Independent exact-merge main CI and CodeQL were not checked.",
+      "limitations": "Evidence is for documentation/ledger and associated tests only. GitHub AI Code Review workflow success reflected budget-denied inference skip, not a model security approval; separate Codex review did not complete. No P01 hosted acceptance, cost cap, AI-9 natural data or runtime MCP result. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-render-free-expiry-checkpoint-pr643",
+      "area": "OPERATIONS",
+      "title": "Document read-only Render Free deploy failure and temporary database expiry",
+      "pr_number": 643,
+      "pr_head_sha": "2d3414c356471695777108225f2296f5ab3596d1",
+      "merge_sha": "732f5157c45fcbdc1b1d3f4cf5656b79979cd8cd",
+      "ci_run_id": 43757263134,
+      "verification": "VERIFIED 2026-11-15: GitHub PR #643 merged at the stated full SHA from the stated exact head; exact-head PR CI 43757263134 succeeded with security, validate, PostgreSQL RLS, Terraform, container scan and site-contract jobs successful. Python matrix, Node, incident and production-release jobs were skipped under workflow conditions. Connected read-only Render inventory showed Free PostgreSQL status available and expiresAt 2026-12-05T10:33:24.202776Z; latest deploy ended update_failed, after a successful build.",
+      "limitations": "Read-only snapshot and docs-only PR. No successful hosted API or readyz probe, actual TLS/OIDC/tenant isolation, backup policy, billing hard stop or safe database retention plan verified. No Render settings/deploys, secrets or billing modified. Owner must decide Free DB retention vs retirement before expiry. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
     }
   ],
   "gates": [
