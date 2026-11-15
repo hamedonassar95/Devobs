@@ -1,3 +1,9 @@
+## Render Free live-inventory checkpoint — 2026-11-15 (READ_ONLY / NO-GO)
+
+**VERIFIED (provider inventory and event metadata):** The existing Frankfurt Free staging web service remains recorded with auto-deploy disabled, but both known deploys finished `update_failed`, including the latest 2026-11-14 deployment of `1f1fd774f02579a500c07bd667865e51ed187948` whose build succeeded and process exited nonzero. The Free PostgreSQL 17 instance is reported available and expires **2026-12-05 10:33 UTC**. This does **not** demonstrate a successful API, `/readyz`, TLS/OIDC, application-to-DB access, backup/restore or all-in cost ceiling. No environment values or raw logs were accessed.
+
+**OWNER DECISION REQUIRED before expiry:** review the existing Free database's retention versus retirement and data-preservation needs; neither action is authorized by this checkpoint. Do not trigger deployments, upgrade, delete, transfer data, access secrets or incur charges. P01 **BLOCKED / NO-GO**; AI-9 **BLOCKED**; Codex runtime **OPEN**. Full sanitized facts and limits: [Render Free checkpoint](P01_RENDER_FREE_RESOURCE_CHECKPOINT_2026-11-15.md).
+
 ## Historical repository checkpoint — PR #508 and #237 (2026-11-10)
 
 **Current owner spending direction:** preserve the enforceable USD 100 all-in monthly ceiling and do not activate paid resources now. The USD 70 operating target / USD 80 intervention threshold are planning amounts, not configured financial controls. See [the current Render budget envelope](P01_RENDER_BUDGET_ENVELOPE.md). Standing repository approval does not waive this condition.
