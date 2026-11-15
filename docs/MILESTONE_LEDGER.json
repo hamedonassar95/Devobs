@@ -2598,6 +2598,50 @@
       "ci_run_id": 43718732079,
       "verification": "VERIFIED from GitHub: PR #629 merged from head d8920ebe216417385d9bc29fbac2a5715c629264 at b62170fa65a45f1e303fa176989d3e650a1b6256. All 31 exact-head checks completed successfully or with intentional skips; PR CI 43718461726, push CI 43718418696 and CodeQL passed. Exact-merge main CI 43718732079 and Push on main 43718731770 passed, including static Pages publication/verification. Local console: 33 tests, lint/build and diff checks passed. The regression failed before and passed after the fix with provider networking denied, with and without a synthetic key. Two actual read-only specialist reviews completed without a must-fix finding. MASTER #233 was reopened and 13 unsupported phase-completion marks corrected; phase acceptance remains open.",
       "limitations": "Public prototype AI/media and GitHub generation routes now return a fixed no-store 503 before body parsing, even with a key. No Gemini client is constructed; legacy reference handlers cannot supply paid results or fabricated repair/forecast successes through those routes. Protected Devobs diagnostics and demo Git metadata remain separate. Tests do not establish general network isolation or hosted identity, tenant isolation, restore or financial enforcement. No live token, provider request, paid activation or cloud setting changed. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN. Static Pages is not a console/API deployment."
+    },
+    {
+      "id": "readiness-console-guard-pr630",
+      "area": "DOCUMENTATION",
+      "title": "Reconcile console route guard evidence and acceptance gate tracking",
+      "pr_number": 630,
+      "pr_head_sha": "86d7c1225c24f06d7a33bf0adf825e33ce87f2cb",
+      "merge_sha": "f883025e8a9f2088a561bb02b8dc99a6175ae9d8",
+      "ci_run_id": 43719103044,
+      "verification": "VERIFIED from GitHub: PR #630 merged at f883025e8a9f2088a561bb02b8dc99a6175ae9d8; exact-head PR CI https://github.com/hamedonassar95/Devobs/actions/runs/43719103044 SUCCESS; main merge CI https://github.com/hamedonassar95/Devobs/actions/runs/43719284955 SUCCESS. It documents PR #629 guard and reconciles readiness evidence.",
+      "limitations": "Readiness documentation does not complete the 72 unchecked acceptance tasks, authorize paid resources, or establish a hosted console/API. P01 BLOCKED / NO-GO, AI-9 BLOCKED and Codex runtime OPEN."
+    },
+    {
+      "id": "alertmanager-offline-event-bridge-pr631",
+      "area": "OPERATIONS",
+      "title": "Bounded offline Alertmanager notification exports to AI-1 incident events",
+      "pr_number": 631,
+      "pr_head_sha": "60c65ca101e0db2b914dd9cce2c85565b5343268",
+      "merge_sha": "90ff7da6fd484be71fd74088e80980041c9455a4",
+      "ci_run_id": 43720958956,
+      "verification": "VERIFIED from GitHub: PR #631 merged at 90ff7da6fd484be71fd74088e80980041c9455a4; exact-head PR CI https://github.com/hamedonassar95/Devobs/actions/runs/43720958956 SUCCESS; main merge CI https://github.com/hamedonassar95/Devobs/actions/runs/43721180087 SUCCESS. Offline scoped notification-to-incident adapter added.",
+      "limitations": "Source-only, offline/synthetic path; caller-provided scope does not authenticate alert sender. No listener, hosted telemetry, action or deployment. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "otlp-error-rate-offline-bridge-pr634",
+      "area": "OPERATIONS",
+      "title": "Bounded offline OpenTelemetry error-rate gauge to AI-1 metric events",
+      "pr_number": 634,
+      "pr_head_sha": "937034e9e874d11a313206e0b8b0c1a963977807",
+      "merge_sha": "e0a55239ce8a8846a8235a5cc72587c9953b9b7d",
+      "ci_run_id": 43735203171,
+      "verification": "VERIFIED from GitHub: PR #634 merged at e0a55239ce8a8846a8235a5cc72587c9953b9b7d; exact-head PR CI https://github.com/hamedonassar95/Devobs/actions/runs/43735203171 SUCCESS; main merge CI https://github.com/hamedonassar95/Devobs/actions/runs/43735505166 SUCCESS. Strict offline OTLP JSON error_rate_pct bridge added.",
+      "limitations": "No authenticated telemetry sender, network ingestion, collector integration or production metric evidence; no deployment or paid inference. P01 BLOCKED / NO-GO, AI-9 BLOCKED and Codex runtime OPEN."
+    },
+    {
+      "id": "integration-acceptance-checklist-pr635",
+      "area": "DOCUMENTATION",
+      "title": "Reusable manual integration acceptance checklist with evidence and trust gates",
+      "pr_number": 635,
+      "pr_head_sha": "25ff104b968207dcbfef7ab99f5435945429c342",
+      "merge_sha": "734794e499538b4c3879a4ca99a11da57512e501",
+      "ci_run_id": 43737043396,
+      "verification": "VERIFIED from GitHub: PR #635 merged at 734794e499538b4c3879a4ca99a11da57512e501; exact-head PR CI https://github.com/hamedonassar95/Devobs/actions/runs/43737043396 SUCCESS; exact-merge main CI https://github.com/hamedonassar95/Devobs/actions/runs/43737281006 SUCCESS. Manual acceptance checklist merged.",
+      "limitations": "Documentation only, not an automated approval gate, authenticated integration, actual review, hosted release or production proof. PR #632 remains a separate unresolved change. P01 BLOCKED / NO-GO, AI-9 BLOCKED and Codex runtime OPEN."
     }
   ],
   "gates": [
