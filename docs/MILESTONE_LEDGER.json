@@ -2895,6 +2895,17 @@
       "ci_run_id": 43770650655,
       "verification": "VERIFIED 2026-11-15 via merged PR #650 and exact-head PR CI 43770650655 success; main CI 43770893733 and CodeQL 43770893278 success. Public manifest matched full merge SHA; 13 assets matched reviewed bytes with valid CSP/JS MIME. Public Chromium 390/1440 passed seven stages, notes create/search/pin/archive/restore/reload and JSON download; zero API/external requests, errors or overflow. Local Python 1215 OK (37 skipped), focused Node 12 passed.",
       "limitations": "Fixed synthetic AI-1–AI-7 output and browser-local notes only; no live log ingestion, account, hosted API, paid inference, identity, tenant isolation, recovery or invoice enforcement. Independent of expiring Render Free DB. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-free-delivery-evidence-pr651",
+      "area": "DOCUMENTATION",
+      "title": "Preserve free delivery evidence and merged milestones #644–#650",
+      "pr_number": 651,
+      "pr_head_sha": "cf67b5e95561ee3466941ef8fea6818b576b1632",
+      "merge_sha": "db9817ab811764c56971f88382925ae2a8a8f72c",
+      "ci_run_id": 43771853803,
+      "verification": "VERIFIED 2026-11-15 via GitHub merged PR #651 metadata and successful exact-head PR CI 43771853803. It appended seven milestones #644–#650 and preserved all previous 256 records and gate fields; milestone tests passed 69/69. Completed free static delivery evidence and limits are saved in STATE.md and issue #221.",
+      "limitations": "Evidence reconciliation and test expectations only; no provider connection, paid resource, hosted identity/isolation/recovery, all-in financial enforcement or independent AI-9 evaluation. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
     }
   ],
   "gates": [

@@ -30,6 +30,7 @@ class NodePipelineSelectionTests(unittest.TestCase):
         for path in (
             "examples/integrations/synthetic-ci-events.jsonl",
             "examples/integrations/synthetic-alertmanager.json",
+            "examples/integrations/synthetic-grafana.json",
             "assets/free-devobs/snapshot.json",
             "tests/fixtures/intelligence_eval_cases.json",
         ):
