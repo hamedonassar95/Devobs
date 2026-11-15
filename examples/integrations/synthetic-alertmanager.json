@@ -1,0 +1,33 @@
+{
+  "version": "4",
+  "groupKey": "synthetic-local-group",
+  "truncatedAlerts": 0,
+  "status": "firing",
+  "receiver": "local-only",
+  "notification_reason": "group_interval",
+  "groupLabels": {},
+  "commonLabels": {},
+  "commonAnnotations": {},
+  "routeLabels": {},
+  "externalURL": "https://monitoring.example.invalid",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": { "alertname": "ServiceDown", "severity": "critical", "instance": "synthetic-host:9090" },
+      "annotations": { "description": "SYNTHETIC_ANNOTATION_NOT_FOR_EXPORT" },
+      "startsAt": "2026-11-14T09:00:00.123456789Z",
+      "endsAt": "0001-01-01T00:00:00Z",
+      "generatorURL": "https://source.example.invalid",
+      "fingerprint": "0123456789abcdef"
+    },
+    {
+      "status": "resolved",
+      "labels": { "alertname": "HighCpuUsage", "severity": "warning" },
+      "annotations": {},
+      "startsAt": "2026-11-14T09:30:00Z",
+      "endsAt": "2026-11-14T10:00:00Z",
+      "generatorURL": "",
+      "fingerprint": "fedcba9876543210"
+    }
+  ]
+}

@@ -1,5 +1,10 @@
 # Devobs — Integration Control Plane (review-only)
 
+Local source bridges: [CloudEvents CI](CLOUDEVENTS_CI_BRIDGE.md) and
+[Alertmanager notification metadata](ALERTMANAGER_BRIDGE.md). Both reuse existing
+AI-1 contracts without connecting provider accounts. The Alertmanager guide also
+records the comparison of open-source integration types and their limits.
+
 > **Status:** documentation and evidence inventory only. This directory does **not** install GitHub Apps, connect provider accounts, enable deployments, grant scopes, or create automation schedules. The trusted Codex config separately declares an opt-in-at-runtime public read-only documentation MCP, not an authenticated third-party account.
 
 **Review date:** 2026-11-12 (the original five observations date from 2026-10-25; subsequent checks are dated per record). **Repository:** public `hamedonassar95/Devobs`. The evidence below is a point-in-time observation and must not be treated as a continuously monitored status page.
