@@ -43,7 +43,10 @@ which account setting caused the failure.
 
 Input is a single bounded JSON object with up to two allowlisted job kinds,
 numeric runner IDs and executed-step counts. Additional fields, unsafe
-states and invalid combinations are rejected. No supplied text is echoed,
+states and invalid combinations are rejected. The CLI reuses Devobs's
+existing strict JSON parser and rejects duplicate keys at the top level
+and inside individual jobs; it fails closed with a fixed invalid_json error,
+exit code 2 and no stdout output. No supplied text is echoed,
 no network calls or paid inference are made, and no workflow is restarted.
 A SUCCESS_CLAIM_UNVERIFIED result is **not** acceptance evidence.
 
