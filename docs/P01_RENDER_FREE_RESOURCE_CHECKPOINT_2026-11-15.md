@@ -14,6 +14,22 @@
 
 **VERIFIED GitHub baseline:** [PR #642](https://github.com/hamedonassar95/Devobs/pull/642) merged documentation at `2eaa2b094313dd99aeb95136cbe17c37a4e6119b`. Its exact-head [CI run 43753409287](https://github.com/hamedonassar95/Devobs/actions/runs/43753409287) finished successfully. The repository's automated AI review was **skipped** without spending approval; a separate Codex review reported that it did not complete. CI success is not human or model approval, and is not proof of P01 readiness.
 
+## Independently verified Render Free lifecycle — 2026-11-15
+
+**VERIFIED (current official provider documentation):** Render states that a Free PostgreSQL instance expires 30 days after creation, has a fixed 1 GB limit, **has no Render-managed backups**, and becomes inaccessible at expiry unless upgraded to a paid plan. Render allows a **14-day grace period** for upgrading before deleting an expired instance together with its data. This grace period is **not** free continued database access or a data-preservation guarantee. Read the [Render Free policy](https://render.com/docs/free) and the [Render PostgreSQL backup policy](https://render.com/docs/postgresql-backups). A provider-policy description is not proof of a successful backup.
+
+**VERIFIED (read-only account inventory, rechecked 2026-11-15):** `devobs-ai-staging-db` remains on **Free**, reports **available**, and has provider-reported expiry `2026-12-05T10:33:24.202776Z`. The approximate end of the published grace interval would fall around **2026-12-19** if the documented policy applies unchanged; the actual deletion timestamp, data classification, owner backup inventory and any provider/account exceptions are **UNVERIFIED**. **Treat 2026-12-05 as the action deadline; do not rely on the grace period as an operating window.**
+
+### Review-only retention decision table — no selected action
+
+| Owner choice | Preconditions and evidence | Decision boundary |
+| --- | --- | --- |
+| Preserve data outside Render | Independently confirm whether the database contains anything requiring retention, define a lawful approved destination, handling/retention and a controlled source-read scope, and validate a restore into an approved *separate* target. Render documents operator-managed `pg_dump` as an option for Free instances, but no such dump/restore has been authorized or performed for this hosted database. | **PENDING OWNER DECISION**. Do not read credentials, connect to or copy database rows, create a hosted target, or run a backup in this repository task. |
+| Retire temporary Free resource | Confirm all data are disposable synthetic fixtures, no consumer depends on them, no legal/retention requirement exists, and obtain explicit deletion/retirement approval plus a reviewed effect/rollback plan. | **PENDING OWNER DECISION**. Do not delete or deliberately let needed data expire by treating a silence as consent. |
+| Upgrade to paid Render database | Demonstrate a provider-enforced all-in USD 100/month ceiling including provider and model costs, fees, taxes, backups and usage, then obtain separate paid activation and data-location approval. | **BLOCKED under the current owner no-paid-activation decision.** An alert, estimate or upgrade reminder is not an enforceable invoice cap. |
+
+**Stop condition:** If data importance, retention permissions, backup feasibility, full costs, or decision authority is unknown, report **NO-GO / NEEDS OWNER DECISION**. The appropriate next action is a narrowly scoped human decision and, if preservation is chosen, a separately approved data-handling procedure. No scheduled checking, resource operation, deployment, backup, or deletion is initiated by this document.
+
 ## Decision required before 2026-12-05
 
 The owner must explicitly choose an approved **Free-resource retention/retirement approach** before the reported expiry date. Options for review are to retain the current temporary DB only within the provider's actually verified Free terms, or to plan an explicitly authorized retirement after checking whether any data must be preserved. **No default action is selected.** Do not delete, renew, upgrade, migrate, trigger hosted deploys, run chargeable backups, or alter access lists without a new scope-specific approval and a retention/recovery assessment.
