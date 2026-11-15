@@ -10,6 +10,7 @@ import {
 import { DashboardHeader, DashboardTab } from './components/dashboard/DashboardHeader';
 import { DevobsSession } from './components/dashboard/DevobsSession';
 import { ServerOverviewCards } from './components/dashboard/ServerOverviewCards';
+import { LocalAi7Panel } from './components/dashboard/LocalAi7Panel';
 import { InteractiveMetricsChart } from './components/dashboard/InteractiveMetricsChart';
 import { ServerGrid } from './components/dashboard/ServerGrid';
 import { ErrorLogViewer } from './components/dashboard/ErrorLogViewer';
@@ -621,6 +622,8 @@ export default function App() {
               incidents={incidents}
               deployments={deployments}
             />
+
+            <LocalAi7Panel />
 
             {/* Live Metrics Chart */}
             <InteractiveMetricsChart metrics={INITIAL_METRICS_24H} />
