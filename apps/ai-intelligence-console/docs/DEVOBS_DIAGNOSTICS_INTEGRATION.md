@@ -36,7 +36,7 @@ Opening the modal makes no network call. The user edits the log, enters a short-
 ## Still required before a real customer pilot
 
 1. Deploy/review the Devobs API and prove `/readyz`, OIDC authorization, tenant/service access denial, and OpenAI behavior in the approved staging environment.
-2. Choose/configure a supported user OIDC sign-in flow that can issue the required short-lived access token. This change deliberately does not invent an identity provider or add a long-lived shared bearer token.
+2. Configure and verify a supported user OIDC flow for the required short-lived access token. The optional [Devobs PKCE sign-in](DEVOBS_OIDC_LOGIN.md) prepares a separate **read-only** session; it does not request or grant `devobs.ai.diagnose` and does not auto-fill this modal. A diagnostic grant requires its own review. No identity provider or long-lived shared bearer is invented.
 3. Create and verify the tenant/project/service bindings in Devobs. The UI's mock server IDs are not production service identities.
 4. Configure the three runtime variables above in the host and verify the host enforces HTTPS and protects its environment settings.
 5. Run the synthetic diagnosis cases against the deployed integration after the API owner has approved the model and spend controls. No inference, deployment, database mutation, or customer data use was performed for this change.

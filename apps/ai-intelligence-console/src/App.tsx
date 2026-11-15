@@ -8,6 +8,7 @@ import {
   INITIAL_METRICS_24H,
 } from './data/mockServerData';
 import { DashboardHeader, DashboardTab } from './components/dashboard/DashboardHeader';
+import { DevobsSession } from './components/dashboard/DevobsSession';
 import { ServerOverviewCards } from './components/dashboard/ServerOverviewCards';
 import { InteractiveMetricsChart } from './components/dashboard/InteractiveMetricsChart';
 import { ServerGrid } from './components/dashboard/ServerGrid';
@@ -526,6 +527,7 @@ export default function App() {
 
       {/* Main Workspace */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">
+        <DevobsSession />
         {/* Top Context Subheader */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
           <div>
