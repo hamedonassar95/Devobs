@@ -59,6 +59,7 @@
 - [Devobs AI DevOps Control Room](docs/AI_DEVOPS_CONTROL_ROOM.md): توثيق مسارات AI وCI وحالة التحقق من المصدر مقابل التشغيل.
 - [استقبال أحداث AI-1 محليًا](docs/AI_EVENT_INGESTION.md): صيغة موحّدة وملف JSONL محلي؛ بلا اتصالات أو خدمات خارجية.
 - [جسر CloudEvents لنتائج CI](docs/integrations/CLOUDEVENTS_CI_BRIDGE.md): محوّل محلي غير موثّق المصدر إلى مخطط AI-1 القائم، ويشمل CineForge-AI بحدث اصطناعي فقط دون مرسل حي أو نقل بيانات؛ بوابة `REVIEW_ONLY` مستقلة.
+- [جسر OpenTelemetry OTLP لمقياس الخطأ](docs/integrations/OTLP_ERROR_RATE_BRIDGE.md): محوّل اصطناعي محلي لمقياس `error_rate_pct` إلى AI-1؛ بلا اتصالات أو بيانات عملاء أو خدمات مدفوعة.
 - [كشف الشذوذ AI-2 محليًا](docs/AI_ANOMALY_DETECTION.md): مؤشرات إحصائية قابلة للتفسير على أحداث مقاييس محلية اصطناعية.
 - [تحليل الحوادث AI-3 محليًا](docs/AI_INCIDENT_ANALYSIS.md): تجميع سجلات اصطناعية وفرضيات أسباب محتملة وسياق CI فقط.
 - [توصيات AI-4 المحلية](docs/AI_RECOMMENDATIONS.md): مطابقة فرضيات AI-3 مع runbooks ثابتة، بوضع الاقتراح فقط.
