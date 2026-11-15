@@ -81,7 +81,7 @@ test('CLI rejects duplicate JSON object keys without emitting advisory output', 
     const result = spawnSync(process.execPath, [SCRIPT, '--input', input], { encoding: 'utf8' });
     assert.equal(result.status, 2, content);
     assert.equal(result.stdout, '');
-    assert.equal(result.stderr, 'cineforge-ci-triage: invalid_json\\n');
+    assert.equal(result.stderr, 'cineforge-ci-triage: invalid_json\n');
     assert.equal(result.stderr.includes('cineforge-ai'), false);
   }
 });
