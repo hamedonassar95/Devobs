@@ -8,13 +8,13 @@ This is the preserved React/TypeScript prototype from the former `DevObs-ai-Inte
 - The dashboard and its buttons do not control real servers, perform real deployments, or roll back production releases.
 - GitHub workflows, issues, pull requests, and run history in the console are local sample/simulated UI; the app does not call GitHub's API to manage them.
 - The static GitHub Pages site does not publish this app. The app's local Express server binds to `127.0.0.1` by default.
-- Firebase, Google Workspace, and Gemini integrations are disabled by default. Do not put OAuth client secrets, access tokens, Firebase private credentials, or real customer/server data in this repository.
+- Firebase and Google Workspace integrations are disabled by default. Public Gemini prototype routes are closed with a fixed 503 response even if a key is present. Do not put OAuth client secrets, access tokens, Firebase private credentials, or real customer/server data in this repository.
 - Firestore rules deny all access. The prototype must not be connected to a customer or production database.
 - Google Workspace code includes broad OAuth scopes and has not been approved for live use. Keep it disabled.
-- Incident diagnosis uses the optional protected Devobs proxy described in [the integration guide](docs/DEVOBS_DIAGNOSTICS_INTEGRATION.md). It is disabled by default and requires an explicit reviewed request; missing configuration never fabricates a diagnosis. Other Gemini prototype routes and their fallbacks remain separate.
+- Incident diagnosis uses the optional protected Devobs proxy described in [the integration guide](docs/DEVOBS_DIAGNOSTICS_INTEGRATION.md). It is disabled by default and requires an explicit reviewed request; missing configuration never fabricates a diagnosis. Other AI/media and GitHub text-generation routes are closed before body parsing, so they return neither paid results nor fabricated local successes.
 - Optional [Devobs read-only sign-in](docs/DEVOBS_OIDC_LOGIN.md) uses the official Keycloak adapter with PKCE S256. It is disabled by default, independent of Google/Firebase, and does not grant diagnosis or change the dashboard's sample data.
-- Gemini API calls can incur charges. Leave `GEMINI_API_KEY` blank unless a maintainer intentionally configures and reviews a separate test environment.
-- The optional Gemini SDK client pins API version `v1beta` to preserve the previous SDK behavior. No live Gemini request is part of CI or this prototype's release checks.
+- `GEMINI_API_KEY` does not activate the closed prototype routes. The server constructs no Gemini client; legacy handlers remain reference code behind the closed route guard. Re-enabling inference requires reviewed identity, tenant authorization, data policy and cost controls, not a key or budget boolean alone.
+- No live Gemini request is part of CI or this prototype's release checks. The new real-server tests explicitly forbid provider network traffic.
 
 ## Run the local prototype
 

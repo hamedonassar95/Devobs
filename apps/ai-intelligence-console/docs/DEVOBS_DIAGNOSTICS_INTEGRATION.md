@@ -2,6 +2,13 @@
 
 **Status: code prepared; not deployed or live-tested.** The incident modal now proxies a user-authorized request to the protected Devobs diagnostics API. It does not use the separate Gemini incident prompt. The API on Devobs remains the model and budget boundary; its separately approved provider performs the diagnosis. The console does not construct an incident Gemini prompt or fabricate a diagnosis when configuration is absent.
 
+Public prototype Gemini/media routes and GitHub text-generation routes are
+closed with a fixed no-store 503 before body parsing. The server constructs no
+Gemini client and a key cannot activate them. This also prevents legacy local
+fallbacks from claiming that servers were healed or generating invented results.
+The protected diagnosis route remains separate and retains its own configuration,
+bearer, redaction, service-binding and upstream authorization checks.
+
 ## Runtime configuration
 
 Set these values in the hosting provider's secret/environment settings after confirming the target API is live and has passed the P01 staging checks. Do not put access tokens or provider keys in this repository.
@@ -31,7 +38,7 @@ The API contract is `POST /v1/tenants/{tenant}/projects/{project}/services/{serv
 - The server accepts an 8 KiB maximum error log, limits JSON bodies to 32 KiB, allows at most five outbound diagnosis calls per process per minute and two in flight, uses HTTPS only, rejects redirects, bounds streamed response bodies to 32 KiB, validates the six-field diagnosis response, and times out after 22 seconds. Devobs applies its own authorization, validation, and rate limits. These limits reduce bursts but do not impose a monthly dollar cap.
 - The Devobs diagnostics contract does not persist the submitted log. The UI can still hold mock/dashboard records in browser local storage as before; this integration does not upload those unrelated records.
 
-Opening the modal makes no network call. The user edits the log, enters a short-lived token, affirms review, and presses **طلب تحليل استشاري**. Missing configuration returns a fixed 503; provider failures never return a guessed cause or raw exception. Syntax checking of the bearer header is not authentication: the Devobs API must validate its signature, scopes and tenant/service access. Editing the log clears the redaction affirmation. This modal cannot deploy a hotfix or assert that a root cause was mitigated; marking an incident resolved updates its prototype record (including optional Firestore sync), not a server. Other Gemini prototype routes remain separate from this integration.
+Opening the modal makes no network call. The user edits the log, enters a short-lived token, affirms review, and presses **طلب تحليل استشاري**. Missing configuration returns a fixed 503; provider failures never return a guessed cause or raw exception. Syntax checking of the bearer header is not authentication: the Devobs API must validate its signature, scopes and tenant/service access. Editing the log clears the redaction affirmation. This modal cannot deploy a hotfix or assert that a root cause was mitigated; marking an incident resolved updates its prototype record (including optional Firestore sync), not a server. Other Gemini prototype routes remain closed and cannot be enabled through this integration.
 
 ## Still required before a real customer pilot
 

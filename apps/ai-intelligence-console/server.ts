@@ -1,12 +1,13 @@
 import express from 'express';
 import { createServer as createViteServer } from 'vite';
-import { GoogleGenAI, Type, Modality } from '@google/genai';
+import { type GoogleGenAI, Type, Modality } from '@google/genai';
 import dotenv from 'dotenv';
 import path from 'node:path';
 import rateLimit from 'express-rate-limit';
 import { fileURLToPath } from 'node:url';
 import { createSpaFallbackHandler } from './spaFallback.ts';
 import { createDiagnosticsHandler } from './diagnosticsProxy.ts';
+import { prototypeAiGuard } from './prototypeAiGuard.ts';
 
 dotenv.config();
 
@@ -39,6 +40,7 @@ const staticFallbackRateLimit = rateLimit({
 
 app.use('/api', apiRateLimit);
 app.use('/api/ai', aiRateLimit);
+app.use(prototypeAiGuard);
 
 // Parse this credential-bearing route before the prototype's larger media bodies.
 const diagnosticsJson = express.json({ limit: '32kb' });
@@ -56,20 +58,11 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 
-// Initialize Google GenAI client (Server-side only)
-const apiKey = process.env.GEMINI_API_KEY;
-const ai = apiKey
-  ? new GoogleGenAI({
-      apiKey,
-      // Preserve the v2 SDK's Gemini Developer API default during the v3 upgrade.
-      apiVersion: 'v1beta',
-      httpOptions: {
-        headers: {
-          'User-Agent': 'aistudio-build',
-        },
-      },
-    })
-  : null;
+// Legacy reference handlers below are closed before parsing. No provider client
+// is constructed and no key/flag can enable public prototype inference.
+registerLegacyPrototypeRoutes(null);
+
+function registerLegacyPrototypeRoutes(ai: GoogleGenAI | null) {
 
 // Route 2: Generate Infrastructure Health Audit Report
 app.post('/api/ai/generate-audit-report', async (req, res) => {
@@ -118,9 +111,9 @@ ${JSON.stringify(deployments?.slice(0, 5), null, 2)}
 
     res.json({ report: response.text });
   } catch (error: any) {
-    console.error('Audit report error:', error);
+    console.error('Audit report error:');
     res.status(500).json({
-      error: error.message || 'فشل في توليد تقرير التدقيق بالذكاء الاصطناعي',
+      error: 'فشل في توليد تقرير التدقيق بالذكاء الاصطناعي',
     });
   }
 });
@@ -298,9 +291,9 @@ app.post('/api/ai/chat', async (req, res) => {
       suggestedActions: suggestedActions.slice(0, 4),
     });
   } catch (error: any) {
-    console.error('Chat error:', error);
+    console.error('Chat error:');
     res.status(500).json({
-      error: error.message || 'حدث خطأ أثناء محادثة المساعد الذكي',
+      error: 'حدث خطأ أثناء محادثة المساعد الذكي',
     });
   }
 });
@@ -366,8 +359,8 @@ app.post('/api/ai/autonomous-heal', async (req, res) => {
 
     res.json(parsedResult);
   } catch (error: any) {
-    console.error('Autonomous heal error:', error);
-    res.status(500).json({ error: error.message || 'فشل في تشغيل الحارس الذكي' });
+    console.error('Autonomous heal error:');
+    res.status(500).json({ error: 'فشل في تشغيل الحارس الذكي' });
   }
 });
 
@@ -428,8 +421,8 @@ app.post('/api/ai/predictive-forecast', async (req, res) => {
 
     res.json(forecastData);
   } catch (error: any) {
-    console.error('Predictive forecast error:', error);
-    res.status(500).json({ error: error.message || 'فشل في استخراج التنبؤات الاستباقية' });
+    console.error('Predictive forecast error:');
+    res.status(500).json({ error: 'فشل في استخراج التنبؤات الاستباقية' });
   }
 });
 
@@ -460,8 +453,8 @@ app.post('/api/ai/generate-sre-briefing', async (req, res) => {
 
     res.json({ briefingText: response.text || 'موجز SRE اليومي: الأنظمة مستقرة والعمليات جارية بسلاسة.' });
   } catch (error: any) {
-    console.error('Briefing text error:', error);
-    res.status(500).json({ error: error.message || 'فشل في صياغة الموجز الصوتي' });
+    console.error('Briefing text error:');
+    res.status(500).json({ error: 'فشل في صياغة الموجز الصوتي' });
   }
 });
 
@@ -499,9 +492,9 @@ app.post('/api/ai/transcribe-audio', async (req, res) => {
       transcription: response.text || 'لم يتم التعرف على أي كلام مسموع.',
     });
   } catch (error: any) {
-    console.error('Transcription error:', error);
+    console.error('Transcription error:');
     res.status(500).json({
-      error: error.message || 'فشل في تفريغ التسجيل الصوتي',
+      error: 'فشل في تفريغ التسجيل الصوتي',
     });
   }
 });
@@ -566,9 +559,9 @@ app.post('/api/ai/generate-video', async (req, res) => {
       error: 'لم ينتج النموذج فيديو صالحاً، يرجى إعادة المحاولة مع صياغة أخرى.',
     });
   } catch (error: any) {
-    console.error('Video generation error:', error);
+    console.error('Video generation error:');
     res.status(500).json({
-      error: error.message || 'فشل في توليد أو تحريك الفيديو',
+      error: 'فشل في توليد أو تحريك الفيديو',
     });
   }
 });
@@ -646,9 +639,9 @@ app.post('/api/ai/generate-image', async (req, res) => {
       error: 'لم يتم العثور على صورة في استجابة النموذج',
     });
   } catch (error: any) {
-    console.error('Image generation error:', error);
+    console.error('Image generation error:');
     res.status(500).json({
-      error: error.message || 'فشل في توليد أو تعديل الصورة',
+      error: 'فشل في توليد أو تعديل الصورة',
     });
   }
 });
@@ -706,9 +699,9 @@ app.post('/api/ai/generate-music', async (req, res) => {
       error: 'لم يتم استلام مقطع صوتي من نموذج Lyria',
     });
   } catch (error: any) {
-    console.error('Music generation error:', error);
+    console.error('Music generation error:');
     res.status(500).json({
-      error: error.message || 'فشل في توليد المقطع الصوتي أو النغمة',
+      error: 'فشل في توليد المقطع الصوتي أو النغمة',
     });
   }
 });
@@ -762,9 +755,9 @@ app.post('/api/ai/voice-speak', async (req, res) => {
 
     res.status(500).json({ error: 'لم ينتج النموذج صوتاً' });
   } catch (error: any) {
-    console.error('TTS error:', error);
+    console.error('TTS error:');
     res.status(500).json({
-      error: error.message || 'فشل في تحويل النص إلى صوت مسموع',
+      error: 'فشل في تحويل النص إلى صوت مسموع',
     });
   }
 });
@@ -826,9 +819,9 @@ app.post('/api/ai/live-conversation', async (req, res) => {
       mimeType: replyAudio?.mime_type || 'audio/wav',
     });
   } catch (error: any) {
-    console.error('Live Conversation error:', error);
+    console.error('Live Conversation error:');
     res.status(500).json({
-      error: error.message || 'فشل في جلسة المحادثة الصوتية المباشرة (gemini-3.8-live)',
+      error: 'فشل في جلسة المحادثة الصوتية المباشرة (gemini-3.8-live)',
     });
   }
 });
@@ -906,8 +899,8 @@ ${JSON.stringify((incidents || []).slice(0, 5), null, 2)}
 
     res.json({ releaseNotes: response.text });
   } catch (error: any) {
-    console.error('Release notes error:', error);
-    res.status(500).json({ error: error.message || 'فشل في توليد ملاحظات الإصدار' });
+    console.error('Release notes error:');
+    res.status(500).json({ error: 'فشل في توليد ملاحظات الإصدار' });
   }
 });
 
@@ -956,10 +949,12 @@ Include standard GitHub PR template sections:
 
     res.json({ prBody: response.text });
   } catch (error: any) {
-    console.error('PR summary error:', error);
-    res.status(500).json({ error: error.message || 'فشل في توليد وصف الـ PR' });
+    console.error('PR summary error:');
+    res.status(500).json({ error: 'فشل في توليد وصف الـ PR' });
   }
 });
+
+}
 
 // Setup Vite middleware in dev or static files in production
 async function startServer() {
