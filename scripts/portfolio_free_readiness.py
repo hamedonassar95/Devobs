@@ -34,9 +34,7 @@ CANDIDATES = {
     "ci",
     "cloudevents"
   ),
-  "CineForge-AI": (
-    "cineforge-triage"
-  )
+  "CineForge-AI": ("cineforge-triage",)
 }
 DENIED = ("external_network_allowed", "cross_repository_transfer_allowed",
           "paid_activation_allowed", "automatic_merge_allowed", "provider_auth_change_allowed")
