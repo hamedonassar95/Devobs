@@ -32,6 +32,11 @@ not to installed software in other projects. All connections, transfers and
 runtime checks remain blocked pending *independent* source/destination owner
 review and least-privilege scope validation.
 
+[Offline integration acceptance](../integrations/PORTFOLIO_ACCEPTANCE.md) now
+checks CloudEvents, Alertmanager and Grafana fixture ingestion/replay across all
+seven existing namespaces, with separate temporary stores and public aggregate
+results. This is tested converter behavior; the candidates remain NOT_CONNECTED.
+
 ## Safeguards and next gate
 
 - Machine-readable candidates: `docs/portfolio/PORTFOLIO_FREE_CANDIDATES.json`.

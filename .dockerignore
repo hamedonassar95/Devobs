@@ -6,6 +6,7 @@ assets/**
 assets/free-devobs/**
 !assets/free-devobs/index.html
 !assets/free-devobs/snapshot.json
+!assets/free-devobs/integration-acceptance.json
 !scripts/
 scripts/**
 !scripts/ai_intelligence/

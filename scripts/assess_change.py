@@ -115,6 +115,7 @@ def is_node(path: PurePosixPath) -> bool:
         "examples/integrations/synthetic-alertmanager.json",
         "examples/integrations/synthetic-grafana.json",
         "assets/free-devobs/snapshot.json",
+        "assets/free-devobs/integration-acceptance.json",
         "tests/fixtures/intelligence_eval_cases.json",
     } or is_ai_intelligence_console(path) or (
         path.suffix in {".js", ".cjs", ".mjs"}

@@ -8,6 +8,7 @@ import re
 import threading
 import tempfile
 from urllib.request import urlopen
+from urllib.parse import urljoin, urlsplit
 
 if __package__:
     from .stage_site import FREE_DEMO_CLIENT_FILES, copy_public_content
@@ -109,6 +110,16 @@ def smoke_test(root):
         demo = root / 'assets/free-devobs'
         if demo.exists():
             paths += ['/assets/free-devobs/' + name for name in ('index.html', 'snapshot.json', *FREE_DEMO_CLIENT_FILES)]
+            page = Page()
+            page.feed((demo / 'index.html').read_text(encoding='utf-8'))
+            linked = any(tag == 'a' and urlsplit(urljoin('/assets/free-devobs/', attrs.get('href', ''))).path
+                         == '/assets/free-devobs/integration-acceptance.json' for tag, attrs in page.tags)
+            report = demo / 'integration-acceptance.json'
+            if linked and not report.is_file():
+                raise RuntimeError('Free demo integration report is missing')
+            # Older free profiles with neither the link nor report stay valid.
+            if report.is_file():
+                paths.append('/assets/free-devobs/integration-acceptance.json')
         for path in paths:
             expected = (root / path.lstrip('/')).read_bytes() if path != '/' else expected
             with urlopen(f'http://127.0.0.1:{server.server_port}{path}', timeout=5) as response:
