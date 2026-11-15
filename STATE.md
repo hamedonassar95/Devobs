@@ -1,3 +1,11 @@
+## تحديث سجل الإنجازات بعد دمج #639–#641 — 2026-11-15 (VERIFIED لنطاق GitHub)
+
+- **VERIFIED:** تظهر بيانات GitHub دمج [#639](https://github.com/hamedonassar95/Devobs/pull/639) من `1c97e4ea4ca9672892bfc696a28c76af6fcbf094` عند `98de4a762bd817a1d81cdc3186760dc638a0ba51`، و[#640](https://github.com/hamedonassar95/Devobs/pull/640) من `14b4b81c3e79b45f20ca7c7183a3aca73c5c660d` عند `7a74e5ece92cd6cf1dc072f32f7a573d038da0b3`، و[#641](https://github.com/hamedonassar95/Devobs/pull/641) من `27ed4e8c541ef13cf4095f6f40c18daea11f9f41` عند `8661bad57cde861bfc0fc6a004fe92743c2c189f`.
+- **VERIFIED:** فحوص PR CI على رؤوسها نجحت في [43745771813](https://github.com/hamedonassar95/Devobs/actions/runs/43745771813)، و[43751650900](https://github.com/hamedonassar95/Devobs/actions/runs/43751650900)، و[43752440502](https://github.com/hamedonassar95/Devobs/actions/runs/43752440502). ظهرت وظائف `validate` و`security` وPython وPostgreSQL وTerraform وفحص صورة الحاوية ناجحة؛ تخطّت بعض الوظائف غير المطلوبة بشروط سير العمل. **UNVERIFIED:** لم يتم التحقق بصورة مستقلة هنا من فحوص main على التزامات الدمج أو CodeQL لكل دمج.
+- **VERIFIED لنطاق المصدر فقط:** أصبح `docs/MILESTONE_LEDGER.json` يحوي **254 إنجازًا** بعد حفظ الثلاثة، مع الحفاظ على السجلات الـ251 السابقة وحقول البوابات. يقدم #639 تجربة استعادة PostgreSQL صناعية داخل عنقود مؤقت، ويقدم #640 فحص موارد محليًا لا يفعّل أي مزود، ويقدم #641 خريطة مرشحين للمراجعة لا تتصل بالمشاريع الأخرى.
+- **بوابات التشغيل لم تتغير:** P01 **BLOCKED / NO-GO**، AI-9 **BLOCKED**، وقبول Codex runtime **OPEN**. لا يثبت نجاح CI تفعيل API أو SaaS مستضاف أو حد فاتورة شامل. يبقى قرار عدم تفعيل موارد مدفوعة وسقف 100 دولار شهريًا الشامل شرطًا غير متحقق؛ لم تُعدّل أسرار أو خدمة أو نشر أو صلاحيات.
+
+
 ## استعادة PostgreSQL المؤقتة وتسجيل #638 — 2026-11-15 (VERIFIED محليًا)
 
 - دُمج [#638](https://github.com/hamedonassar95/Devobs/pull/638) عند `c35ee7e437382ee5ef7261410b35f879e89b200d` من الرأس `79085a7248282f92a30b6f634638722842913285`. نجح [PR CI 43743465210](https://github.com/hamedonassar95/Devobs/actions/runs/43743465210) و[push CI 43743461993](https://github.com/hamedonassar95/Devobs/actions/runs/43743461993) و[main CI 43743670411](https://github.com/hamedonassar95/Devobs/actions/runs/43743670411). الدفتر الآن **251 إنجازًا**، آخرها #638؛ حُفظت السجلات السابقة وحقول البوابات.
