@@ -37,6 +37,33 @@ class ProjectHandoffGateTests(unittest.TestCase):
                      "artifact_type": "ci_report", "technical_reviewed": False}
                 self.assertEqual(evaluate(r)["decision"], "REVIEW_ONLY")
 
+    def test_cineforge_ci_report_review_only_never_transfers(self):
+        request = {**self.request, "source": "cineforge-ai", "destination": "devobs",
+                   "artifact_type": "ci_report", "technical_reviewed": False}
+        result = evaluate(request)
+        self.assertEqual(result["decision"], "REVIEW_ONLY")
+        self.assertIn("no transfer authorized", result["reason"])
+        for override in (
+            {"classification": "private"},
+            {"classification": "internal"},
+            {"contains_customer_data": True},
+            {"contains_secrets": True},
+            {"intent": "dispatch"},
+            {"destination_owner_reviewed": False},
+        ):
+            with self.subTest(override=override):
+                self.assertEqual(evaluate({**request, **override})["decision"], "DENY")
+
+    def test_cineforge_reverse_or_unrelated_routes_stay_denied(self):
+        for source, destination, artifact_type in (
+            ("devobs", "cineforge-ai", "ci_report"),
+            ("cineforge-ai", "devobs", "knowledge_package"),
+            ("cineforge-ai", "devobs-saas", "ci_report"),
+        ):
+            request = {**self.request, "source": source, "destination": destination,
+                       "artifact_type": artifact_type}
+            self.assertEqual(evaluate(request)["decision"], "DENY")
+
     def test_prohibited_actions_are_denied(self):
         for intent in ("publish", "deploy", "merge", "run", ""):
             with self.subTest(intent=intent):
