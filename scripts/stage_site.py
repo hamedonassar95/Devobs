@@ -26,6 +26,35 @@ def _validate_assets_symlinks(assets: Path) -> None:
                 raise ValueError(f"Symlinks are not allowed under assets/: {candidate}")
 
 
+FREE_DEMO_CLIENT_FILES = (
+    "dashboard.js", "dashboard.css", "static_demo.mjs", "runbook_notes.mjs",
+    "google_docs_export.mjs", "google_calendar_followup.mjs",
+    "google_sheets_export.mjs", "google_slides_export.mjs",
+    "google_chat_export.mjs", "google_tasks_followup.mjs", "google_gmail_summary.mjs",
+)
+
+
+def _copy_free_demo_browser_assets(source: Path, staged: Path) -> None:
+    # Older release/rollback checkouts without the demo retain root-only staging.
+    demo = source / "assets/free-devobs"
+    if not demo.exists():
+        return
+    for name in ("index.html", "snapshot.json"):
+        item = demo / name
+        if item.is_symlink() or not item.is_file():
+            raise ValueError("free demo requires regular index and snapshot files")
+    client = source
+    for part in ("scripts", "ai_intelligence", "dashboard_assets"):
+        client = client / part
+        if client.is_symlink() or not client.is_dir():
+            raise ValueError("free demo browser asset directory must be regular")
+    for name in FREE_DEMO_CLIENT_FILES:
+        item = client / name
+        if item.is_symlink() or not item.is_file() or item.stat().st_size > 524288:
+            raise ValueError("free demo requires a regular browser asset")
+        shutil.copy2(item, staged / "assets/free-devobs" / name)
+
+
 def resolve_source_dir(source_dir: Path, workspace_dir: Path) -> Path:
     """Resolve a candidate source directory safely under the GitHub workspace."""
     workspace_input = Path(workspace_dir)
@@ -62,6 +91,26 @@ def resolve_source_dir(source_dir: Path, workspace_dir: Path) -> Path:
     return candidate
 
 
+def copy_public_content(source: Path, destination: Path) -> None:
+    """Copy only public content as data; also used by source quality checks."""
+    index = source / "index.html"
+    if index.is_symlink() or not index.is_file():
+        raise ValueError("source directory must contain a regular index.html file")
+    if index.stat().st_size == 0:
+        raise ValueError("source index.html must not be empty")
+    assets = source / "assets"
+    _validate_assets_symlinks(assets)
+
+    shutil.copy2(index, destination / "index.html")
+    if assets.is_dir():
+        shutil.copytree(
+            assets,
+            destination / "assets",
+            ignore=shutil.ignore_patterns(".*"),
+        )
+    _copy_free_demo_browser_assets(source, destination)
+
+
 def stage_site(source_dir: Path, output_dir: Path, source_sha: str) -> Path:
     """Copy index.html and visible assets into output_dir and stamp the SHA."""
     if not isinstance(source_sha, str) or not SHA_PATTERN.fullmatch(source_sha):
@@ -79,27 +128,13 @@ def stage_site(source_dir: Path, output_dir: Path, source_sha: str) -> Path:
     if source in output.parents and output != source / "_site":
         raise ValueError("a staged output inside the source tree must use the _site directory")
 
-    index = source / "index.html"
-    if index.is_symlink() or not index.is_file():
-        raise ValueError("source directory must contain a regular index.html file")
-    if index.stat().st_size == 0:
-        raise ValueError("source index.html must not be empty")
-    assets = source / "assets"
-    _validate_assets_symlinks(assets)
-
     output.parent.mkdir(parents=True, exist_ok=True)
     if output.exists() and not output.is_dir():
         raise ValueError("output path exists and is not a directory")
 
     temporary = Path(tempfile.mkdtemp(prefix=f".{output.name}-", dir=output.parent))
     try:
-        shutil.copy2(index, temporary / "index.html")
-        if assets.is_dir():
-            shutil.copytree(
-                assets,
-                temporary / "assets",
-                ignore=shutil.ignore_patterns(".*"),
-            )
+        copy_public_content(source, temporary)
         (temporary / "deployment.json").write_text(
             json.dumps({"schema_version": 1, "source_sha": source_sha.lower()}) + "\n",
             encoding="utf-8",

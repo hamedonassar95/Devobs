@@ -1,3 +1,6 @@
+import { dashboardRequestUrl } from './static_demo.mjs';
+
+const STATIC_DEMO = document.documentElement.dataset.mode === 'free-demo';
 import {
   MAX_RUNBOOK_NOTES,
   readRunbookNotes,
@@ -12,7 +15,7 @@ import { buildGoogleChatReport, GOOGLE_CHAT_SCOPE, isValidGoogleChatSpaceName, s
 import { buildGoogleTasksFollowup, createGoogleTasksFollowup, GOOGLE_TASKS_SCOPE } from './google_tasks_followup.mjs';
 import { buildGoogleGmailReport, GOOGLE_GMAIL_SCOPE, isValidGoogleGmailAddress, sendGoogleGmailSummary } from './google_gmail_summary.mjs';
 
-const RUNBOOK_STORAGE_KEY = 'devobs_ai7_runbook_notes';
+const RUNBOOK_STORAGE_KEY = STATIC_DEMO ? 'devobs_free_demo_notes' : 'devobs_ai7_runbook_notes';
 const GOOGLE_CALENDAR_STORAGE_KEY = 'devobs_ai7_followup_calendar_id';
 let runbookNotes = [];
 let showArchivedRunbookNotes = false;
@@ -406,7 +409,8 @@ function renderRecommendations(recommendations) {
 }
 
 async function load(path) {
-  const response = await fetch(path, { method: 'GET', cache: 'no-store', credentials: 'same-origin' });
+  const url = dashboardRequestUrl(path, { staticDemo: STATIC_DEMO, moduleUrl: import.meta.url });
+  const response = await fetch(url, { method: 'GET', cache: 'no-store', credentials: STATIC_DEMO ? 'omit' : 'same-origin' });
   if (!response.ok) throw new Error('local_api_unavailable');
   return response.json();
 }
@@ -1025,24 +1029,26 @@ async function render() {
   try {
     const intelligence = await load('/api/v1/intelligence');
     intelligenceSnapshot = intelligence;
-    updateGoogleDocsButton();
-    updateGoogleSheetsButton();
-    updateGoogleSlidesButton();
-    updateGoogleTasksPreview();
-    updateGoogleGmailPreview();
-    try {
-      googleChatReport = buildGoogleChatReport(intelligence);
-    } catch {
-      googleChatReport = null;
+    if (!STATIC_DEMO) {
+      updateGoogleDocsButton();
+      updateGoogleSheetsButton();
+      updateGoogleSlidesButton();
+      updateGoogleTasksPreview();
+      updateGoogleGmailPreview();
+      try {
+        googleChatReport = buildGoogleChatReport(intelligence);
+      } catch {
+        googleChatReport = null;
+      }
+      updateGoogleChatPreview();
     }
-    updateGoogleChatPreview();
     renderSummary(intelligence.summary);
     renderPipeline(intelligence.pipeline.stages);
     renderAnomalies(intelligence.anomaly_analysis);
     renderTrends(intelligence.trend_analysis);
     renderIncidents(intelligence.incidents);
     renderRecommendations(intelligence.recommendations);
-    status.textContent = 'البيانات من لقطة محلية للقراءة فقط.';
+    status.textContent = STATIC_DEMO ? 'عينة اصطناعية ثابتة من محركات Devobs المحلية؛ لا مراقبة حية أو استدلال سحابي.' : 'البيانات من لقطة محلية للقراءة فقط.';
   } catch {
     status.textContent = 'تعذر تحميل اللقطة المحلية. تحقق من الملف ثم أعد تشغيل الخادم.';
   }
@@ -1050,11 +1056,13 @@ async function render() {
 
 initializeRunbookNotes();
 bindRunbookNotes();
-initializeGoogleDocsExport();
-initializeGoogleSheetsExport();
-initializeGoogleSlidesExport();
-initializeGoogleChatExport();
-initializeGoogleTasksFollowup();
-initializeGoogleGmailSummary();
-initializeGoogleCalendarFollowup();
+if (!STATIC_DEMO) {
+  initializeGoogleDocsExport();
+  initializeGoogleSheetsExport();
+  initializeGoogleSlidesExport();
+  initializeGoogleChatExport();
+  initializeGoogleTasksFollowup();
+  initializeGoogleGmailSummary();
+  initializeGoogleCalendarFollowup();
+}
 void render();

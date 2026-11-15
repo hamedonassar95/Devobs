@@ -250,6 +250,9 @@ test('server is loopback-only, same-origin, read-only, and emits browser hardeni
   assert.match(script.body, /drive\.file/);
   assert.doesNotMatch(script.body, /innerHTML/);
 
+  const staticModeModule = await request(port, '/static_demo.mjs', { origin });
+  assert.equal(staticModeModule.status, 200);
+  assert.match(staticModeModule.headers['content-type'], /javascript/);
   const noteModule = await request(port, '/runbook_notes.mjs', { origin });
   assert.equal(noteModule.status, 200);
   assert.match(noteModule.headers['content-type'], /javascript/);
