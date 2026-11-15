@@ -2,6 +2,34 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Activity, RefreshCw, ShieldCheck } from 'lucide-react';
 
 type Stage = { id: string; status: string; count: number };
+type Recommendation = {
+  review_order: number;
+  cause_id: string;
+  classification: 'POSSIBLE';
+  heuristic_signal: 'low' | 'medium';
+  event_count: number;
+  evidence_markers: string[];
+  requires_human_approval: true;
+  automatic_execution: false;
+};
+
+const CAUSES: Readonly<Record<string, string>> = {
+  timeout: 'مهلة عملية أو اعتماد',
+  connection: 'اتصال مرفوض أو مقطوع',
+  dns: 'حل اسم المضيف',
+  permission: 'صلاحية مورد',
+  dependency: 'حل وحدة أو اعتماد',
+  memory: 'حد الذاكرة',
+};
+const READ_ONLY_GUIDANCE: Readonly<Record<string, string>> = {
+  timeout: 'راجع توقيت أول خطوة متعثرة وحدود المهلة المسجلة، دون تعديل التشغيل.',
+  connection: 'قارن وقت الخطأ بحالة الخدمة وسجل الاتصال المصرح به، دون طلب تشغيل جديد.',
+  dns: 'راجع اسم الوجهة من الإعدادات المصرح بها دون إظهار أسرار أو تغيير DNS.',
+  permission: 'راجع هوية العملية وصلاحيات المورد قراءةً فقط دون توسيعها.',
+  dependency: 'قارن ملف القفل ومسار الاستيراد في SHA المتأثر دون إعادة النشر.',
+  memory: 'قارن قياسات الذاكرة وحجم المدخلات قبل اقتراح أي تغيير للموارد.',
+};
+
 type Snapshot = {
   source: 'local_ai7_snapshot';
   mode: 'local_advisory_only';
@@ -13,6 +41,7 @@ type Snapshot = {
     anomaly_candidate_count: number;
   };
   stages: Stage[];
+  recommendations: Recommendation[];
 };
 
 /** No implicit polling or network calls: refresh requires a direct click. */
@@ -20,6 +49,7 @@ export function LocalAi7Panel() {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [message, setMessage] = useState('لم يُطلب اتصال بالمحرك المحلي بعد.');
   const [loading, setLoading] = useState(false);
+  const [reviewedOrders, setReviewedOrders] = useState<number[]>([]);
   const active = useRef<AbortController | null>(null);
 
   useEffect(() => () => active.current?.abort(), []);
@@ -30,6 +60,7 @@ export function LocalAi7Panel() {
     active.current = controller;
     setLoading(true);
     setSnapshot(null);
+    setReviewedOrders([]);
     setMessage('جارٍ قراءة ملخص AI-7 المحلي...');
     try {
       const response = await fetch('/api/local-ai7/summary', {
@@ -42,7 +73,8 @@ export function LocalAi7Panel() {
       const checked = data as Snapshot;
       if (checked.source !== 'local_ai7_snapshot' || checked.read_only !== true
           || checked.mode !== 'local_advisory_only' || !Array.isArray(checked.stages)
-          || checked.stages.length !== 7 || !checked.summary) {
+          || checked.stages.length !== 7 || !checked.summary
+          || !Array.isArray(checked.recommendations)) {
         throw new Error('invalid_snapshot');
       }
       if (!controller.signal.aborted) {
@@ -100,6 +132,44 @@ export function LocalAi7Panel() {
                 <p className="mt-1 break-words text-[11px] text-slate-400">{stage.status}</p>
                 <p className="text-xs text-slate-400">عدد: {stage.count}</p>
               </div>
+            ))}
+          </div>
+          <div className="space-y-3">
+            <h4 className="font-bold text-indigo-200">
+              توصيات AI-4 الاستشارية ({snapshot.recommendations.length} معروضة من أصل {snapshot.summary.recommendation_count})
+            </h4>
+            {snapshot.recommendations.length === 0 && (
+              <p className="text-xs text-slate-400">لا توجد توصيات معروفة في اللقطة الحالية. هذا لا يثبت خلو النظام من الأعطال.</p>
+            )}
+            {snapshot.recommendations.map(item => (
+              <article key={item.review_order} className="rounded-xl border border-slate-700 bg-slate-950 p-4 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h5 className="font-bold text-white">
+                    {item.review_order}. {CAUSES[item.cause_id]}
+                  </h5>
+                  <span className="rounded-md border border-amber-800 bg-amber-950/40 px-2 py-1 text-xs text-amber-200">
+                    POSSIBLE — إشارة {item.heuristic_signal === 'medium' ? 'متوسطة' : 'منخفضة'} غير معايرة
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300">
+                  علامات الدليل: {item.evidence_markers.join(' · ')} · الأحداث المرتبطة: {item.event_count}
+                </p>
+                <p className="text-xs text-slate-300">
+                  فحص للقراءة فقط: {READ_ONLY_GUIDANCE[item.cause_id]}
+                </p>
+                <label className="flex items-start gap-2 text-xs text-slate-300">
+                  <input type="checkbox" checked={reviewedOrders.includes(item.review_order)}
+                    onChange={event => setReviewedOrders(previous =>
+                      event.target.checked
+                        ? [...previous, item.review_order]
+                        : previous.filter(order => order !== item.review_order))}
+                    className="mt-0.5 accent-indigo-500" />
+                  اطلعت على التوصية والأدلة (تأكيد قراءة محلي فقط؛ ليس موافقة على أي تغيير).
+                </label>
+                <p className="text-xs text-amber-200">
+                  يلزم اعتماد بشري منفصل قبل أي تغيير. التنفيذ التلقائي معطل.
+                </p>
+              </article>
             ))}
           </div>
           <p className="flex items-center gap-2 text-xs text-slate-400">
