@@ -8,9 +8,10 @@
 - External provider credentials stored in a managed secret store scoped per tenant. No API keys in source code, configuration samples, test outputs or public logs.
 - Tenant data isolation must be proven by integration tests for read, write, list, search, audit export, model retrieval and background workers, including deliberate cross-tenant attempts.
 - Hosted dashboard must show evidence age, policy decision, CI state, approval actor and historical incident provenance without granting model outputs admin privileges.
-- API keys must be hashed, revocable, restricted by tenant/project/operation, rotated, rate-limited and bound to an authenticated principal. Authentication and RBAC are **not implemented**.
+- API keys must be hashed, revocable, restricted by tenant/project/operation, rotated, rate-limited and bound to an authenticated principal. Strict OIDC access-token validation, tenant-scoped API checks and optional browser PKCE sign-in exist in source. **Hosted end-to-end identity, tenant lifecycle and RBAC acceptance remain unverified**; source/CI evidence is not production acceptance.
 - Stripe billing and metering **not configured**. Before charging customers: reviewed legal/tax eligibility, actual processor availability, webhook signature validation, idempotent invoice events, plan quotas, reconciliation, refunds/disputes and access after cancellation.
 - Integrations (email, Slack, Teams): notifications only after opted-in tenant authorization and message privacy review. None is active.
+- Public prototype inference/media routes are closed even with a provider key; they cannot substitute for authenticated, tenant-scoped, budget-approved Devobs operations. No prototype fallback establishes that a server was healed or that a diagnosis/forecast is real.
 
 ## Onboarding acceptance flow (target)
 
