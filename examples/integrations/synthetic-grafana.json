@@ -1,0 +1,59 @@
+{
+  "version": "1",
+  "groupKey": "synthetic-local-group",
+  "truncatedAlerts": 0,
+  "status": "firing",
+  "receiver": "local-only",
+  "groupLabels": {},
+  "commonLabels": {},
+  "commonAnnotations": {},
+  "externalURL": "https://monitoring.example.invalid",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "ServiceDown",
+        "severity": "critical",
+        "instance": "synthetic-host:9090"
+      },
+      "annotations": {
+        "description": "SYNTHETIC_ANNOTATION_NOT_FOR_EXPORT"
+      },
+      "startsAt": "2026-11-14T09:00:00.123456789Z",
+      "endsAt": "0001-01-01T00:00:00Z",
+      "generatorURL": "https://source.example.invalid",
+      "fingerprint": "0123456789abcdef",
+      "silenceURL": "https://grafana.example.invalid/silence",
+      "dashboardURL": "",
+      "panelURL": "",
+      "values": {
+        "A": 1.25
+      },
+      "valueString": "SYNTHETIC_GRAFANA_VALUE_NOT_FOR_EXPORT",
+      "orgId": 42
+    },
+    {
+      "status": "resolved",
+      "labels": {
+        "alertname": "HighCpuUsage",
+        "severity": "warning"
+      },
+      "annotations": {},
+      "startsAt": "2026-11-14T09:30:00Z",
+      "endsAt": "2026-11-14T10:00:00Z",
+      "generatorURL": "",
+      "fingerprint": "fedcba9876543210",
+      "silenceURL": "https://grafana.example.invalid/silence",
+      "dashboardURL": "",
+      "panelURL": "",
+      "values": null,
+      "valueString": "SYNTHETIC_GRAFANA_VALUE_NOT_FOR_EXPORT",
+      "orgId": 42
+    }
+  ],
+  "orgId": 42,
+  "title": "SYNTHETIC_GRAFANA_TEXT_NOT_FOR_EXPORT",
+  "state": "alerting",
+  "message": "SYNTHETIC_GRAFANA_TEXT_NOT_FOR_EXPORT",
+  "appVersion": "13.2.4"
+}
