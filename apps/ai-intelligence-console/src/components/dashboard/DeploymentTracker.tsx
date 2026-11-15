@@ -140,7 +140,7 @@ export const DeploymentTracker: React.FC<DeploymentTrackerProps> = ({
               className="px-4 py-2.5 text-xs font-bold rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition-colors flex items-center gap-1.5 shadow-sm"
             >
               <Plus className="w-4 h-4" />
-              <span>إطلاق نشر جديد</span>
+              <span>إضافة سجل تجريبي</span>
             </button>
           </div>
         </div>
@@ -197,21 +197,21 @@ export const DeploymentTracker: React.FC<DeploymentTrackerProps> = ({
               <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
                 <button
                   onClick={() => onRedeploy(deployment.id)}
-                  title="إعادة تشغيل النشر"
+                  title="معاينة فقط — لا يتم نشر إصدار حقيقي"
                   className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors flex items-center gap-1.5"
                 >
                   <Rocket className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>إعادة النشر</span>
+                  <span>معاينة إعادة النشر</span>
                 </button>
 
                 {deployment.status === 'successful' && (
                   <button
                     onClick={() => onRollback(deployment.id)}
-                    title="تراجع عن هذا الإصدار"
+                    title="معاينة فقط — لا يتم التراجع عن نشر حقيقي"
                     className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-950/70 hover:bg-rose-900 text-rose-300 border border-rose-800 transition-colors flex items-center gap-1.5"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
-                    <span>تراجع (Rollback)</span>
+                    <span>معاينة التراجع</span>
                   </button>
                 )}
               </div>
@@ -259,7 +259,7 @@ export const DeploymentTracker: React.FC<DeploymentTrackerProps> = ({
             <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
               <h3 className="text-base font-bold text-white flex items-center gap-2">
                 <Rocket className="w-5 h-5 text-indigo-500" />
-                إطلاق عملية نشر جديدة (New Deployment)
+                إضافة سجل نشر تجريبي (Demo Record)
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}

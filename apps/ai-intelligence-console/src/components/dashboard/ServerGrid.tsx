@@ -158,7 +158,7 @@ export const ServerGrid: React.FC<ServerGridProps> = ({
               className="px-4 py-2.5 text-xs font-bold rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white transition-colors flex items-center gap-1.5 shadow-sm"
             >
               <Plus className="w-4 h-4" />
-              <span>إضافة خادم جديد</span>
+              <span>إضافة خادم تجريبي</span>
             </button>
           </div>
         </div>
@@ -336,11 +336,11 @@ export const ServerGrid: React.FC<ServerGridProps> = ({
               <div className="flex items-center gap-2 pt-2 border-t border-slate-800">
                 <button
                   onClick={() => onRestartServer(server.id)}
-                  title="إعادة تشغيل الخادم"
+                  title="معاينة فقط — لن يُعاد تشغيل خادم حقيقي"
                   className="flex-1 py-1.5 px-2 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors flex items-center justify-center gap-1"
                 >
                   <RotateCw className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>إعادة تشغيل</span>
+                  <span>معاينة إعادة التشغيل</span>
                 </button>
 
                 <button

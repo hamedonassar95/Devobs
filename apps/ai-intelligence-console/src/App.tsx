@@ -18,6 +18,7 @@ import { AiIncidentModal } from './components/dashboard/AiIncidentModal';
 import { AiAuditModal } from './components/dashboard/AiAuditModal';
 import { exportServersToCSV, exportIncidentsToCSV, exportDeploymentsToCSV } from './utils/dashboardUtils';
 import { createRecordId } from './utils/ids';
+import { previewDemoAction } from './utils/demoActionPreview';
 import { initAuth, googleSignIn } from './services/googleAuthFacade';
 import {
   subscribeToServers,
@@ -249,45 +250,9 @@ export default function App() {
 
   // Server Actions
   const handleRestartServer = (serverId: string) => {
-    let updatedServer: Server | null = null;
-    setServers((prev) =>
-      prev.map((s) => {
-        if (s.id === serverId) {
-          updatedServer = {
-            ...s,
-            status: 'healthy',
-            cpu: Math.floor(Math.random() * 25) + 20,
-            memory: Math.floor(Math.random() * 30) + 40,
-            lastPing: 'الآن',
-          };
-          return updatedServer;
-        }
-        return s;
-      })
-    );
-
-    if (updatedServer) {
-      saveServerToFirestore(updatedServer);
-    }
-
-    const targetServer = servers.find((s) => s.id === serverId);
-    if (targetServer) {
-      const newInc: Incident = {
-        id: createRecordId('inc'),
-        serverId: targetServer.id,
-        serverName: targetServer.name,
-        severity: 'info',
-        code: 'SYS_REBOOT_SUCCESS',
-        message: `تمت إعادة تشغيل الخادم ${targetServer.name} يدوياً بنجاح واستعادة الحالة الطبيعية.`,
-        stackTrace: `Manual restart dispatched via web console.\nSystem daemon re-initialized all worker sockets.`,
-        timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
-        resolved: true,
-        resolvedAt: new Date().toISOString().replace('T', ' ').slice(0, 19),
-      };
-      setIncidents((prev) => [newInc, ...prev]);
-      saveIncidentToFirestore(newInc);
-      addToast(`⚡ تمت إعادة تشغيل الخادم ${targetServer.name} واستعادة المؤشرات الطبيعية`, 'success');
-    }
+    // No real service operation is available from this prototype UI.
+    if (!servers.some((server) => server.id === serverId)) return;
+    addToast(previewDemoAction('restart').message, 'info');
   };
 
   const handleToggleMaintenance = (serverId: string) => {
@@ -297,7 +262,7 @@ export default function App() {
         if (s.id === serverId) {
           const nextStatus = s.status === 'maintenance' ? 'healthy' : 'maintenance';
           updatedServer = { ...s, status: nextStatus };
-          addToast(`🛡️ تم تحويل الخادم ${s.name} إلى وضع [${nextStatus === 'maintenance' ? 'الصيانة' : 'العمل الطبيعي'}]`, 'info');
+          addToast(`🧪 تغيّرت حالة ${s.name} في بيانات العرض فقط إلى [${nextStatus === 'maintenance' ? 'الصيانة' : 'العمل الطبيعي'}].`, 'info');
           return updatedServer;
         }
         return s;
@@ -313,7 +278,7 @@ export default function App() {
     const srv = servers.find((s) => s.id === serverId);
     setServers((prev) => prev.filter((s) => s.id !== serverId));
     deleteServerFromFirestore(serverId);
-    if (srv) addToast(`🗑️ تم حذف الخادم ${srv.name} من قاعدة البيانات السحابية`, 'info');
+    if (srv) addToast(`🧪 تمت إزالة ${srv.name} من قائمة العرض التجريبية فقط؛ لم يُحذف خادم حقيقي.`, 'info');
   };
 
   const handleAddServer = (newServerData: Omit<Server, 'id' | 'uptimeDays' | 'lastPing'>) => {
@@ -325,7 +290,7 @@ export default function App() {
     };
     setServers((prev) => [newServer, ...prev]);
     saveServerToFirestore(newServer);
-    addToast(`🚀 تم تسجيل وتدشين الخادم الجديد [${newServer.name}] بنجاح`, 'success');
+    addToast(`🧪 أُضيف [${newServer.name}] إلى بيانات العرض التجريبية فقط، دون إنشاء خادم حقيقي.`, 'info');
   };
 
   // Incident Actions
@@ -339,7 +304,7 @@ export default function App() {
             resolved: true,
             resolvedAt: new Date().toISOString().replace('T', ' ').slice(0, 19),
           };
-          addToast(`✅ تم تحديث سجل الحادثة [${inc.code}] إلى محلولة`, 'success');
+          addToast(`🧪 تم تغيير حالة [${inc.code}] في سجل العرض التجريبي فقط.`, 'info');
           return resolvedItem;
         }
         return inc;
@@ -415,69 +380,18 @@ export default function App() {
       saveServerToFirestore(affectedServer);
     }
 
-    addToast(`⚠️ [Chaos Test]: تم حقن الحادثة [${picked.code}] على الخادم ${pickedServer.name}`, 'warning');
+    addToast(`🧪 [Demo]: أُضيفت حادثة محاكاة [${picked.code}] إلى قائمة العرض فقط؛ لم يُحقن عطل حقيقي.`, 'warning');
   };
 
   // Deployment Actions
   const handleRedeploy = (deploymentId: string) => {
-    let deployingItem: Deployment | null = null;
-    setDeployments((prev) =>
-      prev.map((d) => {
-        if (d.id === deploymentId) {
-          deployingItem = {
-            ...d,
-            status: 'in_progress',
-          };
-          return deployingItem;
-        }
-        return d;
-      })
-    );
-
-    if (deployingItem) {
-      saveDeploymentToFirestore(deployingItem);
-    }
-
-    setTimeout(() => {
-      let completedItem: Deployment | null = null;
-      setDeployments((prev) =>
-        prev.map((d) => {
-          if (d.id === deploymentId) {
-            completedItem = {
-              ...d,
-              status: 'successful',
-              timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
-            };
-            return completedItem;
-          }
-          return d;
-        })
-      );
-      if (completedItem) {
-        saveDeploymentToFirestore(completedItem);
-      }
-    }, 2000);
+    if (!deployments.some((deployment) => deployment.id === deploymentId)) return;
+    addToast(previewDemoAction('redeploy').message, 'info');
   };
 
   const handleRollback = (deploymentId: string) => {
-    let rolledItem: Deployment | null = null;
-    setDeployments((prev) =>
-      prev.map((d) => {
-        if (d.id === deploymentId) {
-          rolledItem = {
-            ...d,
-            status: 'rolled_back',
-            changeLog: `[تراجع تلقائي] تم التراجع عن هذا الإصدار للنسخة السابقة المستقرة.`,
-          };
-          return rolledItem;
-        }
-        return d;
-      })
-    );
-
-    if (rolledItem) {
-      saveDeploymentToFirestore(rolledItem);
-    }
+    if (!deployments.some((deployment) => deployment.id === deploymentId)) return;
+    addToast(previewDemoAction('rollback').message, 'info');
   };
 
   const handleAddNewDeployment = (newDepData: Omit<Deployment, 'id' | 'timestamp'>) => {
@@ -488,6 +402,7 @@ export default function App() {
     };
     setDeployments((prev) => [newDep, ...prev]);
     saveDeploymentToFirestore(newDep);
+    addToast('🧪 أُضيف سجل نشر تجريبي فقط؛ لم يتم نشر تطبيق حقيقي.', 'info');
   };
 
   // Reset Data to defaults
@@ -528,6 +443,9 @@ export default function App() {
       {/* Main Workspace */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8">
         <DevobsSession />
+        <div role="status" className="rounded-xl border border-amber-500/40 bg-amber-950/30 px-4 py-3 text-sm text-amber-100">
+          بيئة تجريبية (DEMO ONLY): السجلات والأزرار لا تُثبت حالة الخوادم أو تنفيذ نشر أو تراجع فعلي. الإجراءات التشغيلية هنا للمعاينة فقط، ولا تُصدر أوامر إلى البنية التحتية.
+        </div>
         {/* Top Context Subheader */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
           <div>
@@ -703,12 +621,6 @@ export default function App() {
               incidents={incidents}
               deployments={deployments}
             />
-
-      <div role="status" className="mx-auto mt-4 w-full max-w-7xl px-4 sm:px-6">
-        <div className="rounded-xl border border-amber-500/30 bg-amber-950/30 px-4 py-3 text-sm text-amber-100">
-          نسخة تجريبية: البيانات المعروضة خيالية ولا تتحكم بخوادم حقيقية. تكاملات Firebase وGoogle وGemini متوقفة افتراضيًا.
-        </div>
-      </div>
 
             {/* Live Metrics Chart */}
             <InteractiveMetricsChart metrics={INITIAL_METRICS_24H} />
