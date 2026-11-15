@@ -1,3 +1,10 @@
+## تكامل Grafana OSS المحلي وتسجيل #651 — 2026-11-15 (VERIFIED محليًا)
+
+- أساس الدفعة main عند `db9817ab811764c56971f88382925ae2a8a8f72c` بعد [#651](https://github.com/hamedonassar95/Devobs/pull/651). تحقق GitHub من دمج الرأس `cf67b5e95561ee3466941ef8fea6818b576b1632` ونجاح [PR CI 43771853803](https://github.com/hamedonassar95/Devobs/actions/runs/43771853803). أصبح الدفتر **264 إنجازًا**، آخرها #651، مع حفظ السجلات الـ263 السابقة والبوابات.
+- أضيف محوّل Grafana webhook v1 منفصل لأن الصيغة تختلف عن Alertmanager v4؛ يعيد استخدام التحقق المحلي القائم ولا يضعف المحوّل القديم. بُني العقد على مصدر alerting المثبت بواسطة Grafana 13.2.4، بما يشمل `values:null` و`valueString`. دليل المصادر الرسمية والحدود في [GRAFANA_WEBHOOK_BRIDGE.md](docs/integrations/GRAFANA_WEBHOOK_BRIDGE.md).
+- نجح الفحص المركز في 20 اختبارًا: النطاقات السبعة، القواعد الأربع، فصل هوية Grafana والمؤسسة والمشروع والخدمة، حدود الإدخال، رفض الدفعة كاملة، إسقاط المعلومات الحساسة وإعادة الاستيراد الفعلية دون تكرار إلى مخزن AI-1 ولوحة AI-7. يختار CI اختبارات Node حتى عند تعديل العينة وحدها. نجح أيضًا الفحص الشامل: 255 اختبار Node و1215 اختبار Python (37 متجاوزًا). هذا يثبت تحويل العينة محليًا، ولا يثبت تثبيت التكامل أو تسليم التنبيهات في المشاريع الأخرى.
+- لا مستقبِل webhook أو حساب أو سر أو نموذج أو جدولة أو خدمة مدفوعة جديدة. المخرجات metadata استرشادية فقط، وتتطلب البيانات الحقيقية مصدرًا ومراجعة خصوصية منفصلين. P01 **BLOCKED / NO-GO**، AI-9 **BLOCKED**، وقبول Codex runtime **OPEN**؛ المعاينة العامة وسقف الإنفاق وإعدادات السحابة دون تغيير.
+
 ## اكتمال المسار المجاني العام وتسجيل #644–#650 — 2026-11-15 (VERIFIED)
 
 - نُشرت [معاينة Devobs المجانية](https://hamedonassar95.github.io/Devobs/assets/free-devobs/) بعد دمج [#650](https://github.com/hamedonassar95/Devobs/pull/650) من `235dbf95df088e35cf670707369a3459a294b8c2` عند `e056a247aa0a527b24108b90f355881a98302871`. نجح [PR CI 43770650655](https://github.com/hamedonassar95/Devobs/actions/runs/43770650655) و[main CI 43770893733](https://github.com/hamedonassar95/Devobs/actions/runs/43770893733) وCodeQL. طابق manifest العام SHA الدمج، وطابقت الأصول العامة الـ13 بايتات المصدر المراجع، مع CSP ونوع JavaScript صحيحين.

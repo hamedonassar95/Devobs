@@ -139,6 +139,7 @@ jobs:
           node --check scripts/integrations/cineforge_ci_runner_triage.mjs
           node --check scripts/integrations/project_sources.mjs
           node --check scripts/integrations/alertmanager_adapter.mjs
+          node --check scripts/integrations/grafana_webhook_adapter.mjs
           node --check scripts/integrations/otlp_error_rate_adapter.mjs
           node --check scripts/local_advisory_acceptance.mjs
           node --check scripts/free_demo_snapshot.mjs
@@ -175,6 +176,7 @@ jobs:
           node --check tests/cloudevents_ci_adapter.test.mjs
           node --check tests/cineforge_ci_runner_triage.test.mjs
           node --check tests/alertmanager_adapter.test.mjs
+          node --check tests/grafana_webhook_adapter.test.mjs
           node --check tests/otlp_error_rate_adapter.test.mjs
           node --check tests/local_advisory_acceptance.test.mjs
           node --check tests/ai_anomaly_detector.test.mjs
@@ -203,6 +205,7 @@ jobs:
           node --test tests/cloudevents_ci_adapter.test.mjs tests/alertmanager_adapter.test.mjs tests/local_advisory_acceptance.test.mjs tests/otlp_error_rate_adapter.test.mjs
           node --test tests/cineforge_ci_runner_triage.test.mjs
           node --test tests/free_static_demo.test.mjs
+          node --test tests/grafana_webhook_adapter.test.mjs
           node --test tests/post_detector_confirmation_adapter.test.mjs
           node --test tests/post_detector_confirmation_journal.test.mjs
           node --test tests/ai9_fp_slice_exploration.test.mjs

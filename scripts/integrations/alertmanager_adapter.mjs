@@ -42,7 +42,7 @@ function stringMap(value) {
       && typeof item === 'string' && item.length <= 4096);
 }
 function status(value) { return value === 'firing' || value === 'resolved'; }
-function validateScope(scope) {
+export function validateScope(scope) {
   if (!fields(scope, ['projectSource', 'serviceId'])
     || typeof scope.projectSource !== 'string'
     || !Object.hasOwn(ALLOWED_SOURCES, scope.projectSource)
