@@ -141,6 +141,8 @@ jobs:
           node --check scripts/integrations/alertmanager_adapter.mjs
           node --check scripts/integrations/otlp_error_rate_adapter.mjs
           node --check scripts/local_advisory_acceptance.mjs
+          node --check scripts/free_demo_snapshot.mjs
+          node --check tests/free_static_demo.test.mjs
           node --check scripts/ai_intelligence/anomaly_detector.mjs
           node --check scripts/ai_intelligence/anomaly_report.mjs
           node --check scripts/ai_intelligence/incident_analysis.mjs
@@ -200,6 +202,7 @@ jobs:
           node --test tests/incident_guard.test.cjs tests/ai_event_ingest.test.mjs tests/repository_dispatch_event.test.mjs tests/ai_anomaly_detector.test.mjs tests/ai_incident_analysis.test.mjs tests/ai_recommendations.test.mjs tests/ai_trend_forecast.test.mjs tests/ai_feedback_learning.test.mjs tests/ai_dashboard_api.test.mjs tests/google_calendar_followup.test.mjs tests/google_sheets_export.test.mjs tests/google_slides_export.test.mjs tests/google_chat_export.test.mjs tests/google_tasks_followup.test.mjs tests/google_gmail_summary.test.mjs
           node --test tests/cloudevents_ci_adapter.test.mjs tests/alertmanager_adapter.test.mjs tests/local_advisory_acceptance.test.mjs tests/otlp_error_rate_adapter.test.mjs
           node --test tests/cineforge_ci_runner_triage.test.mjs
+          node --test tests/free_static_demo.test.mjs
           node --test tests/post_detector_confirmation_adapter.test.mjs
           node --test tests/post_detector_confirmation_journal.test.mjs
           node --test tests/ai9_fp_slice_exploration.test.mjs
@@ -471,6 +474,19 @@ jobs:
             docker inspect --format '{{json .State.Health}}' "$container_name" >&2
             exit 1
           fi
+          if ! curl --fail --silent --show-error --head http://127.0.0.1:18080/assets/free-devobs/static_demo.mjs | grep -Ei '^Content-Type: (application|text)/javascript' >/dev/null; then
+            echo 'Free demo browser module is missing or has an invalid MIME type.' >&2
+            exit 1
+          fi
+          curl --fail --silent --show-error --max-time 10 http://127.0.0.1:18080/assets/free-devobs/index.html --output "$RUNNER_TEMP/free-demo.html"
+          python3 - "$RUNNER_TEMP/free-demo.html" <<'PY'
+          from pathlib import Path
+          import sys
+          from scripts.check_site import validate_free_demo
+          errors = validate_free_demo(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          if errors:
+              raise SystemExit("Container free-demo profile validation failed: " + "; ".join(errors))
+          PY
           # Drain the response: grep -q can close the pipe early and make curl fail.
           # https://www.gnu.org/software/grep/manual/html_node/General-Output-Control.html
           if ! curl --fail --silent --show-error http://127.0.0.1:18080/ | grep -i '<!doctype html' >/dev/null; then
