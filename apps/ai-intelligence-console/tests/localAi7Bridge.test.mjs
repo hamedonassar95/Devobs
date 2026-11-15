@@ -4,6 +4,8 @@ import { createServer } from 'node:http';
 import http from 'node:http';
 import express from 'express';
 import { createLocalAi7Handler } from '../localAi7Bridge.ts';
+import { normalizeEvent } from '../../../scripts/ai_intelligence/event_ingest.mjs';
+import { buildDashboardSnapshot } from '../../../scripts/ai_intelligence/dashboard_server.mjs';
 
 const payload = () => ({
   schema_version: 1, status: 'local_snapshot',
@@ -107,4 +109,20 @@ test('redirects and oversized bodies fail closed without exposing content', asyn
   assert.equal((await redir.request()).status, 503);
   const oversized = await fixture(t, { fetchImpl: async () => new Response('z'.repeat(70000), { headers: { 'content-type': 'application/json' } }) });
   assert.equal((await oversized.request()).status, 503);
+});
+
+test('the actual AI-7 engine aggregate contract is accepted without forwarding raw logs', async t => {
+  const event = normalizeEvent({
+    schema_version: 1,
+    occurred_at: '2026-11-15T20:00:00.000Z',
+    source: 'application', kind: 'log', severity: 'error',
+    data: { stream: 'stderr', message: 'PRIVATE_EVENT_DIAGNOSTIC_MUST_NOT_APPEAR ETIMEDOUT request timed out' },
+  });
+  const realSnapshot = buildDashboardSnapshot([event]);
+  const { request } = await fixture(t, { fetchImpl: async () => Response.json(realSnapshot) });
+  const response = await request();
+  assert.equal(response.status, 200);
+  assert.equal(response.data.summary.event_count, 1);
+  assert.equal(response.data.stages.length, 7);
+  assert.doesNotMatch(JSON.stringify(response.data), /PRIVATE_EVENT_DIAGNOSTIC_MUST_NOT_APPEAR/);
 });
