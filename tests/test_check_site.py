@@ -4,8 +4,10 @@ import re
 import os
 import subprocess
 import sys
+import tempfile
 import unittest
 from scripts.check_site import Page, validate, validate_free_demo
+from scripts.stage_site import copy_public_content
 
 SOURCE = (Path(__file__).resolve().parents[1] / 'index.html').read_text(encoding='utf-8')
 EXPECTED_TITLE = 'Devobs | خدمات DevOps والبرمجيات للشركات | Software & DevOps Services'
@@ -145,6 +147,29 @@ class FreeDemoContractTests(unittest.TestCase):
 
 
 class SourceFreeDemoSmokeTests(unittest.TestCase):
+    def report_candidate(self, keep_link):
+        root = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory() as directory:
+            staged = Path(directory)
+            copy_public_content(root, staged)
+            (staged / 'assets/free-devobs/integration-acceptance.json').unlink()
+            if not keep_link:
+                html = staged / 'assets/free-devobs/index.html'
+                html.write_text('\n'.join(line for line in html.read_text().splitlines()
+                                           if 'integration-acceptance.json' not in line))
+            return subprocess.run([sys.executable, str(root / 'scripts/check_site.py')],
+                                  cwd=root, env={**os.environ, 'SITE_ROOT': directory},
+                                  capture_output=True, text=True, timeout=15)
+
+    def test_report_download_link_requires_its_file(self):
+        result = self.report_candidate(keep_link=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('Free demo integration report is missing', result.stderr)
+
+    def test_older_free_profile_without_report_link_or_file_still_passes(self):
+        result = self.report_candidate(keep_link=False)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_source_checkout_can_be_checked_without_generated_browser_files(self):
         root = Path(__file__).resolve().parents[1]
         generated = root / 'assets/free-devobs/dashboard.js'

@@ -1,0 +1,261 @@
+{
+  "schema_version": 1,
+  "status": "PASS",
+  "scope": "offline_synthetic_namespaces_only",
+  "production_ready": false,
+  "live_integrations_verified": false,
+  "totals": {
+    "projects": 7,
+    "unique_events": 35,
+    "accepted": 35,
+    "duplicate_ignored_on_replay": 35,
+    "severity_counts": {
+      "critical": 14,
+      "warning": 15,
+      "info": 5,
+      "error": 1,
+      "unknown": 0
+    }
+  },
+  "results": [
+    {
+      "project": "Devobs",
+      "provider_counts": {
+        "cloudevents_ci": 1,
+        "alertmanager_v4": 2,
+        "grafana_v1": 2
+      },
+      "accepted": 5,
+      "stored_events": 5,
+      "duplicate_ignored_on_replay": 5,
+      "synthetic_ci_conclusion": "success",
+      "incident_counts": {
+        "open": 2,
+        "resolved": 2
+      },
+      "severity_counts": {
+        "critical": 2,
+        "warning": 2,
+        "info": 1,
+        "error": 0,
+        "unknown": 0
+      },
+      "pipeline_stage_counts": [
+        5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "log_clusters": 0,
+      "recommendations": 0
+    },
+    {
+      "project": "devobs-saas",
+      "provider_counts": {
+        "cloudevents_ci": 1,
+        "alertmanager_v4": 2,
+        "grafana_v1": 2
+      },
+      "accepted": 5,
+      "stored_events": 5,
+      "duplicate_ignored_on_replay": 5,
+      "synthetic_ci_conclusion": "success",
+      "incident_counts": {
+        "open": 2,
+        "resolved": 2
+      },
+      "severity_counts": {
+        "critical": 2,
+        "warning": 2,
+        "info": 1,
+        "error": 0,
+        "unknown": 0
+      },
+      "pipeline_stage_counts": [
+        5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "log_clusters": 0,
+      "recommendations": 0
+    },
+    {
+      "project": "phone-repair-assistant-v2",
+      "provider_counts": {
+        "cloudevents_ci": 1,
+        "alertmanager_v4": 2,
+        "grafana_v1": 2
+      },
+      "accepted": 5,
+      "stored_events": 5,
+      "duplicate_ignored_on_replay": 5,
+      "synthetic_ci_conclusion": "failure",
+      "incident_counts": {
+        "open": 2,
+        "resolved": 2
+      },
+      "severity_counts": {
+        "critical": 2,
+        "warning": 2,
+        "info": 0,
+        "error": 1,
+        "unknown": 0
+      },
+      "pipeline_stage_counts": [
+        5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "log_clusters": 0,
+      "recommendations": 0
+    },
+    {
+      "project": "al-dala-mobile",
+      "provider_counts": {
+        "cloudevents_ci": 1,
+        "alertmanager_v4": 2,
+        "grafana_v1": 2
+      },
+      "accepted": 5,
+      "stored_events": 5,
+      "duplicate_ignored_on_replay": 5,
+      "synthetic_ci_conclusion": "skipped",
+      "incident_counts": {
+        "open": 2,
+        "resolved": 2
+      },
+      "severity_counts": {
+        "critical": 2,
+        "warning": 3,
+        "info": 0,
+        "error": 0,
+        "unknown": 0
+      },
+      "pipeline_stage_counts": [
+        5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "log_clusters": 0,
+      "recommendations": 0
+    },
+    {
+      "project": "LiveOps-Integration",
+      "provider_counts": {
+        "cloudevents_ci": 1,
+        "alertmanager_v4": 2,
+        "grafana_v1": 2
+      },
+      "accepted": 5,
+      "stored_events": 5,
+      "duplicate_ignored_on_replay": 5,
+      "synthetic_ci_conclusion": "neutral",
+      "incident_counts": {
+        "open": 2,
+        "resolved": 2
+      },
+      "severity_counts": {
+        "critical": 2,
+        "warning": 2,
+        "info": 1,
+        "error": 0,
+        "unknown": 0
+      },
+      "pipeline_stage_counts": [
+        5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "log_clusters": 0,
+      "recommendations": 0
+    },
+    {
+      "project": "DevObs-ai-Intelligence-",
+      "provider_counts": {
+        "cloudevents_ci": 1,
+        "alertmanager_v4": 2,
+        "grafana_v1": 2
+      },
+      "accepted": 5,
+      "stored_events": 5,
+      "duplicate_ignored_on_replay": 5,
+      "synthetic_ci_conclusion": "success",
+      "incident_counts": {
+        "open": 2,
+        "resolved": 2
+      },
+      "severity_counts": {
+        "critical": 2,
+        "warning": 2,
+        "info": 1,
+        "error": 0,
+        "unknown": 0
+      },
+      "pipeline_stage_counts": [
+        5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "log_clusters": 0,
+      "recommendations": 0
+    },
+    {
+      "project": "CineForge-AI",
+      "provider_counts": {
+        "cloudevents_ci": 1,
+        "alertmanager_v4": 2,
+        "grafana_v1": 2
+      },
+      "accepted": 5,
+      "stored_events": 5,
+      "duplicate_ignored_on_replay": 5,
+      "synthetic_ci_conclusion": "success",
+      "incident_counts": {
+        "open": 2,
+        "resolved": 2
+      },
+      "severity_counts": {
+        "critical": 2,
+        "warning": 2,
+        "info": 1,
+        "error": 0,
+        "unknown": 0
+      },
+      "pipeline_stage_counts": [
+        5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "log_clusters": 0,
+      "recommendations": 0
+    }
+  ],
+  "cleanup": "complete"
+}

@@ -32,6 +32,7 @@ class NodePipelineSelectionTests(unittest.TestCase):
             "examples/integrations/synthetic-alertmanager.json",
             "examples/integrations/synthetic-grafana.json",
             "assets/free-devobs/snapshot.json",
+            "assets/free-devobs/integration-acceptance.json",
             "tests/fixtures/intelligence_eval_cases.json",
         ):
             with self.subTest(path=path):
