@@ -16,8 +16,9 @@ The only accepted `source` identifiers are:
 | al-dala-mobile | `https://github.com/hamedonassar95/al-dala-mobile` |
 | LiveOps-Integration | `https://github.com/hamedonassar95/LiveOps-Integration` |
 | DevObs-ai-Intelligence- | `https://github.com/hamedonassar95/DevObs-ai-Intelligence-` |
+| CineForge-AI | `https://github.com/hamedonassar95/CineForge-AI` |
 
-These names are configured only for synthetic/local conversion. This task does not connect to or modify any of these other repositories.
+These names are configured only for synthetic/local conversion. CineForge-AI is represented by the synthetic fixture only. No private CineForge-AI repository content, CI logs, or build artifacts were accessed or copied; this change does not connect to or modify any other repository, enable a live sender, configure a webhook, or introduce `repository_dispatch`.
 
 ## Supported event format
 
@@ -64,6 +65,8 @@ Before any optional ingestion, review the complete converted batch and confirm i
 
 CloudEvents `source` and `id` are untrusted claims. This adapter has no signature verification, webhook authentication, repository lookup, source attestation, or network access; an allowlisted source does not authenticate provenance or prove a CI run succeeded. The example data is synthetic and conveys no evidence about actual project status.
 
+The CineForge-AI source entry is independent of the [PR #622 review-only handoff gate](../CINEFORGE_CI_REVIEW_HANDOFF.md). That gate remains a self-declared `REVIEW_ONLY` decision and does not authorize transfer. Neither the adapter allowlist nor its conversion result widens that gate or establishes owner approval.
+
 Only workflow/job labels, the conclusion, commit SHA, and event time are mapped. Raw logs, test output, branch names, user identities, email addresses, URLs, tokens, and arbitrary CI payload fields are not accepted. AI-1's existing pattern checks and this adapter's bounded-label checks reduce accidental leakage but cannot identify every form of sensitive or personal data. Treat input as untrusted and review it before local ingestion.
 
 No live adapter is approved by this change. Any future live source needs a separately reviewed design and owner approval covering authentication/signature verification, exact event scope, data minimization, retention, least-privilege sender/receiver access, replay handling, observability, and failure behavior. Any workflow, webhook, cloud resource, credential, or production change requires its own approval and security review. P01 remains **NO-GO / BLOCKED** and AI-9 remains **BLOCKED**.
@@ -88,7 +91,7 @@ Revert the integration PR or remove the adapter, its tests, fixture, this docume
 
 The existing CI Node job runs the adapter tests and the local advisory acceptance
 suite. Fixture-only changes to the CloudEvents sample or local advisory input
-also select the Node job. The adapter integration test converts the six synthetic project fixtures,
+also select the Node job. The adapter integration test converts seven synthetic project fixtures,
 ingests them with AI-1, and reads the AI-7 HTTP API on an ephemeral loopback port.
 It verifies exact event/severity counts, repeat-ingestion deduplication, rejection
 of POST writes, and omission of source URLs, provider IDs and commit SHAs from

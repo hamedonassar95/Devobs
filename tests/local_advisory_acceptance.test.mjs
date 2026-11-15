@@ -84,7 +84,8 @@ test('keeps logs private, closes the dashboard, and removes temporary files', as
   assert.equal(output.safeguards.automatic_execution, false);
   assert.equal(output.safeguards.deployment_executed, false);
   assert.equal(output.safeguards.remediation_executed, false);
-  assert.ok(output.event_count <= 100);
+  assert.equal(output.event_count, 24);
+  assert.equal(output.stages.find(stage => stage.id === 'AI-1')?.count, 24);
   assert.ok(output.recommendation_count <= 100);
   assert.equal(output.safeguards.dashboard_shutdown, 'graceful');
   assert.equal(output.safeguards.temporary_artifacts_removed, true);
