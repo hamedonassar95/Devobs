@@ -30,6 +30,17 @@
 
 **Stop condition:** If data importance, retention permissions, backup feasibility, full costs, or decision authority is unknown, report **NO-GO / NEEDS OWNER DECISION**. The appropriate next action is a narrowly scoped human decision and, if preservation is chosen, a separately approved data-handling procedure. No scheduled checking, resource operation, deployment, backup, or deletion is initiated by this document.
 
+## Manual offline expiry preflight (no Render requests)
+
+The optional [expiry preflight script](../scripts/check_render_free_expiry.py) reads only the small, checked-in [sanitized snapshot](p01/render-free-expiry-snapshot.json). Its `observed_on` date is the last verified read-only inventory date, **not a continually refreshed provider status**. Run from the repository root:
+
+```sh
+python3 scripts/check_render_free_expiry.py --json
+python3 -m unittest discover -s tests -p 'test_render_free_expiry.py' -v
+```
+
+The CLI uses UTC and returns `REVIEW_REQUIRED` when the deadline is within 30 days, `EXPIRED` after it passes, `STALE_INVENTORY` when the last snapshot is more than 7 days old, or `UNAVAILABLE` for a non-available service. Malformed or credential-bearing snapshots are rejected without echoing input values. Exit codes are `1` for these review/block states and `2` for an invalid snapshot; a `0` means **only** that a verified snapshot shows a more distant expiry, never production GO or verified current billing. Refreshing snapshot metadata requires a separate authorized, read-only provider observation. This manual tool is **not** scheduled and never connects, deploys, upgrades, backs up, or deletes resources.
+
 ## Decision required before 2026-12-05
 
 The owner must explicitly choose an approved **Free-resource retention/retirement approach** before the reported expiry date. Options for review are to retain the current temporary DB only within the provider's actually verified Free terms, or to plan an explicitly authorized retirement after checking whether any data must be preserved. **No default action is selected.** Do not delete, renew, upgrade, migrate, trigger hosted deploys, run chargeable backups, or alter access lists without a new scope-specific approval and a retention/recovery assessment.
