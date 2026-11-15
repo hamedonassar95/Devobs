@@ -12,6 +12,7 @@ ALLOWED = {
     ("devobs", "devobs-saas", "ci_report"),
     ("devobs", "phone-repair-assistant-v2", "ci_report"),
     ("devobs", "al-dala-mobile", "ci_report"),
+    ("cineforge-ai", "devobs", "ci_report"),
     ("phone-repair-assistant-v2", "al-dala-mobile", "knowledge_package"),
 }
 FIELDS = {
