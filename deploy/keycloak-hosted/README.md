@@ -1,5 +1,9 @@
 # Dedicated hosted Keycloak candidate — review/plan only
 
+**Current budget decision: no paid activation.** Retain the enforceable all-in
+USD 100 ceiling, with a USD 70 planning target and USD 80 intervention threshold.
+See the [budget envelope and owner decision](../../docs/P01_RENDER_BUDGET_ENVELOPE.md).
+
 This is a separate service and durable PostgreSQL database, not the disposable
 local fixture and not the existing Devobs API database. Nothing in these files
 starts a service, creates keys/users or authorizes billing. Keep P01 NO-GO.

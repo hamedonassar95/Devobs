@@ -1,3 +1,7 @@
+## Current Render spending decision — paid activation remains blocked
+
+**VERIFIED owner direction:** retain the enforceable USD 100/month combined ceiling and do not activate paid resources now. USD 70 is the operating planning target and USD 80 the intervention threshold; neither is an activated provider control. [The budget envelope](P01_RENDER_BUDGET_ENVELOPE.md) records the current USD 54 Hobby / USD 79 Pro compute-and-storage baseline, exclusions and backup/financial gaps. No all-in stop is verified, no invoice-overrun acceptance was given, and no provider setting or resource changed. P01 and AI-9 remain **BLOCKED**, Codex runtime **OPEN**. A generic budget question is already resolved; enforcement, identity, callback, TLS/network and recovery evidence remain necessary.
+
 ## PR #626 — optional read-only console sign-in prepared; live identity unverified
 
 **VERIFIED from GitHub:** [PR #626](https://github.com/hamedonassar95/Devobs/pull/626) merged at `f0a6aefb5f1174895b38490eb2f042a9f4260c6b` from head `287072470907ff71acbb63f5a353def5adfb66c0`. Exact-head [PR CI 43710086046](https://github.com/hamedonassar95/Devobs/actions/runs/43710086046), [push CI 43710059219](https://github.com/hamedonassar95/Devobs/actions/runs/43710059219) and CodeQL passed. Exact-merge [main CI 43710271936](https://github.com/hamedonassar95/Devobs/actions/runs/43710271936) and [Push on main 43710271634](https://github.com/hamedonassar95/Devobs/actions/runs/43710271634) passed; static Pages publication/verification does not deploy this console or its API.
