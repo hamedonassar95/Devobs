@@ -16,6 +16,23 @@ This is the preserved React/TypeScript prototype from the former `DevObs-ai-Inte
 - `GEMINI_API_KEY` does not activate the closed prototype routes. The server constructs no Gemini client; legacy handlers remain reference code behind the closed route guard. Re-enabling inference requires reviewed identity, tenant authorization, data policy and cost controls, not a key or budget boolean alone.
 - No live Gemini request is part of CI or this prototype's release checks. The new real-server tests explicitly forbid provider network traffic.
 
+## Advisory-only controls (demo safety)
+
+The **Restart**, **Redeploy**, and **Rollback** controls are now explicit **preview-only** actions. Clicking them displays a non-executing demo message: it does **not** mark a server healthy, change deployment status, fabricate a successful restart/rollback incident, call a cloud API, or trigger a CI deployment. The console shows an always-visible Arabic `DEMO ONLY` banner on every tab, not just Overview.
+
+The separate server and incident editing forms remain **local prototype records** (or optional disabled-by-default Firebase data functions), not infrastructure commands. Their confirmation toasts say so; adding a deployment record is not an actual deploy. No new authorization, provider or inference capability was added. The existing protected, manual diagnostics proxy remains separate and disabled unless independently configured; this change neither enables nor invokes it.
+
+Run the focused no-network regression check with the existing console tooling:
+
+```sh
+node --import tsx --test tests/demoActionPreview.test.mjs
+npm test
+npm run lint
+npm run build
+```
+
+The focused test exercises all three immutable preview outcomes; it does not constitute browser E2E, a real-server action test, or P01 hosted acceptance. Do not represent the mock records as measured production telemetry. A future real-operation controller must be separately designed with scoped identity, independent authorization, auditable human confirmation, and the still-blocked production gates.
+
 ## Run the local prototype
 
 Requirements: Node.js 24 (recommended) or 22.12+ and npm.
