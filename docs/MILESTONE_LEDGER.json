@@ -2906,6 +2906,17 @@
       "ci_run_id": 43771853803,
       "verification": "VERIFIED 2026-11-15 via GitHub merged PR #651 metadata and successful exact-head PR CI 43771853803. It appended seven milestones #644–#650 and preserved all previous 256 records and gate fields; milestone tests passed 69/69. Completed free static delivery evidence and limits are saved in STATE.md and issue #221.",
       "limitations": "Evidence reconciliation and test expectations only; no provider connection, paid resource, hosted identity/isolation/recovery, all-in financial enforcement or independent AI-9 evaluation. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-grafana-oss-local-bridge-pr652",
+      "area": "PLATFORM",
+      "title": "Convert Grafana OSS v1 notifications into scoped local AI-1 incidents",
+      "pr_number": 652,
+      "pr_head_sha": "99963b3f9eb1c36899e59acbdfb0b8d224d05b3f",
+      "merge_sha": "bc78d1dc439d9befe9a37c1a9fed168f5468826a",
+      "ci_run_id": 43773872003,
+      "verification": "VERIFIED 2026-11-15 via merged PR #652 and exact-head PR CI 43773872003 success; all 32 source checks completed successfully or intentionally skipped. Main CI 43774261562 and CodeQL 43774261092 succeeded. Local Node suite passed 255 tests; Python 1215 OK (37 skipped); focused Grafana/Alertmanager tests passed 20. Pinned Grafana 13.2.4 source compatibility and independent read-only review were checked.",
+      "limitations": "Offline default Grafana v1 JSON conversion only; no receiver, authenticated sender, live monitoring delivery or installation in another project. Unsupported image/enrichment extensions rejected. No new resource, credential, model or paid operation. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
     }
   ],
   "gates": [

@@ -9,6 +9,10 @@ records the comparison of open-source integration types and their limits.
 converter because their default payload differs from Alertmanager v4. It reuses
 the same seven project namespaces and local incident validation, without a receiver.
 
+[Offline portfolio acceptance](PORTFOLIO_ACCEPTANCE.md) runs all three formats
+through separate temporary stores for the seven namespaces and publishes only
+synthetic aggregate results. It establishes no live project connection.
+
 > **Status:** documentation and evidence inventory only. This directory does **not** install GitHub Apps, connect provider accounts, enable deployments, grant scopes, or create automation schedules. The trusted Codex config separately declares an opt-in-at-runtime public read-only documentation MCP, not an authenticated third-party account.
 
 **Review date:** 2026-11-12 (the original five observations date from 2026-10-25; subsequent checks are dated per record). **Repository:** public `hamedonassar95/Devobs`. The evidence below is a point-in-time observation and must not be treated as a continuously monitored status page.
