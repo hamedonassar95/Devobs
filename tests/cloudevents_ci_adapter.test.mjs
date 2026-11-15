@@ -20,6 +20,7 @@ const SOURCES = [
   ['https://github.com/hamedonassar95/al-dala-mobile', 'al-dala-mobile'],
   ['https://github.com/hamedonassar95/LiveOps-Integration', 'LiveOps-Integration'],
   ['https://github.com/hamedonassar95/DevObs-ai-Intelligence-', 'DevObs-ai-Intelligence-'],
+  ['https://github.com/hamedonassar95/CineForge-AI', 'CineForge-AI'],
 ];
 
 function event(overrides = {}) {
@@ -77,6 +78,7 @@ test('converts allowlisted structured CloudEvents and reuses the exact AI-1 inpu
     assert.equal(actual.data.conclusion, 'success');
     assert.equal(actual.data.commit_sha, 'a'.repeat(40));
   }
+  assert.equal(parsed.events.at(-1).data.workflow, 'CineForge-AI - CI build');
 });
 
 test('maps every supported conclusion to a deterministic AI-1 severity', () => {
@@ -104,6 +106,7 @@ test('rejects unsupported CloudEvents versions, types, sources, content types, a
     [event({ specversion: '0.3' }), 'unsupported_specversion'],
     [event({ type: 'devobs.ci.result.v2' }), 'unsupported_type'],
     [event({ source: 'https://github.com/other/repo' }), 'unknown_source'],
+    [event({ source: 'https://github.com/hamedonassar95/CineForge-AI/tree/main' }), 'unknown_source'],
     [event({ datacontenttype: 'application/json; charset=utf-8' }), 'unsupported_content_type'],
     [event({ extension: 'unexpected' }), 'invalid_cloudevent_fields'],
     [event({ time: undefined }), 'invalid_cloudevent_fields'],
@@ -121,6 +124,8 @@ test('rejects duplicate JSON keys and duplicate source/id pairs', () => {
   const duplicateKey = '{"specversion":"1.0","id":"same","id":"different"}\n';
   assert.throws(() => convertText(duplicateKey), { code: 'duplicate_json_key' });
   assert.throws(() => convertText(jsonl([event(), event()])), { code: 'duplicate_source_id' });
+  const cineForgeEvent = event({ id: 'cineforge-run-001', source: SOURCES.at(-1)[0] });
+  assert.throws(() => convertText(jsonl([cineForgeEvent, cineForgeEvent])), { code: 'duplicate_source_id' });
 });
 
 test('rejects missing or extra result fields, malformed SHA values, and unsafe labels', () => {
@@ -223,11 +228,11 @@ test('synthetic CloudEvents reach the read-only AI-7 API through AI-1 without du
   const storePath = path.join(directory, 'events.jsonl');
   const fixture = await readFile(path.join(ROOT, 'examples/integrations/synthetic-ci-events.jsonl'), 'utf8');
   const converted = convertText(fixture);
-  assert.deepEqual(await ingestText(converted, storePath), { accepted: 6, duplicateIgnored: 0 });
+  assert.deepEqual(await ingestText(converted, storePath), { accepted: 7, duplicateIgnored: 0 });
   const before = await readFile(storePath);
-  assert.deepEqual(await ingestText(converted, storePath), { accepted: 0, duplicateIgnored: 6 });
+  assert.deepEqual(await ingestText(converted, storePath), { accepted: 0, duplicateIgnored: 7 });
   assert.deepEqual(await readFile(storePath), before);
-  assert.equal((await readEventStore(storePath)).length, 6);
+  assert.equal((await readEventStore(storePath)).length, 7);
 
   const server = await createDashboardServer({ storePath });
   t.after(() => new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve())));
@@ -241,10 +246,10 @@ test('synthetic CloudEvents reach the read-only AI-7 API through AI-1 without du
   const body = await response.json();
   assert.equal(body.pipeline.mode, 'local_advisory_only');
   assert.deepEqual(body.pipeline.stages.map(stage => stage.id), ['AI-1', 'AI-2', 'AI-3', 'AI-4', 'AI-5', 'AI-6', 'AI-7']);
-  assert.equal(body.summary.event_count, 6);
-  assert.equal(body.summary.ci_event_count, 6);
-  assert.equal(body.summary.kind_counts.ci_result, 6);
-  assert.deepEqual(body.summary.severity_counts, { debug: 0, info: 4, warning: 1, error: 1, critical: 0, unknown: 0 });
+  assert.equal(body.summary.event_count, 7);
+  assert.equal(body.summary.ci_event_count, 7);
+  assert.equal(body.summary.kind_counts.ci_result, 7);
+  assert.deepEqual(body.summary.severity_counts, { debug: 0, info: 5, warning: 1, error: 1, critical: 0, unknown: 0 });
   for (const raw of fixture.trim().split('\n').map(line => JSON.parse(line))) {
     assert.equal(JSON.stringify(body).includes(raw.id), false);
     assert.equal(JSON.stringify(body).includes(raw.source), false);

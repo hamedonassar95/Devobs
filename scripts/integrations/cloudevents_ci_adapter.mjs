@@ -23,6 +23,7 @@ export const ALLOWED_SOURCES = Object.freeze({
   'https://github.com/hamedonassar95/al-dala-mobile': 'al-dala-mobile',
   'https://github.com/hamedonassar95/LiveOps-Integration': 'LiveOps-Integration',
   'https://github.com/hamedonassar95/DevObs-ai-Intelligence-': 'DevObs-ai-Intelligence-',
+  'https://github.com/hamedonassar95/CineForge-AI': 'CineForge-AI',
 });
 
 const EVENT_TYPE = 'devobs.ci.result.v1';
