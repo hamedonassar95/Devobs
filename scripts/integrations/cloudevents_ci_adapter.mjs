@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { pathToFileURL } from 'node:url';
+import { ALLOWED_SOURCES } from './project_sources.mjs';
 import {
   EventIngestError,
   readInputFile,
@@ -16,15 +17,7 @@ import {
 
 export { MAX_EVENTS_PER_BATCH, MAX_INPUT_BYTES };
 
-export const ALLOWED_SOURCES = Object.freeze({
-  'https://github.com/hamedonassar95/Devobs': 'Devobs',
-  'https://github.com/hamedonassar95/devobs-saas': 'devobs-saas',
-  'https://github.com/hamedonassar95/phone-repair-assistant-v2': 'phone-repair-assistant-v2',
-  'https://github.com/hamedonassar95/al-dala-mobile': 'al-dala-mobile',
-  'https://github.com/hamedonassar95/LiveOps-Integration': 'LiveOps-Integration',
-  'https://github.com/hamedonassar95/DevObs-ai-Intelligence-': 'DevObs-ai-Intelligence-',
-  'https://github.com/hamedonassar95/CineForge-AI': 'CineForge-AI',
-});
+export { ALLOWED_SOURCES };
 
 const EVENT_TYPE = 'devobs.ci.result.v1';
 const CLOUDEVENT_FIELDS = new Set([
