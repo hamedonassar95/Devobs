@@ -2818,6 +2818,83 @@
       "ci_run_id": 43757263134,
       "verification": "VERIFIED 2026-11-15: GitHub PR #643 merged at the stated full SHA from the stated exact head; exact-head PR CI 43757263134 succeeded with security, validate, PostgreSQL RLS, Terraform, container scan and site-contract jobs successful. Python matrix, Node, incident and production-release jobs were skipped under workflow conditions. Connected read-only Render inventory showed Free PostgreSQL status available and expiresAt 2026-12-05T10:33:24.202776Z; latest deploy ended update_failed, after a successful build.",
       "limitations": "Read-only snapshot and docs-only PR. No successful hosted API or readyz probe, actual TLS/OIDC/tenant isolation, backup policy, billing hard stop or safe database retention plan verified. No Render settings/deploys, secrets or billing modified. Owner must decide Free DB retention vs retirement before expiry. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-evidence-reconciliation-pr644",
+      "area": "DOCUMENTATION",
+      "title": "docs(evidence): reconcile merged milestones #642–#643",
+      "pr_number": 644,
+      "pr_head_sha": "32e991727b565c40e9a142d0262882f3e5046347",
+      "merge_sha": "dea810bbc4b5229902fb6b030ba97e8bc6a52b9c",
+      "ci_run_id": 43757599961,
+      "verification": "VERIFIED 2026-11-15 via GitHub PR #644: merged exact head 32e991727b565c40e9a142d0262882f3e5046347 at dea810bbc4b5229902fb6b030ba97e8bc6a52b9c; exact-head PR CI 43757599961 completed successfully. Evidence is for the reviewed checked-in scope; independent exact-merge main CI/CodeQL and live services were not verified in this record.",
+      "limitations": "Ledger reconciliation of #642–#643 only; no service, invoice enforcement, identity, recovery or independent AI-9 acceptance. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-free-postgres-expiry-policy-pr645",
+      "area": "OPERATIONS",
+      "title": "docs(p01): verify Free Postgres expiry and data-loss decision gate",
+      "pr_number": 645,
+      "pr_head_sha": "795a17abe72937fae5ae6b39d823fb06637a8baf",
+      "merge_sha": "40c20fbbff84d4671aacb01f5e224e18e42f1d91",
+      "ci_run_id": 43758105056,
+      "verification": "VERIFIED 2026-11-15 via GitHub PR #645: merged exact head 795a17abe72937fae5ae6b39d823fb06637a8baf at 40c20fbbff84d4671aacb01f5e224e18e42f1d91; exact-head PR CI 43758105056 completed successfully. Evidence is for the reviewed checked-in scope; independent exact-merge main CI/CodeQL and live services were not verified in this record.",
+      "limitations": "Official policy and read-only expiry snapshot only. No backup, migration, retention decision, upgrade or deletion performed; Free expiry is not a data protection plan. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-offline-free-postgres-expiry-guard-pr646",
+      "area": "OPERATIONS",
+      "title": "feat(p01): add offline Render Free PostgreSQL expiry guard",
+      "pr_number": 646,
+      "pr_head_sha": "03353c93aa59ac6f69907995b52770a2bf1bc59d",
+      "merge_sha": "3bc131d5fcfb03370c13fc962d206f9d6a9b5766",
+      "ci_run_id": 43758637833,
+      "verification": "VERIFIED 2026-11-15 via GitHub PR #646: merged exact head 03353c93aa59ac6f69907995b52770a2bf1bc59d at 3bc131d5fcfb03370c13fc962d206f9d6a9b5766; exact-head PR CI 43758637833 completed successfully. Evidence is for the reviewed checked-in scope; independent exact-merge main CI/CodeQL and live services were not verified in this record.",
+      "limitations": "Offline decision-only guard of a recorded snapshot; no live provider connection, schedule, upgrade, migration or deletion and no spending authorization. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-console-advisory-operations-pr647",
+      "area": "AI_GOVERNANCE",
+      "title": "fix(console): make prototype operations advisory-only, not fake success",
+      "pr_number": 647,
+      "pr_head_sha": "4c826a2cb3e5ee24229eb9507463897e8555318b",
+      "merge_sha": "2b29930f52311956a0f388b7af5c1346958389ae",
+      "ci_run_id": 43759526613,
+      "verification": "VERIFIED 2026-11-15 via GitHub PR #647: merged exact head 4c826a2cb3e5ee24229eb9507463897e8555318b at 2b29930f52311956a0f388b7af5c1346958389ae; exact-head PR CI 43759526613 completed successfully. Evidence is for the reviewed checked-in scope; independent exact-merge main CI/CodeQL and live services were not verified in this record.",
+      "limitations": "Prototype operations are advisory previews; no remediation, infrastructure write, execution approval, model call or hosted capability established. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-console-local-ai7-aggregates-pr648",
+      "area": "PLATFORM",
+      "title": "feat(console): connect AI-7 local aggregates to React overview",
+      "pr_number": 648,
+      "pr_head_sha": "e11952df99917bfd6ccabfdf8b4b2ae99e70ed3e",
+      "merge_sha": "bf73948c177a2d13b679d79c59e57b00fbe23ca8",
+      "ci_run_id": 43760155357,
+      "verification": "VERIFIED 2026-11-15 via GitHub PR #648: merged exact head e11952df99917bfd6ccabfdf8b4b2ae99e70ed3e at bf73948c177a2d13b679d79c59e57b00fbe23ca8; exact-head PR CI 43760155357 completed successfully. Evidence is for the reviewed checked-in scope; independent exact-merge main CI/CodeQL and live services were not verified in this record.",
+      "limitations": "Optional local read-only aggregate bridge and React overview, not a public hosted API, live authenticated tenant service or production acceptance. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-console-ai4-evidence-advisories-pr649",
+      "area": "PLATFORM",
+      "title": "feat(console): show AI-4 evidence and human-review-only recommendations",
+      "pr_number": 649,
+      "pr_head_sha": "15e4ade9e5fc6623ef46ecf9da45ed361c2605c5",
+      "merge_sha": "85fb8425945b1216afb6dafac114dbc686e8c842",
+      "ci_run_id": 43771286929,
+      "verification": "VERIFIED 2026-11-15 via merged PR #649: exact integrated head 15e4ade9e5fc6623ef46ecf9da45ed361c2605c5 and PR CI 43771286929 success after merging current main. All 31 source checks completed successfully or intentionally skipped; independent read-only review confirmed the four reviewed blobs and preservation of all #650 main blobs. Exact-head node job 132987581200 completed console tests, type check and Vite build successfully. Main and public hosted API acceptance are separate.",
+      "limitations": "Local AI-4 evidence and known-catalog recommendations only; human acknowledgement is temporary and grants no execution approval. No provider/model call or operational action. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-free-static-ai-preview-pr650",
+      "area": "PLATFORM",
+      "title": "feat: publish a free synthetic Devobs AI-1–AI-7 preview",
+      "pr_number": 650,
+      "pr_head_sha": "235dbf95df088e35cf670707369a3459a294b8c2",
+      "merge_sha": "e056a247aa0a527b24108b90f355881a98302871",
+      "ci_run_id": 43770650655,
+      "verification": "VERIFIED 2026-11-15 via merged PR #650 and exact-head PR CI 43770650655 success; main CI 43770893733 and CodeQL 43770893278 success. Public manifest matched full merge SHA; 13 assets matched reviewed bytes with valid CSP/JS MIME. Public Chromium 390/1440 passed seven stages, notes create/search/pin/archive/restore/reload and JSON download; zero API/external requests, errors or overflow. Local Python 1215 OK (37 skipped), focused Node 12 passed.",
+      "limitations": "Fixed synthetic AI-1–AI-7 output and browser-local notes only; no live log ingestion, account, hosted API, paid inference, identity, tenant isolation, recovery or invoice enforcement. Independent of expiring Render Free DB. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
     }
   ],
   "gates": [
