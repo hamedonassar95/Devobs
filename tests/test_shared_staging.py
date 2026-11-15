@@ -132,6 +132,17 @@ class SharedStagingTests(unittest.TestCase):
         self.assertEqual(workflow.count("path: _site"), 3)
         self.assertNotIn("cp index.html _site/index.html", workflow)
 
+    def test_manual_deployment_uses_trusted_shared_staging_for_candidate_data(self):
+        workflow = (ROOT / ".github/workflows/one-click-deploy.yml").read_text()
+        stage = workflow.split("      - name: Stage candidate site", 1)[1].split("      - name: Configure GitHub Pages", 1)[0]
+        self.assertIn('python3 .trusted-tools/scripts/stage_site.py --source-dir . --output-dir _site', stage)
+        self.assertIn('SITE_ROOT=_site python3 .trusted-tools/scripts/check_site.py', stage)
+        self.assertNotIn('cp index.html', stage)
+        self.assertNotIn('cp -R assets', stage)
+        self.assertIn('ref: ${{ github.workflow_sha }}', workflow)
+        self.assertIn('path: .trusted-tools', workflow)
+        self.assertNotIn('grep -q "AL-DALA MOBILE"', workflow)
+
     def test_main_pages_release_downloads_only_the_same_run_validated_artifact(self):
         ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
         release = (ROOT / ".github/workflows/deploy-pages.yml").read_text(encoding="utf-8")

@@ -6,7 +6,13 @@ import os
 from pathlib import Path
 import re
 import threading
+import tempfile
 from urllib.request import urlopen
+
+if __package__:
+    from .stage_site import FREE_DEMO_CLIENT_FILES, copy_public_content
+else:
+    from stage_site import FREE_DEMO_CLIENT_FILES, copy_public_content
 
 ROOT = Path(os.environ.get("SITE_ROOT", Path(__file__).resolve().parents[1])).resolve()
 
@@ -68,6 +74,30 @@ def validate(source):
     return errors
 
 
+def validate_free_demo(source):
+    errors = validate(source)
+    page = Page()
+    page.feed(source)
+    html = [attrs for tag, attrs in page.tags if tag == 'html']
+    if not html or html[0].get('data-mode') != 'free-demo':
+        errors.append('Free demo profile marker missing')
+    expected_csp = "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"
+    policies = [attrs.get('content') for tag, attrs in page.tags if tag == 'meta'
+                and attrs.get('http-equiv', '').lower() == 'content-security-policy']
+    if policies != [expected_csp]:
+        errors.append('Free demo requires its self-only CSP')
+    scripts = [attrs for tag, attrs in page.tags if tag == 'script']
+    if scripts != [{'type': 'module', 'src': './dashboard.js'}]:
+        errors.append('Free demo requires its relative browser entrypoint')
+    for _, attrs in page.tags:
+        if (attrs.get('type') == 'password' or attrs.get('id', '').startswith('google-')
+                or any(key.startswith('on') for key in attrs)):
+            errors.append('Free demo must not contain credentials or cloud controls')
+        if any(attrs.get(key, '').startswith(('http:', 'https:', '//', 'javascript:')) for key in ('href', 'src')):
+            errors.append('Free demo must use local relative resources')
+    return errors
+
+
 def smoke_test(root):
     handler = partial(SimpleHTTPRequestHandler, directory=str(root))
     server = ThreadingHTTPServer(('127.0.0.1', 0), handler)
@@ -75,9 +105,17 @@ def smoke_test(root):
     thread.start()
     try:
         expected = (root / 'index.html').read_bytes()
-        for path in ('/', '/index.html'):
+        paths = ['/', '/index.html']
+        demo = root / 'assets/free-devobs'
+        if demo.exists():
+            paths += ['/assets/free-devobs/' + name for name in ('index.html', 'snapshot.json', *FREE_DEMO_CLIENT_FILES)]
+        for path in paths:
+            expected = (root / path.lstrip('/')).read_bytes() if path != '/' else expected
             with urlopen(f'http://127.0.0.1:{server.server_port}{path}', timeout=5) as response:
-                if response.status != 200 or response.headers.get_content_type() != 'text/html' or response.read() != expected:
+                suffix = Path(path).suffix
+                valid_types = {'application/javascript', 'text/javascript'} if suffix in ('.js', '.mjs') else {
+                    'text/css' if suffix == '.css' else 'application/json' if suffix == '.json' else 'text/html'}
+                if response.status != 200 or response.headers.get_content_type() not in valid_types or response.read() != expected:
                     raise RuntimeError(f'HTTP smoke test failed: {path}')
     finally:
         server.shutdown()
@@ -87,9 +125,21 @@ def smoke_test(root):
 
 def main():
     errors = validate((ROOT / 'index.html').read_text(encoding='utf-8'))
+    demo = ROOT / 'assets/free-devobs/index.html'
+    if demo.exists():
+        errors += validate_free_demo(demo.read_text(encoding='utf-8'))
     if errors:
         raise SystemExit('\n'.join(errors))
-    smoke_test(ROOT)
+    if demo.exists() and (ROOT / 'scripts/ai_intelligence/dashboard_assets').exists():
+        # A source checkout has no generated client files under assets/. Project
+        # the same reviewed public tree without executing candidate code or
+        # inventing a release SHA/manifest for this temporary quality check.
+        with tempfile.TemporaryDirectory(prefix='devobs-site-check-') as directory:
+            staged = Path(directory)
+            copy_public_content(ROOT, staged)
+            smoke_test(staged)
+    else:
+        smoke_test(ROOT)
     print('Page contract and HTTP smoke checks passed.')
 
 

@@ -1,8 +1,11 @@
 """Regression checks: CI must reject representative broken pages."""
 from pathlib import Path
 import re
+import os
+import subprocess
+import sys
 import unittest
-from scripts.check_site import Page, validate
+from scripts.check_site import Page, validate, validate_free_demo
 
 SOURCE = (Path(__file__).resolve().parents[1] / 'index.html').read_text(encoding='utf-8')
 EXPECTED_TITLE = 'Devobs | خدمات DevOps والبرمجيات للشركات | Software & DevOps Services'
@@ -122,3 +125,34 @@ class SiteChecks(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class FreeDemoContractTests(unittest.TestCase):
+    def test_static_profile_is_valid_but_local_profile_cannot_replace_it(self):
+        root = Path(__file__).resolve().parents[1]
+        free = (root / 'assets/free-devobs/index.html').read_text()
+        local = (root / 'scripts/ai_intelligence/dashboard_assets/index.html').read_text()
+        self.assertEqual(validate_free_demo(free), [])
+        self.assertTrue(validate_free_demo(local))
+
+    def test_missing_csp_absolute_script_and_credentials_are_rejected(self):
+        root = Path(__file__).resolve().parents[1]
+        free = (root / 'assets/free-devobs/index.html').read_text()
+        for broken in [free.replace('Content-Security-Policy', 'x-disabled'),
+                       free.replace('src="./dashboard.js"', 'src="/dashboard.js"'),
+                       free.replace('</main>', '<input type="password"></main>')]:
+            self.assertTrue(validate_free_demo(broken))
+
+
+class SourceFreeDemoSmokeTests(unittest.TestCase):
+    def test_source_checkout_can_be_checked_without_generated_browser_files(self):
+        root = Path(__file__).resolve().parents[1]
+        generated = root / 'assets/free-devobs/dashboard.js'
+        self.assertFalse(generated.exists())
+        env = dict(os.environ)
+        env.pop('SITE_ROOT', None)
+        result = subprocess.run([sys.executable, str(root / 'scripts/check_site.py')],
+                                cwd=root, env=env, capture_output=True, text=True, timeout=15)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('Page contract and HTTP smoke checks passed.', result.stdout)
+        self.assertFalse(generated.exists())

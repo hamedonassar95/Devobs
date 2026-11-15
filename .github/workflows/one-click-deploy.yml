@@ -150,10 +150,8 @@ jobs:
         run: |
           set -euo pipefail
 
-          mkdir -p _site
-          cp index.html _site/index.html
-          if [ -d assets ]; then cp -R assets _site/assets; fi
-          printf '{"schema_version":1,"source_sha":"%s"}\n' "$SOURCE_SHA" > _site/deployment.json
+          python3 .trusted-tools/scripts/stage_site.py --source-dir . --output-dir _site --source-sha "$SOURCE_SHA"
+          SITE_ROOT=_site python3 .trusted-tools/scripts/check_site.py
 
       - name: Configure GitHub Pages
         id: configure-candidate
@@ -183,7 +181,9 @@ jobs:
           curl --fail --location --silent --show-error \
             --retry 5 --retry-delay 5 --retry-all-errors \
             "$SITE_URL" --output site.html
-          grep -q "AL-DALA MOBILE" site.html
+          mkdir -p "$RUNNER_TEMP/candidate-health"
+          cp site.html "$RUNNER_TEMP/candidate-health/index.html"
+          SITE_ROOT="$RUNNER_TEMP/candidate-health" python3 .trusted-tools/scripts/check_site.py
 
           curl --fail --location --silent --show-error \
             --retry 5 --retry-delay 5 --retry-all-errors \

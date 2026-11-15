@@ -1,0 +1,356 @@
+{
+  "schema_version": 1,
+  "status": "local_snapshot",
+  "summary": {
+    "event_count": 24,
+    "kind_counts": {
+      "log": 5,
+      "incident": 5,
+      "ci_result": 2,
+      "server_metric": 12
+    },
+    "severity_counts": {
+      "debug": 0,
+      "info": 15,
+      "warning": 5,
+      "error": 4,
+      "critical": 0,
+      "unknown": 0
+    },
+    "log_event_count": 5,
+    "ci_event_count": 2,
+    "log_cluster_count": 4,
+    "unknown_group_count": 3,
+    "recommendation_count": 1,
+    "metric_series_count": 2,
+    "anomaly_candidate_count": 2,
+    "forecast_count": 0,
+    "trend_range_warning_count": 0,
+    "heuristic_signal_counts": {
+      "low": 0,
+      "medium": 1
+    },
+    "feedback_ranked_recommendation_count": 0
+  },
+  "pipeline": {
+    "id": "devobs-ai-local-1-7",
+    "mode": "local_advisory_only",
+    "stages": [
+      {
+        "id": "AI-1",
+        "name": "استقبال وتطبيع الأحداث",
+        "status": "ready",
+        "count": 24
+      },
+      {
+        "id": "AI-2",
+        "name": "كشف الشذوذ الإحصائي",
+        "status": "ready",
+        "count": 2,
+        "candidate_count": 2
+      },
+      {
+        "id": "AI-3",
+        "name": "تحليل السجلات والفرضيات",
+        "status": "ready",
+        "count": 4
+      },
+      {
+        "id": "AI-4",
+        "name": "مطابقة إرشادات التشغيل",
+        "status": "ready",
+        "count": 1
+      },
+      {
+        "id": "AI-5",
+        "name": "ملخص الاتجاهات والاستقراء",
+        "status": "report_available",
+        "count": 2
+      },
+      {
+        "id": "AI-6",
+        "name": "ترتيب بملاحظات المشغّل",
+        "status": "no_feedback",
+        "count": 0
+      },
+      {
+        "id": "AI-7",
+        "name": "لوحة الذكاء التشغيلي الموحدة",
+        "status": "ready",
+        "count": 1
+      }
+    ]
+  },
+  "incidents": [
+    {
+      "label": "مجموعة 1",
+      "event_count": 2,
+      "severity_counts": {
+        "error": 2
+      },
+      "hypotheses": [
+        {
+          "cause_id": "timeout",
+          "classification": "POSSIBLE",
+          "heuristic_signal": "medium",
+          "evidence_markers": [
+            "ETIMEDOUT",
+            "timeout"
+          ]
+        }
+      ]
+    },
+    {
+      "label": "مجموعة 2",
+      "event_count": 1,
+      "severity_counts": {
+        "info": 1
+      },
+      "hypotheses": []
+    },
+    {
+      "label": "مجموعة 3",
+      "event_count": 1,
+      "severity_counts": {
+        "info": 1
+      },
+      "hypotheses": []
+    },
+    {
+      "label": "مجموعة 4",
+      "event_count": 1,
+      "severity_counts": {
+        "info": 1
+      },
+      "hypotheses": []
+    }
+  ],
+  "recommendations": [
+    {
+      "review_order": 1,
+      "cause_id": "timeout",
+      "classification": "POSSIBLE",
+      "heuristic_signal": "medium",
+      "event_count": 2,
+      "evidence_markers": [
+        "ETIMEDOUT",
+        "timeout"
+      ],
+      "runbook_title": "مهلة عملية أو اعتماد",
+      "read_only_checks": [
+        "راجع أول خطوة متعثرة وتوقيتها في سجل التشغيل المصرح به.",
+        "قارن مدة الخطوة بحدودها الموثقة وحالة الاعتماد وقت الحادث."
+      ],
+      "possible_change_after_confirmation": "بعد تأكيد السبب، قيّم تعديل المهلة أو سياسة إعادة المحاولة ضمن حدود موثقة.",
+      "feedback_review_signal": {
+        "accepted_count": 0,
+        "rejected_count": 0,
+        "sample_count": 0,
+        "smoothed_acceptance_rate": null,
+        "status": "insufficient_history"
+      },
+      "requires_human_approval": true,
+      "automatic_execution": false
+    }
+  ],
+  "anomaly_analysis": {
+    "status": "analysis_available",
+    "metric_count": 2,
+    "candidate_count": 2,
+    "metrics": [
+      {
+        "metric": "error_rate",
+        "unit": "percent",
+        "status": "anomaly_candidate",
+        "observations": 6,
+        "baseline_observations": 5,
+        "latest_value": 9,
+        "signals": [
+          "z_score",
+          "moving_average",
+          "ewma",
+          "error_rate_spike"
+        ],
+        "detectors": {
+          "z_score": {
+            "value": 107.73714,
+            "baseline": null,
+            "threshold": 3,
+            "flagged": true
+          },
+          "moving_average": {
+            "value": 7.99,
+            "baseline": 1.01,
+            "threshold": 0.5,
+            "flagged": true
+          },
+          "ewma": {
+            "value": 7.98941,
+            "baseline": 1.01059,
+            "threshold": 0.5,
+            "flagged": true
+          },
+          "error_rate_spike": {
+            "value": null,
+            "baseline": 1.01,
+            "threshold": 1,
+            "flagged": true
+          }
+        }
+      },
+      {
+        "metric": "memory_percent",
+        "unit": "percent",
+        "status": "anomaly_candidate",
+        "observations": 6,
+        "baseline_observations": 5,
+        "latest_value": 95,
+        "signals": [
+          "z_score",
+          "moving_average",
+          "ewma"
+        ],
+        "detectors": {
+          "z_score": {
+            "value": 537.5872,
+            "baseline": null,
+            "threshold": 3,
+            "flagged": true
+          },
+          "moving_average": {
+            "value": 85,
+            "baseline": 10,
+            "threshold": 3,
+            "flagged": true
+          },
+          "ewma": {
+            "value": 85.01782,
+            "baseline": 9.98218,
+            "threshold": 0.5,
+            "flagged": true
+          },
+          "error_rate_spike": {
+            "value": null,
+            "baseline": 10,
+            "threshold": 1,
+            "flagged": false
+          }
+        }
+      }
+    ]
+  },
+  "trend_analysis": {
+    "status": "report_available",
+    "daily": {
+      "event_count": 24,
+      "kind_counts": {
+        "ci_result": 2,
+        "incident": 5,
+        "log": 5,
+        "server_metric": 12
+      },
+      "severity_counts": {
+        "critical": 0,
+        "debug": 0,
+        "error": 4,
+        "info": 15,
+        "unknown": 0,
+        "warning": 5
+      },
+      "metrics": [
+        {
+          "metric": "error_rate",
+          "unit": "percent",
+          "observations": 6,
+          "minimum": 0.9,
+          "mean": 2.341666666666667,
+          "maximum": 9,
+          "latest_value": 9
+        },
+        {
+          "metric": "memory_percent",
+          "unit": "percent",
+          "observations": 6,
+          "minimum": 9.8,
+          "mean": 24.166666666666664,
+          "maximum": 95,
+          "latest_value": 95
+        }
+      ]
+    },
+    "weekly": {
+      "event_count": 24,
+      "kind_counts": {
+        "ci_result": 2,
+        "incident": 5,
+        "log": 5,
+        "server_metric": 12
+      },
+      "severity_counts": {
+        "critical": 0,
+        "debug": 0,
+        "error": 4,
+        "info": 15,
+        "unknown": 0,
+        "warning": 5
+      },
+      "metrics": [
+        {
+          "metric": "error_rate",
+          "unit": "percent",
+          "observations": 6,
+          "minimum": 0.9,
+          "mean": 2.341666666666667,
+          "maximum": 9,
+          "latest_value": 9
+        },
+        {
+          "metric": "memory_percent",
+          "unit": "percent",
+          "observations": 6,
+          "minimum": 9.8,
+          "mean": 24.166666666666664,
+          "maximum": 95,
+          "latest_value": 95
+        }
+      ]
+    },
+    "forecast_count": 0,
+    "range_warning_count": 0,
+    "metric_forecasts": [
+      {
+        "metric": "error_rate",
+        "unit": "percent",
+        "status": "insufficient_history",
+        "daily_observations": 1,
+        "consecutive_observations": 1,
+        "minimum_consecutive_observations": 6,
+        "horizon_days": 1,
+        "latest_value": 2.341666666666667,
+        "linear_regression": null,
+        "simple_exponential_smoothing": null,
+        "range_warning": false
+      },
+      {
+        "metric": "memory_percent",
+        "unit": "percent",
+        "status": "insufficient_history",
+        "daily_observations": 1,
+        "consecutive_observations": 1,
+        "minimum_consecutive_observations": 6,
+        "horizon_days": 1,
+        "latest_value": 24.166666666666664,
+        "linear_regression": null,
+        "simple_exponential_smoothing": null,
+        "range_warning": false
+      }
+    ]
+  },
+  "limitations": [
+    "المراحل AI-1 إلى AI-7 مسار محلي واحد من خوارزميات وقواعد حتمية؛ لا يوجد استدلال LLM أو اتصال بخدمة خارجية.",
+    "الفرضيات احتمالية وإشارات الثقة heuristic وليست احتمالات معايرة.",
+    "كشف الشذوذ والاستقراء اتجاهات أولية غير معايرة، ولا يثبتان سببًا أو يتنبآن بحادث موثوق.",
+    "كل التوصيات للعرض فقط؛ يلزم اعتماد بشري ولا يوجد تنفيذ تلقائي.",
+    "المعروض لقطة عند بدء الخادم؛ أعد تشغيله لتحديث الملفات المحلية."
+  ]
+}

@@ -51,6 +51,49 @@ class StageSiteTests(unittest.TestCase):
         self.assertFalse((self.output / "assets" / ".cache").exists())
         self.assertTrue((self.output / "assets" / "visible.css").is_file())
 
+    def make_free_demo_fixture(self):
+        demo = self.source / "assets/free-devobs"
+        demo.mkdir()
+        (demo / "index.html").write_text("<!doctype html>demo")
+        (demo / "snapshot.json").write_text("{}")
+        client = self.source / "scripts/ai_intelligence/dashboard_assets"
+        client.mkdir(parents=True)
+        names = ["dashboard.js", "dashboard.css", "static_demo.mjs", "runbook_notes.mjs"]
+        names += ["google_" + name + ".mjs" for name in (
+            "docs_export", "calendar_followup", "sheets_export", "slides_export",
+            "chat_export", "tasks_followup", "gmail_summary")]
+        for name in names:
+            (client / name).write_text("public browser fixture")
+        (client / "private.txt").write_text("must not publish")
+        return client, demo, names
+
+    def test_free_demo_stages_only_its_browser_import_closure(self):
+        _, _, names = self.make_free_demo_fixture()
+        stage_site(self.source, self.output, "a" * 40)
+        result = self.output / "assets/free-devobs"
+        self.assertEqual({item.name for item in result.iterdir()}, {"index.html", "snapshot.json", *names})
+        self.assertEqual((result / "dashboard.js").read_text(), "public browser fixture")
+
+    def test_free_demo_rejects_browser_file_symlink_without_replacing_output(self):
+        client, _, _ = self.make_free_demo_fixture()
+        self.output.mkdir()
+        (self.output / "index.html").write_text("previous valid release")
+        (client / "dashboard.js").unlink()
+        outside = self.root / "outside-client.js"
+        outside.write_text("private sentinel")
+        (client / "dashboard.js").symlink_to(outside)
+        with self.assertRaisesRegex(ValueError, "regular browser asset"):
+            stage_site(self.source, self.output, "a" * 40)
+        self.assertEqual((self.output / "index.html").read_text(), "previous valid release")
+
+    def test_free_demo_rejects_symlink_in_browser_source_parents(self):
+        client, _, _ = self.make_free_demo_fixture()
+        moved = self.root / "outside-browser-assets"
+        client.rename(moved)
+        client.symlink_to(moved, target_is_directory=True)
+        with self.assertRaisesRegex(ValueError, "browser asset directory"):
+            stage_site(self.source, self.output, "a" * 40)
+
     def test_invalid_sha_fails(self):
         for sha in ("", "abc", "g" * 40, "a" * 39, "a" * 41):
             with self.subTest(sha=sha), self.assertRaisesRegex(ValueError, "40 hexadecimal"):
