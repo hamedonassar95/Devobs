@@ -1,5 +1,36 @@
 # DevObs PostgreSQL RLS: real database integration gate
 
+## Disposable backup/restore rehearsal — repository acceptance only
+
+The existing `postgres-rls` job also uses its own PostgreSQL 17 service's
+`pg_dump --format=custom --schema=devobs_ai` and `pg_restore --exit-on-error
+--single-transaction` tools. `PG_TEST_CONTAINER_ID` is supplied only to that
+step from `job.services.postgres.id`; a missing ID fails that dedicated CI job.
+A cluster identifier comparison binds the tools to the same disposable fixture.
+These commands never target a hosted database and never replace the source DB.
+
+The tests restore only synthetic schema/data to uniquely named temporary databases
+and compare all explicit, sorted rows from the three synthetic source tables,
+including hidden projects, before checking service membership, missing-context denial,
+cross-tenant denial, denied writes and the existing readiness contract (forced
+RLS, exact policies, table ownership and read-only ACLs). An incomplete pre-data
+restore, a restore without ACLs and a truncated archive cannot pass readiness.
+A fault-injected loss of a hidden project is detected even when RLS readiness
+still succeeds. Each temporary database is dropped explicitly; the temporary archive is closed
+and removed without being uploaded or printed. Elapsed tool time is diagnostic,
+not an RTO commitment.
+
+The isolated target is in the **same disposable cluster**: cluster-global roles
+are reused, not backed up or recovered. This does not prove independent-cluster
+role recovery, encrypted hosted backups, seven-day retention, hosted RPO/RTO,
+identity-provider backup safety or P01 acceptance. P01 remains NO-GO/BLOCKED.
+No Keycloak state or private signing material is included in this rehearsal.
+
+Official options: [pg_dump](https://www.postgresql.org/docs/17/app-pgdump.html),
+[pg_restore](https://www.postgresql.org/docs/17/app-pgrestore.html),
+[DROP DATABASE](https://www.postgresql.org/docs/17/sql-dropdatabase.html), and
+[GitHub job service context](https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#job-context).
+
 ## Live database-only validation — 2026-11-04
 
 **VERIFIED:** An existing Supabase Free project in the `Devobs AI Intelligence` organization (region `us-east-1`) was used only to validate the database reference schema with synthetic identifiers. Its project reference is intentionally omitted because this repository is public. No project or service was created or paused for this check, and no customer rows, credentials, or secrets were read.
@@ -67,7 +98,7 @@ The GitHub `CI` workflow runs this against its own disposable service container 
 
 ## Outstanding blockers — not claimed implemented
 
-- Deployed staging/prod PostgreSQL, service-registration administration, an API call site for `authorize_service`, a decision on where AI-9 confirmation state runs, customer identity provider, reverse proxy, domain/TLS, persistent backups/restore tests, on-call alerting, tenant usage isolation under concurrent loads, real data minimization, terms and privacy approval, commercial billing, external security audit, and customer access.
+- Deployed staging/prod PostgreSQL, service-registration administration, an API call site for `authorize_service`, a decision on where AI-9 confirmation state runs, customer identity provider, reverse proxy, domain/TLS, hosted backup retention and independent-cluster restoration, on-call alerting, tenant usage isolation under concurrent loads, real data minimization, terms and privacy approval, commercial billing, external security audit, and customer access.
 - Full SaaS platform and financial suitability are **not** established by a successful CI RLS test.
 - `psycopg` uses LGPL-3.0-only; confirm how obligations apply to the intended distribution and any bundled binaries before commercial resale.
 

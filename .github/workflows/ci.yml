@@ -112,7 +112,11 @@ jobs:
           python-version: "3.12"
       - name: Install pinned runtime test dependencies
         run: python3 -m pip install --disable-pip-version-check --require-hashes -r requirements-api.lock
-      - name: Prove tenant row-level security on PostgreSQL
+      - name: Prove tenant row-level security and isolated restore on PostgreSQL
+        env:
+          # Use tools in the same disposable PG17 service; never a hosted DB.
+          # https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#job-context
+          PG_TEST_CONTAINER_ID: ${{ job.services.postgres.id }}
         run: python3 -m unittest discover -s tests -p 'test_postgres_rls_integration.py' -v
 
   node-tests:
