@@ -7,11 +7,11 @@ separately governed repositories; it does not activate any integration.
 
 ## Local execution
 
-\`\`\`sh
+```sh
 python3 scripts/check_free_resource_plan.py --json
 python3 scripts/portfolio_free_readiness.py --json
 python3 -m unittest discover -s tests -p 'test_portfolio_free_readiness.py' -v
-\`\`\`
+```
 
 The output is **MANIFEST_VALID_ONLY**. It verifies that all required local
 Devobs files and candidate policy fields are intact. It never queries the
@@ -34,7 +34,7 @@ review and least-privilege scope validation.
 
 ## Safeguards and next gate
 
-- Machine-readable candidates: \`docs/portfolio/PORTFOLIO_FREE_CANDIDATES.json\`.
+- Machine-readable candidates: `docs/portfolio/PORTFOLIO_FREE_CANDIDATES.json`.
 - The validator rejects unknown projects/capabilities, duplicates, arbitrary
   resource expansion, any private data claim, and false claims that projects
   are already connected or production-ready.
