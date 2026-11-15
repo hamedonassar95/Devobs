@@ -29,6 +29,7 @@ class NodePipelineSelectionTests(unittest.TestCase):
     def test_each_pipeline_fixture_selects_node_even_without_code_or_high_risk(self):
         for path in (
             "examples/integrations/synthetic-ci-events.jsonl",
+            "examples/integrations/synthetic-alertmanager.json",
             "tests/fixtures/intelligence_eval_cases.json",
         ):
             with self.subTest(path=path):
