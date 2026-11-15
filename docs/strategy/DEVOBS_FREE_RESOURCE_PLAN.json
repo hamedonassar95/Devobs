@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "repository": "hamedonassar95/Devobs",
+  "review_date": "2026-11-15",
+  "policy": {
+    "free_only": true,
+    "external_connections_allowed": false,
+    "paid_operations_allowed": false,
+    "provider_changes_allowed": false,
+    "secrets_access_allowed": false,
+    "production_deploy_allowed": false,
+    "automatic_merge_allowed": false,
+    "hosted_saas_ready": false
+  },
+  "resources": [
+    {
+      "id": "ci",
+      "path": ".github/workflows/ci.yml",
+      "execution_mode": "REPOSITORY_WORKFLOW"
+    },
+    {
+      "id": "pages",
+      "path": ".github/workflows/deploy-pages.yml",
+      "execution_mode": "REPOSITORY_WORKFLOW"
+    },
+    {
+      "id": "prometheus",
+      "path": "monitoring/prometheus.yml",
+      "execution_mode": "LOCAL_OPTIONAL"
+    },
+    {
+      "id": "grafana",
+      "path": "monitoring/grafana/provisioning/datasources/prometheus.yml",
+      "execution_mode": "LOCAL_OPTIONAL"
+    },
+    {
+      "id": "alertmanager",
+      "path": "monitoring/alertmanager/alertmanager.yml",
+      "execution_mode": "LOCAL_OPTIONAL"
+    },
+    {
+      "id": "opentelemetry",
+      "path": "monitoring/otel-collector-config.yaml",
+      "execution_mode": "LOCAL_OPTIONAL"
+    },
+    {
+      "id": "local-model-templates",
+      "path": "models/docker-compose.yml",
+      "execution_mode": "LOCAL_OPTIONAL"
+    },
+    {
+      "id": "cloudevents",
+      "path": "scripts/integrations/cloudevents_ci_adapter.mjs",
+      "execution_mode": "OFFLINE_ADVISORY"
+    },
+    {
+      "id": "alertmanager-bridge",
+      "path": "scripts/integrations/alertmanager_adapter.mjs",
+      "execution_mode": "OFFLINE_ADVISORY"
+    },
+    {
+      "id": "otlp-bridge",
+      "path": "scripts/integrations/otlp_error_rate_adapter.mjs",
+      "execution_mode": "OFFLINE_ADVISORY"
+    },
+    {
+      "id": "cineforge-triage",
+      "path": "scripts/integrations/cineforge_ci_runner_triage.mjs",
+      "execution_mode": "OFFLINE_ADVISORY"
+    },
+    {
+      "id": "kubernetes-examples",
+      "path": "k8s/README.md",
+      "execution_mode": "REFERENCE_ONLY"
+    }
+  ]
+}
