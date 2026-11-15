@@ -2763,6 +2763,39 @@
       "ci_run_id": 43743670411,
       "verification": "VERIFIED 2026-11-15 from public GitHub: exact-head PR CI 43743465210 and push CI 43743461993 SUCCESS; exact-merge main CI 43743670411 and Push on main 43743669424 SUCCESS. Fixture-only selection regression failed before and passed after the fix; full local Python discovery ran 1171 tests, OK (skipped=32), and 15 Alertmanager/OTLP Node tests passed.",
       "limitations": "Exact fixture-path selection and evidence reconciliation only; no authenticated telemetry source, hosted application, financial enforcement, independent AI-9 evaluation or production acceptance established. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-postgres-restore-tenant-isolation-pr639",
+      "area": "RELIABILITY",
+      "title": "Prove PostgreSQL fixture backup restoration preserves synthetic data and tenant isolation",
+      "pr_number": 639,
+      "pr_head_sha": "1c97e4ea4ca9672892bfc696a28c76af6fcbf094",
+      "merge_sha": "98de4a762bd817a1d81cdc3186760dc638a0ba51",
+      "ci_run_id": 43745771813,
+      "verification": "VERIFIED 2026-11-15 via GitHub PR #639 metadata and exact-head PR CI 43745771813: merged source and merge SHAs match; postgres-rls, Python 3.12/3.15, security, container scan, terraform, site-contract, and validate jobs succeeded. Production-release and incident drill were skipped. This evidence is limited to the disposable PostgreSQL CI fixture; independent exact-merge main CI and CodeQL results were not verified in this reconciliation.",
+      "limitations": "Same-cluster disposable synthetic backup/restore with existing global roles, not a hosted independent-cluster restore, encrypted backup retention, production recovery, RPO/RTO, OIDC or financial enforcement. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-free-resource-offline-preflight-pr640",
+      "area": "OPERATIONS",
+      "title": "Fail-closed offline free-resource readiness preflight for existing Devobs tools",
+      "pr_number": 640,
+      "pr_head_sha": "14b4b81c3e79b45f20ca7c7183a3aca73c5c660d",
+      "merge_sha": "7a74e5ece92cd6cf1dc072f32f7a573d038da0b3",
+      "ci_run_id": 43751650900,
+      "verification": "VERIFIED 2026-11-15 via GitHub PR #640 metadata and exact-head PR CI 43751650900: merged source and merge SHAs match; Python 3.12/3.15, security, postgres-rls, container scan, terraform, site-contract, and validate jobs succeeded. Node tests, production-release, and incident drill were skipped by workflow conditions. Independent exact-merge main CI and CodeQL results were not verified in this reconciliation.",
+      "limitations": "Offline allowlist/path/policy check only; no provider account, live no-cost guarantee, deployed service, environment authentication, external transfer or paid-resource enablement. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-portfolio-free-candidate-map-pr641",
+      "area": "OPERATIONS",
+      "title": "Review-only mapping of existing Devobs resources to six independent project candidates",
+      "pr_number": 641,
+      "pr_head_sha": "27ed4e8c541ef13cf4095f6f40c18daea11f9f41",
+      "merge_sha": "8661bad57cde861bfc0fc6a004fe92743c2c189f",
+      "ci_run_id": 43752440502,
+      "verification": "VERIFIED 2026-11-15 via GitHub PR #641 metadata and exact-head PR CI 43752440502: merged source and merge SHAs match; Python 3.12/3.15, security, postgres-rls, container scan, terraform, site-contract, and validate jobs succeeded. Node tests, production-release, and incident drill were skipped by workflow conditions. Independent exact-merge main CI and CodeQL results were not verified in this reconciliation.",
+      "limitations": "Candidate-only offline manifest; other repositories remain NOT_CONNECTED, private source/CI data were not accessed, and ownership, interoperability, free billing, live runtime and hosted readiness were not established. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
     }
   ],
   "gates": [
