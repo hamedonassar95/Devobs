@@ -1,3 +1,10 @@
+## خطة الاتصال الخارجي بعد PR #624 — VERIFIED
+
+- دُمج [#624](https://github.com/hamedonassar95/Devobs/pull/624) من الرأس `18ebcdd87df297d728a698d68dbb2c70d1d6c1bc` عند `a30376fd3698a8c11f63dab90a7fac77f820b48f`. تحقق GitHub من نجاح [PR CI 43694659489](https://github.com/hamedonassar95/Devobs/actions/runs/43694659489)، و[push CI 43694640902](https://github.com/hamedonassar95/Devobs/actions/runs/43694640902)، و[main CI 43695080145](https://github.com/hamedonassar95/Devobs/actions/runs/43695080145)، و[Push on main 43695079931](https://github.com/hamedonassar95/Devobs/actions/runs/43695079931) على الالتزامات المطابقة.
+- أضيف مولّد خطة خارجية محلي بمكتبة Python القياسية، مع رفض قوائم السماح غير الآمنة وتغيّر القالب والكتابة الجزئية، وحصر اسم قاعدة Keycloak في عنوان Render الخارجي لمنطقة Frankfurt مع بقاء `verify-full`. ملف النشر الأساسي مغلق؛ لم تُطبّق خطة أو تتغير شبكة أو أسرار.
+- محليًا: 1170 اختبار Python، `OK (skipped=32)`؛ 65 اختبار Keycloak ناجح. التجاوزات تخص PostgreSQL التجريبي واختبار Docker اختياريًا، ولا تثبت قبولًا مستضافًا. CI بعد الدمج نجح ونشر الموقع الثابت وتحقق منه؛ هذا لا ينشر Keycloak أو API.
+- سجل الإنجازات: 234 عنصرًا، آخرها #624. ما زالت نطاقات الخروج الكاملة ومسار HTTPS/PKCE الفعلي والثقة بالشهادة واتصال القاعدة الحي وحد التكلفة الشامل مطلوبة. لم تُنشأ موارد مدفوعة أو رموز دخول. P01 **BLOCKED / NO-GO**، AI-9 **BLOCKED**، وقبول Codex runtime **OPEN**.
+
 ## ملف الهوية المستضافة بعد PR #618 — 2026-11-14 (VERIFIED)
 
 - تحقق GitHub العام من دمج [#617](https://github.com/hamedonassar95/Devobs/pull/617) عند `a59ca99ecfd8da8651d51d9871a55ddd4c207d60` و[#618](https://github.com/hamedonassar95/Devobs/pull/618) عند `17d26e01945c388253cddc6da566c45bfd763f27`. نجح CI على الرأسين: [43624068055](https://github.com/hamedonassar95/Devobs/actions/runs/43624068055) و[43634601625](https://github.com/hamedonassar95/Devobs/actions/runs/43634601625)، وعلى الدمجين: [43624322424](https://github.com/hamedonassar95/Devobs/actions/runs/43624322424) و[43634800291](https://github.com/hamedonassar95/Devobs/actions/runs/43634800291). سجل الإنجازات: 233 عنصرًا، آخرها #618؛ نجاح CI لا يثبت تشغيل الهوية.

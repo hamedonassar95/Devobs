@@ -2565,6 +2565,17 @@
       "ci_run_id": 43634800291,
       "verification": "VERIFIED 2026-11-14 from public GitHub API: PR #618 merged; exact-head PR CI 43634601625 SUCCESS and CodeQL check SUCCESS. Exact-merge main CI 43634800291 SUCCESS. CI is repository evidence only, not hosted runtime acceptance.",
       "limitations": "Plan-only dedicated Keycloak profile and offline startup/realm checks; no hosted identity was created or accepted. Render documents that internal PostgreSQL does not support verify-full, so the private-only manifest is not applyable under the required TLS policy. No paid resource, allowlist change, secret handling or token issuance authorized by this record. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-devobs-progress-pr624",
+      "area": "PLATFORM",
+      "title": "Prepare external PostgreSQL route plans for hosted Keycloak",
+      "pr_number": 624,
+      "pr_head_sha": "18ebcdd87df297d728a698d68dbb2c70d1d6c1bc",
+      "merge_sha": "a30376fd3698a8c11f63dab90a7fac77f820b48f",
+      "ci_run_id": 43695080145,
+      "verification": "VERIFIED from GitHub: PR #624 merged at a30376fd3698a8c11f63dab90a7fac77f820b48f from head 18ebcdd87df297d728a698d68dbb2c70d1d6c1bc. Exact-head PR CI 43694659489 and push CI 43694640902 succeeded; CodeQL checks and ShellCheck succeeded. Exact-merge main CI 43695080145, Push on main 43695079931 and ShellCheck 43695080086 succeeded. Main CI published and verified the static Pages site only.",
+      "limitations": "Offline external-route candidate builder and stricter Frankfurt external DB hostname guard only. Complete service egress ranges, actual HTTPS PKCE callback, authenticated CA and live certificate-verifying DB connectivity remain unverified; no hosted Keycloak, tokens, secrets, network rule changes or paid resources were created. Local full suite: 1170 tests, OK (skipped=32); 65 focused Keycloak tests passed. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
     }
   ],
   "gates": [
