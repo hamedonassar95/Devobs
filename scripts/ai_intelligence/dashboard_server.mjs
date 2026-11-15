@@ -18,6 +18,7 @@ const ASSET_ROOT = new URL('./dashboard_assets/', import.meta.url);
 const CONTENT_TYPES = new Map([
   ['/', 'text/html; charset=utf-8'],
   ['/dashboard.js', 'text/javascript; charset=utf-8'],
+  ['/static_demo.mjs', 'text/javascript; charset=utf-8'],
   ['/dashboard.css', 'text/css; charset=utf-8'],
   ['/runbook_notes.mjs', 'text/javascript; charset=utf-8'],
   ['/google_docs_export.mjs', 'text/javascript; charset=utf-8'],
@@ -31,6 +32,7 @@ const CONTENT_TYPES = new Map([
 const ASSET_FILES = new Map([
   ['/', 'index.html'],
   ['/dashboard.js', 'dashboard.js'],
+  ['/static_demo.mjs', 'static_demo.mjs'],
   ['/dashboard.css', 'dashboard.css'],
   ['/runbook_notes.mjs', 'runbook_notes.mjs'],
   ['/google_docs_export.mjs', 'google_docs_export.mjs'],

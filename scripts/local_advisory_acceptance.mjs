@@ -95,7 +95,7 @@ function toRawEvent({ minute, source, kind, severity, data }) {
   };
 }
 
-function createSyntheticInput(cases) {
+export function createSyntheticInput(cases) {
   const events = [];
   for (const [index, item] of cases.entries()) {
     events.push(toRawEvent({

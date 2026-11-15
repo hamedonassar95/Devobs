@@ -79,6 +79,7 @@ python3 -m unittest discover -s tests -p 'test_render_free_expiry.py' -v
 - **Kubernetes MCP للمطورين:** [إعداد اختياري لأحداث namespace واحد](docs/KUBERNETES_MCP_INTEGRATION.md) — أداة أحداث فقط، مع صلاحية Kubernetes `list` الفعلية؛ لا يُفعّل في إعداد المستودع.
 - **Argo CD MCP للمطورين:** [قراءة حالة التطبيقات](docs/ARGOCD_MCP_INTEGRATION.md) — أداة `list_applications` فقط، مع موافقة Codex ورمز Argo CD مخصص للقراءة؛ غير مفعّل افتراضيًا.
 - [Devobs AI DevOps Control Room](docs/AI_DEVOPS_CONTROL_ROOM.md): توثيق مسارات AI وCI وحالة التحقق من المصدر مقابل التشغيل.
+- [Devobs بالموارد المجانية الحالية](docs/FREE_DEVOBS_MODE.md): معاينة منشورة لمسار AI-1 إلى AI-7 بعينة اصطناعية، ومذكرات في المتصفح، وتشغيل محلي دون مفاتيح أو رسوم استضافة جديدة.
 - [استقبال أحداث AI-1 محليًا](docs/AI_EVENT_INGESTION.md): صيغة موحّدة وملف JSONL محلي؛ بلا اتصالات أو خدمات خارجية.
 - [جسر CloudEvents لنتائج CI](docs/integrations/CLOUDEVENTS_CI_BRIDGE.md): محوّل محلي غير موثّق المصدر إلى مخطط AI-1 القائم، ويشمل CineForge-AI بحدث اصطناعي فقط دون مرسل حي أو نقل بيانات؛ بوابة `REVIEW_ONLY` مستقلة.
 - [جسر OpenTelemetry OTLP لمقياس الخطأ](docs/integrations/OTLP_ERROR_RATE_BRIDGE.md): محوّل اصطناعي محلي لمقياس `error_rate_pct` إلى AI-1؛ بلا اتصالات أو بيانات عملاء أو خدمات مدفوعة.
