@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "review_date": "2026-11-15",
+  "source_repository": "hamedonassar95/Devobs",
+  "classification": "PUBLIC_METADATA_ONLY",
+  "policy": {
+    "external_network_allowed": false,
+    "cross_repository_transfer_allowed": false,
+    "paid_activation_allowed": false,
+    "automatic_merge_allowed": false,
+    "provider_auth_change_allowed": false,
+    "owner_approval_required": true
+  },
+  "projects": [
+    {
+      "id": "devobs-saas",
+      "candidate_capabilities": [
+        "ci",
+        "cloudevents",
+        "otlp-bridge"
+      ],
+      "connection_state": "NOT_CONNECTED",
+      "runtime_verified": false,
+      "private_data_processed": false
+    },
+    {
+      "id": "phone-repair-assistant-v2",
+      "candidate_capabilities": [
+        "ci",
+        "cloudevents"
+      ],
+      "connection_state": "NOT_CONNECTED",
+      "runtime_verified": false,
+      "private_data_processed": false
+    },
+    {
+      "id": "al-dala-mobile",
+      "candidate_capabilities": [
+        "ci",
+        "cloudevents"
+      ],
+      "connection_state": "NOT_CONNECTED",
+      "runtime_verified": false,
+      "private_data_processed": false
+    },
+    {
+      "id": "LiveOps-Integration",
+      "candidate_capabilities": [
+        "ci",
+        "cloudevents"
+      ],
+      "connection_state": "NOT_CONNECTED",
+      "runtime_verified": false,
+      "private_data_processed": false
+    },
+    {
+      "id": "DevObs-ai-Intelligence-",
+      "candidate_capabilities": [
+        "ci",
+        "cloudevents"
+      ],
+      "connection_state": "NOT_CONNECTED",
+      "runtime_verified": false,
+      "private_data_processed": false
+    },
+    {
+      "id": "CineForge-AI",
+      "candidate_capabilities": [
+        "cineforge-triage"
+      ],
+      "connection_state": "NOT_CONNECTED",
+      "runtime_verified": false,
+      "private_data_processed": false
+    }
+  ]
+}
