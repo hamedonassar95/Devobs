@@ -1,3 +1,9 @@
+## P01 Render — فحص موارد Free دون تغيير (2026-11-15)
+
+- **VERIFIED من Render للقراءة فقط:** خدمة staging المجانية موجودة في Frankfurt ولكن آخر نشر لها بتاريخ 2026-11-14، عند `1f1fd774f02579a500c07bd667865e51ed187948`، فشل بعد نجاح البناء، وكذلك النشر الأول يوم 2026-11-05. إيقاف النشر التلقائي مفعّل؛ لا يوجد دليل نجاح فعلي لـ `/readyz`.
+- قاعدة PostgreSQL 17 المجانية تظهر **available** وتنتهي حسب `expiresAt` في **2026-12-05 الساعة 10:33 UTC**؛ هذا تاريخ يستلزم قرارًا بشريًا مسبقًا حول الاحتفاظ/الإنهاء وحماية البيانات، وليس إذنًا بالحذف أو الترقية.
+- مستند الأدلة: [Render Free checkpoint](docs/P01_RENDER_FREE_RESOURCE_CHECKPOINT_2026-11-15.md). بقي سقف 100 USD الشامل غير قابل للإثبات، وبوابات P01 **BLOCKED / NO-GO**، AI-9 **BLOCKED**، وقبول Codex **OPEN**. لم تُقرأ أسرار أو سجلات حساسة ولم يُنفّذ نشر أو تغيّر إعداد أو تكلفة.
+
 ## تحديث سجل الإنجازات بعد دمج #639–#641 — 2026-11-15 (VERIFIED لنطاق GitHub)
 
 - **VERIFIED:** تظهر بيانات GitHub دمج [#639](https://github.com/hamedonassar95/Devobs/pull/639) من `1c97e4ea4ca9672892bfc696a28c76af6fcbf094` عند `98de4a762bd817a1d81cdc3186760dc638a0ba51`، و[#640](https://github.com/hamedonassar95/Devobs/pull/640) من `14b4b81c3e79b45f20ca7c7183a3aca73c5c660d` عند `7a74e5ece92cd6cf1dc072f32f7a573d038da0b3`، و[#641](https://github.com/hamedonassar95/Devobs/pull/641) من `27ed4e8c541ef13cf4095f6f40c18daea11f9f41` عند `8661bad57cde861bfc0fc6a004fe92743c2c189f`.
