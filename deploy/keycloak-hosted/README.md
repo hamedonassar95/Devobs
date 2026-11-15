@@ -30,6 +30,64 @@ addresses, residency and complete cost boundary have not been verified. It needs
 a separate reviewed manifest and network approval; do not open the database to
 all addresses or treat this paragraph as permission to change an allowlist.
 
+## Offline external-route candidate builder
+
+`scripts/p01_keycloak_external_plan.py` reuses this Blueprint to write a separate
+review candidate. It changes only the dedicated database's `ipAllowList`, using
+Blueprint `source` entries. It never contacts Render, discovers IPs, reads
+credentials, approves spending or deploys. The base manifest remains closed and
+blocked. The startup guard now accepts only the Frankfurt Render external
+database DNS shape (`dpg-….frankfurt-postgres.render.com`), preserving
+`sslmode=verify-full`. DNS shape alone does not prove ownership or TLS trust.
+
+Prepare a public, name-only route inventory with exactly these fields:
+
+```json
+{"schema_version": 1, "region": "frankfurt", "outbound_cidrs": []}
+```
+
+The empty list intentionally fails. Replace it privately with **all** service
+outbound ranges copied from Render's **Connect → Outbound** details for the
+reviewed service and region. Do not infer them from one observed connection.
+[Render documents](https://render.com/docs/outbound-ip-addresses) that any address
+in these ranges may be used and regional ranges are shared by other services;
+an allowlist is not service authentication. Dedicated outbound IPs require their
+own availability/cost review. The inventory records proposed public ranges,
+not evidence that they were verified or approved. Do not include DSNs, passwords,
+tokens, environment exports or other fields.
+
+This builder deliberately accepts only canonical public IPv4 `/24` through
+`/32` CIDRs, at most 20, without overlaps. Broader provider ranges or IPv6 require
+a separately reviewed policy change; never truncate a required provider range
+to make it pass. Empty, private/reserved, multicast, all-address, duplicate and
+malformed ranges fail with a fixed message and no candidate. This is a local
+plan policy, not a statement of Render's API limits.
+
+Using Python's standard library (no new dependency or CI workflow):
+
+```sh
+python3 scripts/p01_keycloak_external_plan.py --inventory /path/to/public-route-inventory.json --output /path/to/keycloak-external-review.yaml
+python3 -m unittest discover -s tests -p '*keycloak*' -v
+```
+
+Exit `0` means **PLAN ONLY**, not readiness. Exit `2` means blocked. Existing
+outputs are never overwritten. A SHA-256 drift guard rejects any change to the
+reviewed base template; update that guard only after reviewing the new base.
+The builder preserves all other template bytes, including Render's `off` enum
+strings and actual `false` booleans. Delete a local candidate to undo generation;
+the builder has no provider side effects. Review its diff against this base
+before considering any provider action. The API's existing database and the
+root `render.yaml` are outside its scope.
+
+The generated candidate is **not ready to apply** until service-egress
+provenance, the exact callback/PKCE implementation, external database DNS,
+authenticated CA, certificate-verifying network connectivity and spending
+boundary are resolved. The database hostname and secrets remain manual/private
+provider settings; the builder does not invent them. After any separately
+approved provisioning, confirm the assigned hostname and egress again before
+acceptance. No live connection or identity readiness is established by these
+offline checks.
+
 ## Before any application of the plan
 
 1. Approve a provider/account/region, exact source SHA and total budget boundary.
