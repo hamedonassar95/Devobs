@@ -19,7 +19,7 @@ class HostedKeycloakTests(unittest.TestCase):
                 "PATH": os.defpath,
                 "RENDER_EXTERNAL_URL": "https://devobs-keycloak-hosted.onrender.com",
                 "DEVOBS_OIDC_REDIRECT_URI": "https://devobs.onrender.com/callback",
-                "DEVOBS_KEYCLOAK_DB_HOST": "database.render.com",
+                "DEVOBS_KEYCLOAK_DB_HOST": "dpg-fixture-a.frankfurt-postgres.render.com",
                 "DEVOBS_KEYCLOAK_DB_NAME": "keycloak_identity",
                 "KC_DB_USERNAME": "keycloak_idp",
                 "KC_DB_PASSWORD": "synthetic-db-marker",
@@ -60,6 +60,19 @@ class HostedKeycloakTests(unittest.TestCase):
         for changes in mutations:
             with self.subTest(changes=changes):
                 result = self.run_config(changes)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual(result.stdout, "")
+                self.assertEqual(result.stderr, "devobs-keycloak: invalid_hosted_configuration\n")
+
+    def test_non_external_database_hosts_fail_closed(self):
+        for host in (
+            "dpg-fixture-a", "dpg-fixture-a.internal", "db.localhost",
+            "database.render.com", "dpg-fixture-a.oregon-postgres.render.com",
+            "dpg-fixture-a.frankfurt-postgres.render.com.attacker.net",
+            "127.0.0.1", "db.example.com",
+        ):
+            with self.subTest(host=host):
+                result = self.run_config({"DEVOBS_KEYCLOAK_DB_HOST": host})
                 self.assertNotEqual(result.returncode, 0)
                 self.assertEqual(result.stdout, "")
                 self.assertEqual(result.stderr, "devobs-keycloak: invalid_hosted_configuration\n")

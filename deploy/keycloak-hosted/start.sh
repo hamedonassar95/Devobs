@@ -29,7 +29,10 @@ validate_config() {
   export DEVOBS_OIDC_CLIENT_ORIGIN="https://$host"
 
   host="$DEVOBS_KEYCLOAK_DB_HOST"
-  [[ "$host" =~ ^[a-z0-9][a-z0-9.-]+\.[a-z]{2,}$ ]] || { reject; return 1; }
+  # This profile is Frankfurt-only. Render's internal Postgres route cannot
+  # verify the peer certificate; require its external DNS name, never an alias.
+  # https://render.com/docs/postgresql-creating-connecting
+  [[ "$host" =~ ^dpg-[a-z0-9]+(-[a-z0-9]+)*\.frankfurt-postgres\.render\.com$ ]] || { reject; return 1; }
   valid_dns "$host" || { reject; return 1; }
   database="$DEVOBS_KEYCLOAK_DB_NAME"
   [[ "$database" =~ ^[a-z][a-z0-9_]{0,62}$ ]] || { reject; return 1; }
