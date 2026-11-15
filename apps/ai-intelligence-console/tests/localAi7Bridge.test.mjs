@@ -124,6 +124,12 @@ test('the actual AI-7 engine aggregate contract is accepted without forwarding r
   assert.equal(response.status, 200);
   assert.equal(response.data.summary.event_count, 1);
   assert.equal(response.data.stages.length, 7);
+  assert.equal(response.data.summary.recommendation_count, 1);
+  assert.equal(response.data.recommendations.length, 1);
+  assert.equal(response.data.recommendations[0].cause_id, 'timeout');
+  assert.equal(response.data.recommendations[0].classification, 'POSSIBLE');
+  assert.equal(response.data.recommendations[0].automatic_execution, false);
+  assert.deepEqual(response.data.recommendations[0].evidence_markers, ['ETIMEDOUT']);
   assert.doesNotMatch(JSON.stringify(response.data), /PRIVATE_EVENT_DIAGNOSTIC_MUST_NOT_APPEAR/);
 });
 
