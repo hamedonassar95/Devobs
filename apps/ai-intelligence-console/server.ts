@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit';
 import { fileURLToPath } from 'node:url';
 import { createSpaFallbackHandler } from './spaFallback.ts';
 import { createDiagnosticsHandler } from './diagnosticsProxy.ts';
+import { createLocalAi7Handler } from './localAi7Bridge.ts';
 import { prototypeAiGuard } from './prototypeAiGuard.ts';
 
 dotenv.config();
@@ -41,6 +42,14 @@ const staticFallbackRateLimit = rateLimit({
 app.use('/api', apiRateLimit);
 app.use('/api/ai', aiRateLimit);
 app.use(prototypeAiGuard);
+
+// Optional, read-only AI-7 aggregate snapshot; localhost-only on both sides.
+// Never accept a user-supplied upstream URL or enable on a public listener.
+app.get('/api/local-ai7/summary', createLocalAi7Handler({
+  enabled: process.env.DEVOBS_AI7_LOCAL_READONLY_ENABLED === 'true',
+  bindHost: host,
+  consolePort: port,
+}));
 
 // Parse this credential-bearing route before the prototype's larger media bodies.
 const diagnosticsJson = express.json({ limit: '32kb' });

@@ -33,6 +33,38 @@ npm run build
 
 The focused test exercises all three immutable preview outcomes; it does not constitute browser E2E, a real-server action test, or P01 hosted acceptance. Do not represent the mock records as measured production telemetry. A future real-operation controller must be separately designed with scoped identity, independent authorization, auditable human confirmation, and the still-blocked production gates.
 
+## AI-7 local snapshot integration (optional, read-only)
+
+The **Overview → AI-7** panel can retrieve **real computed aggregates** from the existing [Devobs AI-7 engine](../../docs/AI_LOCAL_DASHBOARD.md) running on the same computer. This is not live production monitoring: AI-7 analyzes a **local event-store snapshot** and its recommendations remain advisory, uncalibrated and human-reviewed.
+
+**Explicit local activation (two terminals, synthetic data only):**
+
+Terminal 1, from the repository root, prepare an existing **synthetic** JSONL event store using the documented AI-1 ingestion workflow and start the existing AI-7 server:
+
+```sh
+node scripts/ai_intelligence/dashboard_server.mjs --store /path/to/synthetic-events.jsonl --port 8765
+```
+
+Terminal 2, from `apps/ai-intelligence-console`:
+
+```sh
+DEVOBS_AI7_LOCAL_READONLY_ENABLED=true npm run dev
+```
+
+Open `http://127.0.0.1:3000` on the **same machine**, navigate to Overview and press **قراءة المحرك المحلي**. This manually requests `GET /api/local-ai7/summary` from the console server, which reads only the fixed `http://127.0.0.1:8765/api/v1/intelligence` endpoint and returns a strict allowlist of summary counters and seven stage statuses. The bridge cannot accept an alternate address, does not expose raw incidents, recommendation texts or events, does not poll automatically, and does not send credentials or trigger any write operation.
+
+The server endpoint is **disabled by default**. It refuses public/non-loopback binds and unexpected Host/Origin headers, rejects redirects and malformed/oversized JSON, imposes a short timeout, and returns a fixed failure message instead of invented results when unavailable. Do **not** expose either local server via a tunnel, proxy, external hostname, hosting platform or a shared-network interface. There is no hosted identity or tenant authorization in this local integration. Changing `HOST` away from `127.0.0.1` disables the bridge even with the flag enabled.
+
+Focused verification:
+
+```sh
+npm test
+npm run lint
+npm run build
+```
+
+`tests/localAi7Bridge.test.mjs` includes an integration check against the actual existing AI-7 `buildDashboardSnapshot` contract and negative cases for a disabled bridge, foreign origins/hosts, malformed data, redirects and oversized responses. It uses an in-process fake fetch rather than connecting to any external service. The controls in [P01](../../docs/P01_ACTIVATION_READINESS.md) remain **NO-GO** and no AI-9 acceptance or commercial service is claimed.
+
 ## Run the local prototype
 
 Requirements: Node.js 24 (recommended) or 22.12+ and npm.
