@@ -10,7 +10,7 @@ import { buildDashboardSnapshot } from '../../../scripts/ai_intelligence/dashboa
 const payload = () => ({
   schema_version: 1, status: 'local_snapshot',
   summary: {
-    event_count: 24, log_cluster_count: 2, recommendation_count: 1,
+    event_count: 24, log_cluster_count: 2, recommendation_count: 0,
     anomaly_candidate_count: 2,
   },
   pipeline: {
@@ -20,7 +20,7 @@ const payload = () => ({
     })),
   },
   incidents: [{ label: 'SENSITIVE_RAW_LOG_MUST_NOT_LEAK' }],
-  recommendations: [{ runbook_title: 'SENSITIVE_RAW_LOG_MUST_NOT_LEAK' }],
+  recommendations: [],
 });
 
 async function fixture(t, opts = {}) {
@@ -125,4 +125,71 @@ test('the actual AI-7 engine aggregate contract is accepted without forwarding r
   assert.equal(response.data.summary.event_count, 1);
   assert.equal(response.data.stages.length, 7);
   assert.doesNotMatch(JSON.stringify(response.data), /PRIVATE_EVENT_DIAGNOSTIC_MUST_NOT_APPEAR/);
+});
+
+function advisory(overrides = {}) {
+  return {
+    review_order: 1, cause_id: 'timeout', classification: 'POSSIBLE',
+    heuristic_signal: 'medium', event_count: 3,
+    evidence_markers: ['ETIMEDOUT'],
+    runbook_title: 'UNTRUSTED_UPSTREAM_FREE_TEXT_DO_NOT_FORWARD',
+    read_only_checks: ['UNTRUSTED_UPSTREAM_FREE_TEXT_DO_NOT_FORWARD'],
+    requires_human_approval: true, automatic_execution: false,
+    ...overrides,
+  };
+}
+
+test('AI-4 shows real bounded cause, heuristic evidence and manual-review-only state', async t => {
+  const raw = payload();
+  raw.summary.recommendation_count = 1;
+  raw.recommendations = [advisory()];
+  const { request } = await fixture(t, { fetchImpl: async () => Response.json(raw) });
+  const response = await request();
+  assert.equal(response.status, 200);
+  assert.equal(response.data.summary.recommendation_count, 1);
+  assert.deepEqual(response.data.recommendations, [{
+    review_order: 1, cause_id: 'timeout', classification: 'POSSIBLE',
+    heuristic_signal: 'medium', event_count: 3,
+    evidence_markers: ['ETIMEDOUT'],
+    requires_human_approval: true, automatic_execution: false,
+  }]);
+  assert.doesNotMatch(JSON.stringify(response.data), /UNTRUSTED_UPSTREAM_FREE_TEXT_DO_NOT_FORWARD/);
+});
+
+test('unknown or unsafe recommendation evidence never passes the local bridge', async t => {
+  const rejected = [
+    advisory({ automatic_execution: true }),
+    advisory({ requires_human_approval: false }),
+    advisory({ classification: 'CONFIRMED' }),
+    advisory({ cause_id: 'untrusted_hypothesis' }),
+    advisory({ evidence_markers: ['SECRET_PATH_NOT_AN_EVIDENCE_MARKER'] }),
+  ];
+  for (const invalid of rejected) {
+    const raw = payload();
+    raw.summary.recommendation_count = 1;
+    raw.recommendations = [invalid];
+    const { request } = await fixture(t, { fetchImpl: async () => Response.json(raw) });
+    const result = await request();
+    assert.equal(result.status, 503);
+    assert.deepEqual(result.data, { error: 'local_ai7_unavailable' });
+  }
+});
+
+test('AI-4 fails closed on inconsistent totals and returns at most five suggestions', async t => {
+  const mismatch = payload();
+  mismatch.summary.recommendation_count = 2;
+  mismatch.recommendations = [advisory()];
+  const rejected = await fixture(t, { fetchImpl: async () => Response.json(mismatch) });
+  assert.equal((await rejected.request()).status, 503);
+
+  const many = payload();
+  many.recommendations = Array.from({ length: 6 }, (_, index) =>
+    advisory({ review_order: index + 1 }));
+  many.summary.recommendation_count = 6;
+  const result = await fixture(t, { fetchImpl: async () => Response.json(many) });
+  const response = await result.request();
+  assert.equal(response.status, 200);
+  assert.equal(response.data.summary.recommendation_count, 6);
+  assert.equal(response.data.recommendations.length, 5);
+  assert.equal(response.data.recommendations[4].review_order, 5);
 });
