@@ -2567,6 +2567,61 @@
       "limitations": "Plan-only dedicated Keycloak profile and offline startup/realm checks; no hosted identity was created or accepted. Render documents that internal PostgreSQL does not support verify-full, so the private-only manifest is not applyable under the required TLS policy. No paid resource, allowlist change, secret handling or token issuance authorized by this record. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
     },
     {
+      "id": "verified-resume-evidence-pr619",
+      "area": "DOCUMENTATION",
+      "title": "Record hosted identity evidence and confirmed Render TLS incompatibility",
+      "pr_number": 619,
+      "pr_head_sha": "d913c14ac08bd58a18f0a51fb60f2645627f2f29",
+      "merge_sha": "0e34b301b8172f8b9713710344da2fb7c0b0e34c",
+      "ci_run_id": 43636062839,
+      "verification": "VERIFIED 2026-11-15 from public GitHub metadata: PR #619 merged from d913c14ac08bd58a18f0a51fb60f2645627f2f29 at 0e34b301b8172f8b9713710344da2fb7c0b0e34c; exact-head PR CI 43635908212 SUCCESS; exact-merge main CI 43636062839 SUCCESS. Latest check of each name completed successfully or with an intentional skip. CI/Pages evidence is not hosted runtime acceptance.",
+      "limitations": "Documentation reconciles the hosted profile and verified internal Render TLS incompatibility; it does not make the private-only plan applyable. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-resume-evidence-pr620",
+      "area": "OPERATIONS",
+      "title": "Fix incident diagnostics consent, protected API routing and false hotfix success",
+      "pr_number": 620,
+      "pr_head_sha": "4b93ab61843fcc601de13c1cf445fbc54a3c193e",
+      "merge_sha": "01dfd63d48ca2018f1cfaf318fcf2c54edbc3540",
+      "ci_run_id": 43660750846,
+      "verification": "VERIFIED 2026-11-15 from public GitHub metadata: PR #620 merged from 4b93ab61843fcc601de13c1cf445fbc54a3c193e at 01dfd63d48ca2018f1cfaf318fcf2c54edbc3540; exact-head PR CI 43636913843 SUCCESS; exact-merge main CI 43660750846 SUCCESS. Latest check of each name completed successfully or with an intentional skip. CI/Pages evidence is not hosted runtime acceptance.",
+      "limitations": "Protected diagnostics proxy and explicit reviewed UI request only. Removes fabricated diagnosis and fake hotfix success. No live identity, model request, paid inference, hosted console/API or general monthly cap is established. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-resume-evidence-pr621",
+      "area": "OPERATIONS",
+      "title": "Fix intermittent container smoke failure caused by early grep exit",
+      "pr_number": 621,
+      "pr_head_sha": "c33cf009ad3c138cb0150fa4b7c0600548b98f05",
+      "merge_sha": "91952fe67ab7bef87b0afa2cf596ff3faf6abe4c",
+      "ci_run_id": 43636878401,
+      "verification": "VERIFIED 2026-11-15 from public GitHub metadata: PR #621 merged from c33cf009ad3c138cb0150fa4b7c0600548b98f05 at 91952fe67ab7bef87b0afa2cf596ff3faf6abe4c; exact-head PR CI 43636664907 SUCCESS; exact-merge main CI 43636878401 SUCCESS. Latest check of each name completed successfully or with an intentional skip. CI/Pages evidence is not hosted runtime acceptance.",
+      "limitations": "Container smoke-test reader drains valid HTML without weakening HTTP, incomplete-response or marker failures. This fixes an offline CI race, not hosted API readiness. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-resume-evidence-pr622",
+      "area": "OPERATIONS",
+      "title": "feat(governance): allow review-only CineForge CI metadata handoff",
+      "pr_number": 622,
+      "pr_head_sha": "451954720e0c9119364fe2e388d46a1034b2ba59",
+      "merge_sha": "f49dea4a6ec32a37e671f0983dcc7e9d2b95ecbc",
+      "ci_run_id": 43661092057,
+      "verification": "VERIFIED 2026-11-15 from public GitHub metadata: PR #622 merged from 451954720e0c9119364fe2e388d46a1034b2ba59 at f49dea4a6ec32a37e671f0983dcc7e9d2b95ecbc; exact-head PR CI 43660774837 SUCCESS; exact-merge main CI 43661092057 SUCCESS. Latest check of each name completed successfully or with an intentional skip. CI/Pages evidence is not hosted runtime acceptance.",
+      "limitations": "Review-only metadata handoff policy; no authenticated live CineForge sender, private source/log transfer or automatic action is established. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-resume-evidence-pr623",
+      "area": "OPERATIONS",
+      "title": "feat(integrations): add synthetic CineForge CI fixture",
+      "pr_number": 623,
+      "pr_head_sha": "893b972c0dec7936b0e4a989f3ddcb385e2b7258",
+      "merge_sha": "bea8ed8afcc50b4eac9c86bc6fcd8dac1144a5c9",
+      "ci_run_id": 43664006064,
+      "verification": "VERIFIED 2026-11-15 from public GitHub metadata: PR #623 merged from 893b972c0dec7936b0e4a989f3ddcb385e2b7258 at bea8ed8afcc50b4eac9c86bc6fcd8dac1144a5c9; exact-head PR CI 43663191183 SUCCESS; exact-merge main CI 43664006064 SUCCESS. Latest check of each name completed successfully or with an intentional skip. CI/Pages evidence is not hosted runtime acceptance.",
+      "limitations": "Synthetic CineForge CI fixture only; no live source authentication, private repository data transfer or Android CI acceptance is established. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
       "id": "verified-devobs-progress-pr624",
       "area": "PLATFORM",
       "title": "Prepare external PostgreSQL route plans for hosted Keycloak",
@@ -2578,6 +2633,17 @@
       "limitations": "Offline external-route candidate builder and stricter Frankfurt external DB hostname guard only. Complete service egress ranges, actual HTTPS PKCE callback, authenticated CA and live certificate-verifying DB connectivity remain unverified; no hosted Keycloak, tokens, secrets, network rule changes or paid resources were created. Local full suite: 1170 tests, OK (skipped=32); 65 focused Keycloak tests passed. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
     },
     {
+      "id": "verified-resume-evidence-pr625",
+      "area": "DOCUMENTATION",
+      "title": "docs(p01): record verified Keycloak route preparation",
+      "pr_number": 625,
+      "pr_head_sha": "50bc14abb8771138b2fcf001dbb9681af38fd071",
+      "merge_sha": "c4ddd04b47016365ac392fb9cf8d63e84db32116",
+      "ci_run_id": 43695531566,
+      "verification": "VERIFIED 2026-11-15 from public GitHub metadata: PR #625 merged from 50bc14abb8771138b2fcf001dbb9681af38fd071 at c4ddd04b47016365ac392fb9cf8d63e84db32116; exact-head PR CI 43695401451 SUCCESS; exact-merge main CI 43695531566 SUCCESS. Latest check of each name completed successfully or with an intentional skip. CI/Pages evidence is not hosted runtime acceptance.",
+      "limitations": "Evidence for the offline external database route preparation only; not a network rule, live TLS connection, identity deployment or hosted acceptance. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
       "id": "verified-devobs-progress-pr626",
       "area": "PLATFORM",
       "title": "Add optional read-only Devobs browser sign-in with official Keycloak PKCE adapter",
@@ -2587,6 +2653,28 @@
       "ci_run_id": 43710271936,
       "verification": "VERIFIED from GitHub: PR #626 merged from head 287072470907ff71acbb63f5a353def5adfb66c0 at f0a6aefb5f1174895b38490eb2f042a9f4260c6b. Exact-head PR CI 43710086046 and push CI 43710059219 succeeded; CodeQL succeeded. Exact-merge main CI 43710271936 and Push on main 43710271634 succeeded, including static Pages publication/verification. Local console: 31 tests passed, lint/build passed, runtime npm audit found 0 known vulnerabilities. Chromium checks passed at 1440/390px for disabled callback scrub and public-config fixture/error handling without IdP requests.",
       "limitations": "Source-only opt-in Devobs session, disabled by default, separate from Google/Firebase and manual diagnostics. Official adapter manages temporary OAuth state/PKCE verifier storage; tokens remain in memory and expiry/local sign-out clear access. No live issuer, protocol round-trip, real token, synthetic user, hosted resource, configuration or AI inference was created or tested. Actual HTTPS callback registration, issuer/JWKS, DB/TLS/network and all-in budget acceptance remain unverified. Read-only client does not grant diagnosis. Pages does not deploy this console or establish hosted API readiness. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-resume-evidence-pr627",
+      "area": "DOCUMENTATION",
+      "title": "docs(p01): record optional console sign-in evidence",
+      "pr_number": 627,
+      "pr_head_sha": "491997794f2cdd85420a40918e85639efd36d0cc",
+      "merge_sha": "12c870be9671ab6c41a17f14280af663aa54e8c4",
+      "ci_run_id": 43710894170,
+      "verification": "VERIFIED 2026-11-15 from public GitHub metadata: PR #627 merged from 491997794f2cdd85420a40918e85639efd36d0cc at 12c870be9671ab6c41a17f14280af663aa54e8c4; exact-head PR CI 43710723469 SUCCESS; exact-merge main CI 43710894170 SUCCESS. Latest check of each name completed successfully or with an intentional skip. CI/Pages evidence is not hosted runtime acceptance.",
+      "limitations": "Evidence for disabled-by-default read-only browser sign-in only; no real OIDC exchange, signed-token acceptance, hosted identity or paid resource is established. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-resume-evidence-pr628",
+      "area": "DOCUMENTATION",
+      "title": "docs(p01): record no-paid-activation budget decision",
+      "pr_number": 628,
+      "pr_head_sha": "7076054b68e72c724c0384c4498fb02a74dfde48",
+      "merge_sha": "f11b45fefd0c5aff2478ea3cc5a94089cbbdbc40",
+      "ci_run_id": 43714132975,
+      "verification": "VERIFIED 2026-11-15 from public GitHub metadata: PR #628 merged from 7076054b68e72c724c0384c4498fb02a74dfde48 at f11b45fefd0c5aff2478ea3cc5a94089cbbdbc40; exact-head PR CI 43713939147 SUCCESS; exact-merge main CI 43714132975 SUCCESS. Latest check of each name completed successfully or with an intentional skip. CI/Pages evidence is not hosted runtime acceptance.",
+      "limitations": "Preserves the recorded no-paid-activation decision and 100 USD all-in ceiling. Planning thresholds do not prove billing enforcement or authorize activation. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
     },
     {
       "id": "verified-devobs-progress-pr629",
@@ -2642,6 +2730,28 @@
       "ci_run_id": 43737043396,
       "verification": "VERIFIED from GitHub: PR #635 merged at 734794e499538b4c3879a4ca99a11da57512e501; exact-head PR CI https://github.com/hamedonassar95/Devobs/actions/runs/43737043396 SUCCESS; exact-merge main CI https://github.com/hamedonassar95/Devobs/actions/runs/43737281006 SUCCESS. Manual acceptance checklist merged.",
       "limitations": "Documentation only, not an automated approval gate, authenticated integration, actual review, hosted release or production proof. PR #632 remains a separate unresolved change. P01 BLOCKED / NO-GO, AI-9 BLOCKED and Codex runtime OPEN."
+    },
+    {
+      "id": "verified-resume-evidence-pr636",
+      "area": "DOCUMENTATION",
+      "title": "docs(evidence): reconcile verified milestones through PR #635",
+      "pr_number": 636,
+      "pr_head_sha": "05cc785e7d51926bd533304340957aa02bed21be",
+      "merge_sha": "4d50c4c388ab92a93f0e624890df54dcd6879199",
+      "ci_run_id": 43738701495,
+      "verification": "VERIFIED 2026-11-15 from public GitHub metadata: PR #636 merged from 05cc785e7d51926bd533304340957aa02bed21be at 4d50c4c388ab92a93f0e624890df54dcd6879199; exact-head PR CI 43737522545 SUCCESS; exact-merge main CI 43738701495 SUCCESS. Latest check of each name completed successfully or with an intentional skip. CI/Pages evidence is not hosted runtime acceptance.",
+      "limitations": "Reconciles verified evidence through #635 only. Documentation does not change runtime, transport, release approval or gate status. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-resume-evidence-pr637",
+      "area": "OPERATIONS",
+      "title": "fix(integrations): reconcile CineForge runner triage after OTLP merge",
+      "pr_number": 637,
+      "pr_head_sha": "50689408e9a0026d200bef62144a8416faee2647",
+      "merge_sha": "707147238bfa555b9565ad8e1d77519611856d67",
+      "ci_run_id": 43739747247,
+      "verification": "VERIFIED 2026-11-15 from public GitHub metadata: PR #637 merged from 50689408e9a0026d200bef62144a8416faee2647 at 707147238bfa555b9565ad8e1d77519611856d67; exact-head PR CI 43738715719 SUCCESS; exact-merge main CI 43739747247 SUCCESS. Latest check of each name completed successfully or with an intentional skip. CI/Pages evidence is not hosted runtime acceptance.",
+      "limitations": "Offline runner triage and reconciled OTLP CI coverage only. Self-reported statuses are not authenticated provenance or a private CI root-cause diagnosis; no private project was accessed. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
     }
   ],
   "gates": [
