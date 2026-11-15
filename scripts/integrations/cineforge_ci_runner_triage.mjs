@@ -3,6 +3,7 @@
 import { readFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
+import { parseJsonLine } from '../ai_intelligence/event_schema.mjs';
 
 const SOURCE = 'cineforge-ai';
 const KINDS = new Set(['android', 'devobs-policy']);
@@ -92,7 +93,7 @@ export async function main(args = process.argv.slice(2)) {
     const raw = await readFile(args[1]);
     if (raw.length > 4096) invalid('input_too_large');
     let parsed;
-    try { parsed = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(raw)); }
+    try { parsed = parseJsonLine(new TextDecoder('utf-8', { fatal: true }).decode(raw)); }
     catch { invalid('invalid_json'); }
     process.stdout.write(JSON.stringify(triageCineForgeCi(parsed)) + '\n');
     return 0;
