@@ -65,6 +65,27 @@ test('fails closed on untrusted, inconsistent, malformed or private data', () =>
   ];
   for (const input of cases) assert.throws(() => triageCineForgeCi(input));
 });
+test('CLI rejects duplicate JSON object keys without emitting advisory output', async t => {
+  const folder = await mkdtemp(path.join(os.tmpdir(), 'ci-triage-duplicates-'));
+  t.after(() => rm(folder, { recursive: true, force: true }));
+  const input = path.join(folder, 'duplicate.json');
+  const original = JSON.stringify(payload());
+  const duplicateCases = [
+    original.replace('"source":"cineforge-ai"', '"source":"cineforge-ai","source":"other"'),
+    original.replace('"run_conclusion":"failure"', '"run_conclusion":"success","run_conclusion":"failure"'),
+    original.replace('"status":"completed"', '"status":"queued","status":"completed"'),
+    original.replace('"runner_id":0', '"runner_id":42,"runner_id":0'),
+  ];
+  for (const content of duplicateCases) {
+    await writeFile(input, content);
+    const result = spawnSync(process.execPath, [SCRIPT, '--input', input], { encoding: 'utf8' });
+    assert.equal(result.status, 2, content);
+    assert.equal(result.stdout, '');
+    assert.equal(result.stderr, 'cineforge-ci-triage: invalid_json\\n');
+    assert.equal(result.stderr.includes('cineforge-ai'), false);
+  }
+});
+
 test('CLI accepts bounded synthetic JSON and reports only fixed failures', async t => {
   const folder = await mkdtemp(path.join(os.tmpdir(), 'ci-triage-'));
   t.after(() => rm(folder, { recursive: true, force: true }));
