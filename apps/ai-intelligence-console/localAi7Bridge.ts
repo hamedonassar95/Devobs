@@ -18,6 +18,53 @@ function count(value: unknown): number {
   }
   return value;
 }
+// These identifiers and markers originate from the fixed local AI-4 runbook catalog.
+// Never forward upstream runbook text, log text, arbitrary URLs, or identifiers.
+const EVIDENCE_BY_CAUSE: Readonly<Record<string, readonly string[]>> = Object.freeze({
+  timeout: ['ETIMEDOUT', 'timeout', 'timed_out'],
+  connection: ['ECONNREFUSED', 'ECONNRESET'],
+  dns: ['ENOTFOUND', 'EAI_AGAIN'],
+  permission: ['EACCES', 'permission_denied'],
+  dependency: ['module_not_found', 'cannot_find_module'],
+  memory: ['out_of_memory', 'heap_limit'],
+});
+const MAX_SOURCE_RECOMMENDATIONS = 80;
+const MAX_VISIBLE_RECOMMENDATIONS = 5;
+
+function safeRecommendations(raw: unknown, expected: number) {
+  if (!Array.isArray(raw) || raw.length !== expected || raw.length > MAX_SOURCE_RECOMMENDATIONS) {
+    throw new Error('invalid_local_ai4_collection');
+  }
+  return raw.map((item: unknown, index: number) => {
+    if (!object(item) || typeof item.cause_id !== 'string'
+        || !Object.hasOwn(EVIDENCE_BY_CAUSE, item.cause_id)
+        || item.review_order !== index + 1
+        || item.classification !== 'POSSIBLE'
+        || !['low', 'medium'].includes(item.heuristic_signal as string)
+        || item.requires_human_approval !== true
+        || item.automatic_execution !== false
+        || count(item.event_count) === 0
+        || !Array.isArray(item.evidence_markers)
+        || item.evidence_markers.length < 1
+        || item.evidence_markers.length > 8
+        || item.evidence_markers.some((marker: unknown) =>
+          typeof marker !== 'string'
+          || !EVIDENCE_BY_CAUSE[item.cause_id as string].includes(marker))) {
+      throw new Error('invalid_local_ai4_recommendation');
+    }
+    return {
+      review_order: index + 1,
+      cause_id: item.cause_id,
+      classification: 'POSSIBLE' as const,
+      heuristic_signal: item.heuristic_signal as 'low' | 'medium',
+      event_count: item.event_count as number,
+      evidence_markers: [...item.evidence_markers] as string[],
+      requires_human_approval: true as const,
+      automatic_execution: false as const,
+    };
+  }).slice(0, MAX_VISIBLE_RECOMMENDATIONS);
+}
+
 function normalize(raw: unknown) {
   if (!object(raw) || raw.schema_version !== 1 || raw.status !== 'local_snapshot'
       || !object(raw.summary) || !object(raw.pipeline)
@@ -32,6 +79,8 @@ function normalize(raw: unknown) {
     recommendation_count: count(raw.summary.recommendation_count),
     anomaly_candidate_count: count(raw.summary.anomaly_candidate_count),
   };
+  // Validate the entire recommendation collection before returning a bounded prefix.
+  const recommendations = safeRecommendations(raw.recommendations, summary.recommendation_count);
   const stages = raw.pipeline.stages.map((step: unknown, index: number) => {
     if (!object(step) || step.id !== STAGES[index] || typeof step.status !== 'string'
         || !/^[a-z_]{1,32}$/.test(step.status)) {
@@ -40,7 +89,7 @@ function normalize(raw: unknown) {
     return { id: STAGES[index], status: step.status, count: count(step.count) };
   });
   return { source: 'local_ai7_snapshot', status: 'local_snapshot',
-    mode: 'local_advisory_only', read_only: true, summary, stages };
+    mode: 'local_advisory_only', read_only: true, summary, stages, recommendations };
 }
 
 async function readBounded(response: Response): Promise<unknown> {
