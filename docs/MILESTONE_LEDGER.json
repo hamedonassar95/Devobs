@@ -2994,6 +2994,94 @@
       "ci_run_id": 43917735386,
       "verification": "VERIFIED 2026-11-16 via merged PR #669: exact-head PR CI 43917735386 and push CI 43917677701 passed; CodeQL 43917727775 passed. On exact merge SHA c9091a00fd726c1e798104e943daa654a1ec753e, main CI 43918248966 and CodeQL 43918247238 passed. Python 3.12/3.15, security, PostgreSQL RLS, Terraform, container smoke/Trivy, site-contract and validate passed; main Node check was skipped by path selection, while push CI Node tests passed. Static GitHub Pages publication and verify-production succeeded. Local Python suite 1223 OK (37 skipped); ledger tests 70 OK; action pin and diff checks passed.",
       "limitations": "Ledger, state and test bookkeeping only; no runtime behavior changed. GitHub Pages published the validated static site only; no live API/Gunicorn service was deployed or verified. PR-triggered Node check and production-release/controlled-incident-drill jobs were intentionally skipped. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-state-evidence-pr670",
+      "area": "DOCUMENTATION",
+      "title": "Record reviewed PR #669 merged evidence in STATE and milestone regressions",
+      "pr_number": 670,
+      "pr_head_sha": "f439cc458e1d1c1814c5a2cbac5fa9d9dce83b3c",
+      "merge_sha": "78fc12d262560c3243e4ecc7cd8713b1e19b771a",
+      "ci_run_id": 43919973293,
+      "verification": "VERIFIED 2026-11-17 against GitHub PR #670 merged 2026-11-16T17:37:48Z; exact-head PR CI 43919973293 SUCCESS at f439cc458e1d1c1814c5a2cbac5fa9d9dce83b3c; main merge 78fc12d262560c3243e4ecc7cd8713b1e19b771a. Exact-merge main CI, CodeQL and hosted behavior NOT independently checked in this reconciliation.",
+      "limitations": "Historical evidence bookkeeping only; no new service or hosted runtime test. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-public-portfolio-cli-pr671",
+      "area": "PLATFORM",
+      "title": "Observe four allowlisted public GitHub CI sources manually without credentials",
+      "pr_number": 671,
+      "pr_head_sha": "5687451121585f420f6dc6dbfe716ff61410c293",
+      "merge_sha": "a66daf37c2dcfd5f72367ac24107cee28620de91",
+      "ci_run_id": 43924392568,
+      "verification": "VERIFIED 2026-11-17 against GitHub PR #671 merged 2026-11-16T18:04:09Z; exact-head PR CI 43924392568 SUCCESS at 5687451121585f420f6dc6dbfe716ff61410c293; main merge a66daf37c2dcfd5f72367ac24107cee28620de91. Exact-merge main CI, CodeQL and hosted behavior NOT independently checked in this reconciliation.",
+      "limitations": "Only four public anonymous read-only CI sources; no private repo, autonomous monitoring, authenticated telemetry, production release or paid inference. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-public-portfolio-browser-pr672",
+      "area": "PLATFORM",
+      "title": "Display opt-in four-repository CI status on the static public browser page",
+      "pr_number": 672,
+      "pr_head_sha": "7be668f91d7814b4b211330ed0736dc9bdcaf13d",
+      "merge_sha": "2b5cece90f264686556fe7e066f1c7492ca99f2d",
+      "ci_run_id": 43926436517,
+      "verification": "VERIFIED 2026-11-17 against GitHub PR #672 merged 2026-11-16T18:19:07Z; exact-head PR CI 43926436517 SUCCESS at 7be668f91d7814b4b211330ed0736dc9bdcaf13d; main merge 2b5cece90f264686556fe7e066f1c7492ca99f2d. Exact-merge main CI, CodeQL and hosted behavior NOT independently checked in this reconciliation.",
+      "limitations": "Static page and synthetic/browser tests only; no streaming, credential, continuous monitoring, deployed SaaS or hosted tenant isolation. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-portfolio-cloudevents-ai7-pr673",
+      "area": "PLATFORM",
+      "title": "Convert eligible public CI into bounded CloudEvents for existing local AI-1/AI-7",
+      "pr_number": 673,
+      "pr_head_sha": "4e5b4851283cbc3b3d371257c564fec289ba7c93",
+      "merge_sha": "570566c4fb16fae63071204bfc3dc55637f81397",
+      "ci_run_id": 43929762476,
+      "verification": "VERIFIED 2026-11-17 against GitHub PR #673 merged 2026-11-16T18:36:01Z; exact-head PR CI 43929762476 SUCCESS at 4e5b4851283cbc3b3d371257c564fec289ba7c93; main merge 570566c4fb16fae63071204bfc3dc55637f81397. Exact-merge main CI, CodeQL and hosted behavior NOT independently checked in this reconciliation.",
+      "limitations": "Eligible public CI is not root-cause evidence; no actual logs, incident labels, LLM, production repair, protected deployment or hosted service. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-portfolio-one-command-ai7-pr674",
+      "area": "PLATFORM",
+      "title": "Run manual public CI to existing local AI-7 analysis in one command",
+      "pr_number": 674,
+      "pr_head_sha": "c4b93fc276f4a98cfae5caeb9a99aff19ff7c3d1",
+      "merge_sha": "cb7f0a6301423d70c4491090833886587da8414f",
+      "ci_run_id": 43931310441,
+      "verification": "VERIFIED 2026-11-17 against GitHub PR #674 merged 2026-11-16T18:44:19Z; exact-head PR CI 43931310441 SUCCESS at c4b93fc276f4a98cfae5caeb9a99aff19ff7c3d1; main merge cb7f0a6301423d70c4491090833886587da8414f. Exact-merge main CI, CodeQL and hosted behavior NOT independently checked in this reconciliation.",
+      "limitations": "Manual fixed public GET requests only; even complete observation does not imply all CI passed or AI-3/AI-4 produced supported RCA. No paid inference or deployment. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-manual-portfolio-ai7-actions-pr675",
+      "area": "PLATFORM",
+      "title": "Run a no-key, manual GitHub Actions public portfolio AI-7 report with sanitized artifact",
+      "pr_number": 675,
+      "pr_head_sha": "e2b8105f7583be790fe27a3d81f7091ae2131e11",
+      "merge_sha": "9084fc060b40cfdfb05b56ba0113d020731580ce",
+      "ci_run_id": 43933691263,
+      "verification": "VERIFIED 2026-11-17 against GitHub PR #675 merged 2026-11-16T19:06:05Z; exact-head PR CI 43933691263 SUCCESS at e2b8105f7583be790fe27a3d81f7091ae2131e11; main merge 9084fc060b40cfdfb05b56ba0113d020731580ce. Exact-merge main CI, CodeQL and hosted behavior NOT independently checked in this reconciliation.",
+      "limitations": "Manual workflow introduced and tested on PR; no independently verified post-merge dispatch, current provider response, hosted API or release. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-staging-readiness-timeout-pr676",
+      "area": "RELIABILITY",
+      "title": "Bound concurrent PostgreSQL readiness followers to 4 seconds and fail closed",
+      "pr_number": 676,
+      "pr_head_sha": "c3dbc25916061d43c88cc50646d8d8b7a81b2eed",
+      "merge_sha": "3c1be7d04d7787c1f331cf5a0040a458cfb56c5e",
+      "ci_run_id": 43936765624,
+      "verification": "VERIFIED 2026-11-17 against GitHub PR #676 merged 2026-11-16T19:15:48Z; exact-head PR CI 43936765624 SUCCESS at c3dbc25916061d43c88cc50646d8d8b7a81b2eed; main merge 3c1be7d04d7787c1f331cf5a0040a458cfb56c5e. Exact-merge main CI, CodeQL and hosted behavior NOT independently checked in this reconciliation.",
+      "limitations": "Offline/CI bounded wait only; does not establish hosted DB connectivity, actual /readyz, network rate limiting, tenancy or service deployment. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-staging-startup-reasons-pr677",
+      "area": "RELIABILITY",
+      "title": "Classify missing versus invalid staging startup configuration with fixed safe reason codes",
+      "pr_number": 677,
+      "pr_head_sha": "0d74d4c8b38ea953ffcdbc3ae3952920b27b1d58",
+      "merge_sha": "663b0b29f7b8f92c256d401cc84f735fb3cb7dc5",
+      "ci_run_id": 43938905966,
+      "verification": "VERIFIED 2026-11-17 against GitHub PR #677 merged 2026-11-16T21:36:35Z; exact-head PR CI 43938905966 SUCCESS at 0d74d4c8b38ea953ffcdbc3ae3952920b27b1d58; main merge 663b0b29f7b8f92c256d401cc84f735fb3cb7dc5. Exact-merge main CI, CodeQL and hosted behavior NOT independently checked in this reconciliation.",
+      "limitations": "Source/CI diagnostic category only; previous Render OIDC error predates change and remains undiagnosed; no redeploy, secret inspection or hosted readiness. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
     }
   ],
   "gates": [
