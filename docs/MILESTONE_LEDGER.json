@@ -2928,6 +2928,17 @@
       "ci_run_id": 43775650619,
       "verification": "VERIFIED via merged PR #653 and successful exact-head PR CI 43775650619. Main CI 43775956319 attempt2 and CodeQL 43775955523 succeeded after retrying failed Pages publication jobs on the unchanged SHA; the newly finalized artifact was visible after the initial metadata failure. Public manifest, HTML/report bytes and browser 390/1440 verified 35 synthetic events/replay. Local Node 262 passed; Python 1217 OK (37 skipped).",
       "limitations": "Synthetic conversion, separate temporary stores and aggregate report only; no installed project connections, authenticated sources, hosted tenant isolation or live detector-quality proof. No new paid resource, account, secret or cloud change. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-public-ci-reader-pr663",
+      "area": "PLATFORM",
+      "title": "Read public Devobs GitHub workflow evidence without an API key",
+      "pr_number": 663,
+      "pr_head_sha": "2d31c8d2c9ef863749baf9ddb18fdc193924b25a",
+      "merge_sha": "183d6770fb00781f923fa96a58d8673da6efe146",
+      "ci_run_id": 43844162796,
+      "verification": "VERIFIED 2026-11-16 via merged PR #663, exact-head PR CI 43844162796, main CI 43844607198 and CodeQL 43844606146 success. Published manifest and all three page assets matched merge source/CSP/MIME. Fully loaded public Chromium390/1440 read actual public GitHub data with two GETs after activation and matching main SHA. Local Node271 passed; Python1222 OK (37 skipped).",
+      "limitations": "Public CI observations only, not hosted service health, release approval or persisted AI evidence. Early activation before module readiness was identified after publication and requires the separate startup fix. No account, key or paid resource created. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
     }
   ],
   "gates": [
