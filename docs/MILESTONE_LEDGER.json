@@ -2917,6 +2917,17 @@
       "ci_run_id": 43773872003,
       "verification": "VERIFIED 2026-11-15 via merged PR #652 and exact-head PR CI 43773872003 success; all 32 source checks completed successfully or intentionally skipped. Main CI 43774261562 and CodeQL 43774261092 succeeded. Local Node suite passed 255 tests; Python 1215 OK (37 skipped); focused Grafana/Alertmanager tests passed 20. Pinned Grafana 13.2.4 source compatibility and independent read-only review were checked.",
       "limitations": "Offline default Grafana v1 JSON conversion only; no receiver, authenticated sender, live monitoring delivery or installation in another project. Unsupported image/enrichment extensions rejected. No new resource, credential, model or paid operation. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-portfolio-offline-acceptance-pr653",
+      "area": "PLATFORM",
+      "title": "Verify and publish three-provider offline acceptance across seven project namespaces",
+      "pr_number": 653,
+      "pr_head_sha": "77783e9b2e6527283687c27410d0d1ee69d0f46e",
+      "merge_sha": "c61567b34efdd9b654459c43637cedaa6d2771dd",
+      "ci_run_id": 43775650619,
+      "verification": "VERIFIED via merged PR #653 and successful exact-head PR CI 43775650619. Main CI 43775956319 attempt2 and CodeQL 43775955523 succeeded after retrying failed Pages publication jobs on the unchanged SHA; the newly finalized artifact was visible after the initial metadata failure. Public manifest, HTML/report bytes and browser 390/1440 verified 35 synthetic events/replay. Local Node 262 passed; Python 1217 OK (37 skipped).",
+      "limitations": "Synthetic conversion, separate temporary stores and aggregate report only; no installed project connections, authenticated sources, hosted tenant isolation or live detector-quality proof. No new paid resource, account, secret or cloud change. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
     }
   ],
   "gates": [

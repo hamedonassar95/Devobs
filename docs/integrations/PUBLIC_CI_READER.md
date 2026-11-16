@@ -1,0 +1,86 @@
+# A useful free API: public Devobs CI evidence
+
+**VERIFIED implementation and local browser read; not production acceptance.**
+The optional [public CI page](https://hamedonassar95.github.io/Devobs/assets/public-ci/)
+reads real public GitHub metadata only when its button is activated. It adds no
+backend, account, API key, paid inference, dependency or recurring task.
+The existing synthetic free preview keeps its self-only CSP and makes no API call.
+
+## Applying the video idea responsibly — 2026-11-16
+
+The supplied [Short](https://www.youtube.com/shorts/dTYl4wE6C2U),
+«بطل تدور على API لمشروعك! (كنز مجاني على GitHub)», suggests using a Public APIs
+catalogue to discover APIs, then reading the selected API documentation.
+Its captioned text was available through a public web reader; no paid video
+analysis, credits, account registration or upstream code installation was used.
+
+The reviewed [public-apis/public-apis catalogue](https://github.com/public-apis/public-apis)
+has an [MIT licence](https://github.com/public-apis/public-apis/blob/master/LICENSE)
+for the catalogue, not every service it lists. Entries can require keys, OAuth,
+subscriptions or quota review. Its GitHub row lists OAuth, but the official docs
+explicitly allow the particular public reads selected here without authentication.
+The catalogue is discovery evidence; individual official API terms take precedence.
+
+## Exact public scope
+
+One activation performs exactly two fixed GETs:
+
+```text
+https://api.github.com/repos/hamedonassar95/Devobs/branches/main
+https://api.github.com/repos/hamedonassar95/Devobs/actions/workflows/ci.yml/runs?branch=main&event=push&per_page=1
+```
+
+See the official [branch endpoint](https://docs.github.com/en/rest/branches/branches#get-a-branch)
+and [workflow endpoint](https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-workflow).
+The latter permits the filename `ci.yml` and public unauthenticated access.
+The client pins supported [API version](https://docs.github.com/en/rest/about-the-rest-api/api-versions)
+`2022-11-28`. [CORS](https://docs.github.com/en/rest/using-the-rest-api/using-cors-and-jsonp-to-make-cross-origin-requests)
+allows the browser read; the version header can cause an OPTIONS preflight.
+Observed headers and a real local Chromium request confirmed access.
+
+GitHub documents [60 anonymous requests/hour per originating IP](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api),
+possibly shared by multiple people. Higher quotas seen in an execution environment
+are not an entitlement for visitor browsers. There is no polling, retry, token
+fallback, proxy, JSONP or arbitrary URL/project input. Rate limits and unavailable
+responses are shown honestly; they never preserve an old green result.
+
+## Evidence and privacy boundaries
+
+Both responses must validate before display: repository/head-repository must be
+the fixed public Devobs repository, workflow ID/path must match, branch/event must
+be main/push, and IDs, SHA and timestamps must be valid. Unknown or contradictory
+status/conclusion values fail closed. Run links are constructed from the fixed
+GitHub origin and numeric run ID; upstream links, names and messages are ignored.
+
+Only completed/success means successful CI. An unmatched main/run SHA is stale,
+not successful current evidence. A match describes the two retrieved responses
+at that time; caching or later pushes can change the state. Neither observation
+proves deployment, live application health, hosted identity, tenant isolation,
+spending enforcement or AI-9 quality. Existing Python backend collectors remain
+separate; this browser page creates no persisted AI evidence or release approval.
+
+Requests use credentials omitted, no referrer, redirects rejected, bounded UTF-8
+JSON streams (64 KiB each) and one overall five-second deadline. The page's CSP
+permits only the fixed GitHub API origin for connections. Nothing is fetched
+before activation; notes, local storage and private project data are never read.
+Old evidence is cleared immediately on refresh and on error. There is no account,
+token field, write API, automatic remediation or production action.
+
+## Verification and rollback
+
+```sh
+node --test tests/public_ci_api.test.mjs
+python3 -m unittest discover -s tests -p test_public_ci_site.py -q
+python3 scripts/check_site.py
+```
+
+Tests cover bindings, stale/missing/running/error states, fixed requests, rate
+limits, redirects, invalid MIME/UTF-8/JSON, size limits and request/body deadlines.
+Browser checks cover zero initial API calls, double-click concurrency, success,
+stale data, failure clearing and mobile/desktop layout. Trusted site validation
+requires the three static files and shared CSS whenever the directory exists or
+the page is advertised; older candidates without it remain valid. Node CI also
+runs for public-page-only edits. Docker uses the exact public file allowlist.
+
+Rollback is a code revert; no cloud resource rollback is required. P01 remains
+**BLOCKED/NO-GO**, AI-9 **BLOCKED**, Codex runtime **OPEN**.
