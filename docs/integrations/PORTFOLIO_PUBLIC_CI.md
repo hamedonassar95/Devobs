@@ -21,9 +21,42 @@ The new observer covers **four verified public repos only** with `.github/workfl
 
 ## Browser view (manual, public only)
 
-The existing [public CI webpage](https://hamedonassar95.github.io/Devobs/assets/public-ci/) now includes a second, opt-in **فحص المشاريع الأربعة** button. No additional HTTP requests occur when loading the page. A click fetches four public repositories using the **same browser-compatible normalization module** as the CLI, displays each repository's confirmed CI state or `unverified` separately, and never writes to GitHub. The existing Devobs-only CI CloudEvents export is unchanged; it does not export cross-repository results. Pages publishing and new UI availability remain unverified until exact-head CI and a post-merge deployed-site smoke test pass.
+The existing [public CI webpage](https://hamedonassar95.github.io/Devobs/assets/public-ci/) now includes a second, opt-in **فحص المشاريع الأربعة** button. No additional HTTP requests occur when loading the page. A click fetches four public repositories using the **same browser-compatible normalization module** as the CLI, displays each repository's confirmed CI state or `unverified` separately, and never writes to GitHub. The existing Devobs-only CI CloudEvents export is unchanged; the **separate** portfolio export described below now supports a manual four-project local AI-7 handoff. Pages publishing and new UI availability remain unverified until exact-head CI and a post-merge deployed-site smoke test pass.
 
 The page retains a strict GitHub-only Content Security Policy; no user-provided repository URLs, credentials, free-form HTML or raw GitHub responses are accepted or rendered. The app uses `textContent`, does not request private repositories, never polls, and does not claim a public CI pass is a production health signal. Test behavior is exercised using fake DOM and synthetic HTTP responses in `tests/public_portfolio_browser.test.mjs`.
+
+## Manual CI → CloudEvents → AI-7 handoff (no inference or cloud changes)
+
+**End-to-end feature:** after clicking **فحص المشاريع الأربعة** in the existing static [public CI viewer](https://hamedonassar95.github.io/Devobs/assets/public-ci/), a second button **تنزيل أحداث CI لتحليل AI-7 المحلي** can download `devobs-portfolio-ci.cloudevents.jsonl`. No extra network request is made to download. The browser exports only **completed, current main-SHA-matched** CI results with a verified positive run ID, run attempt and valid GitHub creation timestamp. Missing attempt/time, stale, pending, unavailable, unsupported, and unverified results are **excluded**, never invented. The screen says how many eligible events were exported out of four; a partial export is not full project coverage.
+
+Run the *existing AI-1 conversion* and *real AI-7 snapshot algorithm* locally (Node.js 24, from the repository checkout) without starting any server or writing any data:
+
+```sh
+node scripts/portfolio_ci_ai7.mjs --input /path/to/devobs-portfolio-ci.cloudevents.jsonl
+```
+
+This manual CLI validates CloudEvents against the existing `cloudevents_ci_adapter`, checks only the four reviewed public project namespaces, feeds normalized records into the actual `buildDashboardSnapshot` function, and outputs a small **non-sensitive JSON summary** (per-project CI conclusion, total CI observations, failed/timed-out count, seven AI stages, and the true local recommendation count). It makes **zero HTTP requests and no writes**. It does not trust CloudEvents' self-declared `source` as authenticated provenance: download from the reviewed page; review your local file first. Never ingest private job logs, environment variables, secrets, or paid-model output here.
+
+To **persist a local AI-1 store for the optional AI-7 dashboard**, use the already existing documented two-stage process (in a private temporary directory outside Git):
+
+```sh
+export DEVOBS_CI_EXPORT_DIR="$(mktemp -d)"
+node scripts/integrations/cloudevents_ci_adapter.mjs --input /path/to/devobs-portfolio-ci.cloudevents.jsonl > "$DEVOBS_CI_EXPORT_DIR/ai1.jsonl"
+node scripts/ai_intelligence/event_ingest.mjs --input "$DEVOBS_CI_EXPORT_DIR/ai1.jsonl" --store "$DEVOBS_CI_EXPORT_DIR/events.jsonl"
+node scripts/ai_intelligence/dashboard_server.mjs --store "$DEVOBS_CI_EXPORT_DIR/events.jsonl" --port 8765
+```
+
+**Interpretation:** CI conclusions alone are **not error logs or RCA evidence**. It is correct for AI-2 to show `no_metrics`, AI-3 `no_logs`, and AI-4 `no_matches`; the tool must **not fabricate** a cause, incident prediction, anomaly or runbook. An actual diagnosis requires a **separate, privacy-reviewed** source of logs/metrics and human approval before any repair, PR, production change or deployment. This does not alter AI-9, P01 cost, hosted authentication, paid services or runtime acceptance.
+
+Validation commands (offline synthetic fixtures, no GitHub API):
+
+```sh
+node --check assets/public-ci/portfolio-export.mjs
+node --check scripts/portfolio_ci_ai7.mjs
+node --test tests/portfolio_ci_ai7_handoff.test.mjs tests/public_portfolio_browser.test.mjs tests/portfolio_public_ci.test.mjs
+```
+
+The handoff test covers four distinct CI runs through the existing converter, the **real AI-1 event store** with replay de-duplication, and AI-7's actual calculated snapshot, plus rejected, stale and partial evidence. The static site checks require the new export module and button. Existing Devobs-only CI export is unchanged.
 
 ## How to run (manual, on a trusted machine)
 
