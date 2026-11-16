@@ -10,9 +10,9 @@ const RUNS_URL = 'https://api.github.com/repos/' + OWNER + '/actions/workflows/c
 const SHA = 'a'.repeat(40);
 const head = () => ({ name: 'main', commit: { sha: SHA } });
 function runs() {
-  return { total_count: 1, workflow_runs: [{ id: 123, run_number: 4, workflow_id: 374991651,
+  return { total_count: 1, workflow_runs: [{ id: 123, run_number: 4, run_attempt: 1, workflow_id: 374991651,
     name: 'CI', path: '.github/workflows/ci.yml', event: 'push', head_branch: 'main', head_sha: SHA,
-    status: 'completed', conclusion: 'success', updated_at: '2026-11-16T01:02:03Z',
+    status: 'completed', conclusion: 'success', created_at: '2026-11-16T01:00:00Z', updated_at: '2026-11-16T01:02:03Z',
     html_url: 'https://untrusted.example.invalid/PRIVATE_SENTINEL',
     repository: { full_name: OWNER, private: false }, head_repository: { full_name: OWNER, private: false } }] };
 }
@@ -36,6 +36,7 @@ async function read(fetcher = fetchGood) {
 
 test('public matching CI evidence is bounded and links only to the fixed GitHub run', () => {
   assert.deepEqual(normalize(), { state: 'success', mainSha: SHA, runSha: SHA, runId: 123, runNumber: 4,
+    runAttempt: 1, createdAt: '2026-11-16T01:00:00Z',
     updatedAt: '2026-11-16T01:02:03Z', runUrl: 'https://github.com/' + OWNER + '/actions/runs/123',
     status: 'completed', conclusion: 'success', matchesHead: true });
   assert.doesNotMatch(JSON.stringify(normalize()), /PRIVATE_SENTINEL|untrusted/);

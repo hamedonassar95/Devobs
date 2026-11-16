@@ -38,7 +38,9 @@
 
 ## تشغيل محلي
 
-استخدم بيانات اصطناعية فقط إلى أن توجد سياسة منفصلة معتمدة للبيانات الحقيقية:
+استخدم بيانات اصطناعية فقط إلى أن توجد سياسة منفصلة معتمدة للبيانات الحقيقية.
+الاستثناء المحدود الحالي هو [تنزيل نتيجة CI العامة لـDevobs](integrations/PUBLIC_CI_READER.md#local-cloudevents-handoff)،
+بعد القراءة اليدوية ومراجعة الملف؛ لا يشمل بيانات المشاريع الخاصة أو webhook حيًا.
 
 ```sh
 node scripts/ai_intelligence/event_ingest.mjs --input /path/to/synthetic-events.jsonl --store /path/to/devobs-events.jsonl

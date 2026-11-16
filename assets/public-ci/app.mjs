@@ -1,4 +1,4 @@
-import { fetchPublicCi } from './api.mjs';
+import { buildPublicCiCloudEvent, fetchPublicCi } from './api.mjs';
 
 const labels = Object.freeze({
   success: 'نجحت فحوص CI لهذا التشغيل', failure: 'فشلت فحوص CI',
@@ -15,12 +15,16 @@ const errors = Object.freeze({
   unavailable: 'تعذر الاتصال بـGitHub الآن. لا توجد نتيجة جديدة.',
 });
 const button = document.getElementById('check-public-ci');
+const downloadButton = document.getElementById('download-public-ci');
 const status = document.getElementById('ci-status');
 const evidence = document.getElementById('ci-evidence');
 const runLink = document.getElementById('ci-run-link');
 const fields = ['ci-outcome', 'ci-match', 'ci-main-sha', 'ci-run-sha', 'ci-updated', 'ci-observed'];
 let loading = false;
+let downloadableEvent = null;
 function clearEvidence() {
+  downloadableEvent = null;
+  if (downloadButton) downloadButton.disabled = true;
   evidence.hidden = true;
   for (const id of fields) document.getElementById(id).textContent = '';
   runLink.hidden = true; runLink.removeAttribute('href');
@@ -35,6 +39,8 @@ button.addEventListener('click', async () => {
   clearEvidence(); status.textContent = 'جارٍ قراءة بيانات GitHub العامة…';
   try {
     const result = await fetchPublicCi();
+    downloadableEvent = buildPublicCiCloudEvent(result);
+    if (downloadButton) downloadButton.disabled = downloadableEvent === null;
     put('ci-outcome', labels[result.state]);
     put('ci-main-sha', result.mainSha.slice(0, 12));
     put('ci-run-sha', result.runSha ? result.runSha.slice(0, 12) : '—');
@@ -48,6 +54,15 @@ button.addEventListener('click', async () => {
   } catch (error) {
     clearEvidence(); status.textContent = errors[error?.code] ?? errors.unavailable;
   } finally { loading = false; button.disabled = false; }
+});
+downloadButton?.addEventListener('click', () => {
+  if (loading || downloadableEvent === null) return;
+  const url = URL.createObjectURL(new Blob([downloadableEvent], { type: 'application/x-ndjson' }));
+  const link = document.createElement('a');
+  link.href = url; link.download = 'devobs-public-ci.cloudevents.jsonl';
+  document.body.append(link);
+  try { link.click(); }
+  finally { link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
 });
 status.textContent = 'لم يبدأ الفحص. اضغط الزر عند رغبتك في جلب البيانات العامة.';
 button.disabled = false;
