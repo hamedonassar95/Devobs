@@ -76,7 +76,8 @@ test('public browser view makes no network requests on import, only on click', a
   // A second explicit click can fail for one repository without inventing all-success.
   globalThis.fetch = publicFixture(clicks, true);
   await ui['check-portfolio-ci'].handlers.click();
-  assert.equal(clicks.length, 16);
+  // An early error on the final repository short-circuits its second GET.
+  assert.equal(clicks.length, 15);
   const rows = ui['portfolio-results'].children;
   assert.equal(rows.length, 4);
   assert.match(rows[3].children[1].textContent, /تعذر التحقق/);
