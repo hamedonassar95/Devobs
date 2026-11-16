@@ -71,7 +71,7 @@ test('four source-bound CloudEvents pass the real converter and AI-7 analysis', 
 
 test('missing attempt/time, pending, stale and provider errors never produce fabricated events', () => {
   const source = report();
-  delete source.results[0].run_attempt;
+  source.results[0].run_attempt = null;
   source.results[1].run_attempt = null;
   source.results[2].status = 'stale';
   source.results[3] = { repository: PUBLIC_TARGETS[3].repo, branch: 'main',
