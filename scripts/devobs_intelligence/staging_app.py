@@ -42,17 +42,24 @@ class StagingConfigurationError(ValueError):
 
 READINESS_CACHE_SECONDS = 0.25
 MAX_READINESS_CACHE_SECONDS = 1.0
+READINESS_WAIT_SECONDS = 4.0
+MAX_READINESS_WAIT_SECONDS = 8.0
 
 
 class _ReadinessProbeCoordinator:
     """Coalesce one app's concurrent probes and briefly cache their actual result."""
 
-    def __init__(self, probe: Callable[[], object], cache_seconds: float = READINESS_CACHE_SECONDS):
+    def __init__(self, probe: Callable[[], object], cache_seconds: float = READINESS_CACHE_SECONDS,
+                 wait_seconds: float = READINESS_WAIT_SECONDS):
         if (not callable(probe) or type(cache_seconds) not in (int, float)
                 or not 0 < cache_seconds <= MAX_READINESS_CACHE_SECONDS):
             raise ValueError("invalid_readiness_cache_config")
+        if (type(wait_seconds) not in (int, float)
+                or not 0 < wait_seconds <= MAX_READINESS_WAIT_SECONDS):
+            raise ValueError("invalid_readiness_wait_config")
         self._probe = probe
         self._cache_seconds = float(cache_seconds)
+        self._wait_seconds = float(wait_seconds)
         self._condition = threading.Condition()
         self._cached_result: bool | None = None
         self._cache_expires_at = 0.0
@@ -71,8 +78,15 @@ class _ReadinessProbeCoordinator:
                 generation = self._active_generation
                 self._waiters[generation] = self._waiters.get(generation, 0) + 1
                 try:
+                    # A stalled leader must not hold every waiting WSGI request
+                    # indefinitely. The leader remains the only DB probe; a
+                    # follower times out to a false/503 instead of starting SQL.
+                    deadline = time.monotonic() + self._wait_seconds
                     while self._active_generation == generation:
-                        self._condition.wait()
+                        remaining = deadline - time.monotonic()
+                        if remaining <= 0:
+                            return False
+                        self._condition.wait(timeout=remaining)
                     return self._completed_results.get(generation, False) is True
                 finally:
                     remaining = self._waiters.get(generation, 1) - 1
