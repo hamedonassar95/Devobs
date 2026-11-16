@@ -49,3 +49,5 @@ button.addEventListener('click', async () => {
     clearEvidence(); status.textContent = errors[error?.code] ?? errors.unavailable;
   } finally { loading = false; button.disabled = false; }
 });
+status.textContent = 'لم يبدأ الفحص. اضغط الزر عند رغبتك في جلب البيانات العامة.';
+button.disabled = false;

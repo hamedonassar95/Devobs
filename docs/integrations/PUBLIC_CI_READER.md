@@ -74,6 +74,13 @@ python3 -m unittest discover -s tests -p test_public_ci_site.py -q
 python3 scripts/check_site.py
 ```
 
+When Python Playwright and Chromium are available, stage the reviewed site and
+run `python3 tests/browser/public_ci_bootstrap.py`. This optional browser
+regression deliberately holds the client module: activation stays disabled until
+the click handler is bound, then the first click reads exactly the two controlled
+fixtures. No live API call is made. It reproduced the initial fast-activation
+race and passed after the readiness fix; it adds no runtime/CI dependency.
+
 Tests cover bindings, stale/missing/running/error states, fixed requests, rate
 limits, redirects, invalid MIME/UTF-8/JSON, size limits and request/body deadlines.
 Browser checks cover zero initial API calls, double-click concurrency, success,
