@@ -2930,6 +2930,17 @@
       "limitations": "Synthetic conversion, separate temporary stores and aggregate report only; no installed project connections, authenticated sources, hosted tenant isolation or live detector-quality proof. No new paid resource, account, secret or cloud change. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
     },
     {
+      "id": "verified-gunicorn-27-lock-sync-pr658",
+      "area": "CI_SECURITY",
+      "title": "Synchronize the hash-locked API dependency set for Gunicorn 27.0.1",
+      "pr_number": 658,
+      "pr_head_sha": "75b16c10bc78a3667f47a0b1a1d8563a16b78c23",
+      "merge_sha": "552690c5f08bb61ebad3c481899d8a509a5f856a",
+      "ci_run_id": 43913950498,
+      "verification": "VERIFIED via merged PR #658: exact-head CI 43913950498 and push CI 43913935472 succeeded; CodeQL 43913938144 passed. On exact merge SHA 552690c5f08bb61ebad3c481899d8a509a5f856a, main CI 43914693730 and CodeQL 43914691795 passed; static Pages publication and verify-production passed. Python 3.12/3.15 passed; local Python suite 1222 OK (37 skipped), lock consistency tests passed, PyPI hashes matched, and pip check was clean.",
+      "limitations": "Dependency manifest and lock synchronization only. No Gunicorn service was started and no live API compatibility/deployment was verified; Pages published the static site only. Gunicorn 27 rejects malformed Transfer-Encoding, including identity-only framing. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
       "id": "verified-public-ci-reader-pr663",
       "area": "PLATFORM",
       "title": "Read public Devobs GitHub workflow evidence without an API key",
