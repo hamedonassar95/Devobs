@@ -30,14 +30,18 @@ from .postgres_store import PostgresTenantStore
 
 
 STARTUP_STAGES = frozenset({"oidc", "database", "diagnostics", "api", "telemetry"})
+STARTUP_FAILURE_REASONS = frozenset({"missing_required_configuration", "invalid_configuration"})
 
 
 class StagingConfigurationError(ValueError):
     """Fixed public error and an allowlisted, value-free diagnostic stage."""
 
-    def __init__(self, _message="invalid_staging_config", *, stage="unclassified"):
+    def __init__(self, _message="invalid_staging_config", *, stage="unclassified",
+                 reason="unclassified"):
         super().__init__("invalid_staging_config")
         self.stage = stage if type(stage) is str and stage in STARTUP_STAGES else "unclassified"
+        self.reason = (reason if type(reason) is str and reason in STARTUP_FAILURE_REASONS
+                       else "unclassified")
 
 
 READINESS_CACHE_SECONDS = 0.25
@@ -119,6 +123,8 @@ class _ReadinessProbeCoordinator:
 
 
 def _decode_document(settings: Mapping[str, str], name: str, limit: int) -> dict:
+    if name not in settings:
+        raise StagingConfigurationError(reason="missing_required_configuration")
     value = settings.get(name)
     if type(value) is not str or not 1 <= len(value) <= limit or not value.isascii():
         raise StagingConfigurationError("invalid_staging_config")
@@ -132,6 +138,8 @@ def _decode_document(settings: Mapping[str, str], name: str, limit: int) -> dict
 
 
 def _database_dsn(settings: Mapping[str, str]) -> str:
+    if "DEVOBS_PG_DSN" not in settings:
+        raise StagingConfigurationError(reason="missing_required_configuration")
     dsn = settings.get("DEVOBS_PG_DSN")
     if type(dsn) is not str or not 1 <= len(dsn) <= 4096:
         raise StagingConfigurationError("invalid_staging_config")
@@ -217,8 +225,12 @@ def build_app(settings: Mapping[str, str]) -> Callable:
         api = make_app(verifier, store, diagnostician=diagnostician)
         stage = "telemetry"
         local_metrics = create_local_metrics(settings)
-    except (KeyError, ValueError, TypeError):
-        raise StagingConfigurationError("invalid_staging_config", stage=stage) from None
+    except StagingConfigurationError as error:
+        raise StagingConfigurationError(stage=stage, reason=error.reason) from None
+    except KeyError:
+        raise StagingConfigurationError(stage=stage, reason="missing_required_configuration") from None
+    except (ValueError, TypeError):
+        raise StagingConfigurationError(stage=stage, reason="invalid_configuration") from None
 
     def application(environ, start_response):
         path = environ.get("PATH_INFO")
@@ -269,7 +281,10 @@ def bootstrap_application(settings: Mapping[str, str]) -> Callable:
         return build_app(settings)
     except StagingConfigurationError as error:
         stage = error.stage if type(error.stage) is str and error.stage in STARTUP_STAGES else "unclassified"
-        print(f"devobs-startup: invalid_staging_config stage={stage}", file=sys.stderr)
+        reason = (error.reason if type(error.reason) is str
+                  and error.reason in STARTUP_FAILURE_REASONS else "unclassified")
+        print(f"devobs-startup: invalid_staging_config stage={stage} reason={reason}",
+              file=sys.stderr)
         raise
 
 
