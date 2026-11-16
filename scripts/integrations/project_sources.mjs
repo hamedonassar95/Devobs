@@ -5,8 +5,6 @@ export const ALLOWED_SOURCES = Object.freeze({
   'https://github.com/hamedonassar95/phone-repair-assistant-v2': 'phone-repair-assistant-v2',
   'https://github.com/hamedonassar95/al-dala-mobile': 'al-dala-mobile',
   'https://github.com/hamedonassar95/LiveOps-Integration': 'LiveOps-Integration',
-  // Public CI metadata only: conversion namespace, not an authenticated integration.
-  'https://github.com/hamedonassar95/ops': 'ops',
   'https://github.com/hamedonassar95/DevObs-ai-Intelligence-': 'DevObs-ai-Intelligence-',
   'https://github.com/hamedonassar95/CineForge-AI': 'CineForge-AI',
 });
