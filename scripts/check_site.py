@@ -99,7 +99,7 @@ def validate_free_demo(source):
     return errors
 
 
-PUBLIC_CI_FILES = ('index.html', 'api.mjs', 'app.mjs', 'portfolio-api.mjs', 'portfolio-view.mjs')
+PUBLIC_CI_FILES = ('index.html', 'api.mjs', 'app.mjs', 'portfolio-api.mjs', 'portfolio-view.mjs', 'portfolio-export.mjs')
 
 
 def validate_public_ci(source):
@@ -120,7 +120,7 @@ def validate_public_ci(source):
         errors.append('shared relative stylesheet required')
     if [attrs.get('content') for tag, attrs in page.tags if tag == 'meta' and attrs.get('name') == 'referrer'] != ['no-referrer']:
         errors.append('no-referrer policy required')
-    required = {'check-portfolio-ci', 'portfolio-status', 'portfolio-results',
+    required = {'check-portfolio-ci', 'download-portfolio-ci', 'portfolio-status', 'portfolio-results',
                 'check-public-ci', 'ci-status', 'ci-evidence', 'ci-outcome', 'ci-match',
                 'ci-main-sha', 'ci-run-sha', 'ci-updated', 'ci-observed', 'ci-run-link'}
     if not required.issubset({attrs.get('id') for _, attrs in page.tags}):
