@@ -229,6 +229,7 @@ unset GRAFANA_ADMIN_PASSWORD
 - [النشر والرجوع](docs/DEPLOYMENT.md)
 - [الاستجابة للحوادث](docs/INCIDENT_RESPONSE.md)
 - [الأمان والإبلاغ عن الثغرات](SECURITY.md)
+- [Security and code-quality review — 2026-11-16](docs/security/DEVOBS_SECURITY_REVIEW_2026-11-16.md)
 - [Stable baseline: v1.0.0](https://github.com/hamedonassar95/Devobs/releases/tag/v1.0.0)
 
 إعداد AI DevKit للمساهمين ومراحل العمل موثق في [دليل AI DevKit](docs/AI_DEVKIT.md). هذا الإعداد منفصل عن تشغيل CI/CD؛ مركز وحدات الأتمتة القابلة لإعادة الاستخدام موجود في [مركز الأتمتة](docs/AUTOMATION_HUB.md).
