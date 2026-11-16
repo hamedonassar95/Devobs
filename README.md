@@ -24,6 +24,8 @@ node scripts/portfolio_public_ci.mjs
 node --test tests/portfolio_public_ci.test.mjs
 ```
 
+يمكنك كذلك فتح [قارئ CI عبر المتصفح](https://hamedonassar95.github.io/Devobs/assets/public-ci/) واختيار زر **فحص المشاريع الأربعة** لعرض الحالات العامة، يدويًا ودون مفاتيح أو مراقبة تلقائية.
+
 التفاصيل ومصادر GitHub والتحذيرات: [Portfolio Public CI](docs/integrations/PORTFOLIO_PUBLIC_CI.md). هذه قراءة عامة عند الطلب فقط، لا تثبت التشغيل التجاري ولا تفعّل خدمات مدفوعة أو ترسل أحداثًا تلقائيًا.
 
 ## فحص الموارد المجانية (دون تفعيل خدمات جديدة)
