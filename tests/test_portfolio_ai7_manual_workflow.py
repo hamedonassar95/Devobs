@@ -42,7 +42,7 @@ class PublicPortfolioAI7WorkflowTests(unittest.TestCase):
         cls.steps = cls.job["steps"]
 
     def test_only_human_invoked_on_protected_main(self):
-        self.assertEqual(self.data["on"], {"workflow_dispatch": ""})
+        self.assertEqual(self.data["on"], {"workflow_dispatch": {}})
         self.assertEqual(self.job["if"], "github.ref == 'refs/heads/main'")
         self.assertEqual(self.job["runs-on"], "ubuntu-24.04")
         self.assertEqual(self.job["timeout-minutes"], "6")
