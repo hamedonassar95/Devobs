@@ -6,7 +6,8 @@ import path from 'node:path';
 import { PUBLIC_TARGETS, normalizePublicRun } from '../assets/public-ci/portfolio-api.mjs';
 import { buildPortfolioCloudEvents } from '../assets/public-ci/portfolio-export.mjs';
 import { analyzePortfolioCiJsonl } from '../scripts/portfolio_ci_ai7.mjs';
-import { convertText } from '../scripts/integrations/cloudevents_ci_adapter.mjs';
+import { convertText, CI_ALLOWED_SOURCES } from '../scripts/integrations/cloudevents_ci_adapter.mjs';
+import { ALLOWED_SOURCES } from '../scripts/integrations/project_sources.mjs';
 import { ingestText, readEventStore } from '../scripts/ai_intelligence/event_ingest.mjs';
 import { buildDashboardSnapshot } from '../scripts/ai_intelligence/dashboard_server.mjs';
 
@@ -30,6 +31,13 @@ function report() {
       }] })),
   };
 }
+
+test('ops CI source does not authorize ops for unrelated provider adapters', () => {
+  const source = 'https://github.com/hamedonassar95/ops';
+  assert.equal(Object.hasOwn(ALLOWED_SOURCES, source), false);
+  assert.equal(CI_ALLOWED_SOURCES[source], 'ops');
+  assert.equal(Object.keys(ALLOWED_SOURCES).length, 7);
+});
 
 test('four source-bound CloudEvents pass the real converter and AI-7 analysis', async t => {
   const exported = buildPortfolioCloudEvents(report());
