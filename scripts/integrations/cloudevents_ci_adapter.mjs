@@ -18,6 +18,12 @@ import {
 export { MAX_EVENTS_PER_BATCH, MAX_INPUT_BYTES };
 
 export { ALLOWED_SOURCES };
+// Narrow public CI-only conversion scope. Does not affect Alertmanager/Grafana
+// or the seven legacy project namespaces.
+export const CI_ALLOWED_SOURCES = Object.freeze({
+  ...ALLOWED_SOURCES,
+  'https://github.com/hamedonassar95/ops': 'ops',
+});
 
 const EVENT_TYPE = 'devobs.ci.result.v1';
 const CLOUDEVENT_FIELDS = new Set([
@@ -124,7 +130,7 @@ function parseCloudEvent(value) {
   if (!hasExactKeys(value, CLOUDEVENT_FIELDS)) reject('invalid_cloudevent_fields');
   if (value.specversion !== '1.0') reject('unsupported_specversion');
   if (typeof value.id !== 'string' || value.id.length === 0) reject('invalid_id');
-  if (typeof value.source !== 'string' || !Object.hasOwn(ALLOWED_SOURCES, value.source)) reject('unknown_source');
+  if (typeof value.source !== 'string' || !Object.hasOwn(CI_ALLOWED_SOURCES, value.source)) reject('unknown_source');
   if (value.type !== EVENT_TYPE) reject('unsupported_type');
   if (value.datacontenttype !== 'application/json') reject('unsupported_content_type');
   const occurredAt = normalizeRfc3339(value.time);
@@ -150,7 +156,7 @@ function parseCloudEvent(value) {
       kind: 'ci_result',
       severity: CONCLUSION_SEVERITY[value.data.conclusion],
       data: {
-        workflow: `${ALLOWED_SOURCES[value.source]} - ${value.data.workflow}`,
+        workflow: `${CI_ALLOWED_SOURCES[value.source]} - ${value.data.workflow}`,
         job: value.data.job,
         conclusion: value.data.conclusion,
         commit_sha: value.data.commit_sha,
