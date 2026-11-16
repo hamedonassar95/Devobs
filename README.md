@@ -32,6 +32,14 @@ node --test tests/portfolio_public_ci.test.mjs
 node scripts/portfolio_ci_ai7.mjs --input /path/to/devobs-portfolio-ci.cloudevents.jsonl
 ```
 
+**جديد — فحص وتحليل CI العامة مباشرة بأمر واحد عند الطلب** (من دون تنزيل الملف أو حفظه، ودون مفاتيح أو تنفيذ إصلاحات):
+
+```sh
+node scripts/portfolio_ci_ai7_live.mjs
+```
+
+الأمر يعرض نتيجة كل مشروع ويشغّل AI-7 فقط للأحداث المكتملة التي تحققت شروطها. إذا كانت النتائج ناقصة يُظهر حالة جزئية ويخرج برمز فشل، حتى لا يعتبر التشغيل ناجحًا بالخطأ.
+
 التفاصيل ومصادر GitHub والتحذيرات: [Portfolio Public CI](docs/integrations/PORTFOLIO_PUBLIC_CI.md). هذه قراءة عامة عند الطلب فقط، لا تثبت التشغيل التجاري ولا تفعّل خدمات مدفوعة أو ترسل أحداثًا تلقائيًا.
 
 ## فحص الموارد المجانية (دون تفعيل خدمات جديدة)
