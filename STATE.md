@@ -1,3 +1,9 @@
+## تسجيل دمج PR #669 — 2026-11-16 (VERIFIED)
+
+- دُمج [PR #669](https://github.com/hamedonassar95/Devobs/pull/669) من الرأس `1e70afc1ed9dac97cd0a9702d32ff08cc904e17b` عند SHA `c9091a00fd726c1e798104e943daa654a1ec753e` بعد اكتمال الفحوص المطلوبة بنجاح. اجتاز exact-head PR CI `43917735386` وpush CI `43917677701` وCodeQL `43917727775`. على SHA الدمج نجح main CI `43918248966` وCodeQL `43918247238`.
+- اجتازت Python 3.12/3.15، الأمن، RLS، Terraform، فحص الحاوية/Trivy، site-contract و`validate`. نجح Node في push CI؛ تخطاه تشغيل PR وmain لانتقاء المسار. نشر سير عمل main موقع Pages الثابت والتحقق `verify-production` بنجاح؛ لا يثبت ذلك تشغيل API أو Gunicorn حيًا.
+- أضاف PR #669 الدليل الموثق لدمج #658 واختبارًا له؛ لم يغير سلوك التطبيق. الدفتر الآن **272 إنجازًا** وآخر PR مسجل #669. P01 **BLOCKED / NO-GO**، وAI-9 **BLOCKED**، وقبول Codex runtime **OPEN**؛ لم تتغير البوابات.
+
 ## تسجيل دمج PR #658 ومراجعة main — 2026-11-16 (VERIFIED)
 
 - دُمج [PR #658](https://github.com/hamedonassar95/Devobs/pull/658) من الرأس `75b16c10bc78a3667f47a0b1a1d8563a16b78c23` عند SHA `552690c5f08bb61ebad3c481899d8a509a5f856a`. اجتاز exact-head PR CI `43913950498` وpush CI `43913935472`، وCodeQL `43913938144`. بعد الدمج نجح main CI `43914693730` وCodeQL `43914691795` على SHA الدمج؛ نجح نشر GitHub Pages الثابت والتحقق `verify-production`.
