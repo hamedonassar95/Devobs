@@ -52,6 +52,8 @@ test('public browser view makes no network requests on import, only on click', a
   const ui = Object.fromEntries(['check-portfolio-ci', 'download-portfolio-ci', 'portfolio-status', 'portfolio-results'].map(id => [id, element()]));
   // The real HTML includes the hidden attribute on the result container.
   ui['portfolio-results'].hidden = true;
+  // The real HTML marks the export control as disabled before initialization.
+  ui['download-portfolio-ci'].disabled = true;
   const clicks = [];
   globalThis.document = {
     getElementById: id => ui[id] ?? null,
