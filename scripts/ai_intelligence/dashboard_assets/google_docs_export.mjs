@@ -22,19 +22,9 @@ function countsFor(source, keys) {
   return keys.map(key => `${key}: ${count(safeSource[key])}`);
 }
 
-/** Build a report from allowlisted aggregates only; never copy log text or identifiers. */
-export function buildGoogleDocsReport(snapshot, createdAt = new Date()) {
-  if (!isRecord(snapshot) || !isRecord(snapshot.summary) || !(createdAt instanceof Date)
-    || !Number.isFinite(createdAt.getTime())) {
-    throw new TypeError('invalid_google_docs_report_input');
-  }
+function aggregateLines(snapshot) {
   const summary = snapshot.summary;
   const lines = [
-    'Devobs — ملخص تشغيلي منقّح',
-    `أُنشئ: ${createdAt.toISOString()}`,
-    '',
-    'تنبيه: هذا ملخص محلي استرشادي؛ التصنيفات لا تثبت سبب الحادثة، ولا تنفذ أي إجراء.',
-    '',
     'الأعداد الإجمالية',
     `الأحداث: ${count(summary.event_count)}`,
     `السجلات: ${count(summary.log_event_count)}`,
@@ -64,11 +54,61 @@ export function buildGoogleDocsReport(snapshot, createdAt = new Date()) {
     }
   }
   for (const [cause, label] of Object.entries(CAUSE_LABELS)) lines.push(`${label}: ${causeCounts[cause]}`);
-  lines.push('', 'البيانات المرسلة لا تتضمن نصوص السجلات أو أسماء العملاء أو معرّفات المشاريع أو الخوادم.');
+  return lines;
+}
+
+/** Build a report from allowlisted aggregates only; never copy log text or identifiers. */
+export function buildGoogleDocsReport(snapshot, createdAt = new Date()) {
+  if (!isRecord(snapshot) || !isRecord(snapshot.summary) || !(createdAt instanceof Date)
+    || !Number.isFinite(createdAt.getTime())) {
+    throw new TypeError('invalid_google_docs_report_input');
+  }
   return {
     title: `Devobs - ملخص تشغيلي ${createdAt.toISOString().slice(0, 10)}`,
-    text: lines.join('\n'),
+    text: ['Devobs — ملخص تشغيلي منقّح', `أُنشئ: ${createdAt.toISOString()}`, '',
+      'تنبيه: هذا ملخص محلي استرشادي؛ التصنيفات لا تثبت سبب الحادثة، ولا تنفذ أي إجراء.', '',
+      ...aggregateLines(snapshot), '',
+      'البيانات المرسلة لا تتضمن نصوص السجلات أو أسماء العملاء أو معرّفات المشاريع أو الخوادم.'].join('\n'),
   };
+}
+
+/** Strict, credential-free TXT export; provider exports retain their old contract. */
+export function buildLocalTextReport(snapshot, { mode, createdAt = new Date() } = {}) {
+  const modes = { synthetic_fixed: ['synthetic', 'عينة اصطناعية ثابتة'],
+    local_snapshot: ['local', 'لقطة محلية عند بدء الخادم'] };
+  const reject = () => { throw new TypeError('invalid_local_text_report_input'); };
+  const validCount = value => Number.isSafeInteger(value) && value >= 0 && value <= 1_000_000;
+  if (!isRecord(snapshot) || !isRecord(snapshot.summary) || typeof mode !== 'string' || !Object.hasOwn(modes, mode)
+    || !(createdAt instanceof Date) || !Number.isFinite(createdAt.getTime())) reject();
+  const summary = snapshot.summary;
+  for (const key of ['event_count', 'log_event_count', 'log_cluster_count', 'recommendation_count',
+    'anomaly_candidate_count', 'forecast_count']) if (!validCount(summary[key])) reject();
+  for (const [key, names] of [['kind_counts', EVENT_KINDS], ['severity_counts', SEVERITIES]]) {
+    if (!isRecord(summary[key]) || names.some(name => !Object.hasOwn(summary[key], name)
+      || !validCount(summary[key][name]))
+      || names.reduce((sum, name) => sum + summary[key][name], 0) !== summary.event_count) reject();
+  }
+  if (summary.log_event_count !== summary.kind_counts.log || !Array.isArray(snapshot.incidents)
+    || snapshot.incidents.length > 100 || snapshot.incidents.length !== summary.log_cluster_count
+    || summary.log_cluster_count > summary.log_event_count) reject();
+  for (const incident of snapshot.incidents) {
+    if (!isRecord(incident) || !Array.isArray(incident.hypotheses)
+      || incident.hypotheses.length > Object.keys(CAUSE_LABELS).length) reject();
+    const seen = new Set();
+    for (const hypothesis of incident.hypotheses) {
+      if (!isRecord(hypothesis) || typeof hypothesis.cause_id !== 'string'
+        || !Object.hasOwn(CAUSE_LABELS, hypothesis.cause_id)
+        || seen.has(hypothesis.cause_id)) reject();
+      seen.add(hypothesis.cause_id);
+    }
+  }
+  const [prefix, label] = modes[mode];
+  return { filename: `devobs-${prefix}-report-${createdAt.toISOString().slice(0, 10)}.txt`,
+    text: ['Devobs — تقرير محلي منقّح', label, `وقت إنشاء الملف: ${createdAt.toISOString()}`, '',
+      'الأعداد تخص اللقطة المعروضة؛ وقت إنشاء الملف لا يثبت حداثة بياناتها.',
+      'التصنيفات استرشادية وتحتاج مراجعة بشرية. لا تثبت سبب الحادثة أو جاهزية الإنتاج.', '',
+      ...aggregateLines(snapshot), '',
+      'بيانات التقرير أعداد وفئات عامة فقط. المذكرات والنصوص الخام والمعرّفات مستبعدة.'].join('\n') + '\n' };
 }
 
 function validAccessToken(value) {

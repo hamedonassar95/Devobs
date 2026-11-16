@@ -7,7 +7,7 @@ import {
   setRunbookNoteArchived,
   setRunbookNotePinned,
 } from './runbook_notes.mjs';
-import { buildGoogleDocsReport, createGoogleDoc } from './google_docs_export.mjs';
+import { buildGoogleDocsReport, buildLocalTextReport, createGoogleDoc } from './google_docs_export.mjs';
 import { deriveFollowupEventId, GOOGLE_CALENDAR_SCOPE, scheduleGoogleCalendarFollowup } from './google_calendar_followup.mjs';
 import { buildGoogleSheetsReport, createGoogleSheet } from './google_sheets_export.mjs';
 import { buildGoogleSlidesReport, createGoogleSlidesPresentation } from './google_slides_export.mjs';
@@ -1024,8 +1024,50 @@ function initializeGoogleCalendarFollowup() {
   });
 }
 
+function updateLocalReportButton() {
+  const button = document.querySelector('#local-report-download');
+  const status = document.querySelector('#local-report-status');
+  if (!button || !status) return; // Older valid HTML has no optional TXT controls.
+  button.disabled = true;
+  if (!intelligenceSnapshot) {
+    status.textContent = 'التقرير غير متاح حتى اكتمال قراءة اللقطة.';
+    return;
+  }
+  try {
+    buildLocalTextReport(intelligenceSnapshot, { mode: STATIC_DEMO ? 'synthetic_fixed' : 'local_snapshot' });
+    button.disabled = false;
+    status.textContent = 'جاهز لتنزيل الأعداد والفئات في ملف محلي؛ المذكرات مستبعدة.';
+  } catch {
+    status.textContent = 'تعذر تجهيز التقرير؛ الأعداد أو الفئات غير متوافقة.';
+  }
+}
+
+function initializeLocalTextReport() {
+  const button = document.querySelector('#local-report-download');
+  const status = document.querySelector('#local-report-status');
+  if (!button || !status) return;
+  button.addEventListener('click', () => {
+    if (button.disabled || !intelligenceSnapshot) return;
+    try {
+      const report = buildLocalTextReport(intelligenceSnapshot, { mode: STATIC_DEMO ? 'synthetic_fixed' : 'local_snapshot' });
+      const url = URL.createObjectURL(new Blob([report.text + '\n'], { type: 'text/plain;charset=utf-8' }));
+      const link = document.createElement('a');
+      link.href = url; link.download = report.filename;
+      document.body.append(link);
+      try { link.click(); }
+      finally { link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
+      status.textContent = 'جُهّز ملف TXT المحلي؛ تحقّق من تنزيلات المتصفح.';
+    } catch {
+      button.disabled = true;
+      status.textContent = 'تعذر تجهيز التقرير المحلي.';
+    }
+  });
+}
+
 async function render() {
   const status = document.querySelector('#status');
+  intelligenceSnapshot = null;
+  updateLocalReportButton();
   try {
     const intelligence = await load('/api/v1/intelligence');
     intelligenceSnapshot = intelligence;
@@ -1048,14 +1090,18 @@ async function render() {
     renderTrends(intelligence.trend_analysis);
     renderIncidents(intelligence.incidents);
     renderRecommendations(intelligence.recommendations);
+    updateLocalReportButton();
     status.textContent = STATIC_DEMO ? 'عينة اصطناعية ثابتة من محركات Devobs المحلية؛ لا مراقبة حية أو استدلال سحابي.' : 'البيانات من لقطة محلية للقراءة فقط.';
   } catch {
+    intelligenceSnapshot = null;
+    updateLocalReportButton();
     status.textContent = 'تعذر تحميل اللقطة المحلية. تحقق من الملف ثم أعد تشغيل الخادم.';
   }
 }
 
 initializeRunbookNotes();
 bindRunbookNotes();
+initializeLocalTextReport();
 if (!STATIC_DEMO) {
   initializeGoogleDocsExport();
   initializeGoogleSheetsExport();
