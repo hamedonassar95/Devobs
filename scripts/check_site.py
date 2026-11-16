@@ -120,7 +120,8 @@ def validate_public_ci(source):
         errors.append('shared relative stylesheet required')
     if [attrs.get('content') for tag, attrs in page.tags if tag == 'meta' and attrs.get('name') == 'referrer'] != ['no-referrer']:
         errors.append('no-referrer policy required')
-    required = {'check-public-ci', 'ci-status', 'ci-evidence', 'ci-outcome', 'ci-match',
+    required = {'check-portfolio-ci', 'portfolio-status', 'portfolio-results',
+                'check-public-ci', 'ci-status', 'ci-evidence', 'ci-outcome', 'ci-match',
                 'ci-main-sha', 'ci-run-sha', 'ci-updated', 'ci-observed', 'ci-run-link'}
     if not required.issubset({attrs.get('id') for _, attrs in page.tags}):
         errors.append('required controls missing')
