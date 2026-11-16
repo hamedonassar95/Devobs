@@ -226,7 +226,12 @@ def build_app(settings: Mapping[str, str]) -> Callable:
         stage = "telemetry"
         local_metrics = create_local_metrics(settings)
     except StagingConfigurationError as error:
-        raise StagingConfigurationError(stage=stage, reason=error.reason) from None
+        # Older validators raise a fixed error without a reason category.
+        # At the trusted bootstrap boundary, any non-missing error is invalid;
+        # never echo its message or treat it as usable configuration.
+        reason = (error.reason if error.reason == "missing_required_configuration"
+                  else "invalid_configuration")
+        raise StagingConfigurationError(stage=stage, reason=reason) from None
     except KeyError:
         raise StagingConfigurationError(stage=stage, reason="missing_required_configuration") from None
     except (ValueError, TypeError):
