@@ -25,6 +25,21 @@ The existing [public CI webpage](https://hamedonassar95.github.io/Devobs/assets/
 
 The page retains a strict GitHub-only Content Security Policy; no user-provided repository URLs, credentials, free-form HTML or raw GitHub responses are accepted or rendered. The app uses `textContent`, does not request private repositories, never polls, and does not claim a public CI pass is a production health signal. Test behavior is exercised using fake DOM and synthetic HTTP responses in `tests/public_portfolio_browser.test.mjs`.
 
+## One-command GitHub public CI → AI-7 (manual, no files or credentials)
+
+From a trusted checkout with Node.js 24, explicitly run:
+
+```sh
+node scripts/portfolio_ci_ai7_live.mjs
+node --test tests/portfolio_ci_ai7_live.test.mjs
+```
+
+This **manual alternative to the download-then-import route** reuses the existing fixed allowlist HTTP client, the existing public-CI CloudEvents exporter, the existing AI-1 adapter and the actual AI-7 local snapshot. It is not a daemon, browser-side AI inference, deployment action or privileged connector. No repo code, job logs, authentication data or file content are read; the four fixed public repositories receive a maximum of eight anonymous GitHub REST GETs per explicit run. Results are only public metadata.
+
+The output clearly separates each repository's *observed CI status* from whether it supplied eligible evidence to AI-7. A completed and matching CI result can be a failure and still count as **eligible evidence**; `complete_observation` means all four observations qualified, **not** that all CIs passed. Partial/none output is labeled `partial_observation`/`no_eligible_evidence` and exits **1**. An invalid invocation/provider contract exits **2**; complete observations exit **0**. Rate limits, missing run-attempt/time, stale CI, unverified source and nonterminal status never silently count as complete. Tests inject synthetic HTTP responses; tests do **not** hit GitHub.
+
+The AI-7 output contains no fabricated AI-3 root cause or AI-4 recommendation when only CI conclusions are available. This is a point-in-time, **unauthenticated public** observation, not signed provenance, production health, tenancy or paid-model capability. No scripts, workflow runs, deployments or repairs are triggered remotely.
+
 ## Manual CI → CloudEvents → AI-7 handoff (no inference or cloud changes)
 
 **End-to-end feature:** after clicking **فحص المشاريع الأربعة** in the existing static [public CI viewer](https://hamedonassar95.github.io/Devobs/assets/public-ci/), a second button **تنزيل أحداث CI لتحليل AI-7 المحلي** can download `devobs-portfolio-ci.cloudevents.jsonl`. No extra network request is made to download. The browser exports only **completed, current main-SHA-matched** CI results with a verified positive run ID, run attempt and valid GitHub creation timestamp. Missing attempt/time, stale, pending, unavailable, unsupported, and unverified results are **excluded**, never invented. The screen says how many eligible events were exported out of four; a partial export is not full project coverage.
