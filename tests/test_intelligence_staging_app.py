@@ -99,7 +99,7 @@ class StagingBootstrapTests(unittest.TestCase):
                 self.assertEqual(caught.exception.reason, "missing_required_configuration")
                 self.assertEqual(output.getvalue(),
                     "devobs-startup: invalid_staging_config stage=oidc "
-                    "reason=missing_required_configuration\\n")
+                    "reason=missing_required_configuration\n")
                 self.assertNotIn(missing, output.getvalue())
                 self.assertNotIn("synthetic", output.getvalue())
                 self.assertIsNone(caught.exception.__cause__)
@@ -115,7 +115,7 @@ class StagingBootstrapTests(unittest.TestCase):
         self.assertEqual(caught.exception.reason, "missing_required_configuration")
         self.assertEqual(output.getvalue(),
             "devobs-startup: invalid_staging_config stage=database "
-            "reason=missing_required_configuration\\n")
+            "reason=missing_required_configuration\n")
         self.assertNotIn("DEVOBS_PG_DSN", output.getvalue())
 
     def test_successful_bootstrap_does_not_log_configuration(self):
