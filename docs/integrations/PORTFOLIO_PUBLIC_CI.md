@@ -25,6 +25,18 @@ The existing [public CI webpage](https://hamedonassar95.github.io/Devobs/assets/
 
 The page retains a strict GitHub-only Content Security Policy; no user-provided repository URLs, credentials, free-form HTML or raw GitHub responses are accepted or rendered. The app uses `textContent`, does not request private repositories, never polls, and does not claim a public CI pass is a production health signal. Test behavior is exercised using fake DOM and synthetic HTTP responses in `tests/public_portfolio_browser.test.mjs`.
 
+## One-click read-only AI-7 from GitHub Actions (owner-triggered)
+
+After the reviewed PR has merged, visit [Portfolio AI-7 Public CI Observation](https://github.com/hamedonassar95/Devobs/actions/workflows/portfolio-ai7-manual.yml), select **Run workflow**, and choose `main`. The workflow is **manual only**; there is **no schedule**, webhook, private-repository read, database, paid AI inference, external write, deploy, fix, merge, or change to the branch.
+
+- `permissions: contents: read` only, checkout with `persist-credentials: false`, Node.js 24 via a pinned action, runs on `ubuntu-24.04` with a 6-minute timeout.
+- The existing `scripts/portfolio_ci_ai7_live.mjs` makes at most 8 anonymous requests to **fixed public** GitHub endpoints and invokes the **real local AI-7**; only an **explicit click** starts a run. Failed CI outcomes are eligible input *when verified*, not automatic repair commands.
+- The new `scripts/portfolio_ai7_action_report.mjs` validates and reduces the result to a fixed allowlisted JSON schema before it can be uploaded. The Step Summary lists the four source-bound repository statuses and warns that observation completeness **does not mean healthy CI** or production readiness. The sanitized artifact is called `portfolio-public-ci-ai7`, expires after **7 days**, and contains no job logs, environment variables, tokens, raw provider responses, or untrusted titles. No private repository is requested.
+- An **incomplete** public observation still uploads a clear partial report, but the final job intentionally returns **failure** rather than appearing green. A malformed upstream response does not upload an artifact. A failed workflow is not automatically an incident or permission to repeat/redeploy it. Owner reads the summary and inspects the status first.
+- The Actions CI tests use fully synthetic HTTP fixtures; no live fetch is made during PR tests. The actual manual run, rate limits, and GitHub artifact visibility remain **UNVERIFIED** until separately invoked by the owner after merge.
+
+Security note: artifacts on a public GitHub repository may be visible to other users with repository access; the file contains only public metadata and fixed trusted labels. Do **not** insert private logs, provider secrets, customer data, GitHub token values, or confidential URLs. GitHub Actions minutes and artifact quota still apply; no zero-cost guarantee. Official documentation: [Manual workflow runs](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow), [workflow_dispatch](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#onworkflow_dispatch), [job permissions](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#permissions), [upload-artifact action](https://github.com/actions/upload-artifact).
+
 ## One-command GitHub public CI → AI-7 (manual, no files or credentials)
 
 From a trusted checkout with Node.js 24, explicitly run:
