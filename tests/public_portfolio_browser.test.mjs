@@ -49,6 +49,8 @@ test('public browser view makes no network requests on import, only on click', a
   const oldDocument = globalThis.document;
   const oldFetch = globalThis.fetch;
   const ui = Object.fromEntries(['check-portfolio-ci', 'portfolio-status', 'portfolio-results'].map(id => [id, element()]));
+  // The real HTML includes the hidden attribute on the result container.
+  ui['portfolio-results'].hidden = true;
   const clicks = [];
   globalThis.document = {
     getElementById: id => ui[id] ?? null,
