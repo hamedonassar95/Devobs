@@ -1,4 +1,5 @@
 import { buildPublicCiCloudEvent, fetchPublicCi } from './api.mjs';
+import './portfolio-view.mjs';
 
 const labels = Object.freeze({
   success: 'نجحت فحوص CI لهذا التشغيل', failure: 'فشلت فحوص CI',

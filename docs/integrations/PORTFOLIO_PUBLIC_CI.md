@@ -1,6 +1,6 @@
 # Portfolio public CI observer — 2026-11-16
 
-**Feature status: Manual CLI / read-only / public metadata only.** This is not a hosted dashboard, cross-repository deployment, authenticated connection, private repository monitoring, production readiness, or a replacement for the existing Devobs-only browser [public CI reader](PUBLIC_CI_READER.md).
+**Feature status: Manual CLI plus optional static browser view / read-only / public metadata only.** This is not an authenticated or continuously hosted dashboard, cross-repository deployment, authenticated connection, private repository monitoring, production readiness, or a replacement for the existing Devobs-only browser [public CI reader](PUBLIC_CI_READER.md).
 
 ## Evidence-first inventory
 
@@ -18,6 +18,12 @@ The new observer covers **four verified public repos only** with `.github/workfl
 | [ops](https://github.com/hamedonassar95/ops) | `.github/workflows/ci.yml` | Separate infrastructure/console project |
 
 **The other 22 repositories are not queried by this tool.** In particular, private repos are excluded entirely. Nothing tries to discover undocumented source URLs, secrets or non-public build results.
+
+## Browser view (manual, public only)
+
+The existing [public CI webpage](https://hamedonassar95.github.io/Devobs/assets/public-ci/) now includes a second, opt-in **فحص المشاريع الأربعة** button. No additional HTTP requests occur when loading the page. A click fetches four public repositories using the **same browser-compatible normalization module** as the CLI, displays each repository's confirmed CI state or `unverified` separately, and never writes to GitHub. The existing Devobs-only CI CloudEvents export is unchanged; it does not export cross-repository results. Pages publishing and new UI availability remain unverified until exact-head CI and a post-merge deployed-site smoke test pass.
+
+The page retains a strict GitHub-only Content Security Policy; no user-provided repository URLs, credentials, free-form HTML or raw GitHub responses are accepted or rendered. The app uses `textContent`, does not request private repositories, never polls, and does not claim a public CI pass is a production health signal. Test behavior is exercised using fake DOM and synthetic HTTP responses in `tests/public_portfolio_browser.test.mjs`.
 
 ## How to run (manual, on a trusted machine)
 
