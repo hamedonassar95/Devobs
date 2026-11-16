@@ -54,16 +54,34 @@ also absent. P01 and AI-9 remain BLOCKED; this diagnostic attempt is not GO.
 
 ### Value-free startup diagnosis
 
+**New offline source improvement (not a hosted deployment):** the fixed allowlisted
+startup diagnostic now includes a safe `reason` classification alongside the
+stage. It distinguishes `missing_required_configuration` (a required name is
+absent) from `invalid_configuration` (a supplied document or setting is
+invalid). An unknown/untrusted reason is normalized to `unclassified`.
+Only these fixed literals are printed; raw field names, DSNs, credentials,
+issuer URLs, metadata, JWKS, tokens and nested exception strings are never
+included. Importantly, a `missing_required_configuration` result identifies
+a **category**, not the individual environment-variable name.
+
+The previously recorded **2026-11-14** Render diagnostic showed only
+`stage=oidc` because it ran older code. Its exact reason remains
+**UNVERIFIED**. No provider environment value was inspected, no hosted
+redeployment was triggered, and existing hosted failures must not be relabeled
+as missing/invalid without a newly authorized deploy.
+
 The WSGI entrypoint preserves the fixed `invalid_staging_config` error and
-fail-closed startup. A configuration rejection also emits one bounded stderr line:
+fail-closed startup. For **new code**, a configuration rejection emits a single
+bounded stderr line (synthetic example):
 
 ```text
-devobs-startup: invalid_staging_config stage=oidc
+devobs-startup: invalid_staging_config stage=oidc reason=missing_required_configuration
 ```
 
 The stage is one of `oidc`, `database`, `diagnostics`, `api`, `telemetry`, or
-`unclassified`. It identifies the validation area only; it never prints supplied
-values, a DSN, credentials, raw metadata/JWKS or a nested exception message.
+`unclassified`. The reason is strictly allowlisted as above. It identifies a
+category only; it never prints supplied values, a DSN, credentials, raw
+metadata/JWKS or a nested exception message.
 Successful startup emits no configuration diagnostic. An OIDC-stage failure is
 not proof that the database or later stages are ready, because construction stops
 at the first failure. Do not remove authentication/TLS validation to obtain a

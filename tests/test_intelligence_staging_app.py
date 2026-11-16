@@ -73,11 +73,50 @@ class StagingBootstrapTests(unittest.TestCase):
                     self.module.bootstrap_application(config)
                 self.assertEqual(str(failure.exception), "invalid_staging_config")
                 self.assertEqual(failure.exception.stage, expected_stage)
-                self.assertEqual(output.getvalue(), f"devobs-startup: invalid_staging_config stage={expected_stage}\n")
+                self.assertEqual(failure.exception.reason, "invalid_configuration")
+                self.assertEqual(output.getvalue(),
+                                 f"devobs-startup: invalid_staging_config stage={expected_stage} reason=invalid_configuration\n")
                 self.assertNotIn(marker, output.getvalue())
                 self.assertNotIn("synthetic", output.getvalue())
                 self.assertIsNone(failure.exception.__cause__)
                 self.assertTrue(failure.exception.__suppress_context__)
+
+    def test_missing_required_oidc_names_are_reported_without_values(self):
+        required_oidc = (
+            "DEVOBS_OIDC_ISSUER", "DEVOBS_OIDC_AUDIENCE",
+            "DEVOBS_OIDC_CLIENT_ID", "DEVOBS_OIDC_METADATA_JSON",
+            "DEVOBS_OIDC_JWKS_JSON",
+        )
+        for missing in required_oidc:
+            with self.subTest(missing=missing):
+                config = dict(self.base)
+                config.pop(missing)
+                output = io.StringIO()
+                with patch("sys.stderr", output), self.assertRaises(
+                        self.module.StagingConfigurationError) as caught:
+                    self.module.bootstrap_application(config)
+                self.assertEqual(caught.exception.stage, "oidc")
+                self.assertEqual(caught.exception.reason, "missing_required_configuration")
+                self.assertEqual(output.getvalue(),
+                    "devobs-startup: invalid_staging_config stage=oidc "
+                    "reason=missing_required_configuration\n")
+                self.assertNotIn(missing, output.getvalue())
+                self.assertNotIn("synthetic", output.getvalue())
+                self.assertIsNone(caught.exception.__cause__)
+
+    def test_missing_database_setting_is_distinct_from_invalid_value(self):
+        config = dict(self.base)
+        config.pop("DEVOBS_PG_DSN")
+        output = io.StringIO()
+        with patch("sys.stderr", output), self.assertRaises(
+                self.module.StagingConfigurationError) as caught:
+            self.module.bootstrap_application(config)
+        self.assertEqual(caught.exception.stage, "database")
+        self.assertEqual(caught.exception.reason, "missing_required_configuration")
+        self.assertEqual(output.getvalue(),
+            "devobs-startup: invalid_staging_config stage=database "
+            "reason=missing_required_configuration\n")
+        self.assertNotIn("DEVOBS_PG_DSN", output.getvalue())
 
     def test_successful_bootstrap_does_not_log_configuration(self):
         output = io.StringIO()
@@ -87,9 +126,11 @@ class StagingBootstrapTests(unittest.TestCase):
         self.assertEqual(output.getvalue(), "")
 
     def test_untrusted_stage_cannot_be_used_as_a_log_message(self):
-        failure = self.module.StagingConfigurationError("PRIVATE_MESSAGE", stage="PRIVATE_STAGE")
+        failure = self.module.StagingConfigurationError(
+            "PRIVATE_MESSAGE", stage="PRIVATE_STAGE", reason="PRIVATE_REASON")
         self.assertEqual(str(failure), "invalid_staging_config")
         self.assertEqual(failure.stage, "unclassified")
+        self.assertEqual(failure.reason, "unclassified")
 
     def test_health_is_liveness_only_and_no_secrets(self):
         class ProbeStore:
