@@ -17,7 +17,7 @@ function fakeResponse(url, data, status = 200) {
   Object.defineProperty(r, 'url', { value: url });
   return r;
 }
-function publicFixture(callLog, rejectOne = false) {
+function publicFixture(callLog, rejectOne = false, includeMetadata = false) {
   return async (url, options) => {
     callLog.push(url);
     assert.equal(options.method, 'GET');
@@ -35,6 +35,7 @@ function publicFixture(callLog, rejectOne = false) {
       repository: { full_name: target.repo, private: false },
       head_repository: { full_name: target.repo, private: false },
       privatePayload: 'do-not-display',
+      ...(includeMetadata ? { run_attempt: 1, created_at: '2026-11-16T17:00:00Z' } : {}),
     }] });
   };
 }
@@ -48,7 +49,7 @@ test('browser and manual CLI refer to the same source allowlist and normalizer',
 test('public browser view makes no network requests on import, only on click', async t => {
   const oldDocument = globalThis.document;
   const oldFetch = globalThis.fetch;
-  const ui = Object.fromEntries(['check-portfolio-ci', 'portfolio-status', 'portfolio-results'].map(id => [id, element()]));
+  const ui = Object.fromEntries(['check-portfolio-ci', 'download-portfolio-ci', 'portfolio-status', 'portfolio-results'].map(id => [id, element()]));
   // The real HTML includes the hidden attribute on the result container.
   ui['portfolio-results'].hidden = true;
   const clicks = [];
@@ -65,6 +66,7 @@ test('public browser view makes no network requests on import, only on click', a
   assert.equal(clicks.length, 0, 'no implicit calls before user interaction');
   assert.equal(ui['check-portfolio-ci'].disabled, false);
   assert.equal(ui['portfolio-results'].hidden, true);
+  assert.equal(ui['download-portfolio-ci'].disabled, true);
   await ui['check-portfolio-ci'].handlers.click();
   assert.equal(clicks.length, 8);
   assert.equal(ui['portfolio-results'].hidden, false);
@@ -72,14 +74,16 @@ test('public browser view makes no network requests on import, only on click', a
   assert.deepEqual(ui['portfolio-results'].children.map(node => node.children[0].textContent), PUBLIC_TARGETS.map(t => t.repo));
   assert.ok(ui['portfolio-results'].children.every(node => node.children[1].textContent.includes('ناجح')));
   assert.equal(ui['check-portfolio-ci'].disabled, false);
+  assert.equal(ui['download-portfolio-ci'].disabled, true, 'missing attempt/time must block export');
   assert.doesNotMatch(JSON.stringify(ui), /do-not-display/);
   // A second explicit click can fail for one repository without inventing all-success.
-  globalThis.fetch = publicFixture(clicks, true);
+  globalThis.fetch = publicFixture(clicks, true, true);
   await ui['check-portfolio-ci'].handlers.click();
   // An early error on the final repository short-circuits its second GET.
   assert.equal(clicks.length, 15);
   const rows = ui['portfolio-results'].children;
   assert.equal(rows.length, 4);
+  assert.equal(ui['download-portfolio-ci'].disabled, false, 'three verified source runs allow partial export');
   assert.match(rows[3].children[1].textContent, /تعذر التحقق/);
   assert.doesNotMatch(JSON.stringify(ui), /do-not-display/);
 });
