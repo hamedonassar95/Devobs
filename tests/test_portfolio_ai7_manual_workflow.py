@@ -42,11 +42,11 @@ class PublicPortfolioAI7WorkflowTests(unittest.TestCase):
         cls.steps = cls.job["steps"]
 
     def test_only_human_invoked_on_protected_main(self):
-        self.assertEqual(self.data["on"], {"workflow_dispatch": {}})
+        self.assertEqual(self.data.get("on", self.data.get("true")), {"workflow_dispatch": {}})
         self.assertEqual(self.job["if"], "github.ref == 'refs/heads/main'")
         self.assertEqual(self.job["runs-on"], "ubuntu-24.04")
-        self.assertEqual(self.job["timeout-minutes"], "6")
-        self.assertEqual(self.data["concurrency"]["cancel-in-progress"], "false")
+        self.assertEqual(str(self.job["timeout-minutes"]), "6")
+        self.assertEqual(str(self.data["concurrency"]["cancel-in-progress"]).lower(), "false")
 
     def test_minimal_permissions_and_no_secret_or_provider_access(self):
         self.assertEqual(self.data["permissions"], {"contents": "read"})
@@ -68,7 +68,7 @@ class PublicPortfolioAI7WorkflowTests(unittest.TestCase):
         uses = [s["uses"] for s in self.steps if "uses" in s]
         self.assertEqual(uses, pins)
         self.assertTrue(all(re.fullmatch(r"[^@]+@[0-9a-f]{40}", p) for p in uses))
-        self.assertEqual(self.steps[0]["with"]["persist-credentials"], "false")
+        self.assertEqual(str(self.steps[0]["with"]["persist-credentials"]).lower(), "false")
         self.assertEqual(self.steps[1]["with"]["node-version"], "24")
 
     def test_artifact_is_sanitized_and_incomplete_evidence_fails_closed(self):
@@ -80,7 +80,7 @@ class PublicPortfolioAI7WorkflowTests(unittest.TestCase):
         self.assertIn('echo "valid_report=true"', run)
         upload = next(s for s in self.steps if "upload-artifact@" in s.get("uses", ""))
         self.assertEqual(upload["if"], "steps.observe.outputs.valid_report == 'true'")
-        self.assertEqual(upload["with"]["retention-days"], "7")
+        self.assertEqual(str(upload["with"]["retention-days"]), "7")
         self.assertEqual(upload["with"]["if-no-files-found"], "error")
         self.assertEqual(upload["with"]["path"], "${{ runner.temp }}/portfolio-public-ci-ai7.json")
         failed = self.steps[-1]
