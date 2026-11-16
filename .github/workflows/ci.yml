@@ -149,6 +149,8 @@ jobs:
           node --check assets/public-ci/portfolio-export.mjs
           node --check scripts/portfolio_ci_ai7.mjs
           node --check scripts/portfolio_ci_ai7_live.mjs
+          node --check scripts/portfolio_ai7_action_report.mjs
+          node --check tests/portfolio_ai7_action_report.test.mjs
           node --check tests/portfolio_ci_ai7_live.test.mjs
           node --check tests/portfolio_ci_ai7_handoff.test.mjs
           node --check assets/public-ci/portfolio-view.mjs
@@ -227,6 +229,7 @@ jobs:
           node --test tests/portfolio_public_ci.test.mjs
           node --test tests/portfolio_ci_ai7_handoff.test.mjs
           node --test tests/portfolio_ci_ai7_live.test.mjs
+          node --test tests/portfolio_ai7_action_report.test.mjs
           node --test tests/public_portfolio_browser.test.mjs
           node --test tests/public_ci_api.test.mjs tests/public_ci_export.test.mjs
           node --test tests/google_docs_export.test.mjs
