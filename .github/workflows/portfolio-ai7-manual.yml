@@ -1,7 +1,7 @@
 name: Portfolio AI-7 Public CI Observation
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 permissions:
   contents: read
