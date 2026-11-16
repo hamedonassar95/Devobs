@@ -44,6 +44,15 @@
       <p id="ci-download-note" class="notice">يتاح ملف CloudEvents للتشغيل المنتهي المطابق لـmain ذي النتيجة المدعومة ورقم المحاولة المتحقق فقط. يحفظ التنزيل ملفًا عامًا على جهازك دون طلب API إضافي؛ الاستيراد خطوة محلية مستقلة عبر دليل المستودع.</p>
       <p class="notice">مطابقة الالتزام ملاحظة وقت الطلب؛ قد يتغير الفرع بعدها. نجاح CI لا يثبت نشر API أو عزل العملاء أو قبول P01 وAI-9. لا تنفذ هذه الصفحة أي نشر أو إصلاح.</p>
     </section>
+
+    <section aria-labelledby="portfolio-title">
+      <h2 id="portfolio-title">مركز فحوص مشاريع GitHub العامة</h2>
+      <p id="portfolio-note" class="notice">فحص يدوي اختياري لحالة CI العامة في أربعة مستودعات: Devobs وdevobs-saas وLiveOps-Integration وops. ينفذ متصفحك ما يصل إلى 8 طلبات GET عامة؛ لا يقرأ مستودعات خاصة ولا ينقل أسرارًا أو يشغّل إصلاحات. النجاح يخص CI فقط، وليس جاهزية الخدمة.</p>
+      <button id="check-portfolio-ci" class="runbook-action" type="button" disabled aria-describedby="portfolio-note">فحص المشاريع الأربعة</button>
+      <p id="portfolio-status" class="status" role="status" aria-live="polite">لم يبدأ الفحص بعد.</p>
+      <dl id="portfolio-results" class="summary-grid" hidden></dl>
+      <p class="notice">المشاريع الأخرى ليست متصلة بهذه الصفحة. عند بلوغ حد الطلبات أو تعذر التحقق، تظهر الحالة غير مؤكدة ولا تُخمن نتيجة نجاح.</p>
+    </section>
   </main>
 </body>
 </html>
