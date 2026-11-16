@@ -6,12 +6,11 @@ import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { readInputFile } from './ai_intelligence/event_ingest.mjs';
 import { parseEventLines } from './ai_intelligence/event_schema.mjs';
-import { convertText } from './integrations/cloudevents_ci_adapter.mjs';
-import { ALLOWED_SOURCES } from './integrations/project_sources.mjs';
+import { convertText, CI_ALLOWED_SOURCES } from './integrations/cloudevents_ci_adapter.mjs';
 import { PUBLIC_TARGETS } from '../assets/public-ci/portfolio-api.mjs';
 import { buildDashboardSnapshot } from './ai_intelligence/dashboard_server.mjs';
 
-const allowed = new Set(PUBLIC_TARGETS.map(target => ALLOWED_SOURCES['https://github.com/' + target.repo] + ' - CI'));
+const allowed = new Set(PUBLIC_TARGETS.map(target => CI_ALLOWED_SOURCES['https://github.com/' + target.repo] + ' - CI'));
 const outcomes = new Set(['success', 'failure', 'cancelled', 'timed_out', 'neutral',
   'skipped', 'action_required']);
 const jobPattern = /^workflow-summary-run-[1-9]\d*-attempt-[1-9]\d*$/;
