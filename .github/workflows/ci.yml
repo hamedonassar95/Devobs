@@ -148,6 +148,7 @@ jobs:
           node --check assets/public-ci/api.mjs
           node --check assets/public-ci/app.mjs
           node --check tests/public_ci_api.test.mjs
+          node --check tests/public_ci_export.test.mjs
           node --check tests/free_static_demo.test.mjs
           node --check scripts/ai_intelligence/anomaly_detector.mjs
           node --check scripts/ai_intelligence/anomaly_report.mjs
@@ -212,7 +213,7 @@ jobs:
           node --test tests/free_static_demo.test.mjs
           node --test tests/grafana_webhook_adapter.test.mjs
           node --test tests/portfolio_integration_acceptance.test.mjs
-          node --test tests/public_ci_api.test.mjs
+          node --test tests/public_ci_api.test.mjs tests/public_ci_export.test.mjs
           node --test tests/post_detector_confirmation_adapter.test.mjs
           node --test tests/post_detector_confirmation_journal.test.mjs
           node --test tests/ai9_fp_slice_exploration.test.mjs

@@ -2939,6 +2939,17 @@
       "ci_run_id": 43844162796,
       "verification": "VERIFIED 2026-11-16 via merged PR #663, exact-head PR CI 43844162796, main CI 43844607198 and CodeQL 43844606146 success. Published manifest and all three page assets matched merge source/CSP/MIME. Fully loaded public Chromium390/1440 read actual public GitHub data with two GETs after activation and matching main SHA. Local Node271 passed; Python1222 OK (37 skipped).",
       "limitations": "Public CI observations only, not hosted service health, release approval or persisted AI evidence. Early activation before module readiness was identified after publication and requires the separate startup fix. No account, key or paid resource created. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-public-ci-bootstrap-pr664",
+      "area": "PLATFORM",
+      "title": "Make first public CI activation wait for bound module handlers",
+      "pr_number": 664,
+      "pr_head_sha": "607f363d7b27aec6805ed6d2a15cfcf2a506d32f",
+      "merge_sha": "c29682058b6e3313f8774bce4553c1495b5b5864",
+      "ci_run_id": 43847562567,
+      "verification": "VERIFIED 2026-11-16 via merged PR #664; exact-head PR CI 43847562567, main CI 43848271743 and CodeQL 43848270507 success. Final deployed manifest/assets matched the full merge SHA. Public Chromium 390/1440 first activation passed without network-idle wait: zero initial API requests, two fixed public GETs afterward. Optional delayed-module regression RED before fix and PASS after.",
+      "limitations": "Dated public CI observation only, not hosted service health or release approval. No account, key, paid resource, private source or runtime gate changed. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
     }
   ],
   "gates": [
