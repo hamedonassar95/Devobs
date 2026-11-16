@@ -454,6 +454,46 @@ class StagingBootstrapTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "^invalid_readiness_cache_config$"):
             self.module._ReadinessProbeCoordinator(lambda: True, cache_seconds=1.01)
 
+    def test_readiness_follower_timeout_fails_closed_without_second_probe(self):
+        started = threading.Event()
+        release = threading.Event()
+        attempts = []
+        attempt_lock = threading.Lock()
+
+        def slow_probe():
+            with attempt_lock:
+                attempts.append("probe")
+            started.set()
+            if not release.wait(timeout=3):
+                raise RuntimeError("PRIVATE_PROBE_STALLED")
+            return True
+
+        coordinator = self.module._ReadinessProbeCoordinator(
+            slow_probe, wait_seconds=0.04)
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            leader = pool.submit(coordinator.check)
+            try:
+                self.assertTrue(started.wait(timeout=1))
+                follower = pool.submit(coordinator.check)
+                self.assertFalse(follower.result(timeout=1),
+                                 "a stalled leader must not block its followers")
+                self.assertEqual(attempts, ["probe"],
+                                 "followers may not open a second DB probe")
+            finally:
+                release.set()
+            self.assertTrue(leader.result(timeout=2))
+        self.assertTrue(coordinator.check(), "leader's actual result may be briefly cached")
+        self.assertEqual(attempts, ["probe"])
+        self.assertEqual(coordinator._waiters, {})
+        self.assertEqual(coordinator._completed_results, {})
+
+    def test_readiness_follower_wait_validation_fails_closed(self):
+        for invalid in (False, 0, -1, 8.01, float("inf"), float("nan"), "4"):
+            with self.subTest(wait_seconds=str(invalid)):
+                with self.assertRaisesRegex(ValueError, "^invalid_readiness_wait_config$"):
+                    self.module._ReadinessProbeCoordinator(
+                        lambda: True, wait_seconds=invalid)
+
     def test_declared_request_body_is_rejected_before_readiness_probe(self):
         class ProbeStore:
             calls = 0
