@@ -99,7 +99,7 @@ def validate_free_demo(source):
     return errors
 
 
-PUBLIC_CI_FILES = ('index.html', 'api.mjs', 'app.mjs')
+PUBLIC_CI_FILES = ('index.html', 'api.mjs', 'app.mjs', 'portfolio-api.mjs', 'portfolio-view.mjs')
 
 
 def validate_public_ci(source):
