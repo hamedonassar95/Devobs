@@ -99,7 +99,66 @@ def validate_free_demo(source):
     return errors
 
 
+PUBLIC_CI_FILES = ('index.html', 'api.mjs', 'app.mjs')
+
+
+def validate_public_ci(source):
+    errors = validate(source)
+    page = Page()
+    page.feed(source)
+    html = [attrs for tag, attrs in page.tags if tag == 'html']
+    if not html or html[0].get('data-mode') != 'public-ci':
+        errors.append('profile marker missing')
+    expected_csp = "default-src 'self'; script-src 'self'; style-src 'self'; connect-src https://api.github.com; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"
+    policies = [attrs.get('content') for tag, attrs in page.tags if tag == 'meta'
+                and attrs.get('http-equiv', '').lower() == 'content-security-policy']
+    if policies != [expected_csp]:
+        errors.append('fixed GitHub-only CSP required')
+    if [attrs for tag, attrs in page.tags if tag == 'script'] != [{'type': 'module', 'src': './app.mjs'}]:
+        errors.append('relative module entrypoint required')
+    if [attrs for tag, attrs in page.tags if tag == 'link'] != [{'rel': 'stylesheet', 'href': '../free-devobs/dashboard.css'}]:
+        errors.append('shared relative stylesheet required')
+    if [attrs.get('content') for tag, attrs in page.tags if tag == 'meta' and attrs.get('name') == 'referrer'] != ['no-referrer']:
+        errors.append('no-referrer policy required')
+    required = {'check-public-ci', 'ci-status', 'ci-evidence', 'ci-outcome', 'ci-match',
+                'ci-main-sha', 'ci-run-sha', 'ci-updated', 'ci-observed', 'ci-run-link'}
+    if not required.issubset({attrs.get('id') for _, attrs in page.tags}):
+        errors.append('required controls missing')
+    for tag, attrs in page.tags:
+        if tag in ('form', 'input', 'textarea', 'select', 'iframe', 'object', 'embed', 'style') or any(key.startswith('on') for key in attrs):
+            errors.append('credentials, embedded content and inline handlers are forbidden')
+        if any((attrs.get(key) or '').startswith(('http:', 'https:', '//', 'javascript:')) for key in ('href', 'src')):
+            errors.append('source resources must be local relative files')
+    return ['Public CI profile: ' + error for error in errors]
+
+
+def public_ci_errors(root):
+    advertised = False
+    for relative in ('index.html', 'assets/free-devobs/index.html'):
+        source = root / relative
+        if not source.is_file():
+            continue
+        page = Page()
+        page.feed(source.read_text(encoding='utf-8'))
+        for tag, attrs in page.tags:
+            if tag != 'a':
+                continue
+            target = urlsplit(urljoin('/' + relative, attrs.get('href') or ''))
+            if not target.scheme and not target.netloc and target.path.rstrip('/') in ('/assets/public-ci', '/assets/public-ci/index.html'):
+                advertised = True
+    directory = root / 'assets/public-ci'
+    if not advertised and not directory.exists():
+        return []
+    required = [directory / name for name in PUBLIC_CI_FILES] + [root / 'assets/free-devobs/dashboard.css']
+    if directory.is_symlink() or any(item.is_symlink() or not item.is_file() for item in required):
+        return ['Public CI assets missing or not regular files']
+    return validate_public_ci((directory / 'index.html').read_text(encoding='utf-8'))
+
+
 def smoke_test(root):
+    errors = public_ci_errors(root)
+    if errors:
+        raise RuntimeError('\n'.join(errors))
     handler = partial(SimpleHTTPRequestHandler, directory=str(root))
     server = ThreadingHTTPServer(('127.0.0.1', 0), handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -120,6 +179,8 @@ def smoke_test(root):
             # Older free profiles with neither the link nor report stay valid.
             if report.is_file():
                 paths.append('/assets/free-devobs/integration-acceptance.json')
+        if (root / 'assets/public-ci').exists():
+            paths += ['/assets/public-ci/' + name for name in PUBLIC_CI_FILES]
         for path in paths:
             expected = (root / path.lstrip('/')).read_bytes() if path != '/' else expected
             with urlopen(f'http://127.0.0.1:{server.server_port}{path}', timeout=5) as response:

@@ -7,6 +7,11 @@ assets/free-devobs/**
 !assets/free-devobs/index.html
 !assets/free-devobs/snapshot.json
 !assets/free-devobs/integration-acceptance.json
+!assets/public-ci/
+assets/public-ci/**
+!assets/public-ci/index.html
+!assets/public-ci/api.mjs
+!assets/public-ci/app.mjs
 !scripts/
 scripts/**
 !scripts/ai_intelligence/
