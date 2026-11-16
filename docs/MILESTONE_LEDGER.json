@@ -2961,6 +2961,17 @@
       "ci_run_id": 43853068392,
       "verification": "VERIFIED 2026-11-16 via merged PR #665, PR CI 43853068392, main CI 43853599800 and CodeQL 43853598266 success. All 32 source checks succeeded or intentionally skipped. Published manifest and three public-reader assets matched full merge bytes/CSP/MIME. Chromium 390/1440 downloaded actual public CI as CloudEvents after two GETs; real converter/store/AI-7 accepted it once and ignored replay. Node276 passed; Python1222 OK (37 skipped).",
       "limitations": "Manual public observation and local file only, not an authenticated webhook or production readiness. Missing attempt/unsupported or nonmatching results cannot export. Stable creation time is an occurrence-time proxy, not completion time. No account, key, paid resource, cloud setting or schedule changed. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-local-txt-report-pr666",
+      "area": "PLATFORM",
+      "title": "Download strict Arabic aggregate reports locally without OAuth",
+      "pr_number": 666,
+      "pr_head_sha": "e05004b57ad9f14a136f1715f2d41a22f99af9ba",
+      "merge_sha": "cee5322e472964bdee845dca8c3d0aa29b03d4d0",
+      "ci_run_id": 43855188971,
+      "verification": "VERIFIED 2026-11-16 via merged PR #666, exact-head PR CI 43855188971, main CI 43855713432 and CodeQL 43855711883 success. All 32 source checks completed successfully or intentionally skipped. Published manifest and TXT/reader assets matched merge bytes/MIME/CSP. Chromium 390/1440 downloaded exact reviewed Arabic TXT with zero extra/external requests; CI export still passed actual converter/store/AI-7 replay. Local Node281 passed; Python1222 OK (37 skipped); console-free TXT browser tests passed.",
+      "limitations": "Fixed synthetic sample or local startup snapshot only, not continuous monitoring, authenticated provenance, hosted readiness or model-quality acceptance. Generation time is not event freshness. Counts/causes fail closed; notes and raw text excluded. No account, key, paid resource, provider call or schedule enabled. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
     }
   ],
   "gates": [
