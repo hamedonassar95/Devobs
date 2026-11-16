@@ -33,6 +33,9 @@ class NodePipelineSelectionTests(unittest.TestCase):
             "examples/integrations/synthetic-grafana.json",
             "assets/free-devobs/snapshot.json",
             "assets/free-devobs/integration-acceptance.json",
+            "assets/public-ci/index.html",
+            "assets/public-ci/api.mjs",
+            "assets/public-ci/app.mjs",
             "tests/fixtures/intelligence_eval_cases.json",
         ):
             with self.subTest(path=path):

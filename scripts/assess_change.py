@@ -117,7 +117,7 @@ def is_node(path: PurePosixPath) -> bool:
         "assets/free-devobs/snapshot.json",
         "assets/free-devobs/integration-acceptance.json",
         "tests/fixtures/intelligence_eval_cases.json",
-    } or is_ai_intelligence_console(path) or (
+    } or path.parts[:2] == ("assets", "public-ci") or is_ai_intelligence_console(path) or (
         path.suffix in {".js", ".cjs", ".mjs"}
         and path.parts[:1] in {("scripts",), ("tests",)}
     ) or path.name in {"package.json", "package-lock.json"}

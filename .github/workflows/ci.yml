@@ -145,6 +145,9 @@ jobs:
           node --check scripts/free_demo_snapshot.mjs
           node --check scripts/portfolio_integration_acceptance.mjs
           node --check tests/portfolio_integration_acceptance.test.mjs
+          node --check assets/public-ci/api.mjs
+          node --check assets/public-ci/app.mjs
+          node --check tests/public_ci_api.test.mjs
           node --check tests/free_static_demo.test.mjs
           node --check scripts/ai_intelligence/anomaly_detector.mjs
           node --check scripts/ai_intelligence/anomaly_report.mjs
@@ -209,6 +212,7 @@ jobs:
           node --test tests/free_static_demo.test.mjs
           node --test tests/grafana_webhook_adapter.test.mjs
           node --test tests/portfolio_integration_acceptance.test.mjs
+          node --test tests/public_ci_api.test.mjs
           node --test tests/post_detector_confirmation_adapter.test.mjs
           node --test tests/post_detector_confirmation_journal.test.mjs
           node --test tests/ai9_fp_slice_exploration.test.mjs
@@ -495,6 +499,18 @@ jobs:
           PY
           curl --fail --silent --show-error --max-time 10 http://127.0.0.1:18080/assets/free-devobs/integration-acceptance.json --output "$RUNNER_TEMP/integration-acceptance.json"
           cmp assets/free-devobs/integration-acceptance.json "$RUNNER_TEMP/integration-acceptance.json"
+          for asset in index.html api.mjs app.mjs; do
+            curl --fail --silent --show-error --max-time 10 "http://127.0.0.1:18080/assets/public-ci/$asset" --output "$RUNNER_TEMP/public-ci-$asset"
+            cmp "assets/public-ci/$asset" "$RUNNER_TEMP/public-ci-$asset"
+          done
+          python3 - "$RUNNER_TEMP/public-ci-index.html" <<'PY'
+          from pathlib import Path
+          import sys
+          from scripts.check_site import validate_public_ci
+          errors = validate_public_ci(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          if errors:
+              raise SystemExit("Container public CI profile validation failed: " + "; ".join(errors))
+          PY
           # Drain the response: grep -q can close the pipe early and make curl fail.
           # https://www.gnu.org/software/grep/manual/html_node/General-Output-Control.html
           if ! curl --fail --silent --show-error http://127.0.0.1:18080/ | grep -i '<!doctype html' >/dev/null; then
