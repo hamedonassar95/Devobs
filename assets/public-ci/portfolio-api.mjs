@@ -22,6 +22,18 @@ function ensure(condition) {
 }
 function record(v) { return v !== null && typeof v === 'object' && !Array.isArray(v); }
 function safeInt(v) { return Number.isSafeInteger(v) && v > 0; }
+// GitHub run creation time is a stable event-time proxy, never an observation timestamp.
+function safeRunTime(value) {
+  if (value === undefined) return null;
+  ensure(typeof value === 'string'
+    && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(value));
+  const date = new Date(value);
+  ensure(Number.isFinite(date.getTime()));
+  const canonical = date.toISOString();
+  const [second, fraction] = value.slice(0, -1).split('.');
+  ensure(canonical === second + '.' + (fraction ?? '').padEnd(3, '0') + 'Z');
+  return canonical;
+}
 
 export function normalizePublicRun(target, branch, list) {
   ensure(record(target) && PUBLIC_TARGETS.some(x => x.repo === target.repo && x.branch === target.branch));
@@ -48,10 +60,14 @@ export function normalizePublicRun(target, branch, list) {
     && ['completed', 'in_progress', 'queued', 'waiting', 'pending', 'requested'].includes(run.status));
   if (run.status === 'completed') ensure(CONCLUSIONS.has(run.conclusion));
   else ensure(run.conclusion === null);
+  const run_attempt = Object.hasOwn(run, 'run_attempt') ? run.run_attempt : null;
+  ensure(run_attempt === null && !Object.hasOwn(run, 'run_attempt') || safeInt(run_attempt));
+  const created_at = safeRunTime(run.created_at);
   const status = run.head_sha !== main_sha ? 'stale'
     : run.status === 'completed' ? run.conclusion
       : run.status === 'in_progress' ? 'running' : 'pending';
-  return { ...base, status, run_sha: run.head_sha, run_id: run.id };
+  return { ...base, status, run_sha: run.head_sha, run_id: run.id,
+    run_attempt, created_at };
 }
 
 async function boundedJson(response) {

@@ -146,6 +146,9 @@ jobs:
           node --check scripts/portfolio_integration_acceptance.mjs
           node --check scripts/portfolio_public_ci.mjs
           node --check assets/public-ci/portfolio-api.mjs
+          node --check assets/public-ci/portfolio-export.mjs
+          node --check scripts/portfolio_ci_ai7.mjs
+          node --check tests/portfolio_ci_ai7_handoff.test.mjs
           node --check assets/public-ci/portfolio-view.mjs
           node --check tests/public_portfolio_browser.test.mjs
           node --check tests/portfolio_public_ci.test.mjs
@@ -220,6 +223,7 @@ jobs:
           node --test tests/grafana_webhook_adapter.test.mjs
           node --test tests/portfolio_integration_acceptance.test.mjs
           node --test tests/portfolio_public_ci.test.mjs
+          node --test tests/portfolio_ci_ai7_handoff.test.mjs
           node --test tests/public_portfolio_browser.test.mjs
           node --test tests/public_ci_api.test.mjs tests/public_ci_export.test.mjs
           node --test tests/google_docs_export.test.mjs

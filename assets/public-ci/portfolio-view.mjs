@@ -1,9 +1,11 @@
 import { inspectPublicPortfolio, PUBLIC_TARGETS } from './portfolio-api.mjs';
+import { buildPortfolioCloudEvents } from './portfolio-export.mjs';
 
 // This view makes no requests until the user clicks the button.
 const button = document.getElementById('check-portfolio-ci');
 const status = document.getElementById('portfolio-status');
 const results = document.getElementById('portfolio-results');
+const download = document.getElementById('download-portfolio-ci');
 const LABELS = Object.freeze({
   success: 'CI ناجح للتشغيل المطابق',
   failure: 'CI فاشل', stale: 'نتيجة قديمة لا تطابق main',
@@ -14,8 +16,11 @@ const LABELS = Object.freeze({
   missing: 'لا يوجد تشغيل CI مطابق', unverified: 'تعذر التحقق من الحالة',
 });
 let loading = false;
+let downloadableJsonl = null;
 
 function clearRows() {
+  downloadableJsonl = null;
+  if (download) download.disabled = true;
   results.replaceChildren();
   results.hidden = true;
 }
@@ -50,8 +55,12 @@ button.addEventListener('click', async () => {
         : entry.status === 'stale' ? ' — لا تعرض على أنها نجاح حالي' : '';
       results.append(row(entry.repository, (LABELS[entry.status] ?? LABELS.unverified) + suffix));
     }
+    const exportResult = buildPortfolioCloudEvents(report);
+    downloadableJsonl = exportResult.jsonl;
+    if (download) download.disabled = downloadableJsonl === null;
     results.hidden = false;
-    status.textContent = 'اكتمل الفحص اليدوي. النتائج تخص فحوص GitHub العامة لحظة الطلب، وليست جاهزية إنتاج.';
+    status.textContent = 'اكتمل الفحص اليدوي. المؤهلة للتصدير: ' + exportResult.included
+      + ' من 4؛ والباقي غير مكتمل الأدلة أو غير مؤهل. نجاح CI ليس تشخيصًا.';
   } catch {
     clearRows();
     status.textContent = 'تعذر إكمال فحص المحفظة، ولم تُثبت أي نتيجة جديدة.';
@@ -59,6 +68,16 @@ button.addEventListener('click', async () => {
     loading = false;
     button.disabled = false;
   }
+});
+download?.addEventListener('click', () => {
+  if (loading || downloadableJsonl === null) return;
+  const url = URL.createObjectURL(new Blob([downloadableJsonl], { type: 'application/x-ndjson' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'devobs-portfolio-ci.cloudevents.jsonl';
+  document.body.append(link);
+  try { link.click(); }
+  finally { link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
 });
 status.textContent = 'لم يُنفّذ الفحص بعد. اضغط الزر لقراءة الحالة العامة عند الطلب.';
 button.disabled = false;
