@@ -2994,6 +2994,17 @@
       "ci_run_id": 43917735386,
       "verification": "VERIFIED 2026-11-16 via merged PR #669: exact-head PR CI 43917735386 and push CI 43917677701 passed; CodeQL 43917727775 passed. On exact merge SHA c9091a00fd726c1e798104e943daa654a1ec753e, main CI 43918248966 and CodeQL 43918247238 passed. Python 3.12/3.15, security, PostgreSQL RLS, Terraform, container smoke/Trivy, site-contract and validate passed; main Node check was skipped by path selection, while push CI Node tests passed. Static GitHub Pages publication and verify-production succeeded. Local Python suite 1223 OK (37 skipped); ledger tests 70 OK; action pin and diff checks passed.",
       "limitations": "Ledger, state and test bookkeeping only; no runtime behavior changed. GitHub Pages published the validated static site only; no live API/Gunicorn service was deployed or verified. PR-triggered Node check and production-release/controlled-incident-drill jobs were intentionally skipped. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-gitleaks-diagnostics-gitbook-pr678",
+      "area": "CI_SECURITY",
+      "title": "Sanitized Git-history diagnostic stages for Gitleaks and private GitBook incident runbook",
+      "pr_number": 678,
+      "pr_head_sha": "4e9fb21844fe92bc8a83240391dafc053ace803f",
+      "merge_sha": "b2ccdcf5aaddb1a0b6c8423b98f19ed3e02245c5",
+      "ci_run_id": 44034375056,
+      "verification": "VERIFIED 2026-11-17: GitHub PR #678 merged at b2ccdcf5aaddb1a0b6c8423b98f19ed3e02245c5. Exact head 4e9fb21844fe92bc8a83240391dafc053ace803f passed PR CI 44034375056, push CI 44034332169 and CodeQL. Main CI 44034639484 passed on exact merge SHA with Python 3.12/3.15, security, RLS, Terraform, site contract, container/Trivy and validate. GitBook private space successfully imported matching merge SHA and the incident page was read back.",
+      "limitations": "Gitleaks history errors are now stage-classified safely, but the historical Dependabot push failure's exact root cause is still UNVERIFIED; no replay for that failing event was run. GitBook space remains private, not public. Main CI Node tests were skipped by path selection. P01 NO-GO / AI-9 BLOCKED / Codex runtime OPEN remain unchanged."
     }
   ],
   "gates": [
