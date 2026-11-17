@@ -84,7 +84,7 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertEqual(entry["pr_head_sha"], "4e9fb21844fe92bc8a83240391dafc053ace803f")
         self.assertEqual(entry["merge_sha"], "b2ccdcf5aaddb1a0b6c8423b98f19ed3e02245c5")
         self.assertEqual(entry["ci_run_id"], 44034375056)
-        self.assertIn("main CI 44034639484", entry["verification"])
+        self.assertIn("Main CI 44034639484", entry["verification"])
         self.assertIn("P01 NO-GO", entry["limitations"])
         self.assertIn("AI-9 BLOCKED", entry["limitations"])
         self.assertEqual(result["merged_milestones"], 273)
