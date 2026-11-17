@@ -36,7 +36,7 @@ jobs:
           set -euo pipefail
           python3 scripts/gitlab_hosted_preflight.py --repo .
 
-      - name: Ensure GitLab merge policy preserves exact source commits (read-only)
+      - name: Classify GitLab merge-request policy separately from Git fast-forward (read-only)
         shell: bash
         run: |
           set -euo pipefail
