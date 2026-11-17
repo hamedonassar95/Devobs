@@ -26,6 +26,10 @@
 
 يحتوي Devobs أصلًا على أداة [تدقيق GitLab للقراءة فقط](https://github.com/hamedonassar95/Devobs/blob/main/docs/GITLAB_READONLY_CI_AUDIT.md)، ولا حاجة إلى استحداث عملية مكررة. البرنامج يتطلب إعداد وصول مخوّل في بيئة التشغيل المستقلة؛ لا تنقل بيانات اعتماد إلى GitHub أو GitBook أو المحادثة.
 
+## أداة التحقق اليدوي (مقترحة للمراجعة)
+
+توفّر `scripts/check_gitlab_replica_parity.py` فحصًا عامًا باستخدام طلبَيْ `GET` ثابتَيْن إلى GitHub وGitLab، دون كلمات مرور أو رموز أو كتابة بيانات. تشرح [وثيقة الفحص](https://github.com/hamedonassar95/Devobs/blob/main/docs/GITLAB_REPLICA_PARITY.md) كيفية تشغيله، ورموز الخروج `MATCH / DRIFT / UNKNOWN`، وحدود المقارنة غير الذرّية. **إضافة الأداة إلى PR لا تعني تشغيلها تلقائيًا أو نشر GitBook.**
+
 ## شرط تحديث النسخة مستقبلًا
 
 تنص [وثائق GitLab الرسمية](https://docs.gitlab.com/user/project/repository/mirror/pull/) على أن **Pull Mirroring** على GitLab.com يتطلب **Premium أو Ultimate**. لا نفترض أن الاشتراك الحالي يدعم ذلك. ينبغي أولًا الحصول على موافقة المالك على التكلفة والنطاق وصلاحيات الوصول، ثم توثيق حماية الفروع وحالات الاختلاف والاسترجاع وعدم تشغيل CI عند المزامنة قبل إجراء أي إعداد.
