@@ -388,6 +388,30 @@ print(f'{count} commits scanned.')
         self.assertIn("Finding count: 1", summary)
         self.assertNotIn("SYNTHETIC_CANARY_NOT_A_CREDENTIAL", combined)
 
+    def test_missing_push_before_commit_fails_closed_with_safe_stage(self):
+        after = self._new_commit("missing-base.txt")
+        event = {"before": "a" * 40, "after": after, "ref": "refs/heads/main"}
+        code, _, err, summary = self._run("push", event, after)
+
+        self.assertEqual(code, 1)
+        self.assertIn("push base commit verification failed", err)
+        self.assertIn("Git exit code", err)
+        self.assertIn("Status: **FAIL**", summary)
+        self.assertFalse(self.record_path.exists())
+        self.assertNotIn("fatal:", err)
+
+    def test_rev_list_error_reports_stage_not_git_stderr(self):
+        failure = subprocess.CompletedProcess(
+            args=[], returncode=128, stdout="", stderr="SYNTHETIC_PRIVATE_OUTPUT"
+        )
+        with patch.object(coverage.subprocess, "run", return_value=failure):
+            with self.assertRaises(coverage.CoverageFailure) as raised:
+                coverage._git(self.repository, "rev-list", "--reverse", self.base)
+
+        self.assertIn("selected commit range verification failed", str(raised.exception))
+        self.assertIn("Git exit code 128", str(raised.exception))
+        self.assertNotIn("SYNTHETIC_PRIVATE_OUTPUT", str(raised.exception))
+
     def test_push_with_zero_before_scans_selected_branch_history(self):
         after = self._new_commit("new-branch.txt")
         event = {"before": coverage.ZERO_SHA, "after": after, "ref": "refs/heads/new"}

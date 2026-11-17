@@ -97,6 +97,8 @@ node scripts/portfolio_ci_ai7_live.mjs
 
 ## مركز الأتمتة
 
+- **تشخيص أمن CI / Gitleaks:** [دليل مراجعة تاريخ Git في GitBook](docs/gitbook-sync-prep/GITLEAKS_HISTORY_DIAGNOSTICS.md) — فصلٌ بين عطل تحقق Git وبين تسريب مؤكّد، دون تعطيل المسح أو نشر أسرار.
+
 - **ابدأ من هنا:** [مركز الأتمتة وسير التشغيل الموحد](docs/AUTOMATION_HUB.md)
 - **CineForge-AI CI review-only handoff:** [فحص محدود لنتائج CI دون نقل الكود أو تشغيل خدمات](docs/CINEFORGE_CI_REVIEW_HANDOFF.md) — بوابة مراجعة محلية فقط، ليست تكاملًا حيًا ولا إصلاحًا لخلل GitHub Runner.
 - **CineForge Runner triage (offline):** [فحص مقيّد يفرّق غياب Runner عن عطل كود Android](docs/integrations/CINEFORGE_RUNNER_TRIAGE.md) — تشخيص استرشادي محلي دون اتصال أو نقل سجلات خاصة.
