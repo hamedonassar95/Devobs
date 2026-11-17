@@ -18,10 +18,17 @@ DEFAULT_SNAPSHOT = ROOT / "docs" / "p01" / "free-staging-inventory.json"
 FIELDS = {"schema_version", "scope", "observed_on", "render", "supabase"}
 RENDER_FIELDS = {
     "web_plan", "web_suspended", "web_auto_deploy", "web_runtime_verified",
-    "web_ingress_reviewed",
+    "web_ingress_reviewed", "web_last_deploy_status", "web_last_deploy_commit",
     "database_plan", "database_status", "database_expires_at", "database_backup_verified",
 }
 SUPABASE_FIELDS = {"project_status", "hosted_isolation_verified"}
+# Exact Render REST deploy statuses, including in-progress and failed states.
+# See https://api-docs.render.com/reference/retrieve-deploy
+RENDER_DEPLOY_STATUSES = {
+    "created", "queued", "build_in_progress", "update_in_progress",
+    "live", "deactivated", "build_failed", "update_failed", "canceled",
+    "pre_deploy_in_progress", "pre_deploy_failed",
+}
 
 
 class InvalidSnapshot(ValueError):
@@ -52,7 +59,7 @@ def assess_snapshot(record: dict, now: datetime) -> dict:
         raise InvalidSnapshot("timezone-aware UTC time required")
     if not isinstance(record, dict) or set(record) != FIELDS:
         raise InvalidSnapshot("unsupported evidence fields")
-    if type(record["schema_version"]) is not int or record["schema_version"] != 1:
+    if type(record["schema_version"]) is not int or record["schema_version"] != 2:
         raise InvalidSnapshot("unsupported schema")
     if record["scope"] != "devobs-free-staging":
         raise InvalidSnapshot("wrong project scope")
@@ -77,6 +84,10 @@ def assess_snapshot(record: dict, now: datetime) -> dict:
             or type(render["web_auto_deploy"]) is not bool
             or type(render["web_runtime_verified"]) is not bool
             or type(render["web_ingress_reviewed"]) is not bool
+            or type(render["web_last_deploy_status"]) is not str
+            or render["web_last_deploy_status"] not in RENDER_DEPLOY_STATUSES
+            or type(render["web_last_deploy_commit"]) is not str
+            or re.fullmatch(r"[0-9a-f]{40}", render["web_last_deploy_commit"]) is None
             or type(render["database_backup_verified"]) is not bool
             or type(supabase["hosted_isolation_verified"]) is not bool
             or type(render["database_status"]) is not str
@@ -97,6 +108,8 @@ def assess_snapshot(record: dict, now: datetime) -> dict:
     blockers = []
     if (current.date() - observed_date).days > 7:
         blockers.append("STALE_PROVIDER_EVIDENCE")
+    if render["web_last_deploy_status"] != "live":
+        blockers.append("RENDER_LATEST_DEPLOY_NOT_LIVE")
     if render["web_suspended"]:
         blockers.append("RENDER_WEB_SUSPENDED")
     if render["web_auto_deploy"]:
@@ -123,6 +136,7 @@ def assess_snapshot(record: dict, now: datetime) -> dict:
         "scope": "devobs-free-staging",
         "observed_on": observed,
         "render_database_expires_at": expiry_raw,
+        "render_latest_deploy_status": render["web_last_deploy_status"],
         "blockers": blockers,
         "production_ready": False,
         "live_provider_request_performed": False,
