@@ -30,6 +30,10 @@
 
 توفّر `scripts/check_gitlab_replica_parity.py` فحصًا عامًا باستخدام طلبَيْ `GET` ثابتَيْن إلى GitHub وGitLab، دون كلمات مرور أو رموز أو كتابة بيانات. تشرح [وثيقة الفحص](https://github.com/hamedonassar95/Devobs/blob/main/docs/GITLAB_REPLICA_PARITY.md) كيفية تشغيله، ورموز الخروج `MATCH / DRIFT / UNKNOWN`، وحدود المقارنة غير الذرّية. **إضافة الأداة إلى PR لا تعني تشغيلها تلقائيًا أو نشر GitBook.**
 
+## تحقق Git آمن قبل تحديث النسخة
+
+تم إعداد [دليل فحص Fast-forward](https://github.com/hamedonassar95/Devobs/blob/main/docs/GITLAB_FAST_FORWARD_PREFLIGHT.md) وأداة `scripts/gitlab_fast_forward_preflight.py` للتأكد من وجود علاقة السلف بين التزام GitLab والتزام GitHub باستخدام أوامر Git للقراءة فقط. نتيجة `FAST_FORWARD_CANDIDATE` ليست موافقة على التحديث؛ لا يرسل الفحص أي التزام، ولا يغيّر الحماية، ولا ينشئ مزامنة تلقائية. لا يُنفّذ النقل إلا بعد موافقة المالك على الالتزام النهائي والوجهة وصلاحيات GitLab.
+
 ## شرط تحديث النسخة مستقبلًا
 
 تنص [وثائق GitLab الرسمية](https://docs.gitlab.com/user/project/repository/mirror/pull/) على أن **Pull Mirroring** على GitLab.com يتطلب **Premium أو Ultimate**. لا نفترض أن الاشتراك الحالي يدعم ذلك. ينبغي أولًا الحصول على موافقة المالك على التكلفة والنطاق وصلاحيات الوصول، ثم توثيق حماية الفروع وحالات الاختلاف والاسترجاع وعدم تشغيل CI عند المزامنة قبل إجراء أي إعداد.
