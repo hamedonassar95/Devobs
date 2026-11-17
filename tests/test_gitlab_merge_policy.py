@@ -1,4 +1,4 @@
-"""Offline behavior tests for the GitLab fast-forward-only merge policy gate."""
+"""Offline behavior tests for MR-only merge policy classification."""
 import json
 from pathlib import Path
 import sys
@@ -20,18 +20,25 @@ class GitLabMergePolicyTests(unittest.TestCase):
         result, code = policy.audit(self.data())
         self.assertEqual(code, 0)
         self.assertEqual(result["status"], "REVIEW_REQUIRED")
+        self.assertEqual(result["mr_path"], "FF_MR_POLICY_ONLY")
+        self.assertEqual(result["direct_git_push"], "NOT_EVALUATED")
         self.assertTrue(result["approval_required_for_replica_transfer"])
         self.assertFalse(result["write_performed"])
         self.assertFalse(result["gitlab_pipeline_started"])
 
-    def test_merge_commit_mode_blocks(self):
+    def test_merge_commit_blocks_only_mr_sha_identity_not_direct_push(self):
         result, code = policy.audit(self.data(merge_method="merge"))
-        self.assertEqual((result["status"], code), ("BLOCKED", 2))
-        self.assertEqual(result["reason"], "merge_method_creates_merge_commit")
+        self.assertEqual((result["status"], code), ("REVIEW_REQUIRED", 0))
+        self.assertEqual(result["mr_path"], "MR_ADDS_COMMIT")
+        self.assertEqual(result["direct_git_push"], "NOT_EVALUATED")
+        self.assertTrue(result["approval_required_for_replica_transfer"])
+        self.assertFalse(result["write_performed"])
 
-    def test_semilinear_mode_also_blocks(self):
+    def test_semilinear_mode_blocks_only_mr_sha_identity(self):
         result, code = policy.audit(self.data(merge_method="rebase_merge"))
-        self.assertEqual((result["status"], code), ("BLOCKED", 2))
+        self.assertEqual((result["status"], code), ("REVIEW_REQUIRED", 0))
+        self.assertEqual(result["mr_path"], "MR_ADDS_COMMIT")
+        self.assertEqual(result["direct_git_push"], "NOT_EVALUATED")
 
     def test_mismatched_project_is_not_accepted(self):
         for bad in (self.data(id=13), self.data(path_with_namespace="other/project"),
