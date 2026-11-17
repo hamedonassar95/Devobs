@@ -86,6 +86,10 @@ class FastForwardPreflightTests(unittest.TestCase):
         with self.assertRaisesRegex(sync.PreflightBlocked, "endpoint_not_allowed"):
             sync._remote_head("http://127.0.0.1:80/", "github")
 
+    def test_unapproved_git_operation_is_refused(self):
+        with self.assertRaisesRegex(sync.PreflightBlocked, "git_operation_not_allowed"):
+            sync._git("push", "origin", "main")
+
     def test_bad_transport_does_not_echo_stderr(self):
         fake = subprocess.CompletedProcess([], 128, "", "SYNTHETIC_PRIVATE_ERROR")
         with patch.object(sync, "_git", return_value=fake):
