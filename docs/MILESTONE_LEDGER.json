@@ -3038,6 +3038,28 @@
       "ci_run_id": 44042069884,
       "verification": "VERIFIED 2026-11-17: PR #684 merged at 1c1711c4661b486932afc6cf2487cbf1c4bdf3f5 from head 51b8b7b85a053b224c93b8cc49e8e7440b558e29 (09:31:11 UTC). Exact-head PR CI 44042069884 completed SUCCESS, with Python 3.12/3.15 each 1273 tests OK (37 skipped), security, CodeQL, PostgreSQL RLS, Terraform, container scan and validate successful. Exact-merge main CI 44056309176 and push 44056310465 both completed SUCCESS; Pages static deployment/verification also succeeded.",
       "limitations": "This PR changed durable ledger/tests/status only and does not activate free resources, authenticate hosted Render or restore Devobs Supabase. GitBook last confirmed import belongs to PR683; PR684 GitBook import has not been independently verified. Render latest two staging deployments remained update_failed; Free PostgreSQL expiry 2026-12-05T10:33:24Z and backup/retention decision unresolved. Imported GitLab main remains behind, Windows Git client offline. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-free-resource-reconciliation-pr685",
+      "area": "DOCUMENTATION",
+      "title": "Reconcile PR684 evidence into milestone ledger with tests and documented resource limits",
+      "pr_number": 685,
+      "pr_head_sha": "53d5bf2e5e02e909a5a828fdd01d69a4c60cde90",
+      "merge_sha": "dc83207107d98264567e101484cacfdb2bd9579d",
+      "ci_run_id": 44056746021,
+      "verification": "VERIFIED 2026-11-17: PR #685 merged from head 53d5bf2e5e02e909a5a828fdd01d69a4c60cde90 at dc83207107d98264567e101484cacfdb2bd9579d (09:37:19 UTC). Exact-head PR CI 44056746021 succeeded with Python 3.12/3.15 each 1274 tests OK (37 skipped); security, CodeQL, PostgreSQL, Terraform, container and validate succeeded. Exact merge main CI 44057249841 and push main 44057249303 succeeded, including static Pages verification.",
+      "limitations": "Ledger/tests/STATE documentation only. No Render hosted API readiness, OIDC trust, live tenant RLS, restore/cost-cap, Supabase resumption or GitLab synchronization established. No paid resources or cloud changes. Render Free database expires 2026-12-05 without verified backup; P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-render-deploy-guard-pr686",
+      "area": "RELIABILITY",
+      "title": "Fail-closed free staging readiness gate for unsuccessful Render deployments",
+      "pr_number": 686,
+      "pr_head_sha": "f3a57dd0a1a777cf116fba76b7d195f1d7d04d16",
+      "merge_sha": "30020688882761d234f1f324ee8a777026fe27be",
+      "ci_run_id": 44057767690,
+      "verification": "VERIFIED 2026-11-17: PR #686 merged at 30020688882761d234f1f324ee8a777026fe27be from head f3a57dd0a1a777cf116fba76b7d195f1d7d04d16 (09:57:33 UTC). Exact-head PR CI 44057767690 succeeded with Python 3.12/3.15 each 1277 tests OK (37 skipped), security, CodeQL, PostgreSQL, Terraform, Trivy/container and validate. Exact merge main CI 44060341886 and push main 44060340954 completed SUCCESS; Pages static validation passed. GitBook private import succeeded on the exact merge SHA.",
+      "limitations": "Offline redacted free-staging checker now rejects non-live Render deploy status, but does not repair hosted service. Read-only Render history shows update_failed with process exit 1; last safe startup diagnostic stage=oidc, exact missing/invalid setting UNVERIFIED. Render free DB expires 2026-12-05; data retention/backup owner decision missing. Devobs Supabase INACTIVE, GitLab behind. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
