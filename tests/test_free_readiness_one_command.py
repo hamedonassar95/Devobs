@@ -1,6 +1,4 @@
 """Behavioral regression for fixed local free-readiness coordinator."""
-import contextlib
-from io import StringIO
 from pathlib import Path
 import subprocess
 import sys
