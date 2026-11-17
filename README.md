@@ -2,6 +2,17 @@
 
 [![CI](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml)
 
+## GitLab Free CI — تحضير يدوي فقط (لم يُشغَّل)
+
+أُضيف نموذج `.gitlab-ci.yml` لتجهيز فحص مجاني **مستقبلي** لسجل الإنجازات، ويشترط إجراءين منفصلين من المستخدم: إنشاء Pipeline يدويًا عبر واجهة GitLab على الفرع الافتراضي، ثم بدء وظيفة `free_offline_smoke` يدويًا. لا تنشأ Pipelines عند push أو merge request أو schedule أو API، ولا يُستهلك رصيد GitLab بسبب إنشاء الملف على GitHub.
+
+```sh
+python3 -m unittest discover -s tests -p 'test_gitlab_free_ci_pilot.py' -v
+python3 scripts/milestone_ledger.py --summary
+```
+
+هذا **تحضير في GitHub فقط**؛ نسخة GitLab الحالية قديمة ولم تحدث مزامنة أو تشغيل. لا تشغّل وظيفة GitLab قبل التأكد من تجدد حصتها المجانية والحصول على موافقة محددة لنقل نفس مصدر GitHub ومراجعته، مع الحفاظ على حماية `main` وقرارات P01/AI-9. التفاصيل: [دليل GitLab Free CI التجريبي](docs/GITLAB_FREE_CI_PILOT.md).
+
 مشروع عملي لتعلّم DevOps وCI/CD باستخدام GitHub Actions وGitHub Pages. تتضمن المستودع أتمتة إضافية موثقة؛ الصفحة المنشورة حاليًا صفحة HTML ثابتة ولا تحتاج خادم تطبيق أو قاعدة بيانات.
 
 
