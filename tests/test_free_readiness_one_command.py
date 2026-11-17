@@ -35,7 +35,10 @@ class FreeReadinessCoordinatorTests(unittest.TestCase):
             ])
             self.assertEqual(len(seen), 5)
             self.assertTrue(all(len(entry[0]) in (3, 4) for entry in seen))
-            self.assertTrue(all(x[1]["capture_output"] and x[1]["check"] is False
+            self.assertTrue(all(x[1]["stdout"] == subprocess.DEVNULL
+                                and x[1]["stderr"] == subprocess.DEVNULL
+                                and x[1]["env"] == {"PYTHONDONTWRITEBYTECODE": "1", "PYTHONNOUSERSITE": "1"}
+                                and x[1]["check"] is False
                                 and x[1]["timeout"] == 25 for x in seen))
             for field in ("production_ready", "paid_activation_authorized",
                           "automatic_merge_authorized", "live_integration_verified",
