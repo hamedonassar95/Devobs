@@ -1,0 +1,21 @@
+# GitLab Free pilot: pipeline creation and execution are both manually gated.
+# No push, merge-request, scheduled, API or external-trigger pipelines.
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "web" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: always
+    - when: never
+
+stages:
+  - verify
+
+free_offline_smoke:
+  stage: verify
+  image: docker.io/library/python:3.12.15-slim-bookworm@sha256:34386ef0cb081344d7ec1c103ba398e6e9f64e9ab3a1509accc92a4e24a07258
+  rules:
+    - when: manual
+      allow_failure: false
+  timeout: 5m
+  script:
+    - python3 scripts/milestone_ledger.py --summary
+    - python3 -m unittest discover -s tests -p 'test_gitlab_free_ci_pilot.py' -v
