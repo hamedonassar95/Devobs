@@ -4,3 +4,4 @@
 * [سياسة المحتوى والنطاق](CONTENT_SCOPE.md)
 * [قائمة التحقق للمزامنة الأولية](INITIAL_SYNC_CHECKLIST.md)
 * [تشخيص فشل Gitleaks في تاريخ Git](GITLEAKS_HISTORY_DIAGNOSTICS.md)
+* [حالة نسخة Devobs على GitLab](GITLAB_REPLICA_STATUS.md)

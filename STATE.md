@@ -1,3 +1,11 @@
+## PR #678 merge verification and GitLab read-only replica check — 2026-11-17 (VERIFIED)
+
+- VERIFIED: [PR #678](https://github.com/hamedonassar95/Devobs/pull/678) merged from head `4e9fb21844fe92bc8a83240391dafc053ace803f` at `b2ccdcf5aaddb1a0b6c8423b98f19ed3e02245c5`. PR CI `44034375056`, push CI `44034332169`, CodeQL and exact-merge main CI `44034639484` passed. On main, Python 3.12/3.15, security/Gitleaks, RLS, Terraform, site contract, container/Trivy and `validate` passed. Node was skipped by path selection; the static Pages deployment check is not a hosted SaaS API test.
+- VERIFIED: GitBook private `Devobs Documentation` imported the exact GitHub merge SHA `b2ccdcf5aaddb1a0b6c8423b98f19ed3e02245c5`; the Gitleaks incident documentation is present in that private space. This does not publish a public GitBook site.
+- VERIFIED: GitLab project [hamedonassar95/Devobs](https://gitlab.com/hamedonassar95/Devobs) had `main` SHA `663b0b29f7b8f92c256d401cc84f735fb3cb7dc5` during the read-only inspection, behind canonical GitHub `b2ccdcf5aaddb1a0b6c8423b98f19ed3e02245c5`. GitLab lists the GitHub import as finished; no continuous pull mirror or current-commit GitLab pipeline was verified. The pipeline list returned no records and a separate latest-pipeline read returned HTTP 403; do not infer successful GitLab CI or a healthy mirror.
+- Decision: GitHub remains canonical, GitLab writes/mirroring and scheduled CI are NOT authorized, and `main` must not be changed from GitLab. GitLab.com pull mirroring requires Premium/Ultimate; no paid service or credential approved. The historical Dependabot Gitleaks failure remains UNVERIFIED even after this improved diagnostic implementation.
+- Ledger now has **273** historical entries after recording #678; P01 **BLOCKED/NO-GO**, AI-9 **BLOCKED** and Codex runtime **OPEN** remain unchanged.
+
 ## تسجيل دمج PR #669 — 2026-11-16 (VERIFIED)
 
 - دُمج [PR #669](https://github.com/hamedonassar95/Devobs/pull/669) من الرأس `1e70afc1ed9dac97cd0a9702d32ff08cc904e17b` عند SHA `c9091a00fd726c1e798104e943daa654a1ec753e` بعد اكتمال الفحوص المطلوبة بنجاح. اجتاز exact-head PR CI `43917735386` وpush CI `43917677701` وCodeQL `43917727775`. على SHA الدمج نجح main CI `43918248966` وCodeQL `43918247238`.
