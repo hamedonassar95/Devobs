@@ -2628,7 +2628,7 @@ class MilestoneLedgerTests(unittest.TestCase):
              "546dc5401bb803443fe1f73d07811ccbfe7794ae", 44144384838),
         )
         self.assertIn("GitLab", records[691]["title"])
-        self.assertIn("UNVERIFIED", records[691]["verification"])
+        self.assertIn("44144784522 and push-on-main 44144783286 completed SUCCESS", records[691]["verification"])
         self.assertIn("P01 BLOCKED", records[689]["limitations"])
         self.assertIn("AI-9 BLOCKED", records[691]["limitations"])
         self.assertEqual(result["gate_statuses"], {
