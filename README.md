@@ -36,6 +36,8 @@ python3 scripts/check_free_staging_health.py --json
 python3 -m unittest discover -s tests -p 'test_free_staging_health.py' -v
 ```
 
+يتحقق الإصدار الثاني من الجرد أيضًا من **آخر حالة نشر فعلية** على Render والالتزام الأصلي لها؛ إذ انتهت أحدث محاولة بـ`update_failed`، فيظهر مانع `RENDER_LATEST_DEPLOY_NOT_LIVE`. `live` وحدها لا تكفي للموافقة على الإنتاج، ولا يجري هذا الفحص أي اتصال خارجي أو نشر.
+
 النتيجة المقصودة هي `REVIEW_REQUIRED` (رمز 1) أو `INVALID_SNAPSHOT` (رمز 2) وليس الموافقة على النشر. قاعدة Render المجانية تنتهي في **2026-12-05** حسب آخر جرد، وSupabase الخاص بـDevobs غير نشط؛ راجع [التقرير والأدلة وحدود التكاليف](docs/P01_FREE_STAGING_PROVIDER_GATE_2026-11-17.md). لا تنفذ الأداة نشرًا أو مزامنة أو ترقية مدفوعة.
 
 ## فحص انتهاء PostgreSQL المجانية (دون اتصال أو تكلفة)
