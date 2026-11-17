@@ -3027,6 +3027,17 @@
       "ci_run_id": 44041301116,
       "verification": "VERIFIED 2026-11-17: PR #683 was merged at 9c97cce8f3924948cdd2f3adc56c86e8093618e7 from head 3cf5316652a0c8fef33c965a62d37a12fc1f8622. Exact-head PR CI 44041301116, branch CI 44041231621, CodeQL, Python 3.12/3.15, security, postgres-rls, terraform-validate, container/Trivy and validate completed successfully. Exact-merge main CI 44041671213 completed SUCCESS, including static Pages verification. Private GitBook Git Sync imported the merge SHA successfully.",
       "limitations": "Offline, dated and redacted Render/Supabase metadata only; NOT a hosted runtime, OIDC, tenant isolation, backup/restore, cost cap or production GO. Render Free PostgreSQL expires 2026-12-05T10:33:24Z and has no verified managed backup. Devobs Supabase project remained INACTIVE; Phone Repair Assistant v2 is separate and out of scope. GitLab imported main remains stale. No paid service, restart, database access, secret, migration or automatic resource action. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-free-staging-merge-ledger-pr684",
+      "area": "OPERATIONS",
+      "title": "Durable milestone ledger evidence for PR683 Render/Supabase free resource staging gate",
+      "pr_number": 684,
+      "pr_head_sha": "51b8b7b85a053b224c93b8cc49e8e7440b558e29",
+      "merge_sha": "1c1711c4661b486932afc6cf2487cbf1c4bdf3f5",
+      "ci_run_id": 44042069884,
+      "verification": "VERIFIED 2026-11-17: PR #684 merged at 1c1711c4661b486932afc6cf2487cbf1c4bdf3f5 from head 51b8b7b85a053b224c93b8cc49e8e7440b558e29 (09:31:11 UTC). Exact-head PR CI 44042069884 completed SUCCESS, with Python 3.12/3.15 each 1273 tests OK (37 skipped), security, CodeQL, PostgreSQL RLS, Terraform, container scan and validate successful. Exact-merge main CI 44056309176 and push 44056310465 both completed SUCCESS; Pages static deployment/verification also succeeded.",
+      "limitations": "This PR changed durable ledger/tests/status only and does not activate free resources, authenticate hosted Render or restore Devobs Supabase. GitBook last confirmed import belongs to PR683; PR684 GitBook import has not been independently verified. Render latest two staging deployments remained update_failed; Free PostgreSQL expiry 2026-12-05T10:33:24Z and backup/retention decision unresolved. Imported GitLab main remains behind, Windows Git client offline. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
