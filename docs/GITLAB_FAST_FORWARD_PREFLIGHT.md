@@ -1,6 +1,6 @@
 # GitLab sync: Git-only, fail-closed preflight
 
-**Status: PREPARED / NOT SYNCED.** GitHub `hamedonassar95/Devobs` is canonical; GitLab project `89037773` is an imported public copy. This change does not configure mirroring, alter protected branches, inspect credentials, create an Actions workflow, or execute `git push`.
+**Status: PREPARED / NOT SYNCED.** GitHub `hamedonassar95/Devobs` is canonical; GitLab project `89037773` is an imported public copy. These read-only tools do not configure mirroring, alter protected branches, inspect credentials, start GitLab pipelines, or execute `git push`.
 
 ## Verified evidence (2026-11-17)
 
@@ -29,6 +29,22 @@ Only Git read operations are used: `ls-remote`, `rev-parse`, `cat-file -e` and `
 | `2` | `BLOCKED` | Missing or stale local commits, unexpected Git response, unavailable provider, diverging histories, or missing local checkout. **Do not sync.** |
 
 The remote refs can change between these reads and any later operation; a `CANDIDATE` result is **not approval**. Local checkout integrity and branch-protection permissions are independent prerequisites. If a checkout lacks objects, the owner must refresh the local checkout independently and rerun preflight. No history is fetched by this script.
+
+## Manual GitHub-hosted verification — no GitLab compute minutes
+
+An optional [GitHub Actions manual workflow](https://github.com/hamedonassar95/Devobs/actions/workflows/gitlab-replica-preflight-manual.yml) runs the **same read-only ancestry check** from a public standard GitHub-hosted runner when the operator's local Windows checkout is unavailable. It uses `workflow_dispatch` only, and the job is restricted to `refs/heads/main`. The workflow has only `contents: read`, a full-SHA pinned `actions/checkout`, `persist-credentials: false`, a pinned `actions/setup-python`, and a five-minute timeout. It does **not** execute automatically for Git pushes, pull requests, or schedules.
+
+After this workflow is reviewed and merged, use **Actions → GitLab Replica Read-only Preflight → Run workflow**, select `main`, and inspect the JSON output. This is an **optional owner-triggered** public GitHub job, not an authorization to run it now or a guarantee about remaining account quotas. GitHub documents standard public-repository hosted compute as free: https://docs.github.com/en/billing/concepts/product-billing/github-actions and manual workflow setup here: https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow.
+
+| Result | Workflow exit | Meaning |
+| --- | --- | --- |
+| `ALREADY_MATCHED` | 0 | Public GitHub/GitLab heads matched at the time of the read; not backup or pipeline proof. |
+| `REVIEW_REQUIRED` | 0 | GitLab head is a verified ancestor of the exact GitHub head at that read, but **no synchronization happened**. Exit 0 means only that preflight completed; **separate approval** is mandatory. |
+| `BLOCKED` | 2 | A remote, checkout, trust, format, divergence or unexpected error was seen; stop. |
+
+The wrapper `scripts/gitlab_hosted_preflight.py` validates the preflight's exact safe JSON shape, sanitizes error reasons, rejects conflicting or forged responses, and never changes Git refs. Its behavior is covered by `tests/test_gitlab_hosted_preflight.py`, and the underlying ancestry logic remains covered by `tests/test_gitlab_fast_forward_preflight.py`. The underlying script runs only Git read commands; **the GitHub Actions checkout step separately fetches full public GitHub history** into a disposable standard runner so the existing ancestry test has the required local commit objects.
+
+**The GitLab destination `main` stays protected and unchanged**, no GitLab Runner is used, and no private repository content, keys or secrets are transmitted. A green GitHub check does not prove GitLab CI works. P01 / AI-9 remain BLOCKED.
 
 ## Owner-only replication stage (not executed)
 

@@ -38,6 +38,19 @@ python3 -m unittest discover -s tests -p 'test_gitlab_fast_forward_preflight.py'
 
 تعني `ALREADY_MATCHED` أن الالتزامين متطابقان عند القراءة، و`FAST_FORWARD_CANDIDATE` أن النقل ممكن نظريًا ويتطلب موافقة المالك وفحص صلاحيات GitLab، و`BLOCKED` ضرورة التوقف. راجع [دليل الفحص الآمن](docs/GITLAB_FAST_FORWARD_PREFLIGHT.md)؛ هذه ليست مزامنة تلقائية أو نسخة احتياطية مثبتة.
 
+## فحص GitLab من GitHub Actions العام — يدوي بالكامل
+
+أُعدّ فحص مستقل يستخدم **GitHub Actions العام المجاني** بدل احتياج جهاز Windows المتصل أو رصيد GitLab CI. لا يبدأ إلا يدويًا بعد دمج التغيير عبر [GitLab Replica Read-only Preflight](https://github.com/hamedonassar95/Devobs/actions/workflows/gitlab-replica-preflight-manual.yml)، ويقارن آخر التزامات GitHub/GitLab باستخدام `git ls-remote` و`git merge-base`، دون نسخ الكود إلى GitLab أو استخدام أسرار أو تشغيل أي Pipeline هناك.
+
+يمكن التحقق محليًا من منطق النتائج دون حسابات أو شبكة:
+
+```sh
+python3 -m unittest discover -s tests -p 'test_gitlab_hosted_preflight.py' -v
+python3 -m unittest discover -s tests -p 'test_gitlab_fast_forward_preflight.py' -v
+```
+
+النتائج: `ALREADY_MATCHED` تعني أن SHA متطابق وقت القراءة، و`REVIEW_REQUIRED` تعني فقط أن تحديث Fast-forward ممكن نظريًا ويتطلب موافقة مستقلة قبل أي كتابة، و`BLOCKED` تعني التوقف. **نجاح فحص GitHub ليس موافقة على مزامنة GitLab أو جاهزية SaaS.** هذه الخطوة لا تفتح بوابتي P01 وAI-9 ولا تشغّل خدمة مدفوعة. التفاصيل: [الفحص والاستثناءات](docs/GITLAB_FAST_FORWARD_PREFLIGHT.md).
+
 ## فحص جاهزية موارد Devobs المجانية — Render + Supabase
 
 تقرير محلي للقراءة فقط يجمع حالة موارد **Devobs** المجانية من لقطة مزودين محدودة دون مفاتيح أو اتصالات مباشرة، ويرفض إعلان جاهزية الإنتاج عند وجود أدلة ناقصة أو قديمة. لا يستخدم موارد مشروع صيانة الهواتف.
