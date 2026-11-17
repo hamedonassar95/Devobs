@@ -1,5 +1,23 @@
 # Render + OpenAI synthetic staging runbook
 
+## 2026-11-18 owner checkpoint — disposable data and OIDC recovery
+
+**VERIFIED (owner decision, 2026-11-18):** The owner explicitly classified data in the **existing** Render Free PostgreSQL `devobs-ai-staging-db` as **synthetic/disposable**, with no requirement to preserve its current contents. This is a *retention decision only*, **not** approval to delete/empty the database, export it, upgrade, provision a replacement or change the production backup requirements. Real customer data still requires separately reviewed backup and tested restore before P01 GO.
+
+**VERIFIED (read-only Render metadata/logs):** Existing Free PostgreSQL 17 was `available` in Frankfurt and has an expiration timestamp of `2026-12-05T10:33:24.202776Z`. The web service's latest recorded deployment `dep-dbs9uo5g1s2s73ejsgj0`, source `1f1fd774f02579a500c07bd667865e51ed187948`, ended `update_failed`. A filtered Render log records `devobs-startup: invalid_staging_config stage=oidc`, but **does not identify a particular invalid name or value**. The latest canonical GitHub `main` at this checkpoint was `804324d4880fc5d16578b868df043a0c11fe1800`; successful source CI does **not** mean this newer code was deployed. No provider values, environment definitions or secrets were inspected.
+
+**Already implemented:** [presence-only P01 triage](P01_STARTUP_TRIAGE.md) and `scripts/p01_startup_triage.py` accept manually marked `present`, `missing` or `not_checked` states. The current source also categorizes OIDC startup errors without echoing values; the Render failure above was from older code and therefore does not reliably disclose `reason`. Do **not** create a second duplicate validator or a blind deploy.
+
+### Authorized next diagnostic (names only, no deployment)
+
+1. In the owner's **existing** Render web-service dashboard, examine only whether the five required OIDC *names* are configured: `DEVOBS_OIDC_ISSUER`, `DEVOBS_OIDC_AUDIENCE`, `DEVOBS_OIDC_CLIENT_ID`, `DEVOBS_OIDC_METADATA_JSON`, and `DEVOBS_OIDC_JWKS_JSON`. Do not copy any actual values, URLs, JWKS, tokens or screenshots of values into ChatGPT, GitHub or CI. Compare with the [name-only inventory](P01_STARTUP_TRIAGE.md).
+2. The authorized identity-provider operator must **privately** verify that the issuer is HTTPS, registered client and intended audience are correct, metadata issuer matches exactly, `jwks_uri` has the expected HTTPS origin, and public JWKS passes the existing signed-token verifier policy. The startup verifier **does not fetch** metadata or JWKS automatically. Do not construct fake production keys or trust unreviewed metadata.
+3. Record only non-sensitive outcomes such as `MISSING_REQUIRED_NAME`, `VALUE_VALIDITY_UNVERIFIED`, or `PROVIDER_METADATA_REVIEW_REQUIRED` in a separate review. A name marked `present` is not proof that its value is valid; stage `oidc` also says nothing about the database stage.
+4. Any later configuration change, manual Render deploy or staging ingress test needs **separate approval** of its exact scope, a verified zero-paid-resource plan, and a fresh code SHA. Render's [Environment documentation](https://render.com/docs/configure-environment-variables) distinguishes **Save only** from save-and-deploy; do not accidentally choose a deployment option while preparing an audit.
+5. After an authorized future attempt, require hosted `/healthz`, database-backed `/readyz`, signed-token acceptance and negative cross-tenant tests. If a check fails, keep **P01 BLOCKED / NO-GO**. Do not enable model inference, anonymous auth, provider auto-discovery or a replacement database as a workaround.
+
+**Disposal/expiry boundary:** The owner does not need a backup of the current *synthetic* rows, but expiration can still make the service unusable. Do not automatically create new resources, change spending limits, delete the instance or claim hosted availability. Render's [Free policy](https://render.com/docs/free) says free Postgres is temporary and lacks managed backups. AI-9 remains **BLOCKED**, Codex runtime **OPEN**.
+
 ## Latest bounded diagnostic attempt — 2026-11-14
 
 PR [#616](https://github.com/hamedonassar95/Devobs/pull/616) merged at
