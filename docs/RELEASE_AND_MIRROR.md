@@ -37,3 +37,8 @@ References: https://docs.gitlab.com/user/project/repository/mirror/ and https://
 - GitBook `Devobs Documentation` stayed private and Git Sync imported the GitHub merge SHA successfully into `docs/gitbook-sync-prep/`. This is documentation sync, **not** GitLab repository mirroring.
 - GitLab's official [pull mirroring](https://docs.gitlab.com/user/project/repository/mirror/pull/) requires Premium or Ultimate on GitLab.com. No subscription or mirror configuration is approved. Do not enable overwrite-diverged-branches, mirrored-trigger pipelines, credentials, schedule, push-to-main, or automatic production steps. Review cost, ref scope and repo ownership with the owner before any replication activation.
 - The optional [GitLab read-only CI audit](GITLAB_READONLY_CI_AUDIT.md) already exists; do not create duplicate pipelines or treat it as proof of GitLab CI activity. A future candidate is a separately approved, token-free public-SHA parity probe, fail-closed and explicitly manual-only.
+
+
+## Token-free manual parity probe — proposed review
+
+The narrowly scoped [public GitLab replica parity tool](GITLAB_REPLICA_PARITY.md) compares only the public GitHub and GitLab `main` tip SHAs. It runs on explicit user invocation only, fails closed for unavailable/invalid responses, and does not determine merge ancestry, pipeline status, backup recoverability or mirror configuration. No schedule, mirroring action, GitLab write or credential is introduced by this feature branch.
