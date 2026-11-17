@@ -39,6 +39,10 @@ References: https://docs.gitlab.com/user/project/repository/mirror/ and https://
 - The optional [GitLab read-only CI audit](GITLAB_READONLY_CI_AUDIT.md) already exists; do not create duplicate pipelines or treat it as proof of GitLab CI activity. A future candidate is a separately approved, token-free public-SHA parity probe, fail-closed and explicitly manual-only.
 
 
+## Manual Git fast-forward preflight — safe preparation only
+
+The [GitLab fast-forward preflight](GITLAB_FAST_FORWARD_PREFLIGHT.md) independently inspects the public GitHub and GitLab `main` tips with Git and verifies a true ancestor relationship inside a trusted local checkout. It is strictly read-only: no pull/push/mirror, credentials, CI workflow, scheduled job or protected-branch modification. Its outcome is **not** approval for replication. The existing public SHA parity tool remains the lighter check; use the preflight only when considering a separately owner-approved update. The Windows Git device was offline at the 2026-11-17 audit. P01 and AI-9 remain blocked.
+
 ## Token-free manual parity probe — proposed review
 
 The narrowly scoped [public GitLab replica parity tool](GITLAB_REPLICA_PARITY.md) compares only the public GitHub and GitLab `main` tip SHAs. It runs on explicit user invocation only, fails closed for unavailable/invalid responses, and does not determine merge ancestry, pipeline status, backup recoverability or mirror configuration. No schedule, mirroring action, GitLab write or credential is introduced by this feature branch.
