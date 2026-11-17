@@ -3060,6 +3060,28 @@
       "ci_run_id": 44057767690,
       "verification": "VERIFIED 2026-11-17: PR #686 merged at 30020688882761d234f1f324ee8a777026fe27be from head f3a57dd0a1a777cf116fba76b7d195f1d7d04d16 (09:57:33 UTC). Exact-head PR CI 44057767690 succeeded with Python 3.12/3.15 each 1277 tests OK (37 skipped), security, CodeQL, PostgreSQL, Terraform, Trivy/container and validate. Exact merge main CI 44060341886 and push main 44060340954 completed SUCCESS; Pages static validation passed. GitBook private import succeeded on the exact merge SHA.",
       "limitations": "Offline redacted free-staging checker now rejects non-live Render deploy status, but does not repair hosted service. Read-only Render history shows update_failed with process exit 1; last safe startup diagnostic stage=oidc, exact missing/invalid setting UNVERIFIED. Render free DB expires 2026-12-05; data retention/backup owner decision missing. Devobs Supabase INACTIVE, GitLab behind. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-pr687-evidence-reconciliation",
+      "area": "DOCUMENTATION",
+      "title": "Reconcile PR685 and PR686 merge evidence without relaxing hosted release gates",
+      "pr_number": 687,
+      "pr_head_sha": "01d2743f3cfd8c3cb12f58991d64a5be8578a3f5",
+      "merge_sha": "699e7f3237c7de757f5f4125d2f42b31a152ac13",
+      "ci_run_id": 44060817658,
+      "verification": "VERIFIED 2026-11-17: PR #687 merged head 01d2743f3cfd8c3cb12f58991d64a5be8578a3f5 at 699e7f3237c7de757f5f4125d2f42b31a152ac13. Exact-head PR CI 44060817658 succeeded, alongside AI Code Review 44060817512; post-merge main CI 44066130697 succeeded. The PR reconciled previously reviewed ledger, tests and STATE evidence for #685/#686.",
+      "limitations": "Documentation/tests only; no hosted Render repair, OIDC/DB/TLS acceptance, GitLab mirror, paid activation or resource action. The known Render deployments remained update_failed. P01 BLOCKED / NO-GO, AI-9 BLOCKED and Codex runtime OPEN."
+    },
+    {
+      "id": "verified-free-one-command-pr688",
+      "area": "OPERATIONS",
+      "title": "Single free offline readiness command for five existing reviewed local gates",
+      "pr_number": 688,
+      "pr_head_sha": "aaf681788c20cb3095b6c5200fbbc8a11ba90e2d",
+      "merge_sha": "a693d2b67c0297b19d4d76787fc9ff626669f074",
+      "ci_run_id": 44077680373,
+      "verification": "VERIFIED 2026-11-17: PR #688 merged head aaf681788c20cb3095b6c5200fbbc8a11ba90e2d at a693d2b67c0297b19d4d76787fc9ff626669f074. Exact-head PR CI 44077680373 and main push CI 44078031128 succeeded. The documented local command invokes five existing fail-closed checks, with expected REVIEW_REQUIRED outcome; source/test README changes were reviewed in PR #688.",
+      "limitations": "Offline status from snapshots, not live third-party access, SaaS GO, hosted identity, real tenant isolation, or guaranteed budget. Render service latest deployment update_failed; Free Postgres expires 2026-12-05. No paid inference or cloud change. P01 BLOCKED / NO-GO, AI-9 BLOCKED and Codex runtime OPEN."
     }
   ],
   "gates": [
