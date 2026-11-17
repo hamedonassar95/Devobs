@@ -1,3 +1,10 @@
+## PR #683 — free staging resource gate, verified merge (2026-11-17)
+
+- VERIFIED: [PR #683](https://github.com/hamedonassar95/Devobs/pull/683) merged from exact head `3cf5316652a0c8fef33c965a62d37a12fc1f8622` at `9c97cce8f3924948cdd2f3adc56c86e8093618e7`, 2026-11-17 07:49:26 UTC. [PR CI #44041301116](https://github.com/hamedonassar95/Devobs/actions/runs/44041301116) and CodeQL passed on the exact head; post-merge [main CI #44041671213](https://github.com/hamedonassar95/Devobs/actions/runs/44041671213) passed including Python, security, PostgreSQL, Terraform, container and static Pages verification. GitBook private Git Sync imported this merge successfully.
+- VERIFIED: merged script `scripts/check_free_staging_health.py` provides a manual, fail-closed **offline** status classification from redacted 2026-11-17 Render/Supabase metadata and cannot authorize production. Render Free database expires **2026-12-05 10:33 UTC**, Devobs Supabase remains INACTIVE, and the independent Phone Repair Assistant project remains OUT OF SCOPE. No hosted API identity, backup, network isolation, cost-stop or data retention acceptance was established.
+- VERIFIED read-only: GitLab imported `main` still differed from GitHub; the Windows Git device remained offline. A local Git transfer or a paid mirror was not executed.
+- The ledger now contains **275** milestone entries after this reviewed documentation change. **P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN.** The owner must decide safe retention or retirement of the expiring Render Free database; no automatic backup, paid upgrade, deletion or live credential inspection is authorized.
+
 ## تسجيل دمج PR #680 — 2026-11-17 (VERIFIED)
 
 - دُمج [PR #680](https://github.com/hamedonassar95/Devobs/pull/680) من الرأس `aa165444b7ae89be38961c2cf74168cf5289bd8d` إلى `main` عند `94e3ef8aa6bd023cd236b8beb547f06a02ed58c4` بتاريخ 2026-11-17 07:18:42 UTC. نجح [PR CI 44037368919](https://github.com/hamedonassar95/Devobs/actions/runs/44037368919) وpush CI 44037363722، وCodeQL؛ نجحت 1249 حالة Python 3.12 و3.15 مع 37 حالة متخطاة بكل بيئة، كما نجحت security وRLS وTerraform والحاوية و`validate`.

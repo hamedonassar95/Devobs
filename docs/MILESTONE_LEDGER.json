@@ -3016,6 +3016,17 @@
       "ci_run_id": 44037368919,
       "verification": "VERIFIED 2026-11-17: PR #680 merged on exact reviewed head aa165444b7ae89be38961c2cf74168cf5289bd8d at merge SHA 94e3ef8aa6bd023cd236b8beb547f06a02ed58c4 (07:18:42 UTC). PR CI 44037368919 and push CI 44037363722 both completed SUCCESS, including Python 3.12/3.15 with 1249 tests OK (37 skipped), security/Gitleaks, PostgreSQL RLS, Terraform, container/Trivy and validate; CodeQL succeeded. Exact-merge main CI 44037718822 and Push on main 44037717834 completed SUCCESS; Pages static deployment and verify-production succeeded. GitBook private documentation successfully imported the exact merge SHA.",
       "limitations": "The public GitLab main SHA 663b0b29f7b8f92c256d401cc84f735fb3cb7dc5 still differs from canonical GitHub main at observation; live public API execution of the new CLI is UNVERIFIED. SHA MATCH alone would not prove mirroring, restoration, pipeline success or SaaS production readiness. The tool is manual only, with no credentials, new workflow, paid sync or GitLab write. Main Node tests skipped by path selection. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
+    },
+    {
+      "id": "verified-free-staging-provider-gate-pr683",
+      "area": "OPERATIONS",
+      "title": "Fail-closed offline Render and Supabase free-staging readiness checkpoint with private GitBook documentation",
+      "pr_number": 683,
+      "pr_head_sha": "3cf5316652a0c8fef33c965a62d37a12fc1f8622",
+      "merge_sha": "9c97cce8f3924948cdd2f3adc56c86e8093618e7",
+      "ci_run_id": 44041301116,
+      "verification": "VERIFIED 2026-11-17: PR #683 was merged at 9c97cce8f3924948cdd2f3adc56c86e8093618e7 from head 3cf5316652a0c8fef33c965a62d37a12fc1f8622. Exact-head PR CI 44041301116, branch CI 44041231621, CodeQL, Python 3.12/3.15, security, postgres-rls, terraform-validate, container/Trivy and validate completed successfully. Exact-merge main CI 44041671213 completed SUCCESS, including static Pages verification. Private GitBook Git Sync imported the merge SHA successfully.",
+      "limitations": "Offline, dated and redacted Render/Supabase metadata only; NOT a hosted runtime, OIDC, tenant isolation, backup/restore, cost cap or production GO. Render Free PostgreSQL expires 2026-12-05T10:33:24Z and has no verified managed backup. Devobs Supabase project remained INACTIVE; Phone Repair Assistant v2 is separate and out of scope. GitLab imported main remains stale. No paid service, restart, database access, secret, migration or automatic resource action. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
