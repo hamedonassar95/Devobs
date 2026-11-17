@@ -27,6 +27,17 @@ python3 -m unittest discover -s tests -p 'test_gitlab_fast_forward_preflight.py'
 
 تعني `ALREADY_MATCHED` أن الالتزامين متطابقان عند القراءة، و`FAST_FORWARD_CANDIDATE` أن النقل ممكن نظريًا ويتطلب موافقة المالك وفحص صلاحيات GitLab، و`BLOCKED` ضرورة التوقف. راجع [دليل الفحص الآمن](docs/GITLAB_FAST_FORWARD_PREFLIGHT.md)؛ هذه ليست مزامنة تلقائية أو نسخة احتياطية مثبتة.
 
+## فحص جاهزية موارد Devobs المجانية — Render + Supabase
+
+تقرير محلي للقراءة فقط يجمع حالة موارد **Devobs** المجانية من لقطة مزودين محدودة دون مفاتيح أو اتصالات مباشرة، ويرفض إعلان جاهزية الإنتاج عند وجود أدلة ناقصة أو قديمة. لا يستخدم موارد مشروع صيانة الهواتف.
+
+```sh
+python3 scripts/check_free_staging_health.py --json
+python3 -m unittest discover -s tests -p 'test_free_staging_health.py' -v
+```
+
+النتيجة المقصودة هي `REVIEW_REQUIRED` (رمز 1) أو `INVALID_SNAPSHOT` (رمز 2) وليس الموافقة على النشر. قاعدة Render المجانية تنتهي في **2026-12-05** حسب آخر جرد، وSupabase الخاص بـDevobs غير نشط؛ راجع [التقرير والأدلة وحدود التكاليف](docs/P01_FREE_STAGING_PROVIDER_GATE_2026-11-17.md). لا تنفذ الأداة نشرًا أو مزامنة أو ترقية مدفوعة.
+
 ## فحص انتهاء PostgreSQL المجانية (دون اتصال أو تكلفة)
 
 تتحقق [أداة فحص موعد انتهاء Render Free](scripts/check_render_free_expiry.py) من تاريخ انتهاء قاعدة البيانات وفق [لقطة جرد محدودة](docs/p01/render-free-expiry-snapshot.json) بتاريخ 2026-11-15. لا تقرأ الأداة بيانات القاعدة أو الاتصال بالمزود أو أسرارًا، ولا تنشر أو ترقّي أو تحذف شيئًا.
