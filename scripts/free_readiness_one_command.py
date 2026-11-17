@@ -9,7 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-import subprocess
+import subprocess  # nosec B404: fixed local script allowlist; no shell, no inherited environment
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -36,8 +36,9 @@ def inspect_offline(root: Path = ROOT, runner=subprocess.run) -> dict:
                 proc = runner(
                     [sys.executable, str(path), *args],
                     cwd=root,
-                    capture_output=True,
-                    text=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    env={"PYTHONDONTWRITEBYTECODE": "1", "PYTHONNOUSERSITE": "1"},
                     timeout=25,
                     check=False,
                 )
