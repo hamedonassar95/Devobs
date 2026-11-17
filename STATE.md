@@ -1,3 +1,10 @@
+## تسجيل دمج PR #680 — 2026-11-17 (VERIFIED)
+
+- دُمج [PR #680](https://github.com/hamedonassar95/Devobs/pull/680) من الرأس `aa165444b7ae89be38961c2cf74168cf5289bd8d` إلى `main` عند `94e3ef8aa6bd023cd236b8beb547f06a02ed58c4` بتاريخ 2026-11-17 07:18:42 UTC. نجح [PR CI 44037368919](https://github.com/hamedonassar95/Devobs/actions/runs/44037368919) وpush CI 44037363722، وCodeQL؛ نجحت 1249 حالة Python 3.12 و3.15 مع 37 حالة متخطاة بكل بيئة، كما نجحت security وRLS وTerraform والحاوية و`validate`.
+- نجح [main CI 44037718822](https://github.com/hamedonassar95/Devobs/actions/runs/44037718822) على SHA الدمج، بما في ذلك نشر موقع GitHub Pages الثابت والتحقق منه؛ لا يعني ذلك تشغيل واجهة SaaS مستضافة. GitBook الخاص استورد نفس الالتزام. فحوص Node على `main` تخطاها انتقاء المسارات.
+- أضاف PR #680 أداة يدوية بدون رمز لمقارنة SHA في المستودعين العامين، مع حالات `MATCH` و`DRIFT` و`UNKNOWN`؛ **لم تُشغل الأداة الجديدة حيًا على GitHub/GitLab ضمن هذه المراجعة**. GitLab `main` كان لا يزال `663b0b29f7b8f92c256d401cc84f735fb3cb7dc5` أثناء الفحص، مخالفًا لـGitHub. لا يوجد إثبات لمزامنة GitLab أو صلاحية النسخة للاسترجاع، ولم يحدث تعديل أو تفعيل GitLab.
+- سجل الإنجازات الآن **274** بعد إضافة هذا الإثبات في PR مراجعة جديد؛ `P01` **BLOCKED / NO-GO**، و`AI-9` **BLOCKED**، وقبول Codex runtime **OPEN** دون تغيير.
+
 ## PR #678 merge verification and GitLab read-only replica check — 2026-11-17 (VERIFIED)
 
 - VERIFIED: [PR #678](https://github.com/hamedonassar95/Devobs/pull/678) merged from head `4e9fb21844fe92bc8a83240391dafc053ace803f` at `b2ccdcf5aaddb1a0b6c8423b98f19ed3e02245c5`. PR CI `44034375056`, push CI `44034332169`, CodeQL and exact-merge main CI `44034639484` passed. On main, Python 3.12/3.15, security/Gitleaks, RLS, Terraform, site contract, container/Trivy and `validate` passed. Node was skipped by path selection; the static Pages deployment check is not a hosted SaaS API test.

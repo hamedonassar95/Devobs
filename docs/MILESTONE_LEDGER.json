@@ -3005,6 +3005,17 @@
       "ci_run_id": 44034375056,
       "verification": "VERIFIED 2026-11-17: GitHub PR #678 merged at b2ccdcf5aaddb1a0b6c8423b98f19ed3e02245c5. Exact head 4e9fb21844fe92bc8a83240391dafc053ace803f passed PR CI 44034375056, push CI 44034332169 and CodeQL. Main CI 44034639484 passed on exact merge SHA with Python 3.12/3.15, security, RLS, Terraform, site contract, container/Trivy and validate. GitBook private space successfully imported matching merge SHA and the incident page was read back.",
       "limitations": "Gitleaks history errors are now stage-classified safely, but the historical Dependabot push failure's exact root cause is still UNVERIFIED; no replay for that failing event was run. GitBook space remains private, not public. Main CI Node tests were skipped by path selection. P01 NO-GO / AI-9 BLOCKED / Codex runtime OPEN remain unchanged."
+    },
+    {
+      "id": "verified-public-gitlab-sha-parity-pr680",
+      "area": "CI_SECURITY",
+      "title": "Manual token-free public GitHub/GitLab SHA parity inspection with behavioral tests",
+      "pr_number": 680,
+      "pr_head_sha": "aa165444b7ae89be38961c2cf74168cf5289bd8d",
+      "merge_sha": "94e3ef8aa6bd023cd236b8beb547f06a02ed58c4",
+      "ci_run_id": 44037368919,
+      "verification": "VERIFIED 2026-11-17: PR #680 merged on exact reviewed head aa165444b7ae89be38961c2cf74168cf5289bd8d at merge SHA 94e3ef8aa6bd023cd236b8beb547f06a02ed58c4 (07:18:42 UTC). PR CI 44037368919 and push CI 44037363722 both completed SUCCESS, including Python 3.12/3.15 with 1249 tests OK (37 skipped), security/Gitleaks, PostgreSQL RLS, Terraform, container/Trivy and validate; CodeQL succeeded. Exact-merge main CI 44037718822 and Push on main 44037717834 completed SUCCESS; Pages static deployment and verify-production succeeded. GitBook private documentation successfully imported the exact merge SHA.",
+      "limitations": "The public GitLab main SHA 663b0b29f7b8f92c256d401cc84f735fb3cb7dc5 still differs from canonical GitHub main at observation; live public API execution of the new CLI is UNVERIFIED. SHA MATCH alone would not prove mirroring, restoration, pipeline success or SaaS production readiness. The tool is manual only, with no credentials, new workflow, paid sync or GitLab write. Main Node tests skipped by path selection. P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN."
     }
   ],
   "gates": [
