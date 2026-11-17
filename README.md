@@ -51,16 +51,18 @@ python3 -m unittest discover -s tests -p 'test_gitlab_fast_forward_preflight.py'
 
 النتائج: `ALREADY_MATCHED` تعني أن SHA متطابق وقت القراءة، و`REVIEW_REQUIRED` تعني فقط أن تحديث Fast-forward ممكن نظريًا ويتطلب موافقة مستقلة قبل أي كتابة، و`BLOCKED` تعني التوقف. **نجاح فحص GitHub ليس موافقة على مزامنة GitLab أو جاهزية SaaS.** هذه الخطوة لا تفتح بوابتي P01 وAI-9 ولا تشغّل خدمة مدفوعة. التفاصيل: [الفحص والاستثناءات](docs/GITLAB_FAST_FORWARD_PREFLIGHT.md).
 
-## حماية مطابقة GitLab من إنشاء Merge commit إضافي
+## فحص طريقة دمج GitLab — للمراجعة فقط
 
-أكد فحص GitLab المتصل أن طريقة دمج المشروع الحالية هي `merge` (إنشاء Merge commit)، وهي **لا تضمن تطابق SHA** بعد نقل فرع GitHub إلى GitLab. أُضيف فحص قراءة عامة بدون مفاتيح إلى Workflow اليدوي `GitLab Replica Read-only Preflight`: يمنع إعلان الجاهزية عند `merge` أو `rebase_merge`، ولا يسمح بنتيجة `REVIEW_REQUIRED` إلا عند `ff` (مع بقاء موافقة المالك والفحص النهائي مطلوبة). هذا الحاجز **لا يغير** إعداد GitLab بنفسه ولا ينقل أي كود أو يشغّل GitLab CI.
+يقرأ فحص `GitLab Replica Read-only Preflight` إعداد دمج Merge Requests في مشروع GitLab دون مفاتيح أو كتابة. عند `merge` أو `rebase_merge` يُظهر `mr_path=MR_ADDS_COMMIT`؛ أي إن **دمج Merge Request العادي** سيُنشئ التزامًا إضافيًا ولن يحافظ على SHA الخاص بـGitHub. عند `ff` يُظهر `mr_path=FF_MR_POLICY_ONLY`.
+
+**مهم:** هذا الإعداد لا يمنع بحد ذاته `git push` العادي بطريقة Fast-forward، لأن صلاحية الدفع إلى الفرع المحمي تُدار بشكل مستقل. لذلك يحتفظ الفحص بالنتيجة `direct_git_push=NOT_EVALUATED`. انتهاء الفحص بنجاح يعني اكتمال القراءة فقط، **ولا يجيز أي مزامنة أو دمج**. تغيير GitLab أو الدفع إلى `main` يتطلب موافقة منفصلة ومراجعة أحدث SHA.
 
 ```sh
 python3 -m unittest discover -s tests -p 'test_gitlab_merge_policy.py' -v
 python3 -m py_compile scripts/gitlab_merge_policy.py
 ```
 
-التوثيق والقيود: [GitLab fast-forward and merge-method gate](docs/GITLAB_FAST_FORWARD_PREFLIGHT.md). لا تُفعّل أي خطة مدفوعة ولا تنفذ Push إلى `main` من دون مراجعة مستقلة وموافقة محددة.
+التوثيق: [الفرق بين Merge Request وGit Fast-forward](docs/GITLAB_FAST_FORWARD_PREFLIGHT.md). لا خدمات مدفوعة، ولا GitLab CI، ولا نقل تلقائي للكود.
 
 ## فحص جاهزية موارد Devobs المجانية — Render + Supabase
 
