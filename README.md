@@ -4,6 +4,18 @@
 
 مشروع عملي لتعلّم DevOps وCI/CD باستخدام GitHub Actions وGitHub Pages. تتضمن المستودع أتمتة إضافية موثقة؛ الصفحة المنشورة حاليًا صفحة HTML ثابتة ولا تحتاج خادم تطبيق أو قاعدة بيانات.
 
+
+## فحص تطابق نسخة Devobs على GitLab — يدوي وبدون رموز
+
+يمكنك مقارنة التزام `main` العام بين GitHub وGitLab دون مصادقة أو تعديل أي مستودع:
+
+```sh
+python3 scripts/check_gitlab_replica_parity.py --json
+python3 -m unittest discover -s tests -p 'test_gitlab_replica_parity.py' -v
+```
+
+تعني `MATCH` تطابق SHA وقت القراءة فقط (`exit 0`)، و`DRIFT` اختلافهما (`exit 1`)، و`UNKNOWN` تعذر التحقق (`exit 2`). لا ينشئ هذا الفحص مزامنة أو نسخة احتياطية أو Pipeline أو خدمة مدفوعة؛ راجع [حدود فحص GitLab](docs/GITLAB_REPLICA_PARITY.md) قبل اعتماد النتيجة.
+
 ## فحص انتهاء PostgreSQL المجانية (دون اتصال أو تكلفة)
 
 تتحقق [أداة فحص موعد انتهاء Render Free](scripts/check_render_free_expiry.py) من تاريخ انتهاء قاعدة البيانات وفق [لقطة جرد محدودة](docs/p01/render-free-expiry-snapshot.json) بتاريخ 2026-11-15. لا تقرأ الأداة بيانات القاعدة أو الاتصال بالمزود أو أسرارًا، ولا تنشر أو ترقّي أو تحذف شيئًا.
