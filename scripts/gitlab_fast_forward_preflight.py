@@ -16,7 +16,7 @@ import subprocess
 GITHUB_URL = "https://github.com/hamedonassar95/Devobs.git"
 GITLAB_URL = "https://gitlab.com/hamedonassar95/Devobs.git"
 BRANCH_REF = "refs/heads/main"
-SHA_PATTERN = re.compile(r"[0-9a-f]{40}\\Z")
+SHA_PATTERN = re.compile(r"[0-9a-f]{40}\Z")
 TIMEOUT_SECONDS = 20
 
 
