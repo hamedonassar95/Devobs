@@ -51,6 +51,19 @@ python3 -m unittest discover -s tests -p 'test_gitlab_fast_forward_preflight.py'
 
 النتائج: `ALREADY_MATCHED` تعني أن SHA متطابق وقت القراءة، و`REVIEW_REQUIRED` تعني فقط أن تحديث Fast-forward ممكن نظريًا ويتطلب موافقة مستقلة قبل أي كتابة، و`BLOCKED` تعني التوقف. **نجاح فحص GitHub ليس موافقة على مزامنة GitLab أو جاهزية SaaS.** هذه الخطوة لا تفتح بوابتي P01 وAI-9 ولا تشغّل خدمة مدفوعة. التفاصيل: [الفحص والاستثناءات](docs/GITLAB_FAST_FORWARD_PREFLIGHT.md).
 
+## فحص طريقة دمج GitLab — للمراجعة فقط
+
+يقرأ فحص `GitLab Replica Read-only Preflight` إعداد دمج Merge Requests في مشروع GitLab دون مفاتيح أو كتابة. عند `merge` أو `rebase_merge` يُظهر `mr_path=MR_ADDS_COMMIT`؛ أي إن **دمج Merge Request العادي** سيُنشئ التزامًا إضافيًا ولن يحافظ على SHA الخاص بـGitHub. عند `ff` يُظهر `mr_path=FF_MR_POLICY_ONLY`.
+
+**مهم:** هذا الإعداد لا يمنع بحد ذاته `git push` العادي بطريقة Fast-forward، لأن صلاحية الدفع إلى الفرع المحمي تُدار بشكل مستقل. لذلك يحتفظ الفحص بالنتيجة `direct_git_push=NOT_EVALUATED`. انتهاء الفحص بنجاح يعني اكتمال القراءة فقط، **ولا يجيز أي مزامنة أو دمج**. تغيير GitLab أو الدفع إلى `main` يتطلب موافقة منفصلة ومراجعة أحدث SHA.
+
+```sh
+python3 -m unittest discover -s tests -p 'test_gitlab_merge_policy.py' -v
+python3 -m py_compile scripts/gitlab_merge_policy.py
+```
+
+التوثيق: [الفرق بين Merge Request وGit Fast-forward](docs/GITLAB_FAST_FORWARD_PREFLIGHT.md). لا خدمات مدفوعة، ولا GitLab CI، ولا نقل تلقائي للكود.
+
 ## فحص جاهزية موارد Devobs المجانية — Render + Supabase
 
 تقرير محلي للقراءة فقط يجمع حالة موارد **Devobs** المجانية من لقطة مزودين محدودة دون مفاتيح أو اتصالات مباشرة، ويرفض إعلان جاهزية الإنتاج عند وجود أدلة ناقصة أو قديمة. لا يستخدم موارد مشروع صيانة الهواتف.

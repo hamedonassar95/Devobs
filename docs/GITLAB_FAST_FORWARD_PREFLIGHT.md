@@ -46,6 +46,29 @@ The wrapper `scripts/gitlab_hosted_preflight.py` validates the preflight's exact
 
 **The GitLab destination `main` stays protected and unchanged**, no GitLab Runner is used, and no private repository content, keys or secrets are transmitted. A green GitHub check does not prove GitLab CI works. P01 / AI-9 remain BLOCKED.
 
+## GitLab merge-request policy audit — separate from direct Git push
+
+**VERIFIED through connected GitLab API on 2026-11-17:** project `89037773` (`hamedonassar95/Devobs`) reports `merge_method=merge`. GitLab's [merge methods](https://docs.gitlab.com/user/project/merge_requests/methods/) determine how a **merge request** is merged. A normal MR with this setting creates a merge commit; `rebase_merge` also creates a merge commit; an `ff` MR preserves a linear history when the source is a descendant of the target.
+
+**Correction:** This setting **does not govern a direct Git fast-forward push**. GitLab's [protected branch push permissions](https://docs.gitlab.com/user/project/repository/branches/protected/) are a separate control. A non-forced Git push can preserve exact commits if the authenticated pusher is authorized and the remote target tip is an ancestor of the source; however, a direct push bypasses the normal Merge Request review process. The project's `can_push=true` observation and a historical ancestry check do not authorize any such push. A trusted Git client, fresh SHA and specific owner approval remain mandatory.
+
+The added **read-only** standard-library audit `scripts/gitlab_merge_policy.py` queries the fixed [GitLab Projects API](https://docs.gitlab.com/api/projects/) endpoint with no credentials, redirects or writes. The manual GitHub Actions preflight runs it **after** ancestry. Results classify the MR path, not full synchronization readiness:
+
+- `REVIEW_REQUIRED`, exit `0`, `mr_path=FF_MR_POLICY_ONLY`: project policy reports `merge_method=ff`. MR commit identity may be preserved, but source transfer, target ancestry, permissions and approvals still require separate checks.
+- `REVIEW_REQUIRED`, exit `0`, `mr_path=MR_ADDS_COMMIT`: project policy reports `merge` or `rebase_merge`; a normal MR would introduce an extra commit. This is an **MR-path warning**, not evidence that a direct non-forced Git fast-forward is impossible. The output explicitly says `direct_git_push=NOT_EVALUATED`.
+- `BLOCKED`, exit `2`: remote metadata is unavailable, malformed, from an unexpected project or contains an unknown merge method. Stop the policy check; never silently pass bad metadata.
+
+An exit `0` in these read-only checks means **classification completed**, never that synchronization was performed or approved. The source transfer and publication remain separate changes; changing GitLab project merge settings is **not required** for a direct Git fast-forward but may be considered independently if the owner chooses a GitLab Merge Request flow.
+
+Offline behavioral tests, without any GitLab compute or API request:
+
+```sh
+python3 -m unittest discover -s tests -p 'test_gitlab_merge_policy.py' -v
+python3 -m py_compile scripts/gitlab_merge_policy.py
+```
+
+**No automatic GitLab project setting change, branch push, MR merge, CI pipeline, paid service or payment setting is authorized.** Codespaces is a possible alternative to an offline Windows Git client only when included compute **and** storage remain available and spending controls are preserved: [GitHub Codespaces allowance](https://docs.github.com/en/codespaces/troubleshooting/troubleshooting-included-usage). Even in Codespaces, the owner must approve the exact source and destination before a Git write.
+
 ## Owner-only replication stage (not executed)
 
 The owner must approve the **specific source SHA**, the exact destination branch and account permissions before any Git write. On a trusted, authorized Git client, review a new preflight and a **single-branch non-forced dry-run**. If the protected GitLab branch rejects a push, **stop**; do not weaken branch protection or force an update. No credentials may be stored in the repository, submitted in chat, or printed in logs.
