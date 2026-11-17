@@ -3082,6 +3082,28 @@
       "ci_run_id": 44077680373,
       "verification": "VERIFIED 2026-11-17: PR #688 merged head aaf681788c20cb3095b6c5200fbbc8a11ba90e2d at a693d2b67c0297b19d4d76787fc9ff626669f074. Exact-head PR CI 44077680373 and main push CI 44078031128 succeeded. The documented local command invokes five existing fail-closed checks, with expected REVIEW_REQUIRED outcome; source/test README changes were reviewed in PR #688.",
       "limitations": "Offline status from snapshots, not live third-party access, SaaS GO, hosted identity, real tenant isolation, or guaranteed budget. Render service latest deployment update_failed; Free Postgres expires 2026-12-05. No paid inference or cloud change. P01 BLOCKED / NO-GO, AI-9 BLOCKED and Codex runtime OPEN."
+    },
+    {
+      "id": "verified-ledger-reconciliation-pr689",
+      "area": "DOCUMENTATION",
+      "title": "Reconcile PR687/PR688 evidence and preserve free-readiness gates",
+      "pr_number": 689,
+      "pr_head_sha": "1c696e2cfe5f745265462ade5762f13eb67a064b",
+      "merge_sha": "98aebba467bef515755345e9a80ea34a5c114ec7",
+      "ci_run_id": 44119652842,
+      "verification": "VERIFIED 2026-11-17: PR #689 merged head 1c696e2cfe5f745265462ade5762f13eb67a064b to main SHA 98aebba467bef515755345e9a80ea34a5c114ec7. Exact-head PR CI 44119652842 succeeded, and post-merge main CI 44121000016 completed SUCCESS. The scope reconciled earlier free-readiness milestones and unchanged release gates.",
+      "limitations": "Ledger/test/STATE reconciliation only. No GitLab source sync, new runtime, hosted OIDC, tenant isolation, Render deployment fix, paid service or automatic approvals. Render Free PostgreSQL expires 2026-12-05. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-gitlab-manual-free-ci-pr691",
+      "area": "CI_SECURITY",
+      "title": "Prepare manually gated GitLab Free CI smoke pilot on canonical GitHub Devobs",
+      "pr_number": 691,
+      "pr_head_sha": "046f3e5c21f69d00092cf964e7df423684706acf",
+      "merge_sha": "546dc5401bb803443fe1f73d07811ccbfe7794ae",
+      "ci_run_id": 44144384838,
+      "verification": "VERIFIED 2026-11-17: PR #691 merged head 046f3e5c21f69d00092cf964e7df423684706acf at main SHA 546dc5401bb803443fe1f73d07811ccbfe7794ae. Exact-head PR CI 44144384838 succeeded. Exact-merge main CI 44144784522 and push-on-main 44144783286 completed SUCCESS, including Python, security, container, Terraform and validate; the site workflow concerns static content, not hosted SaaS. Four-file change adds workflow- and job-level manual gates, a pinned Python image, offline regression and operator documentation.",
+      "limitations": "GitLab imported main remained at 663b0b29f7b8f92c256d401cc84f735fb3cb7dc5; zero GitLab pipelines recorded and included GitLab quota unverified/exhausted per owner. A GitHub PR merge does not transfer the .gitlab-ci.yml into GitLab. No GitLab runner, live CI, private project transfer, mirror, production deployment, budget change or paid activation was executed. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
