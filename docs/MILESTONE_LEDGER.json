@@ -3104,6 +3104,50 @@
       "ci_run_id": 44144384838,
       "verification": "VERIFIED 2026-11-17: PR #691 merged head 046f3e5c21f69d00092cf964e7df423684706acf at main SHA 546dc5401bb803443fe1f73d07811ccbfe7794ae. Exact-head PR CI 44144384838 succeeded. Exact-merge main CI 44144784522 and push-on-main 44144783286 completed SUCCESS, including Python, security, container, Terraform and validate; the site workflow concerns static content, not hosted SaaS. Four-file change adds workflow- and job-level manual gates, a pinned Python image, offline regression and operator documentation.",
       "limitations": "GitLab imported main remained at 663b0b29f7b8f92c256d401cc84f735fb3cb7dc5; zero GitLab pipelines recorded and included GitLab quota unverified/exhausted per owner. A GitHub PR merge does not transfer the .gitlab-ci.yml into GitLab. No GitLab runner, live CI, private project transfer, mirror, production deployment, budget change or paid activation was executed. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-ledger-review-pr692",
+      "area": "DOCUMENTATION",
+      "title": "Reconcile PR689 and PR691 merge evidence with no release promotion",
+      "pr_number": 692,
+      "pr_head_sha": "7854e76a94f22b5d38421005575b3ca9ae8e4bfe",
+      "merge_sha": "c24b4ed885353ba40f49b079096b634529a52ed7",
+      "ci_run_id": 44145273702,
+      "verification": "VERIFIED 2026-11-18 via GitHub: PR #692 merged exact source 7854e76a94f22b5d38421005575b3ca9ae8e4bfe to c24b4ed885353ba40f49b079096b634529a52ed7. Exact-head CI 44145273702 and exact-merge main CI 44146034430 both completed SUCCESS. Scope: evidence ledger, regression tests and STATE reconciliation through PR #691.",
+      "limitations": "Documentation/tests only; GitLab copy not synchronized; no production OIDC fix or hosted acceptance. P01 BLOCKED / NO-GO, AI-9 BLOCKED and Codex runtime OPEN. No cloud or paid activation."
+    },
+    {
+      "id": "verified-gitlab-hosted-readonly-preflight-pr693",
+      "area": "CI_SECURITY",
+      "title": "Manual GitHub-hosted read-only ancestry verification for GitLab replica",
+      "pr_number": 693,
+      "pr_head_sha": "e043dbbdece5c8ccd1ca98ac961103d216cb3ff9",
+      "merge_sha": "4d9aa356ef11f7e38629b85fadbf3459b602491c",
+      "ci_run_id": 44147000358,
+      "verification": "VERIFIED 2026-11-18 via GitHub: PR #693 merged exact head e043dbbdece5c8ccd1ca98ac961103d216cb3ff9 to 4d9aa356ef11f7e38629b85fadbf3459b602491c. Exact-head CI 44147000358 and exact-main CI 44147664208 completed SUCCESS. Separate owner-triggered read-only manual run 44149384839 returned FAST_FORWARD_CANDIDATE / REVIEW_REQUIRED for then-current public refs, with no write.",
+      "limitations": "Read-only GitHub workflow; not GitLab synchronization, GitLab CI execution, permission to push or account-quota validation. Its historical SHA evidence must be refreshed before any write. P01 BLOCKED / NO-GO, AI-9 BLOCKED and Codex runtime OPEN; no paid activation."
+    },
+    {
+      "id": "verified-gitlab-mr-direct-push-separation-pr694",
+      "area": "CI_SECURITY",
+      "title": "Separate GitLab MR merge-method policy from direct Git fast-forward capability",
+      "pr_number": 694,
+      "pr_head_sha": "f9932c77a18ca844f3a81be96fc2fbcf0369151a",
+      "merge_sha": "804324d4880fc5d16578b868df043a0c11fe1800",
+      "ci_run_id": 44165721787,
+      "verification": "VERIFIED 2026-11-18 via GitHub: PR #694 merged head f9932c77a18ca844f3a81be96fc2fbcf0369151a to 804324d4880fc5d16578b868df043a0c11fe1800. Exact-head PR CI 44165721787 and main CI 44166285718 completed SUCCESS. The change classifies non-FF Merge Request behavior separately from non-forced Git fast-forward push authorization.",
+      "limitations": "GitLab project merge_method=merge only controls MR behavior; direct Git push remains NOT_EVALUATED and unapproved. GitLab protected main remains stale. No GitLab setting, paid resource, Git write, or production release. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-render-oidc-retention-runbook-pr695",
+      "area": "DOCUMENTATION",
+      "title": "Record disposable Render trial-data decision and fail-closed OIDC recovery checklist",
+      "pr_number": 695,
+      "pr_head_sha": "2bc84e537cf4fca0fa4f869d236d30ac32301e47",
+      "merge_sha": "8fbfb5803d551aa7a63361e96d38498355ad6fdc",
+      "ci_run_id": 44180045280,
+      "verification": "VERIFIED 2026-11-18 via GitHub: PR #695 merged exact head 2bc84e537cf4fca0fa4f869d236d30ac32301e47 at 8fbfb5803d551aa7a63361e96d38498355ad6fdc. Exact-head CI 44180045280 and exact-main CI 44180972291 completed SUCCESS. Three Markdown files document the owner's decision that current Render PostgreSQL trial data need not be retained, and a name-only OIDC recovery plan.",
+      "limitations": "Owner decision permits not retaining synthetic data; it does NOT authorize deletion or exempt future real-data backups. Render deployment remains update_failed with unverified detailed OIDC configuration cause, and Free DB expires 2026-12-05. No credentials, Render edits, deployment or paid activation. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
