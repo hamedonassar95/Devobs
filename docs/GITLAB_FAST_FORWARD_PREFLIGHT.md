@@ -46,6 +46,24 @@ The wrapper `scripts/gitlab_hosted_preflight.py` validates the preflight's exact
 
 **The GitLab destination `main` stays protected and unchanged**, no GitLab Runner is used, and no private repository content, keys or secrets are transmitted. A green GitHub check does not prove GitLab CI works. P01 / AI-9 remain BLOCKED.
 
+## GitLab project merge-method gate — required for SHA-identical replica
+
+**VERIFIED through connected GitLab API on 2026-11-17:** project `89037773` (`hamedonassar95/Devobs`) currently reports `merge_method=merge`, despite the branch ancestry preflight returning `FAST_FORWARD_CANDIDATE`. Under [GitLab's official merge-method semantics](https://docs.gitlab.com/user/project/merge_requests/methods/), `merge` creates an extra merge commit; `rebase_merge` also creates a merge commit, while `ff` fast-forwards without an extra merge commit. Thus a normal GitLab MR merge under the **current** configuration would not preserve the canonical GitHub SHA. A green ancestry result by itself is NOT a green synchronization approval.
+
+The additional **read-only** standard-library checker `scripts/gitlab_merge_policy.py` requests only the fixed public metadata endpoint documented by [GitLab Projects API](https://docs.gitlab.com/api/projects/), without credentials, redirects, or writes. It verifies the exact public project, default branch, and merge method. The manual GitHub Actions preflight checks this after ancestry:
+
+- `REVIEW_REQUIRED`, exit `0`: GitLab reports `merge_method=ff`. This validates the *project method only*, and the owner must still approve fresh exact refs, branch transfer, and merge review.
+- `BLOCKED`, exit `2`: `merge` or `rebase_merge` would add an extra commit; or the public metadata is missing, invalid, unexpected or unavailable. The workflow reports failure **intentionally** until a separately reviewed configuration decision is made.
+
+Offline behavioral tests (no GitLab CI minutes or API requests):
+
+```sh
+python3 -m unittest discover -s tests -p 'test_gitlab_merge_policy.py' -v
+python3 -m py_compile scripts/gitlab_merge_policy.py
+```
+
+**Do not automatically change the GitLab project merge method, merge any MR, push to protected main, or open payment settings.** Changing the merge method is a repository setting change that needs its own explicit owner decision. Codespaces can be an alternative to an offline Windows Git client only if the user independently confirms remaining included Codespaces compute *and storage* and keeps spending controls intact. GitHub [documents its independent personal account quota](https://docs.github.com/en/codespaces/troubleshooting/troubleshooting-included-usage); it is not unlimited/free after quota exhaustion.
+
 ## Owner-only replication stage (not executed)
 
 The owner must approve the **specific source SHA**, the exact destination branch and account permissions before any Git write. On a trusted, authorized Git client, review a new preflight and a **single-branch non-forced dry-run**. If the protected GitLab branch rejects a push, **stop**; do not weaken branch protection or force an update. No credentials may be stored in the repository, submitted in chat, or printed in logs.
