@@ -65,6 +65,14 @@ def _valid_sha(value: object) -> bool:
 
 
 def _git(repository: Path, *arguments: str) -> subprocess.CompletedProcess[str]:
+    # Only an allowlisted operation label and exit status may reach logs.
+    # Git stderr/stdout may contain source-controlled or sensitive text.
+    operation = arguments[0] if arguments else ""
+    stage = {
+        "rev-parse": "checked-out commit",
+        "cat-file": "push base commit",
+        "rev-list": "selected commit range",
+    }.get(operation, "Git history")
     try:
         # Arguments are fixed Git flags and validated revision values.
         result = subprocess.run(  # nosec B603
@@ -76,10 +84,10 @@ def _git(repository: Path, *arguments: str) -> subprocess.CompletedProcess[str]:
             errors="replace",
             timeout=30,
         )
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        raise CoverageFailure("git history verification failed") from exc
+    except (OSError, subprocess.TimeoutExpired):
+        raise CoverageFailure(f"{stage} verification failed: Git unavailable or timed out") from None
     if result.returncode != 0:
-        raise CoverageFailure("git history verification failed")
+        raise CoverageFailure(f"{stage} verification failed: Git exit code {result.returncode}")
     return result
 
 
@@ -150,6 +158,9 @@ def derive_scope(event_name: str, event: dict, source_sha: str, repository: Path
             revision = after
             base_sha = None
         elif _valid_sha(before):
+            # A full SHA in the event is not proof the object exists in checkout.
+            # Explicitly identify missing push history before building a range.
+            _git(repository, "cat-file", "-e", f"{before}^{{commit}}")
             revision = f"{before}..{after}"
             base_sha = before
         else:
