@@ -11,7 +11,7 @@ import json
 import os
 from pathlib import Path
 import re
-import subprocess
+import subprocess  # nosec B404 - invoke only reviewed, no-shell Git read commands
 
 GITHUB_URL = "https://github.com/hamedonassar95/Devobs.git"
 GITLAB_URL = "https://gitlab.com/hamedonassar95/Devobs.git"
@@ -25,13 +25,15 @@ class PreflightBlocked(Exception):
 
 
 def _git(*args: str, repo: Path | None = None) -> subprocess.CompletedProcess[str]:
+    if not args or args[0] not in {"ls-remote", "rev-parse", "cat-file", "merge-base"}:
+        raise PreflightBlocked("git_operation_not_allowed")
     command = ["git", "-c", "credential.helper=", "-c", "core.askPass=",
                "-c", "http.followRedirects=false", *args]
     if repo is not None:
         command[1:1] = ["-C", str(repo)]
     env = {**os.environ, "GIT_TERMINAL_PROMPT": "0", "GCM_INTERACTIVE": "never"}
     try:
-        return subprocess.run(
+        return subprocess.run(  # nosec B603 - fixed Git executable; validated operations, no shell
             command, capture_output=True, text=True, timeout=TIMEOUT_SECONDS,
             check=False, env=env, encoding="utf-8", errors="replace",
         )
