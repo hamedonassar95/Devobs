@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Read-only gate for a faithful GitHub -> GitLab merge-request replica.
+"""Read-only classification of GitLab merge-request policy, NOT Git push policy.
 
-Exit 0 means GitLab's merge method can preserve source commit identity,
-not that source SHA/branch protection, transfer or owner approval was checked.
-Exit 2 means fail closed (including a merge method that adds commits).
+Exit 0 means project metadata was validated; MR mode may still be unsuitable.
+Exit 2 means unverified/malformed metadata (fail closed).
+No result authorizes Git push, changing protected branches, or a merge.
 """
 from __future__ import annotations
 
@@ -53,13 +53,12 @@ def audit(raw: bytes) -> tuple[dict[str, object], int]:
     method = data.get("merge_method")
     if method not in ("ff", "merge", "rebase_merge"):
         return blocked, 2
-    if method != "ff":
-        return {"status": "BLOCKED", "reason": "merge_method_creates_merge_commit",
-                "merge_method": method, "write_performed": False,
-                "gitlab_pipeline_started": False}, 2
-    return {"status": "REVIEW_REQUIRED", "reason": "fast_forward_merge_method_configured",
-            "merge_method": "ff", "write_performed": False,
-            "gitlab_pipeline_started": False,
+    # Merge methods govern merge requests only, NOT an authorized direct Git
+    # fast-forward push. In either case, no repository mutation is approved.
+    mr_path = "FF_MR_POLICY_ONLY" if method == "ff" else "MR_ADDS_COMMIT"
+    return {"status": "REVIEW_REQUIRED", "mr_path": mr_path,
+            "merge_method": method, "direct_git_push": "NOT_EVALUATED",
+            "write_performed": False, "gitlab_pipeline_started": False,
             "approval_required_for_replica_transfer": True}, 0
 
 
