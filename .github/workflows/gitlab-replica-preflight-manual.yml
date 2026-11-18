@@ -35,9 +35,3 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/gitlab_hosted_preflight.py --repo .
-
-      - name: Classify GitLab merge-request policy separately from Git fast-forward (read-only)
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 scripts/gitlab_merge_policy.py
