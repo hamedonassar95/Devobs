@@ -1,5 +1,18 @@
 # Render + OpenAI synthetic staging runbook
 
+## Render source commit drift preflight — 2026-11-18
+
+**VERIFIED (read-only GitHub/Render connectors):** GitHub canonical `main` and the successfully synchronized GitLab `main` both pointed to `468addb459b79158f74dc2230a4336f81ac7c344` when inspected on 2026-11-18. The latest Render Free web-service deployment `dep-dbs9uo5g1s2s73ejsgj0` still reports `update_failed` at **different source** `1f1fd774f02579a500c07bd667865e51ed187948` (2026-11-14). Render's official [list deploys API](https://api-docs.render.com/reference/list-deploys) exposes `deploy.commit.id`, which is the source for the **reviewed, manually supplied** deploy SHA in this offline evidence snapshot. This is a point-in-time observation, not continuous monitoring.
+
+**New offline gate (proposed in this PR, not deployed):** `scripts/check_free_staging_health.py` now accepts exact v3 evidence including `render.canonical_main_commit` and `render.web_last_deploy_commit` and reports `RENDER_DEPLOY_SOURCE_OUTDATED` when they differ, independently of status. A source SHA match alone cannot prove a working deployment; `RENDER_LATEST_DEPLOY_NOT_LIVE`, missing hosted identity/tenant acceptance, and all production gates remain separate. The updated `docs/p01/free-staging-inventory.json` captures **only** reviewed public commit SHAs and safe provider metadata. Old schema v2 and missing/non-lowercase SHA evidence fail closed instead of silently passing. Do not put branch credentials or any secret values in the evidence file.
+
+```sh
+python3 scripts/check_free_staging_health.py --json
+python3 -m unittest discover -s tests -p 'test_free_staging_health.py' -v
+```
+
+**Scope:** offline/free/local only; this does not poll GitHub or Render or change any cloud state. No permission to trigger Render, fix live OIDC values, generate credentials, change the disposable database, activate paid resources, or publish a release. Existing `invalid_staging_config stage=oidc` has **no confirmed individual missing/invalid name**. The operator's next step remains the existing name-only OIDC inventory, privately validated issuer/metadata/JWKS, and separate exact-scope approval before any deployment or ingress test. **P01 BLOCKED / NO-GO; AI-9 BLOCKED; Codex runtime OPEN.**
+
 ## 2026-11-18 owner checkpoint — disposable data and OIDC recovery
 
 **VERIFIED (owner decision, 2026-11-18):** The owner explicitly classified data in the **existing** Render Free PostgreSQL `devobs-ai-staging-db` as **synthetic/disposable**, with no requirement to preserve its current contents. This is a *retention decision only*, **not** approval to delete/empty the database, export it, upgrade, provision a replacement or change the production backup requirements. Real customer data still requires separately reviewed backup and tested restore before P01 GO.
