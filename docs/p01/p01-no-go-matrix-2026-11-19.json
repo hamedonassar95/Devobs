@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "repository": "hamedonassar95/Devobs",
+  "reviewed_main_sha": "0f062c03dbefceebf8eaca79bdaf30c2483f99be",
+  "reviewed_on": "2026-11-19",
+  "decision": "NO-GO",
+  "classification": "SOURCE_EVIDENCE_AND_READ_ONLY_PROVIDER_METADATA",
+  "controls": [
+    {
+      "id": "SPEND",
+      "control": "budget_enforcement",
+      "status": "BLOCKED",
+      "missing": "No account-specific automatic combined USD 100 invoice cap including Render, backup/restore, OpenAI, usage, fees and tax",
+      "source": "docs/P01_RENDER_BUDGET_ENVELOPE.md"
+    },
+    {
+      "id": "PROVIDER",
+      "control": "provider_region",
+      "status": "BLOCKED",
+      "missing": "Free Frankfurt resource exists, but no healthy hosted API on reviewed SHA, or approved full provider/residency acceptance",
+      "source": "docs/P01_ACTIVATION_READINESS.md"
+    },
+    {
+      "id": "OIDC",
+      "control": "identity_oidc",
+      "status": "BLOCKED",
+      "missing": "Prior invalid_staging_config stage=oidc; actual trusted issuer/client/HTTPS callback/JWKS and signed-token behavior unverified",
+      "source": "docs/RENDER_OPENAI_STAGING_RUNBOOK.md"
+    },
+    {
+      "id": "RLS",
+      "control": "tenant_isolation",
+      "status": "BLOCKED",
+      "missing": "Historical database-only Supabase and disposable CI RLS are not hosted API/LOGIN tenant-denial verification",
+      "source": "docs/POSTGRES_RLS_STAGING.md"
+    },
+    {
+      "id": "TLS_NETWORK",
+      "control": "provider_region",
+      "status": "BLOCKED",
+      "missing": "PostgreSQL verify-full CA/hostname, ingress/egress restrictions and documented exception approval missing",
+      "source": "docs/P01_ACTIVATION_READINESS.md"
+    },
+    {
+      "id": "BACKUP",
+      "control": "operational_recovery",
+      "status": "BLOCKED",
+      "missing": "No encrypted seven-day hosted backup and independent restore with observed RPO/RTO; Free Render lacks managed backup",
+      "source": "docs/P01_RENDER_FREE_RESOURCE_CHECKPOINT_2026-11-15.md"
+    },
+    {
+      "id": "OWNER",
+      "control": "owner_approval",
+      "status": "BLOCKED",
+      "missing": "Owner-signed conditional NO-GO is not an approved P01 activation at current reviewed SHA",
+      "source": "docs/P01_ACTIVATION_READINESS.md"
+    },
+    {
+      "id": "RELEASE",
+      "control": "independent_release_approval",
+      "status": "BLOCKED",
+      "missing": "No independently accountable exact-SHA release authorization; P00 GO is separate",
+      "source": "docs/plans/2026-10-26-devobs-production-execution-roadmap.md"
+    }
+  ],
+  "next_owner_decision": {
+    "about": "Existing Render Free PostgreSQL expires 2026-12-05T10:33:24.202776Z",
+    "choice": "Authorize a separately scoped retirement/date of disposable synthetic DB, or a separately approved preservation plan",
+    "automated_action": false
+  },
+  "release_gates": {
+    "p01": "BLOCKED",
+    "ai9": "BLOCKED",
+    "codex_runtime": "OPEN"
+  },
+  "caveat": "Evidence review only, not attestation, approval, provider hard-cap proof, hosted test, or authority for any write."
+}
