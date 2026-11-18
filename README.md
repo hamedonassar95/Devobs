@@ -2,6 +2,11 @@
 
 [![CI](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml)
 
+## مراجعة خطط Codex والكود بصريًا — Plannotator (اختياري)
+
+أضفنا [دليل تكامل Plannotator مع Codex](docs/integrations/PLANNOTATOR_CODEX_REVIEW.md) لإجراء مراجعات بصرية يدوية للخطط والـ diff على جهاز موثوق، دون تفعيل Hooks أو تشغيل خدمات أو إضافة تبعيات داخل المستودع. **الحالة: موثّق فقط / التشغيل غير متحقق.** يحتاج استخدام الأداة إلى تثبيت اختياري يراجعه المالك على جهازه؛ دعم ChatGPT على iPhone أو Codex السحابي غير مثبت. تستمر موافقات الإنسان وحماية `main` وفحوص CI وبوابات P01/AI-9 دون تغيير.
+
+
 ## GitLab Free CI — تحضير يدوي فقط (لم يُشغَّل)
 
 أُضيف نموذج `.gitlab-ci.yml` لتجهيز فحص مجاني **مستقبلي** لسجل الإنجازات، ويشترط إجراءين منفصلين من المستخدم: إنشاء Pipeline يدويًا عبر واجهة GitLab على الفرع الافتراضي، ثم بدء وظيفة `free_offline_smoke` يدويًا. لا تنشأ Pipelines عند push أو merge request أو schedule أو API، ولا يُستهلك رصيد GitLab بسبب إنشاء الملف على GitHub.
