@@ -4,6 +4,7 @@ from __future__ import annotations
 import io
 import json
 import pathlib
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -160,10 +161,25 @@ class P01StartupTriageTests(unittest.TestCase):
                 stdout, stderr = io.StringIO(), io.StringIO()
                 code = triage_tool.main(["--inventory", str(path)], stdout=stdout, stderr=stderr)
                 outputs.append(stdout.getvalue())
-                self.assertEqual(code, 0)
+                self.assertEqual(code, 5)
                 self.assertEqual(stderr.getvalue(), "")
         self.assertEqual(outputs[0], outputs[1])
         self.assertEqual(json.loads(outputs[0])["readiness_claim"], "NOT_ESTABLISHED")
+
+    def test_subprocess_presence_only_inventory_never_exits_success(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = pathlib.Path(temporary) / "names-only.json"
+            path.write_bytes(inventory_bytes(self.complete_inventory()))
+            run = subprocess.run(
+                [sys.executable, str(ROOT / "scripts" / "p01_startup_triage.py"),
+                 "--inventory", str(path)],
+                capture_output=True, text=True, check=False,
+            )
+        self.assertEqual(run.returncode, 5, run.stdout + run.stderr)
+        report = json.loads(run.stdout)
+        self.assertEqual(report["status"], "PRESENT_BUT_VALIDITY_UNVERIFIED")
+        self.assertEqual(report["readiness_claim"], "NOT_ESTABLISHED")
+        self.assertEqual(run.stderr, "")
 
     def test_cli_reports_missing_and_incomplete_inventories_with_nonzero_codes(self):
         scenarios = (

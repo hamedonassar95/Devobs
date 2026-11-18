@@ -58,10 +58,12 @@ python3 scripts/p01_startup_triage.py --inventory /path/to/p01-presence-inventor
 
 Exit codes:
 
-- `0`: all six required names are explicitly present and TLS name inventory is sufficient for triage. If `DEVOBS_PG_TLS_MODE` is marked present, both conditional Render-context names must also be marked present; if the mode name is marked missing, the source-defined `verify-full` default applies. Values remain unverified; this is **not** readiness.
+- `5`: all six required names are explicitly present and TLS name inventory is sufficient **for presence-only triage**. If `DEVOBS_PG_TLS_MODE` is marked present, both conditional Render-context names must also be marked present; if the mode name is marked missing, the source-defined `verify-full` default applies. Values remain unverified, so the tool deliberately returns **nonzero**; this is **not** readiness.
 - `2`: one or more required names were explicitly marked missing. The JSON report lists only the missing names.
 - `3`: one or more required names, the TLS selector, or required conditional TLS-context names were not sufficiently inventoried.
 - `4`: the inventory could not be read or failed the strict schema. The diagnostic is fixed and does not echo input.
+
+**Important:** Exit status `0` is no longer emitted by this presence-only diagnostic. An automation using `&&`, `set -e` or exit-code gates must treat **all** valid inventory outcomes as unverified readiness, parse the JSON for the precise reason, and never promote P01 based on this checker. This offline change does not inspect issuer/client/JWKS values and cannot explain Render's existing `invalid_staging_config stage=oidc` without separately authorized private operator validation.
 
 For each required name, `missing` produces `CONFIRMED_MISSING_CONFIGURATION`; `present` produces `PRESENT_BUT_VALIDITY_UNVERIFIED`; and `not_checked` or an omitted entry produces `INSUFFICIENT_EVIDENCE`. The top-level status follows the same fail-closed priority. TLS receives its own status and remains unverified even when its selector name has been inventoried.
 
