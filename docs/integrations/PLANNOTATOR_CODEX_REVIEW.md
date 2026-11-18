@@ -49,3 +49,23 @@ In a compatible Codex command environment, upstream also documents `!plannotator
 - https://github.com/backnotprop/plannotator/blob/main/apps/codex/README.md
 - https://github.com/backnotprop/plannotator/releases/tag/v0.29.0
 - [Existing Codex governance](../CODEX_AGENT_OPERATING_MODEL.md) and [repository rules](../../AGENTS.md)
+
+## Windows PowerShell: read-only prerequisite check (no Codex credits)
+
+From a trusted local checkout of Devobs using Windows PowerShell with Python 3.12+, run:
+
+```powershell
+$env:PLANNOTATOR_SHARE = "disabled"
+$env:PLANNOTATOR_REMOTE = "0"
+py -3 scripts/check_plannotator_windows_preflight.py --json
+```
+
+The script performs **local file-existence, operating-system and PATH presence checks only**. It never executes the discovered `plannotator` binary, reads hook contents or secrets, reaches a remote service, changes shell/repository settings, runs an installer, or enables Codex hooks. The two environment assignments above affect only the current operator shell session; the script itself never changes them.
+
+- `BLOCKED` (exit 1): a required local condition is missing, such as an uninstalled binary, an untrusted/non-Windows checkout, active repo/user hooks, sharing not explicitly disabled, or remote mode enabled. This does **not** grant authority to run an installer or bypass the missing check.
+- `PREREQUISITES_PRESENT_RUNTIME_UNVERIFIED` (exit 0): presence checks pass, **not** software provenance, safe execution, actual UI compatibility, successful code review, or production readiness. On a personally controlled Windows machine, verify the downloaded release independently before running it.
+- With a verified, deliberately installed **minimal/no-hook** Plannotator binary, the operator may manually run `plannotator annotate docs/integrations/PLANNOTATOR_CODEX_REVIEW.md` on public/synthetic Markdown. Do not enable automatic hooks, paid AI review, remote mode or share links.
+
+Run the offline behavioral tests with `py -3 -m unittest discover -s tests -p 'test_plannotator_windows_preflight.py' -v`. Linux CI runs synthetic Windows fixtures; actual Windows execution remains **UNVERIFIED** until separately tested by the operator.
+
+See [upstream Codex integration docs](https://github.com/backnotprop/plannotator/blob/main/apps/codex/README.md) for documented platform limitations. The upstream Windows installer is third-party code, **not** executed or recommended for blind pipe-to-shell execution by Devobs.
