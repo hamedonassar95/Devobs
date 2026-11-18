@@ -1,7 +1,7 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "scope": "devobs-free-staging",
-  "observed_on": "2026-11-17",
+  "observed_on": "2026-11-18",
   "render": {
     "web_plan": "free",
     "web_suspended": false,
@@ -10,6 +10,7 @@
     "web_ingress_reviewed": false,
     "web_last_deploy_status": "update_failed",
     "web_last_deploy_commit": "1f1fd774f02579a500c07bd667865e51ed187948",
+    "canonical_main_commit": "468addb459b79158f74dc2230a4336f81ac7c344",
     "database_plan": "free",
     "database_status": "available",
     "database_expires_at": "2026-12-05T10:33:24.202776Z",

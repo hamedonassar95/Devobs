@@ -70,6 +70,17 @@ python3 -m py_compile scripts/gitlab_merge_policy.py
 
 **العائق المثبت:** نشر Render الأخير فشل في مرحلة `oidc` بخطأ `invalid_staging_config`، لكن اسم الإعداد غير الصالح لم يُحدَّد. نستخدم أداة [P01 Startup Triage](docs/P01_STARTUP_TRIAGE.md) الموجودة أصلًا لفحص **وجود أسماء المتغيرات فقط**، ثم مراجعة صحة قيم OIDC سرًّا لدى المشغّل قبل أي نشر جديد. لا تُرسل مفاتيح أو بيانات اتصال أو صورًا لقيم المتغيرات، ولا تعطّل المصادقة لتجاوز المشكلة. التفاصيل والخطوات: [خطة تعافي Render الآمنة](docs/RENDER_OPENAI_STAGING_RUNBOOK.md#2026-11-18-owner-checkpoint--disposable-data-and-oidc-recovery). بوابة P01 لا تزال `BLOCKED / NO-GO` وAI-9 لا تزال `BLOCKED`.
 
+## بوابة تطابق إصدار Render مع GitHub — قراءة محلية فقط
+
+تستخدم أداة الجاهزية الموجودة `scripts/check_free_staging_health.py` لقطة بيانات **schema_version=3** تحتوي `render.canonical_main_commit` (آخر SHA متحقق منه من GitHub) و`render.web_last_deploy_commit` (SHA آخر نشر متحقق منه من Render). إذا اختلفا، تعرض `RENDER_DEPLOY_SOURCE_OUTDATED` ضمن أسباب استمرار `REVIEW_REQUIRED`، **حتى عندما يُصنّف النشر `live`**. وجود SHA متطابق لا يثبت نجاح الدخول أو عزل المستأجرين أو جاهزية الإنتاج؛ وتاريخ اللقطة يخضع لفحص التقادم. هذا فحص محلي مجاني لا يجلب إعدادات سرية ولا يشغّل نشرًا أو pipeline.
+
+```sh
+python3 scripts/check_free_staging_health.py --json
+python3 -m unittest discover -s tests -p 'test_free_staging_health.py' -v
+```
+
+راجع [خطة تعافي Render](docs/RENDER_OPENAI_STAGING_RUNBOOK.md#render-source-commit-drift-preflight--2026-11-18). لا تغيّر إعدادات OIDC ولا تنشر على Render استنادًا إلى اختلاف SHA وحده.
+
 ## فحص جاهزية موارد Devobs المجانية — Render + Supabase
 
 تقرير محلي للقراءة فقط يجمع حالة موارد **Devobs** المجانية من لقطة مزودين محدودة دون مفاتيح أو اتصالات مباشرة، ويرفض إعلان جاهزية الإنتاج عند وجود أدلة ناقصة أو قديمة. لا يستخدم موارد مشروع صيانة الهواتف.

@@ -11,19 +11,20 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import check_free_staging_health as check  # noqa: E402
 
-NOW = datetime(2026, 11, 17, 9, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 11, 18, 9, 0, tzinfo=timezone.utc)
 
 
 def fixture():
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "scope": "devobs-free-staging",
-        "observed_on": "2026-11-17",
+        "observed_on": "2026-11-18",
         "render": {
             "web_plan": "free", "web_suspended": False, "web_auto_deploy": False,
             "web_runtime_verified": False, "web_ingress_reviewed": False,
             "web_last_deploy_status": "update_failed",
             "web_last_deploy_commit": "1f1fd774f02579a500c07bd667865e51ed187948",
+            "canonical_main_commit": "468addb459b79158f74dc2230a4336f81ac7c344",
             "database_plan": "free",
             "database_status": "available", "database_expires_at": "2026-12-05T10:33:24.202776Z",
             "database_backup_verified": False,
@@ -41,6 +42,7 @@ class FreeStagingHealthTests(unittest.TestCase):
         self.assertIn("RENDER_BACKUP_UNVERIFIED", r["blockers"])
         self.assertIn("RENDER_PUBLIC_INGRESS_UNREVIEWED", r["blockers"])
         self.assertIn("RENDER_LATEST_DEPLOY_NOT_LIVE", r["blockers"])
+        self.assertIn("RENDER_DEPLOY_SOURCE_OUTDATED", r["blockers"])
         self.assertEqual(r["render_latest_deploy_status"], "update_failed")
         self.assertFalse(r["production_ready"])
         self.assertFalse(r["paid_activation_authorized"])
@@ -53,6 +55,7 @@ class FreeStagingHealthTests(unittest.TestCase):
                            database_backup_verified=True,
                            database_expires_at="2027-01-31T00:00:00Z")
         s["supabase"].update(project_status="ACTIVE_HEALTHY", hosted_isolation_verified=True)
+        s["render"]["web_last_deploy_commit"] = s["render"]["canonical_main_commit"]
         result = check.assess_snapshot(s, NOW)
         self.assertEqual(result["blockers"], [])
         self.assertEqual(result["status"], "REVIEW_REQUIRED")
@@ -65,10 +68,25 @@ class FreeStagingHealthTests(unittest.TestCase):
                            database_backup_verified=True,
                            database_expires_at="2027-01-31T00:00:00Z")
         s["supabase"].update(project_status="ACTIVE_HEALTHY", hosted_isolation_verified=True)
+        s["render"]["web_last_deploy_commit"] = s["render"]["canonical_main_commit"]
         r = check.assess_snapshot(s, NOW)
         self.assertEqual(r["blockers"], ["RENDER_LATEST_DEPLOY_NOT_LIVE"])
         self.assertEqual(r["status"], "REVIEW_REQUIRED")
         self.assertFalse(r["production_ready"])
+
+    def test_live_deploy_at_stale_source_commit_is_not_ready(self):
+        s = fixture()
+        s["render"].update(
+            web_last_deploy_status="live",
+            web_runtime_verified=True,
+            web_ingress_reviewed=True,
+            database_backup_verified=True,
+            database_expires_at="2027-01-31T00:00:00Z",
+        )
+        s["supabase"].update(project_status="ACTIVE_HEALTHY", hosted_isolation_verified=True)
+        result = check.assess_snapshot(s, NOW)
+        self.assertEqual(result["blockers"], ["RENDER_DEPLOY_SOURCE_OUTDATED"])
+        self.assertFalse(result["production_ready"])
 
     def test_running_or_failed_render_deploys_all_block(self):
         for status in ("created", "build_in_progress", "update_in_progress",
@@ -88,6 +106,9 @@ class FreeStagingHealthTests(unittest.TestCase):
             lambda s: s["render"].pop("web_last_deploy_commit"),
             lambda s: s["render"].update(web_last_deploy_commit="not-a-commit"),
             lambda s: s["render"].update(web_last_deploy_commit="A" * 40),
+            lambda s: s["render"].pop("canonical_main_commit"),
+            lambda s: s["render"].update(canonical_main_commit="not-a-sha"),
+            lambda s: s["render"].update(canonical_main_commit="A" * 40),
         ):
             s = fixture()
             mutation(s)
@@ -107,7 +128,7 @@ class FreeStagingHealthTests(unittest.TestCase):
 
     def test_reject_paid_plan_and_cross_project_scope(self):
         for field, bad in (("scope", "phone-repair-assistant-v2"),
-                           ("schema_version", True), ("schema_version", 1)):
+                           ("schema_version", True), ("schema_version", 1), ("schema_version", 2)):
             s = fixture()
             s[field] = bad
             with self.subTest(field=field), self.assertRaises(check.InvalidSnapshot):
