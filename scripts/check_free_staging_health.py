@@ -19,6 +19,7 @@ FIELDS = {"schema_version", "scope", "observed_on", "render", "supabase"}
 RENDER_FIELDS = {
     "web_plan", "web_suspended", "web_auto_deploy", "web_runtime_verified",
     "web_ingress_reviewed", "web_last_deploy_status", "web_last_deploy_commit",
+    "canonical_main_commit",
     "database_plan", "database_status", "database_expires_at", "database_backup_verified",
 }
 SUPABASE_FIELDS = {"project_status", "hosted_isolation_verified"}
@@ -59,7 +60,7 @@ def assess_snapshot(record: dict, now: datetime) -> dict:
         raise InvalidSnapshot("timezone-aware UTC time required")
     if not isinstance(record, dict) or set(record) != FIELDS:
         raise InvalidSnapshot("unsupported evidence fields")
-    if type(record["schema_version"]) is not int or record["schema_version"] != 2:
+    if type(record["schema_version"]) is not int or record["schema_version"] != 3:
         raise InvalidSnapshot("unsupported schema")
     if record["scope"] != "devobs-free-staging":
         raise InvalidSnapshot("wrong project scope")
@@ -88,6 +89,8 @@ def assess_snapshot(record: dict, now: datetime) -> dict:
             or render["web_last_deploy_status"] not in RENDER_DEPLOY_STATUSES
             or type(render["web_last_deploy_commit"]) is not str
             or re.fullmatch(r"[0-9a-f]{40}", render["web_last_deploy_commit"]) is None
+            or type(render["canonical_main_commit"]) is not str
+            or re.fullmatch(r"[0-9a-f]{40}", render["canonical_main_commit"]) is None
             or type(render["database_backup_verified"]) is not bool
             or type(supabase["hosted_isolation_verified"]) is not bool
             or type(render["database_status"]) is not str
@@ -110,6 +113,8 @@ def assess_snapshot(record: dict, now: datetime) -> dict:
         blockers.append("STALE_PROVIDER_EVIDENCE")
     if render["web_last_deploy_status"] != "live":
         blockers.append("RENDER_LATEST_DEPLOY_NOT_LIVE")
+    if render["web_last_deploy_commit"] != render["canonical_main_commit"]:
+        blockers.append("RENDER_DEPLOY_SOURCE_OUTDATED")
     if render["web_suspended"]:
         blockers.append("RENDER_WEB_SUSPENDED")
     if render["web_auto_deploy"]:
