@@ -4,6 +4,10 @@
 Exit 0 means project metadata was validated; MR mode may still be unsuitable.
 Exit 2 means unverified/malformed metadata (fail closed).
 No result authorizes Git push, changing protected branches, or a merge.
+
+Failure reasons are fixed tokens scoped to a specific field, for example
+``missing_field:merge_method`` or ``mismatched_field:path_with_namespace``.
+They never include provider-supplied values, so diagnostics stay sanitized.
 """
 from __future__ import annotations
 
@@ -16,6 +20,16 @@ API_URL = "https://gitlab.com/api/v4/projects/89037773"
 PROJECT_ID = 89037773
 PROJECT_PATH = "hamedonassar95/Devobs"
 MAX_RESPONSE = 65536
+
+# Field name, required value, required exact type. Checked in this order so a
+# failure names the first field that cannot be trusted.
+IDENTITY_SPEC = (
+    ("id", PROJECT_ID, int),
+    ("path_with_namespace", PROJECT_PATH, str),
+    ("default_branch", "main", str),
+    ("visibility", "public", str),
+)
+MERGE_METHODS = ("ff", "merge", "rebase_merge")
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -36,25 +50,43 @@ def load_public_project() -> bytes:
         return content
 
 
+def blocked(reason: str) -> dict[str, object]:
+    """Sanitized fail-closed result; ``reason`` is a fixed token, never a value."""
+    return {"status": "BLOCKED", "reason": reason,
+            "write_performed": False, "gitlab_pipeline_started": False}
+
+
 def audit(raw: bytes) -> tuple[dict[str, object], int]:
     """Reject missing, malformed, mismatched or unauditable project evidence."""
-    blocked = {"status": "BLOCKED", "reason": "unverified_project_metadata",
-               "write_performed": False, "gitlab_pipeline_started": False}
-    if type(raw) is not bytes or len(raw) > MAX_RESPONSE or not raw:
-        return blocked, 2
+    if type(raw) is not bytes or not raw:
+        return blocked("invalid_payload"), 2
+    if len(raw) > MAX_RESPONSE:
+        return blocked("response_too_large"), 2
     try:
         data = json.loads(raw.decode("utf-8", "strict"))
     except (ValueError, UnicodeError):
-        return blocked, 2
-    if (type(data) is not dict or type(data.get("id")) is not int
-            or data["id"] != PROJECT_ID or data.get("path_with_namespace") != PROJECT_PATH
-            or data.get("default_branch") != "main" or data.get("visibility") != "public"):
-        return blocked, 2
-    method = data.get("merge_method")
-    if method not in ("ff", "merge", "rebase_merge"):
-        return blocked, 2
-    # Merge methods govern merge requests only, NOT an authorized direct Git
-    # fast-forward push. In either case, no repository mutation is approved.
+        return blocked("invalid_json"), 2
+    if type(data) is not dict:
+        return blocked("invalid_payload"), 2
+    for name, expected, kind in IDENTITY_SPEC:
+        if name not in data:
+            return blocked(f"missing_field:{name}"), 2
+        value = data[name]
+        if type(value) is not kind:
+            return blocked(f"wrong_type:{name}"), 2
+        if value != expected:
+            return blocked(f"mismatched_field:{name}"), 2
+    # The merge method governs merge requests only, NOT an authorized direct Git
+    # fast-forward push. It is permission-gated in the public project projection,
+    # so an absent field is unverifiable, never a default.
+    if "merge_method" not in data:
+        return blocked("missing_field:merge_method"), 2
+    method = data["merge_method"]
+    if type(method) is not str:
+        return blocked("wrong_type:merge_method"), 2
+    if method not in MERGE_METHODS:
+        return blocked("unsupported_merge_method"), 2
+    # In either case, no repository mutation is approved.
     mr_path = "FF_MR_POLICY_ONLY" if method == "ff" else "MR_ADDS_COMMIT"
     return {"status": "REVIEW_REQUIRED", "mr_path": mr_path,
             "merge_method": method, "direct_git_push": "NOT_EVALUATED",
@@ -67,11 +99,9 @@ def main() -> int:
         raw = load_public_project()
         result, code = audit(raw)
     except (OSError, ValueError, urllib.error.URLError):
-        result, code = {"status": "BLOCKED", "reason": "public_metadata_unavailable",
-                        "write_performed": False, "gitlab_pipeline_started": False}, 2
+        result, code = blocked("public_metadata_unavailable"), 2
     except Exception:
-        result, code = {"status": "BLOCKED", "reason": "unexpected_failure",
-                        "write_performed": False, "gitlab_pipeline_started": False}, 2
+        result, code = blocked("unexpected_failure"), 2
     print(json.dumps(result, sort_keys=True, separators=(",", ":")))
     return code
 

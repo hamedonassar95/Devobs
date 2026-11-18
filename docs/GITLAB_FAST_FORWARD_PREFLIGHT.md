@@ -60,6 +60,34 @@ The added **read-only** standard-library audit `scripts/gitlab_merge_policy.py` 
 
 An exit `0` in these read-only checks means **classification completed**, never that synchronization was performed or approved. The source transfer and publication remain separate changes; changing GitLab project merge settings is **not required** for a direct Git fast-forward but may be considered independently if the owner chooses a GitLab Merge Request flow.
 
+### Metadata diagnostics — verified root cause (2026-11-19)
+
+**VERIFIED (GitHub Actions):** manual run [44399119755](https://github.com/hamedonassar95/Devobs/actions/runs/44399119755) on `main` `b7be0c8c899b0684c2eb69bfad32274e2de6288d` failed at the merge-policy step with the generic `unverified_project_metadata`. It was reproduced locally at `2026-11-18T21:19:36Z` with the same exit code `2`.
+
+**VERIFIED (public GitLab API, read-only):** `GET https://gitlab.com/api/v4/projects/89037773` returns HTTP `200` with 20 top-level keys. `id`, `path_with_namespace`, `default_branch` and `visibility` all match the pinned values; **`merge_method` is absent**. No credentials were sent, no redirect was followed and no write occurred.
+
+**Root cause:** GitLab documents that "The fields returned in responses vary based on the permissions of the authenticated user" ([Projects API](https://docs.gitlab.com/api/projects/)). In the unauthenticated public projection of a public project, `merge_method` is omitted, so this audit can never verify it from that endpoint. The previous code collapsed that into one generic reason, which hid which field failed.
+
+**Corrective action — diagnostics only.** Failures now carry a fixed, field-scoped reason token instead of a generic one:
+
+| Reason | Meaning |
+| --- | --- |
+| `missing_field:<name>` | Required field is absent from the payload. |
+| `wrong_type:<name>` | Field is present with an unexpected JSON type. |
+| `mismatched_field:<name>` | Identity value differs from the pinned project. |
+| `unsupported_merge_method` | `merge_method` is not one of `ff`, `merge`, `rebase_merge`. |
+| `invalid_json` / `invalid_payload` / `response_too_large` | Response is not auditable. |
+| `public_metadata_unavailable` | Transport, HTTP-status, redirect or timeout failure. |
+
+Reason tokens are fixed strings and never include provider-supplied values, so a compromised or unexpected response cannot echo data into logs. The exit code contract is unchanged: `0` only for a validated classification, `2` for anything unverifiable.
+
+**Unresolved ambiguity — intentionally still fail-closed.** An absent `merge_method` is **not** interpreted as `merge`, `ff`, or any default, and the workflow step still exits `2`, so the MR policy stays **`UNVERIFIED`**. Resolving it requires one of:
+
+1. an owner-authorized authenticated read of the project setting (this script sends no credentials by design), or
+2. the owner recording the observed setting from the GitLab UI.
+
+Neither option is a synchronization, and neither changes GitLab project settings, branch protection, protected branches or any release gate. Do not "fix" this by defaulting the field, adding a suppression, or making the step non-blocking.
+
 Offline behavioral tests, without any GitLab compute or API request:
 
 ```sh

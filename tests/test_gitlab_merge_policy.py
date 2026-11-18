@@ -80,5 +80,87 @@ class GitLabMergePolicyTests(unittest.TestCase):
             self.assertEqual(policy.main(), 0)
 
 
+    def test_missing_identity_fields_name_the_exact_field(self):
+        for field in ("id", "path_with_namespace", "default_branch", "visibility"):
+            payload = json.loads(self.data())
+            del payload[field]
+            with self.subTest(field=field):
+                result, code = policy.audit(json.dumps(payload).encode())
+                self.assertEqual((result["status"], code), ("BLOCKED", 2))
+                self.assertEqual(result["reason"], f"missing_field:{field}")
+
+    def test_missing_merge_method_is_never_defaulted(self):
+        payload = json.loads(self.data())
+        del payload["merge_method"]
+        result, code = policy.audit(json.dumps(payload).encode())
+        self.assertEqual((result["status"], code), ("BLOCKED", 2))
+        self.assertEqual(result["reason"], "missing_field:merge_method")
+        self.assertNotIn("mr_path", result)
+        self.assertNotIn("approval_required_for_replica_transfer", result)
+
+    def test_wrong_field_types_are_named(self):
+        cases = (("id", "89037773"), ("path_with_namespace", 123),
+                 ("default_branch", None), ("visibility", ["public"]),
+                 ("merge_method", 5))
+        for field, bad_value in cases:
+            with self.subTest(field=field):
+                result, code = policy.audit(self.data(**{field: bad_value}))
+                self.assertEqual((result["status"], code), ("BLOCKED", 2))
+                self.assertEqual(result["reason"], f"wrong_type:{field}")
+
+    def test_mismatched_identity_names_the_exact_field(self):
+        cases = (("id", 13), ("path_with_namespace", "other/project"),
+                 ("default_branch", "dev"), ("visibility", "private"))
+        for field, bad_value in cases:
+            with self.subTest(field=field):
+                result, code = policy.audit(self.data(**{field: bad_value}))
+                self.assertEqual((result["status"], code), ("BLOCKED", 2))
+                self.assertEqual(result["reason"], f"mismatched_field:{field}")
+
+    def test_unsupported_merge_method_has_its_own_reason(self):
+        for method in ("unknown", "", "ff ", "FF", "squash"):
+            with self.subTest(method=method):
+                result, code = policy.audit(self.data(merge_method=method))
+                self.assertEqual((result["status"], code), ("BLOCKED", 2))
+                self.assertEqual(result["reason"], "unsupported_merge_method")
+
+    def test_malformed_responses_are_classified_without_echoing_content(self):
+        cases = ((b"<html>FAKE_SECRET</html>", "invalid_json"),
+                 (b"\xff", "invalid_json"),
+                 (b'{"id": 1', "invalid_json"),
+                 (b"[]", "invalid_payload"),
+                 (b"null", "invalid_payload"),
+                 (b'"text"', "invalid_payload"),
+                 (b"", "invalid_payload"),
+                 (b"x" * (policy.MAX_RESPONSE + 1), "response_too_large"))
+        for raw, expected in cases:
+            with self.subTest(expected=expected):
+                result, code = policy.audit(raw)
+                self.assertEqual((result["status"], code), ("BLOCKED", 2))
+                self.assertEqual(result["reason"], expected)
+                self.assertNotIn("FAKE_SECRET", json.dumps(result))
+
+    def test_reason_tokens_never_reflect_provider_values(self):
+        sentinel = "FAKE_SECRET_VALUE"
+        result, code = policy.audit(self.data(path_with_namespace=sentinel))
+        self.assertEqual((result["status"], code), ("BLOCKED", 2))
+        self.assertEqual(result["reason"], "mismatched_field:path_with_namespace")
+        self.assertNotIn(sentinel, json.dumps(result))
+
+    def test_main_prints_the_specific_reason_and_exits_two(self):
+        payload = json.loads(self.data())
+        del payload["merge_method"]
+        with patch.object(policy, "load_public_project",
+                          return_value=json.dumps(payload).encode("utf-8")):
+            from io import StringIO
+            import contextlib
+            output = StringIO()
+            with contextlib.redirect_stdout(output):
+                code = policy.main()
+        self.assertEqual(code, 2)
+        self.assertEqual(json.loads(output.getvalue())["reason"],
+                         "missing_field:merge_method")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -82,6 +82,10 @@ python3 -m unittest discover -s tests -p 'test_gitlab_fast_forward_preflight.py'
 
 **مهم:** هذا الإعداد لا يمنع بحد ذاته `git push` العادي بطريقة Fast-forward، لأن صلاحية الدفع إلى الفرع المحمي تُدار بشكل مستقل. لذلك يحتفظ الفحص بالنتيجة `direct_git_push=NOT_EVALUATED`. انتهاء الفحص بنجاح يعني اكتمال القراءة فقط، **ولا يجيز أي مزامنة أو دمج**. تغيير GitLab أو الدفع إلى `main` يتطلب موافقة منفصلة ومراجعة أحدث SHA.
 
+**تشخيص جذر المشكلة (19 نوفمبر 2026):** فشلت خطوة سياسة الدمج في التشغيل اليدوي [44399119755](https://github.com/hamedonassar95/Devobs/actions/runs/44399119755) بسبب سبب عام `unverified_project_metadata`. أظهر الفحص المحلي أن الحقل `merge_method` **غير موجود** في الاستجابة العامة للمشروع عند الطلب بلا مصادقة، بينما تطابق `id` و`path_with_namespace` و`default_branch` و`visibility`؛ وتوثّق GitLab أن الحقول المُعادة تختلف حسب صلاحيات المستخدم ([Projects API](https://docs.gitlab.com/api/projects/)). يعرض الفحص الآن سببًا دقيقًا مثل `missing_field:merge_method` أو `mismatched_field:<name>` أو `wrong_type:<name>` دون إظهار أي قيمة من المزوّد.
+
+يبقى رمز الخروج `2` والنتيجة `BLOCKED` كما هما، ولا يُفسَّر غياب الحقل كقيمة افتراضية `merge` أو `ff`؛ فسياسة الدمج تظل **`UNVERIFIED`** إلى أن يقوم المالك بقراءة موثّقة بإذن أو بتسجيل الإعداد من واجهة GitLab. لا يُغيِّر هذا إعدادات GitLab أو حماية الفروع أو المزامنة أو بوابات الإصدار، ولا يخفف أي فحص أمني.
+
 ```sh
 python3 -m unittest discover -s tests -p 'test_gitlab_merge_policy.py' -v
 python3 -m py_compile scripts/gitlab_merge_policy.py
