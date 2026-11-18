@@ -32,9 +32,18 @@ The remote refs can change between these reads and any later operation; a `CANDI
 
 ## Manual GitHub-hosted verification — no GitLab compute minutes
 
-An optional [GitHub Actions manual workflow](https://github.com/hamedonassar95/Devobs/actions/workflows/gitlab-replica-preflight-manual.yml) runs the **same read-only ancestry check** from a public standard GitHub-hosted runner when the operator's local Windows checkout is unavailable. It uses `workflow_dispatch` only, and the job is restricted to `refs/heads/main`. The workflow has only `contents: read`, a full-SHA pinned `actions/checkout`, `persist-credentials: false`, a pinned `actions/setup-python`, and a five-minute timeout. It does **not** execute automatically for Git pushes, pull requests, or schedules.
+Two **separate** optional GitHub Actions workflows run from a public standard GitHub-hosted runner when the operator's local Windows checkout is unavailable. Both use `workflow_dispatch` only, both are restricted to `refs/heads/main`, and neither executes automatically for Git pushes, pull requests, or schedules:
 
-After this workflow is reviewed and merged, use **Actions → GitLab Replica Read-only Preflight → Run workflow**, select `main`, and inspect the JSON output. This is an **optional owner-triggered** public GitHub job, not an authorization to run it now or a guarantee about remaining account quotas. GitHub documents standard public-repository hosted compute as free: https://docs.github.com/en/billing/concepts/product-billing/github-actions and manual workflow setup here: https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow.
+| Workflow | Purpose | Independent result |
+| --- | --- | --- |
+| [GitLab Replica Read-only Preflight](https://github.com/hamedonassar95/Devobs/actions/workflows/gitlab-replica-preflight-manual.yml) | Public GitHub/GitLab ancestry check | `ALREADY_MATCHED`, `REVIEW_REQUIRED` or `BLOCKED` |
+| [GitLab MR Policy Audit](https://github.com/hamedonassar95/Devobs/actions/workflows/gitlab-mr-policy-audit-manual.yml) | Merge-request `merge_method` classification | `REVIEW_REQUIRED` or `BLOCKED` |
+
+They are intentionally independent. A green ancestry run says **nothing** about merge-request policy, and a green policy run says **nothing** about ancestry; neither can promote the other. Each workflow has only `contents: read`, a full-SHA pinned `actions/checkout`, `persist-credentials: false`, a pinned `actions/setup-python`, and a five-minute timeout. Neither carries credentials, pushes, or writes to any repository.
+
+**Ancestry success is never sync approval.** A successful ancestry run reports `ALREADY_MATCHED` or `REVIEW_REQUIRED`; no workflow or script emits a `SYNC_APPROVED` verdict. `tests/test_gitlab_preflight_workflow_contract.py` asserts that both workflows stay manual-only, read-only, SHA-pinned, free of bypass flags, and free of any `SYNC_APPROVED` path.
+
+After these workflows are reviewed and merged, run each one independently from **Actions → (workflow name) → Run workflow**, select `main`, and inspect that run's JSON output. Running one never runs the other. These are **optional owner-triggered** public GitHub jobs, not an authorization to run them now, not a guarantee about remaining account quotas, and not a synchronization. GitHub documents standard public-repository hosted compute as free: https://docs.github.com/en/billing/concepts/product-billing/github-actions and manual workflow setup here: https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow.
 
 | Result | Workflow exit | Meaning |
 | --- | --- | --- |
@@ -52,7 +61,7 @@ The wrapper `scripts/gitlab_hosted_preflight.py` validates the preflight's exact
 
 **Correction:** This setting **does not govern a direct Git fast-forward push**. GitLab's [protected branch push permissions](https://docs.gitlab.com/user/project/repository/branches/protected/) are a separate control. A non-forced Git push can preserve exact commits if the authenticated pusher is authorized and the remote target tip is an ancestor of the source; however, a direct push bypasses the normal Merge Request review process. The project's `can_push=true` observation and a historical ancestry check do not authorize any such push. A trusted Git client, fresh SHA and specific owner approval remain mandatory.
 
-The added **read-only** standard-library audit `scripts/gitlab_merge_policy.py` queries the fixed [GitLab Projects API](https://docs.gitlab.com/api/projects/) endpoint with no credentials, redirects or writes. The manual GitHub Actions preflight runs it **after** ancestry. Results classify the MR path, not full synchronization readiness:
+The added **read-only** standard-library audit `scripts/gitlab_merge_policy.py` queries the fixed [GitLab Projects API](https://docs.gitlab.com/api/projects/) endpoint with no credentials, redirects or writes. It runs in the **separate** `GitLab MR Policy Audit` workflow and never as part of the ancestry job. Results classify the MR path, not full synchronization readiness:
 
 - `REVIEW_REQUIRED`, exit `0`, `mr_path=FF_MR_POLICY_ONLY`: project policy reports `merge_method=ff`. MR commit identity may be preserved, but source transfer, target ancestry, permissions and approvals still require separate checks.
 - `REVIEW_REQUIRED`, exit `0`, `mr_path=MR_ADDS_COMMIT`: project policy reports `merge` or `rebase_merge`; a normal MR would introduce an extra commit. This is an **MR-path warning**, not evidence that a direct non-forced Git fast-forward is impossible. The output explicitly says `direct_git_push=NOT_EVALUATED`.
@@ -92,6 +101,7 @@ Offline behavioral tests, without any GitLab compute or API request:
 
 ```sh
 python3 -m unittest discover -s tests -p 'test_gitlab_merge_policy.py' -v
+python3 -m unittest discover -s tests -p 'test_gitlab_preflight_workflow_contract.py' -v
 python3 -m py_compile scripts/gitlab_merge_policy.py
 ```
 

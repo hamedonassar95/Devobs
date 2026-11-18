@@ -65,20 +65,26 @@ python3 -m unittest discover -s tests -p 'test_gitlab_fast_forward_preflight.py'
 
 ## فحص GitLab من GitHub Actions العام — يدوي بالكامل
 
-أُعدّ فحص مستقل يستخدم **GitHub Actions العام المجاني** بدل احتياج جهاز Windows المتصل أو رصيد GitLab CI. لا يبدأ إلا يدويًا بعد دمج التغيير عبر [GitLab Replica Read-only Preflight](https://github.com/hamedonassar95/Devobs/actions/workflows/gitlab-replica-preflight-manual.yml)، ويقارن آخر التزامات GitHub/GitLab باستخدام `git ls-remote` و`git merge-base`، دون نسخ الكود إلى GitLab أو استخدام أسرار أو تشغيل أي Pipeline هناك.
+أُعدّ **فحصان مستقلان** يستخدمان **GitHub Actions العام المجاني** بدل احتياج جهاز Windows المتصل أو رصيد GitLab CI. كلاهما لا يبدأ إلا يدويًا (`workflow_dispatch`) ومقيّد بـ`refs/heads/main`، ولا يعمل تلقائيًا عند الدفع أو طلبات الدمج أو الجدولة:
+
+- [GitLab Replica Read-only Preflight](https://github.com/hamedonassar95/Devobs/actions/workflows/gitlab-replica-preflight-manual.yml): يقارن آخر التزامات GitHub/GitLab باستخدام `git ls-remote` و`git merge-base`، دون نسخ الكود إلى GitLab أو استخدام أسرار أو تشغيل أي Pipeline هناك.
+- [GitLab MR Policy Audit](https://github.com/hamedonassar95/Devobs/actions/workflows/gitlab-mr-policy-audit-manual.yml): يقرأ `merge_method` الخاص بسياسة طلبات الدمج فقط، مستقلًا تمامًا عن فحص الأنساب.
+
+نجاح أحدهما لا يعني نجاح الآخر ولا يجيز أي مزامنة. **نجاح فحص الأنساب يُصنَّف `ALREADY_MATCHED` أو `REVIEW_REQUIRED`، ولا تُصدر أي أداة نتيجة باسم `SYNC_APPROVED`.** كلا الفحصين يستخدم `contents: read` فقط، وأكشنات مثبتة بـSHA كامل، و`persist-credentials: false`، ولا يدفع أو يكتب إلى أي مستودع.
 
 يمكن التحقق محليًا من منطق النتائج دون حسابات أو شبكة:
 
 ```sh
 python3 -m unittest discover -s tests -p 'test_gitlab_hosted_preflight.py' -v
 python3 -m unittest discover -s tests -p 'test_gitlab_fast_forward_preflight.py' -v
+python3 -m unittest discover -s tests -p 'test_gitlab_preflight_workflow_contract.py' -v
 ```
 
 النتائج: `ALREADY_MATCHED` تعني أن SHA متطابق وقت القراءة، و`REVIEW_REQUIRED` تعني فقط أن تحديث Fast-forward ممكن نظريًا ويتطلب موافقة مستقلة قبل أي كتابة، و`BLOCKED` تعني التوقف. **نجاح فحص GitHub ليس موافقة على مزامنة GitLab أو جاهزية SaaS.** هذه الخطوة لا تفتح بوابتي P01 وAI-9 ولا تشغّل خدمة مدفوعة. التفاصيل: [الفحص والاستثناءات](docs/GITLAB_FAST_FORWARD_PREFLIGHT.md).
 
 ## فحص طريقة دمج GitLab — للمراجعة فقط
 
-يقرأ فحص `GitLab Replica Read-only Preflight` إعداد دمج Merge Requests في مشروع GitLab دون مفاتيح أو كتابة. عند `merge` أو `rebase_merge` يُظهر `mr_path=MR_ADDS_COMMIT`؛ أي إن **دمج Merge Request العادي** سيُنشئ التزامًا إضافيًا ولن يحافظ على SHA الخاص بـGitHub. عند `ff` يُظهر `mr_path=FF_MR_POLICY_ONLY`.
+يقرأ فحص `GitLab MR Policy Audit` المستقل إعداد دمج Merge Requests في مشروع GitLab دون مفاتيح أو كتابة، ولا يعمل داخل مهمة الأنساب. عند `merge` أو `rebase_merge` يُظهر `mr_path=MR_ADDS_COMMIT`؛ أي إن **دمج Merge Request العادي** سيُنشئ التزامًا إضافيًا ولن يحافظ على SHA الخاص بـGitHub. عند `ff` يُظهر `mr_path=FF_MR_POLICY_ONLY`.
 
 **مهم:** هذا الإعداد لا يمنع بحد ذاته `git push` العادي بطريقة Fast-forward، لأن صلاحية الدفع إلى الفرع المحمي تُدار بشكل مستقل. لذلك يحتفظ الفحص بالنتيجة `direct_git_push=NOT_EVALUATED`. انتهاء الفحص بنجاح يعني اكتمال القراءة فقط، **ولا يجيز أي مزامنة أو دمج**. تغيير GitLab أو الدفع إلى `main` يتطلب موافقة منفصلة ومراجعة أحدث SHA.
 
@@ -88,6 +94,7 @@ python3 -m unittest discover -s tests -p 'test_gitlab_fast_forward_preflight.py'
 
 ```sh
 python3 -m unittest discover -s tests -p 'test_gitlab_merge_policy.py' -v
+python3 -m unittest discover -s tests -p 'test_gitlab_preflight_workflow_contract.py' -v
 python3 -m py_compile scripts/gitlab_merge_policy.py
 ```
 
