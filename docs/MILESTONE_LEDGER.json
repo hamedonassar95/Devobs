@@ -3170,6 +3170,39 @@
       "ci_run_id": 44318927454,
       "verification": "VERIFIED 2026-11-18 via GitHub: PR #697 merged exact source 05cf05a1ed931b3656110dd8dfd9d94ba957827a to main 1a2e9eebe0b0bfb89a277b75d74055df07be84d7. Exact-head PR CI 44318927454 SUCCESS, exact-merge main CI 44320712987 SUCCESS, and post-merge main Push 44320712612 SUCCESS. The merged tool uses strict schema v3, matches Render deployment SHA against canonical GitHub SHA offline, and blocks outdated source even if the reported deploy state is live.",
       "limitations": "Offline source/provenance gate only; no Render deployment or live OIDC correction. Current Render Free web staging still last recorded update_failed from older SHA 1f1fd774f02579a500c07bd667865e51ed187948; exact OIDC misconfiguration remains UNVERIFIED. GitLab protected main remains 468addb (behind newly merged GitHub #697) until separately approved fast-forward. Free PostgreSQL expires 2026-12-05; data owner-classified synthetic/disposable but no deletion allowed. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-ledger-merge-pr698",
+      "area": "DOCUMENTATION",
+      "title": "Reconcile PR696-697 evidence with unchanged blocked gates",
+      "pr_number": 698,
+      "pr_head_sha": "f1d65317ed5dbffa733c2054241d17246400d4c7",
+      "merge_sha": "f7d42501a6d1f18234a8d5b4f170404609742e67",
+      "ci_run_id": 44321618595,
+      "verification": "VERIFIED 2026-11-18 (GitHub): PR #698 merged exact head f1d65317ed5dbffa733c2054241d17246400d4c7 into f7d42501a6d1f18234a8d5b4f170404609742e67. Exact-head PR CI 44321618595 SUCCESS, including Python 3.12/3.15, security and validate. Documentation reconciles earlier PR696/697 merge evidence and tracks the unresolved Node npm audit blocker.",
+      "limitations": "Evidence reconciliation only; the separate Node npm advisory remains OPEN and must not be treated as fixed by docs-only CI. No hosted runtime or GitLab sync verified. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-oidc-name-only-triage-pr699",
+      "area": "RELIABILITY",
+      "title": "Fail closed when OIDC name-only checks do not prove staging configuration values",
+      "pr_number": 699,
+      "pr_head_sha": "8164c69e212c6e4d5e583cd576627dd8202d037e",
+      "merge_sha": "31116222d033f374dc5c4c6a90bb08301cf7f6e8",
+      "ci_run_id": 44323937081,
+      "verification": "VERIFIED 2026-11-18 (GitHub): PR #699 merged exact head 8164c69e212c6e4d5e583cd576627dd8202d037e into 31116222d033f374dc5c4c6a90bb08301cf7f6e8. Exact-head CI 44323937081 SUCCESS, including Python 3.12/3.15, security and validate. Name-only OIDC settings inspection now returns nonzero instead of falsely reporting production-readiness success.",
+      "limitations": "Name presence is not verification of values, live OIDC handshake, Render service startup or tenant isolation. No hosted setting, credential or deployment modified. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-plannotator-review-docs-pr701",
+      "area": "AGENT_OPERATIONS",
+      "title": "Document optional manual Plannotator visual reviews without enabling hooks",
+      "pr_number": 701,
+      "pr_head_sha": "f5c95ce45fc9ceef1662fd7902481edaed0688a7",
+      "merge_sha": "cb4426ea7726dc20fec808ff7f5a18aaf40f0ee2",
+      "ci_run_id": 44337936937,
+      "verification": "VERIFIED 2026-11-18 (GitHub): PR #701 merged exact head f5c95ce45fc9ceef1662fd7902481edaed0688a7 into cb4426ea7726dc20fec808ff7f5a18aaf40f0ee2. Exact-head CI 44337936937 SUCCESS including validate, security, Terraform and container checks; Python and Node tests were SKIPPED by change impact. Only README and Plannotator integration documentation changed.",
+      "limitations": "DOCUMENTATION ONLY. Plannotator is not installed, runtime-verified or enabled in Codex; automatic experimental hooks remain disabled, and CI success does not validate manual UI compatibility. No paid AI, secrets or cloud deployment. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
