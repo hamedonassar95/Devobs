@@ -2454,8 +2454,8 @@ class MilestoneLedgerTests(unittest.TestCase):
                 43752440502,
             ),
         }
-        self.assertEqual(validate(self.data)["merged_milestones"], 294)
-        self.assertEqual(validate(self.data)["latest_pr"], 704)
+        self.assertEqual(validate(self.data)["merged_milestones"], 297)
+        self.assertEqual(validate(self.data)["latest_pr"], 708)
         for number, evidence in expected.items():
             with self.subTest(pr=number):
                 record = records[number]
@@ -2492,8 +2492,8 @@ class MilestoneLedgerTests(unittest.TestCase):
                 43757263134,
             ),
         }
-        self.assertEqual(validate(self.data)["merged_milestones"], 294)
-        self.assertEqual(validate(self.data)["latest_pr"], 704)
+        self.assertEqual(validate(self.data)["merged_milestones"], 297)
+        self.assertEqual(validate(self.data)["latest_pr"], 708)
         for number, evidence in expected.items():
             with self.subTest(pr=number):
                 record = records[number]
@@ -2573,8 +2573,8 @@ class MilestoneLedgerTests(unittest.TestCase):
             634: ("937034e9e874d11a313206e0b8b0c1a963977807", "e0a55239ce8a8846a8235a5cc72587c9953b9b7d", 43735203171),
             635: ("25ff104b968207dcbfef7ab99f5435945429c342", "734794e499538b4c3879a4ca99a11da57512e501", 43737043396),
         }
-        self.assertEqual(validate(self.data)["merged_milestones"], 294)
-        self.assertEqual(validate(self.data)["latest_pr"], 704)
+        self.assertEqual(validate(self.data)["merged_milestones"], 297)
+        self.assertEqual(validate(self.data)["latest_pr"], 708)
         self.assertNotIn(632, records)
         self.assertNotIn(633, records)
         for number, (head, merge, run_id) in expected.items():
@@ -2813,7 +2813,7 @@ class MilestoneLedgerTests(unittest.TestCase):
                 self.assertIn("AI-9 BLOCKED", row["limitations"])
                 self.assertIn("Codex runtime OPEN", row["limitations"])
         self.assertIn("Dependabot", rows[705]["limitations"])
-        self.assertIn("unauthenticated GitLab", rows[706]["limitations"])
+        self.assertIn("anonymous GitLab MR policy", rows[706]["limitations"])
         self.assertIn("REVIEW_REQUIRED", rows[708]["limitations"])
         self.assertEqual(result["gate_statuses"], {
             "ai9-detection-quality": "BLOCKED",
