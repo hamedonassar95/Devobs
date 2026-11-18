@@ -16,6 +16,18 @@ This is the preserved React/TypeScript prototype from the former `DevObs-ai-Inte
 - `GEMINI_API_KEY` does not activate the closed prototype routes. The server constructs no Gemini client; legacy handlers remain reference code behind the closed route guard. Re-enabling inference requires reviewed identity, tenant authorization, data policy and cost controls, not a key or budget boolean alone.
 - No live Gemini request is part of CI or this prototype's release checks. The new real-server tests explicitly forbid provider network traffic.
 
+## Withdrawn dependency advisory (picomatch)
+
+The `picomatch` ReDoS report `GHSA-fc5q-39xc-vjpf` / `CVE-2026-112366` was **withdrawn upstream on 2026-11-18T15:38:56Z**; it was published 2026-10-19 and affected `<= 4.0.7` with no patched version. Our tree resolves `picomatch@4.0.7` once, through `vite@8.3.8` and `vite → tinyglobby → fdir`.
+
+At `2026-11-18T20:39:02Z` the gate command in this directory returned `found 0 vulnerabilities` with exit code `0`. **No dependency, lockfile, CI gate, or source file was changed to achieve that** — the advisory database simply stopped publishing the report. Withdrawal is not a source-code fix, and this note must not be cited as evidence that a defect was repaired.
+
+Two sibling advisories remain active and are fixed in `4.0.4` (`CVE-2026-33671`, `CVE-2026-33672`). Because this app already resolves `4.0.7`, it is outside both ranges — do **not** downgrade, pin below `4.0.4`, add an `overrides` entry, suppress the audit, or run `npm audit fix --force`; each would create or conceal a real vulnerability.
+
+Full evidence, reachability analysis, and reopen conditions: [`docs/security/PICOMATCH_GHSA_FC5Q_39XC_VJPF.md`](../../docs/security/PICOMATCH_GHSA_FC5Q_39XC_VJPF.md). This does not change the P01 **NO-GO**, AI-9 **BLOCKED**, or Codex runtime **OPEN** gates.
+
+On this Windows machine the audit must be run as `npm.cmd` — PowerShell's execution policy blocks `npm.ps1`.
+
 ## Advisory-only controls (demo safety)
 
 The **Restart**, **Redeploy**, and **Rollback** controls are now explicit **preview-only** actions. Clicking them displays a non-executing demo message: it does **not** mark a server healthy, change deployment status, fabricate a successful restart/rollback incident, call a cloud API, or trigger a CI deployment. The console shows an always-visible Arabic `DEMO ONLY` banner on every tab, not just Overview.

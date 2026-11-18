@@ -19,6 +19,14 @@ py -3 scripts/check_plannotator_windows_preflight.py --json
 
 راجع [دليل Windows الآمن](docs/integrations/PLANNOTATOR_CODEX_REVIEW.md#windows-powershell-read-only-prerequisite-check-no-codex-credits). النتيجة `PREREQUISITES_PRESENT_RUNTIME_UNVERIFIED` لا تثبت أن Plannotator يعمل، أما `BLOCKED` فتتطلب مراجعة السبب قبل أي تثبيت يدوي. الأداة لا تتصل بخدمة خارجية ولا تعدل إعدادات المستودع أو Codex.
 
+## تنبيه أمني مغلق — سحب تقرير picomatch (`GHSA-fc5q-39xc-vjpf`)
+
+سُحب التقرير الأمني `GHSA-fc5q-39xc-vjpf` / `CVE-2026-112366` الخاص بحزمة `picomatch` من قاعدة بيانات GitHub Advisory في **2026-11-18T15:38:56Z**، بعد أن كان يغطي الإصدارات `<= 4.0.7` دون إصدار مُصلح. يعتمد هذا المستودع على `picomatch@4.0.7` عبر `vite@8.3.8` و`vite → tinyglobby → fdir`، وأعاد تشغيل `npm audit --audit-level=high` داخل `apps/ai-intelligence-console` عند **2026-11-18T20:39:02Z** النتيجة `found 0 vulnerabilities` مع رمز خروج `0`.
+
+**لم يُغيَّر أي اعتماد أو ملف قفل أو فحص CI أو كود مصدر.** سحب التقرير ليس إصلاحًا برمجيًا، ولا يجوز الاستشهاد بهذا السجل لاحقًا كدليل على معالجة ثغرة. يظل التنبيهان الشقيقان `CVE-2026-33671` و`CVE-2026-33672` نشطين ومُصلحين في `4.0.4`؛ ولأن الإصدار المستخدم `4.0.7` فإنه خارج نطاقهما — لا تُخفِّض الإصدار ولا تُثبِّته تحت `4.0.4` ولا تُضِف `overrides` ولا تُعطِّل التدقيق ولا تشغّل `npm audit fix --force`.
+
+الأدلة الكاملة وتحليل قابلية الوصول وشروط إعادة الفتح في [سجل السحب](docs/security/PICOMATCH_GHSA_FC5Q_39XC_VJPF.md). لا يغيّر هذا السجل بوابات P01 (**NO-GO**) أو AI-9 (**BLOCKED**) أو قبول تشغيل Codex (**OPEN**)، ولا ينفّذ أي مزامنة مع GitLab.
+
 ## GitLab Free CI — تحضير يدوي فقط (لم يُشغَّل)
 
 أُضيف نموذج `.gitlab-ci.yml` لتجهيز فحص مجاني **مستقبلي** لسجل الإنجازات، ويشترط إجراءين منفصلين من المستخدم: إنشاء Pipeline يدويًا عبر واجهة GitLab على الفرع الافتراضي، ثم بدء وظيفة `free_offline_smoke` يدويًا. لا تنشأ Pipelines عند push أو merge request أو schedule أو API، ولا يُستهلك رصيد GitLab بسبب إنشاء الملف على GitHub.
