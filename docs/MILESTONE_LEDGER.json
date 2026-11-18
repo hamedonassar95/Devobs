@@ -3148,6 +3148,28 @@
       "ci_run_id": 44180045280,
       "verification": "VERIFIED 2026-11-18 via GitHub: PR #695 merged exact head 2bc84e537cf4fca0fa4f869d236d30ac32301e47 at 8fbfb5803d551aa7a63361e96d38498355ad6fdc. Exact-head CI 44180045280 and exact-main CI 44180972291 completed SUCCESS. Three Markdown files document the owner's decision that current Render PostgreSQL trial data need not be retained, and a name-only OIDC recovery plan.",
       "limitations": "Owner decision permits not retaining synthetic data; it does NOT authorize deletion or exempt future real-data backups. Render deployment remains update_failed with unverified detailed OIDC configuration cause, and Free DB expires 2026-12-05. No credentials, Render edits, deployment or paid activation. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-ledger-pr696",
+      "area": "DOCUMENTATION",
+      "title": "Reconcile merged PRs #692–#695 with exact CI evidence",
+      "pr_number": 696,
+      "pr_head_sha": "ad67a2fdb014d76f5919addd330abf77e2fc6a9d",
+      "merge_sha": "468addb459b79158f74dc2230a4336f81ac7c344",
+      "ci_run_id": 44186842694,
+      "verification": "VERIFIED 2026-11-18 via GitHub: PR #696 merged exact reviewed head ad67a2fdb014d76f5919addd330abf77e2fc6a9d at 468addb459b79158f74dc2230a4336f81ac7c344. Exact-head PR CI 44186842694 and first exact-merge main CI 44295475409 completed SUCCESS. PR #696 reconciled evidence and protected gates for PRs #692–#695. A later additional main CI run 44318560299 at this same merge SHA failed because node-tests npm audit detected 5 HIGH advisory findings from picomatch 4.0.7; it must not be represented as a clean all-runs status.",
+      "limitations": "Documentation, regression tests and STATE only. Independently observed 2026-11-18 additional Node audit HIGH advisory GHSA-fc5q-39xc-vjpf remains unpatched as of advisory/registry verification; do not disable npm audit or force-downgrade Vite as a workaround. GitLab replica was fast-forward synchronized by owner through SHA 468addb only; no paid CI or hosted API activation. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-render-source-drift-pr697",
+      "area": "RELIABILITY",
+      "title": "Fail-closed offline P01 source SHA drift detection for Render deployment",
+      "pr_number": 697,
+      "pr_head_sha": "05cf05a1ed931b3656110dd8dfd9d94ba957827a",
+      "merge_sha": "1a2e9eebe0b0bfb89a277b75d74055df07be84d7",
+      "ci_run_id": 44318927454,
+      "verification": "VERIFIED 2026-11-18 via GitHub: PR #697 merged exact source 05cf05a1ed931b3656110dd8dfd9d94ba957827a to main 1a2e9eebe0b0bfb89a277b75d74055df07be84d7. Exact-head PR CI 44318927454 SUCCESS, exact-merge main CI 44320712987 SUCCESS, and post-merge main Push 44320712612 SUCCESS. The merged tool uses strict schema v3, matches Render deployment SHA against canonical GitHub SHA offline, and blocks outdated source even if the reported deploy state is live.",
+      "limitations": "Offline source/provenance gate only; no Render deployment or live OIDC correction. Current Render Free web staging still last recorded update_failed from older SHA 1f1fd774f02579a500c07bd667865e51ed187948; exact OIDC misconfiguration remains UNVERIFIED. GitLab protected main remains 468addb (behind newly merged GitHub #697) until separately approved fast-forward. Free PostgreSQL expires 2026-12-05; data owner-classified synthetic/disposable but no deletion allowed. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
