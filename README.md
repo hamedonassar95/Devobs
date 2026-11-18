@@ -7,6 +7,18 @@
 أضفنا [دليل تكامل Plannotator مع Codex](docs/integrations/PLANNOTATOR_CODEX_REVIEW.md) لإجراء مراجعات بصرية يدوية للخطط والـ diff على جهاز موثوق، دون تفعيل Hooks أو تشغيل خدمات أو إضافة تبعيات داخل المستودع. **الحالة: موثّق فقط / التشغيل غير متحقق.** يحتاج استخدام الأداة إلى تثبيت اختياري يراجعه المالك على جهازه؛ دعم ChatGPT على iPhone أو Codex السحابي غير مثبت. تستمر موافقات الإنسان وحماية `main` وفحوص CI وبوابات P01/AI-9 دون تغيير.
 
 
+### فحص Plannotator على Windows — قراءة فقط
+
+بعد تنزيل المستودع على جهاز Windows موثوق، يمكن تشغيل فحص المتطلبات دون استهلاك رصيد Codex أو تثبيت أداة أو تفعيل Hooks:
+
+```powershell
+$env:PLANNOTATOR_SHARE = "disabled"
+$env:PLANNOTATOR_REMOTE = "0"
+py -3 scripts/check_plannotator_windows_preflight.py --json
+```
+
+راجع [دليل Windows الآمن](docs/integrations/PLANNOTATOR_CODEX_REVIEW.md#windows-powershell-read-only-prerequisite-check-no-codex-credits). النتيجة `PREREQUISITES_PRESENT_RUNTIME_UNVERIFIED` لا تثبت أن Plannotator يعمل، أما `BLOCKED` فتتطلب مراجعة السبب قبل أي تثبيت يدوي. الأداة لا تتصل بخدمة خارجية ولا تعدل إعدادات المستودع أو Codex.
+
 ## GitLab Free CI — تحضير يدوي فقط (لم يُشغَّل)
 
 أُضيف نموذج `.gitlab-ci.yml` لتجهيز فحص مجاني **مستقبلي** لسجل الإنجازات، ويشترط إجراءين منفصلين من المستخدم: إنشاء Pipeline يدويًا عبر واجهة GitLab على الفرع الافتراضي، ثم بدء وظيفة `free_offline_smoke` يدويًا. لا تنشأ Pipelines عند push أو merge request أو schedule أو API، ولا يُستهلك رصيد GitLab بسبب إنشاء الملف على GitHub.
