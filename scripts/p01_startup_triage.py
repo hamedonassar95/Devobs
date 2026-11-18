@@ -225,7 +225,11 @@ def main(argv: list[str] | None = None, *, stdout: TextIO | None = None,
         return 2
     if report["status"] == "INSUFFICIENT_EVIDENCE":
         return 3
-    return 0
+    if report["status"] == "PRESENT_BUT_VALIDITY_UNVERIFIED":
+        # Successful name collection cannot be mistaken for configuration acceptance.
+        return 5
+    print("ERROR: unexpected_triage_status", file=errors)
+    return 4
 
 
 if __name__ == "__main__":
