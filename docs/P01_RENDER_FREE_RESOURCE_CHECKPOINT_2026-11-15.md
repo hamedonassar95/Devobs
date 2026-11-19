@@ -1,5 +1,10 @@
 # P01 Render Free resource checkpoint — 2026-11-15
 
+## Retirement planning selection — 2026-11-19 (NO EXECUTION AUTHORIZATION)
+
+**VERIFIED owner direction:** The owner selected **preparation of the retirement plan** for the existing disposable Render Free database, explicitly **without deleting or stopping it now**. Review the [owner-gated retirement plan](plans/2026-11-19-render-free-postgres-retirement-plan.md) and [issue #713](https://github.com/hamedonassar95/Devobs/issues/713) for the still-unverified consumer/retention checks, exact future action/date and independent irreversible-data-loss authorization. This supersedes the prior undecided *planning route* only; it does **not** establish permission for deletion, deliberate unreviewed expiration, export, migration, paid upgrade, service changes, deployment or any P01 GO. No provider action took place.
+
+
 ## Read-only Render Free PostgreSQL refresh — 2026-11-19
 
 **VERIFIED (connected Render account inventory, metadata only, 2026-11-19):** the existing `devobs-ai-staging-db` is still **Free / available**, PostgreSQL 17, Frankfurt, with provider-reported `expiresAt=2026-12-05T10:33:24.202776Z`. The existing `devobs-ai-staging` web service remains **Free**, Frankfurt, branch `main`, auto-deploy **off**, not suspended. Only these sanitized non-secret metadata fields were used; no database connection, account billing, service environment, logs, credentials, production request, resource modification or hosted test occurred.
