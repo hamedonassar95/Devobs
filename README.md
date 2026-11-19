@@ -247,7 +247,7 @@ python3 -m unittest discover -s tests -p 'test_free_readiness_one_command.py' -v
 
 - **ابدأ من هنا:** [مركز الأتمتة وسير التشغيل الموحد](docs/AUTOMATION_HUB.md)
 - **CineForge-AI CI review-only handoff:** [فحص محدود لنتائج CI دون نقل الكود أو تشغيل خدمات](docs/CINEFORGE_CI_REVIEW_HANDOFF.md) — بوابة مراجعة محلية فقط، ليست تكاملًا حيًا ولا إصلاحًا لخلل GitHub Runner.
-- **CineForge Runner triage (offline):** [فحص مقيّد يفصل بين دليل فشل Runner المؤكد والبيانات غير المتوفرة وفشل خطوات Android](docs/integrations/CINEFORGE_RUNNER_TRIAGE.md) — يدعم `null` عند غياب حقول GitHub من المصدر، ولا يحوّلها إلى `0` أو يدّعي سببًا جذريًا؛ تشخيص استرشادي محلي دون اتصال أو نقل سجلات خاصة.
+- **Cross-project Runner evidence triage (offline):** [تشخيص محدود لأدلة GitHub Actions لمشروعي CineForge وPhone Repair Assistant](docs/integrations/CINEFORGE_RUNNER_TRIAGE.md) — يفصل بين المعلومات المفقودة (`null`) وقيم Runner الفعلية، ويسمح فقط بأسماء المشاريع والوظائف المحددة؛ لا يجلب سجلات خاصة ولا ينفّذ عمليات أو يدّعي سببًا جذريًا.
 - **جاهزية إصدارات المشاريع:** [Portfolio v1 release-readiness tracker](docs/portfolio/PORTFOLIO_V1_READINESS.md) — لقطة موثقة بالأدلة لمستودعات المالك الخمسة؛ تميّز نجاح CI عن النشر والتشغيل الفعلي، ولا تغيّر حالة أي بوابة.
 - **سجل الإنجازات والبوابات:** [Milestone Ledger](docs/MILESTONE_LEDGER.md) — فحص دون شبكة يربط كل إنجاز موثق برقم PR وSHA ودليل CI، ويعرض النواقص دون تغيير حالة جاهزيتها.
 - **تكامل OpenArt الاختياري:** [حوكمة طلبات الصور والفيديو عبر MCP](docs/OPENART_MCP_INTEGRATION.md) — صيغة طلب خاصة آمنة دون شبكة أو كلفة، مع موافقة منفصلة قبل أي توليد.
