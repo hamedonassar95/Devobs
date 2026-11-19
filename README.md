@@ -7,6 +7,8 @@
 
 [![CI](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml)
 
+**Read-only Render Free checkpoint refreshed (2026-11-19):** [Free PostgreSQL inventory, fixed 2026-12-05 expiry, and offline fail-closed preflight](docs/P01_RENDER_FREE_RESOURCE_CHECKPOINT_2026-11-15.md). This is not a hosted API test, backup, paid activation or P01 GO; separate owner retention/retirement authorization remains required.
+
 ## مراجعة خطط Codex والكود بصريًا — Plannotator (اختياري)
 
 أضفنا [دليل تكامل Plannotator مع Codex](docs/integrations/PLANNOTATOR_CODEX_REVIEW.md) لإجراء مراجعات بصرية يدوية للخطط والـ diff على جهاز موثوق، دون تفعيل Hooks أو تشغيل خدمات أو إضافة تبعيات داخل المستودع. **الحالة: موثّق فقط / التشغيل غير متحقق.** يحتاج استخدام الأداة إلى تثبيت اختياري يراجعه المالك على جهازه؛ دعم ChatGPT على iPhone أو Codex السحابي غير مثبت. تستمر موافقات الإنسان وحماية `main` وفحوص CI وبوابات P01/AI-9 دون تغيير.
