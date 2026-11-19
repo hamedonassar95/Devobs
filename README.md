@@ -415,4 +415,21 @@ unset GRAFANA_ADMIN_PASSWORD
 - [Keycloak OIDC profile and local-only discovery/JWKS preflight](docs/P01_KEYCLOAK_OIDC_PROFILE.md): a disposable Keycloak 26.8.2 Compose fixture pinned by official Quay digest, loopback-only and without a bootstrap admin. Local HTTP results do not satisfy Devobs's HTTPS issuer policy or establish token compatibility/readiness.
 - [P01 Keycloak Docker smoke evidence](docs/P01_KEYCLOAK_DOCKER_SMOKE_EVIDENCE.md): real localhost-only runtime evidence for the pinned Keycloak 26.8.2 image, with the realm imported and the discovery/JWKS preflight passing. Local HTTP still does not establish production issuer readiness.
 - [P01 Keycloak HTTPS discovery and JWKS preflight](docs/P01_KEYCLOAK_HTTPS_PREFLIGHT.md): the offline checker targets the exact `https://localhost` issuer on standard port 443; the fixture binds `127.0.0.1:443` to Keycloak's internal HTTPS port 8443 and reuses the strict OIDC metadata verifier. The narrow exception recorded by merged PR #608 is effective only after this reconciliation PR is merged. Until this reconciliation PR is merged, the general secret-handling prohibition remains binding and no Keycloak runtime may start. After activation, every runtime test requires separate explicit owner approval for that run naming the full reviewed source SHA (40-character SHA), a unique Docker Compose project name, and exact test scope. It permits only automatic generation and internal use of disposable realm signing material for synthetic identities, using the pinned image and a local Unix socket Docker context; `ssh://`, `tcp://`, named-pipe, cloud, and remote endpoints are BLOCKED. No private-key inspection/export, credential or token logging, or raw secret-bearing logs are allowed. Live TLS and signed-token acceptance remain NOT_TESTED.
+
+## Graphify portfolio integration (offline, dry-run first)
+
+A review-only orchestrator discovers authorized local checkouts and, only with
+explicit `--execute --only <repository>`, builds an offline AST-only code graph
+with the pinned `graphifyy==0.9.112` release. Graph output is written outside
+source repositories; nothing is uploaded, published, scheduled or deployed, and
+no LLM backend is selected.
+
+```sh
+python3 scripts/integrations/graphify_portfolio.py --json
+python3 -m unittest discover -s tests -p 'test_graphify_portfolio.py' -v
+```
+
+Provenance checks, the security-advisory assessment, the rejected
+`--backend none` flag and the current blocked rollout state are recorded in
+[docs/integrations/GRAPHIFY_PORTFOLIO_ROLLOUT.md](docs/integrations/GRAPHIFY_PORTFOLIO_ROLLOUT.md).
 - [Disposable Keycloak public OAuth client](docs/P01_KEYCLOAK_OIDC_PROFILE.md#disposable-local-public-oauth-client): one offline-validated Authorization Code + PKCE S256 client configuration with exact loopback redirects and an opt-in `devobs.read` scope. Live runtime remains NOT_TESTED and requires the reconciliation PR to be merged plus separate per-run owner approval. The exception does not authorize credential or token creation, hosted identity, production changes, paid AI inference, or deployment; P01 remains NO-GO and AI-9 remains BLOCKED.
