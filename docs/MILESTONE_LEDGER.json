@@ -3269,6 +3269,28 @@
       "ci_run_id": 44403718083,
       "verification": "VERIFIED 2026-11-19 (GitHub): PR #708 merged exact head 474797a66c601a13c55b80025345101b33d80e87 into 0f062c03dbefceebf8eaca79bdaf30c2483f99be. Exact-head CI 44403718083 completed SUCCESS. Manual GitLab ancestry and MR-policy audit workflows are separated and remain read-only.",
       "limitations": "A successful ancestry classification means REVIEW_REQUIRED, not SYNC_APPROVED. Manual workflow execution after merge remains UNVERIFIED; unauthenticated MR merge_method still may be missing. Live GitLab protected main remains behind verified GitHub main, with no GitLab push. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-merged-ledger-reconcile-pr709",
+      "area": "DOCUMENTATION",
+      "title": "Reconcile verified PR #705/#706/#708 merge evidence without opening release gates",
+      "pr_number": 709,
+      "pr_head_sha": "12b880c7edf10b74583d0ce049971842b9d9d43d",
+      "merge_sha": "70a40094803a5e8ab1cf5945e11fd1d6d048f307",
+      "ci_run_id": 44410898905,
+      "verification": "VERIFIED 2026-11-19 (GitHub): PR #709 merged exact head 12b880c7edf10b74583d0ce049971842b9d9d43d into 70a40094803a5e8ab1cf5945e11fd1d6d048f307 at 2026-11-19T09:39:10Z. Exact-head CI run 44410898905 completed SUCCESS, including Python 3.12/3.15, validate, security, PostgreSQL RLS, container and Terraform; node-tests were SKIPPED by change scope. Three files only: STATE.md, docs/MILESTONE_LEDGER.json and tests/test_milestone_ledger.py; milestone count increased 294 to 297.",
+      "limitations": "Repository bookkeeping and offline tests only; this does not verify a live API, OIDC, provider invoice hard-stop, GitLab sync, backup or hosted tenant isolation. Existing historical Dependabot alert remains independently UNVERIFIED. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-merged-p01-no-go-decision-pr710",
+      "area": "RELIABILITY",
+      "title": "Record SHA-bound P01 NO-GO evidence matrix and regression tests",
+      "pr_number": 710,
+      "pr_head_sha": "b996cfe9aa78b59648f9f02d6671d684b14e9b06",
+      "merge_sha": "6394d901d639b8c12a72a61e5a97ae5ff2c63222",
+      "ci_run_id": 44498462081,
+      "verification": "VERIFIED 2026-11-19 (GitHub): PR #710 merged exact head b996cfe9aa78b59648f9f02d6671d684b14e9b06 into 6394d901d639b8c12a72a61e5a97ae5ff2c63222 at 2026-11-19T09:41:33Z. Exact-head CI run 44498462081 completed SUCCESS, including Python 3.12/3.15, validate, security, PostgreSQL RLS, container and Terraform; node-tests were SKIPPED by change scope. Four files added/updated: P01 NO-GO review, matrix, offline tests and README. The matrix intentionally reviewed prior canonical main SHA 0f062c03dbefceebf8eaca79bdaf30c2483f99be and is historical source/read-only metadata evidence, not a current-hosted acceptance attestation.",
+      "limitations": "An explicit historical source SHA in the review remains intentional and must not be silently rebound to this merge. Eight blocked NO-GO review rows are not proof of hosted failures or provider account controls. Free PostgreSQL expiry remains 2026-12-05 with separate retention/retirement decision pending; no billing or deployment action authorized. No prod checks or secrets. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
