@@ -21,6 +21,13 @@ Safety contract:
 * The repository working tree is snapshotted before and after extraction; any
   change, or any ``graphify-out`` directory created inside the repository, is
   reported as a failure rather than a success.
+* Run evidence never contains raw process output. ``run.json`` stores only
+  bounded, non-content fields (exit code, byte counts, graph hash and counts);
+  credential-shaped values are redacted and a residual match aborts the write.
+* ``network_uploads`` is declared ``UNVERIFIED``: the orchestrator has no HTTP
+  client, but it cannot attest to the pinned binary's network behaviour.
+* ``graph.json`` is validated structurally (object root, non-empty unique
+  string node ids, resolvable link endpoints) before ``status: extracted``.
 
 The pinned release rejects ``--backend none`` with ``unknown backend 'none'``;
 the supported offline switch is the documented ``GRAPHIFY_BACKEND=none``
@@ -97,7 +104,9 @@ class Repository:
         return {
             "name": self.name,
             "path": str(self.path),
-            "remote": self.remote,
+            # A remote URL can carry a token in its userinfo section; never
+            # publish it verbatim in a report.
+            "remote": redact(self.remote),
             "owner": self.owner,
             "remote_name": self.remote_name,
             "branch": self.branch,
@@ -130,6 +139,70 @@ def is_within(path: pathlib.Path, parent: pathlib.Path) -> bool:
     except (OSError, ValueError):
         return False
     return True
+
+
+_REDACTED = "[REDACTED]"
+
+# Deliberately narrow, high-signal patterns. Git object ids and SHA-256 values
+# are lowercase hex and must survive untouched, so no generic base64 or long
+# hexadecimal rule is used.
+_SENSITIVE_PATTERNS = (
+    # Credentials embedded in a URL userinfo section: keep scheme and host.
+    (re.compile(r"(?i)\b([a-z][a-z0-9+.-]*://)[^/@\s\[\]]+@"), r"\1" + _REDACTED + "@"),
+    # KEY=value / TOKEN: value inside free text. Values must look token-shaped;
+    # JSON lists and quoted prose are left alone.
+    (
+        re.compile(
+            r"(?i)\b([A-Za-z0-9_.-]*(?:API[_-]?KEY|TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIAL)"
+            r"[A-Za-z0-9_.-]*)\s*[:=]\s*([A-Za-z0-9_./+=-]{6,})"
+        ),
+        r"\1=" + _REDACTED,
+    ),
+    (re.compile(r"(?i)\bBearer\s+[A-Za-z0-9._~+/=-]{8,}"), "Bearer " + _REDACTED),
+    (re.compile(r"\bgh[pousr]_[A-Za-z0-9]{20,}"), _REDACTED),
+    (re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}"), _REDACTED),
+    (re.compile(r"\bglpat-[A-Za-z0-9_-]{20,}"), _REDACTED),
+    (re.compile(r"\bxox[abprs]-[A-Za-z0-9-]{10,}"), _REDACTED),
+    (re.compile(r"\bAKIA[0-9A-Z]{16}\b"), _REDACTED),
+    (re.compile(r"\bAIza[0-9A-Za-z_-]{35}"), _REDACTED),
+    (re.compile(r"\bsk-[A-Za-z0-9_-]{20,}"), _REDACTED),
+    (
+        re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}"),
+        _REDACTED,
+    ),
+    (
+        re.compile(
+            r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----"
+        ),
+        _REDACTED,
+    ),
+)
+
+
+def redact(text: str) -> str:
+    """Remove credential-shaped material from one string."""
+    value = "" if text is None else str(text)
+    for pattern, replacement in _SENSITIVE_PATTERNS:
+        value = pattern.sub(replacement, value)
+    return value
+
+
+def _sanitize(value):
+    """Recursively sanitize every string value in a JSON-ready structure."""
+    if isinstance(value, str):
+        return redact(value)
+    if isinstance(value, list):
+        return [_sanitize(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _sanitize(item) for key, item in value.items()}
+    return value
+
+
+def _assert_no_sensitive_material(rendered: str) -> None:
+    """Fail closed if a known secret shape survived sanitization."""
+    for pattern, _ in _SENSITIVE_PATTERNS:
+        if pattern.search(rendered):
+            raise PortfolioError("run evidence still matches a sensitive pattern; content withheld")
 
 
 def _git(repo: pathlib.Path, *args: str) -> str:
@@ -289,7 +362,9 @@ def _run(argv, env, cwd, timeout, run):
 
 
 def graphify_version(binary: str, run=subprocess.run) -> str:
-    result = _run([binary, "--version"], dict(os.environ), pathlib.Path.cwd(), 120, run)
+    # Probe with the same sanitized environment as extraction so the check
+    # never inherits a provider credential from the caller.
+    result = _run([binary, "--version"], build_environment(), pathlib.Path.cwd(), 120, run)
     if result.returncode != 0:
         raise PortfolioError(f"cannot read graphify version (exit {result.returncode})")
     token = (result.stdout or result.stderr or "").strip().split()
@@ -307,9 +382,49 @@ def build_environment(base: dict[str, str] | None = None) -> dict[str, str]:
     return env
 
 
-def _tail(text: str | None, limit: int = 40) -> list[str]:
-    lines = [line for line in (text or "").splitlines() if line.strip()]
-    return lines[-limit:]
+def validate_graph(document) -> dict:
+    """Validate a Graphify node-link document before any success is reported.
+
+    Returns the node and edge counts derived from the file itself, never from
+    process output. Raises ``PortfolioError`` with an index-only message so a
+    node id or file path from a private repository is not echoed into evidence.
+    """
+    if not isinstance(document, dict):
+        raise PortfolioError("graph root is not a JSON object")
+    nodes = document.get("nodes")
+    links = document.get("links")
+    if not isinstance(nodes, list):
+        raise PortfolioError("'nodes' is missing or not a list")
+    if not isinstance(links, list):
+        raise PortfolioError("'links' is missing or not a list")
+    if not nodes:
+        raise PortfolioError("'nodes' is empty")
+
+    identifiers: set[str] = set()
+    for index, node in enumerate(nodes):
+        if not isinstance(node, dict):
+            raise PortfolioError(f"node {index} is not an object")
+        identifier = node.get("id")
+        if not isinstance(identifier, str) or not identifier.strip():
+            raise PortfolioError(f"node {index} has no non-empty string id")
+        if identifier in identifiers:
+            raise PortfolioError(f"node {index} repeats an earlier id")
+        identifiers.add(identifier)
+
+    for index, link in enumerate(links):
+        if not isinstance(link, dict):
+            raise PortfolioError(f"link {index} is not an object")
+        for endpoint in ("source", "target"):
+            value = link.get(endpoint)
+            if not isinstance(value, str) or value not in identifiers:
+                raise PortfolioError(f"link {index} has a {endpoint} that is not a node id")
+
+    for key in ("directed", "multigraph"):
+        if key in document and not isinstance(document[key], bool):
+            raise PortfolioError(f"'{key}' is not a boolean")
+    if "graph" in document and not isinstance(document["graph"], dict):
+        raise PortfolioError("'graph' metadata is not an object")
+    return {"nodes": len(nodes), "edges": len(links)}
 
 
 def execute_repository(
@@ -337,8 +452,9 @@ def execute_repository(
 
     version = graphify_version(binary, run=run)
     if version != PINNED_GRAPHIFY_VERSION:
+        # Never echo a credential-shaped version string into the error message.
         raise PortfolioError(
-            f"graphify {version} is not the pinned {PINNED_GRAPHIFY_VERSION}"
+            f"graphify {redact(version)} is not the pinned {PINNED_GRAPHIFY_VERSION}"
         )
 
     before_status = _git(repository.path, "status", "--porcelain", "--untracked-files=all")
@@ -367,8 +483,15 @@ def execute_repository(
             "provider_key_variables_blanked": list(PROVIDER_KEY_VARS),
         },
         "started_at": started.isoformat(),
-        "network_uploads": False,
-        "hooks_installed": False,
+        "evidence": {
+            # The orchestrator makes no upload call, but it cannot attest to the
+            # pinned binary's network behaviour. UNVERIFIED is the honest state;
+            # False would be an unproven claim.
+            "network_uploads": "UNVERIFIED",
+            # install/hook subcommands are never invoked by this module.
+            "hooks_installed": "NOT_PERFORMED",
+            "process_output": "NOT_RETAINED",
+        },
     }
 
     failure: str | None = None
@@ -385,27 +508,37 @@ def execute_repository(
     record["graph"] = None
     if result is not None:
         record["exit_code"] = result.returncode
-        record["stdout_tail"] = _tail(result.stdout)
-        record["stderr_tail"] = _tail(result.stderr)
+        # Byte counts only. Raw stdout/stderr can contain private paths, source
+        # identifiers or credentials, so their content is never recorded.
+        record["stdout_bytes"] = len((result.stdout or "").encode("utf-8", "replace"))
+        record["stderr_bytes"] = len((result.stderr or "").encode("utf-8", "replace"))
         if result.returncode != 0:
             failure = failure or f"graphify exited {result.returncode}"
     if failure is None and not graph_path.is_file():
         failure = "graphify did not write graph.json"
 
     if failure is None:
-        payload = graph_path.read_bytes()
         try:
-            graph = json.loads(payload.decode("utf-8"))
-        except (UnicodeError, json.JSONDecodeError) as exc:
-            failure = f"graph.json is not valid JSON: {exc}"
+            payload = graph_path.read_bytes()
+        except OSError as exc:
+            failure = f"graph.json could not be read: {exc}"
         else:
-            record["graph"] = {
-                "path": str(graph_path),
-                "sha256": hashlib.sha256(payload).hexdigest(),
-                "bytes": len(payload),
-                "nodes": len(graph.get("nodes") or []),
-                "edges": len(graph.get("links") or []),
-            }
+            try:
+                document = json.loads(payload.decode("utf-8"))
+            except (UnicodeError, json.JSONDecodeError) as exc:
+                failure = f"graph.json is not valid JSON: {exc}"
+            else:
+                try:
+                    counts = validate_graph(document)
+                except PortfolioError as exc:
+                    failure = f"graph.json failed structural validation: {exc}"
+                else:
+                    record["graph"] = {
+                        "path": str(graph_path),
+                        "sha256": hashlib.sha256(payload).hexdigest(),
+                        "bytes": len(payload),
+                        **counts,
+                    }
 
     after_status = _git(repository.path, "status", "--porcelain", "--untracked-files=all")
     after_head = _git(repository.path, "rev-parse", "HEAD").strip()
@@ -420,10 +553,20 @@ def execute_repository(
 
     record["status"] = "failed" if failure else "extracted"
     record["failure"] = failure
-    (out_dir / "run.json").write_text(
-        json.dumps(record, indent=2, sort_keys=True, ensure_ascii=True) + "\n",
-        encoding="utf-8",
-    )
+    record = _sanitize(record)
+    rendered = json.dumps(record, indent=2, sort_keys=True, ensure_ascii=True) + "\n"
+    try:
+        _assert_no_sensitive_material(rendered)
+    except PortfolioError:
+        # Fail closed: withhold the whole record instead of risking private data.
+        record = {
+            "policy": POLICY,
+            "status": "failed",
+            "failure": "sensitive material detected in evidence; content withheld",
+            "sensitive_evidence_withheld": True,
+        }
+        rendered = json.dumps(record, indent=2, sort_keys=True, ensure_ascii=True) + "\n"
+    (out_dir / "run.json").write_text(rendered, encoding="utf-8")
     return record
 
 
@@ -492,12 +635,21 @@ def main(argv: list[str] | None = None) -> int:
             },
             "scan_root": str(args.root.resolve()),
             "output_root": str(output_root),
+            "evidence_model": {
+                "process_output": "NOT_RETAINED",
+                "network_uploads": "UNVERIFIED",
+                "hooks_installed": "NOT_PERFORMED",
+                "redaction": "credential-shaped values removed before write",
+            },
             "repositories": [repository.as_dict() for repository in repositories],
             "skipped_paths": skipped,
             "plan": results,
         }
         failed = [entry for entry in results if entry.get("run", {}).get("status") == "failed"]
         report["status"] = "failed" if failed else ("executed" if args.execute else "dry-run")
+        # The dry-run report is printed and may be pasted into an issue; apply
+        # the same redaction as the on-disk evidence.
+        report = _sanitize(report)
 
         if args.json:
             print(json.dumps(report, indent=2, sort_keys=True, ensure_ascii=True))
