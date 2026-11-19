@@ -1,5 +1,10 @@
 # Devobs
 
+## P01 readiness: verified NO-GO evidence (2026-11-19)
+
+[Read the fixed-SHA P01 NO-GO owner decision and acceptance matrix](docs/p01/P01_NO_GO_DECISION_2026-11-19.md) for the reviewed `main` SHA `0f062c03dbefceebf8eaca79bdaf30c2483f99be`. This is source/read-only metadata evidence, **not** a provider hard-cap, hosted test or P01 approval. The existing P01 evidence sample and P01/AI-9/Codex gates are unchanged. A separate owner decision is needed before the existing Free PostgreSQL expiry on 2026-12-05.
+
+
 [![CI](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml)
 
 ## مراجعة خطط Codex والكود بصريًا — Plannotator (اختياري)
