@@ -244,3 +244,7 @@ graph SHA-256, and that no upload, LLM call, hook or deployment occurred.
 2. Re-run the dry run, then execute one repository with explicit `--only`.
 3. Review the local `run.json` and `graph.json` hash, then decide whether a
    documentation-only Draft PR is worth opening.
+
+## Security hardening review (PR #720 follow-up)
+
+The local `run.json` record deliberately omits child-process stdout/stderr and raw execution exceptions. It records `network_egress_verification: not_verified`; disabling known provider variables does **not** prove network isolation. Git inspection accepts only a fixed read-only command allowlist and resolves the Git executable before invocation. Malformed graph structures fail closed. This change does not authorize multi-repository activation, external indexing, deployment, or merging without a passing exact-head CI review.
