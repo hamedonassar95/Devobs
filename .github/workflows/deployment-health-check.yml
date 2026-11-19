@@ -48,17 +48,54 @@ jobs:
           grep -q "Devobs" site.html
 
           manifest_url="$SITE_ROOT/deployment.json?run_id=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          if ! manifest_status="$(curl \
-            --location \
-            --silent \
-            --show-error \
-            --retry 5 \
-            --retry-delay 5 \
-            --header "Cache-Control: no-cache" \
-            "$manifest_url" \
-            --output deployment.json \
-            --write-out '%{http_code}')"; then
-            echo "::error::Could not retrieve the deployment manifest."
+
+          # Bounded retry for transient transport failures only: at most 3
+          # read-only GET attempts, 5s connect / 20s total each, with 1s then
+          # 2s delays. TLS verification stays on (never --insecure/-k) and no
+          # response body or environment value is printed. HTTP status handling
+          # below is unchanged and is never retried, so an invalid manifest, a
+          # SHA mismatch or a genuine HTTP error still fails closed.
+          manifest_status=""
+          manifest_exit=0
+          manifest_attempt=1
+          manifest_max_attempts=3
+          while :; do
+            manifest_exit=0
+            manifest_status="$(curl \
+              --location \
+              --silent \
+              --show-error \
+              --connect-timeout 5 \
+              --max-time 20 \
+              --header "Cache-Control: no-cache" \
+              "$manifest_url" \
+              --output deployment.json \
+              --write-out '%{http_code}')" || manifest_exit=$?
+
+            if (( manifest_exit == 0 )); then
+              break
+            fi
+
+            case "$manifest_exit" in
+              6|7|18|28|35|52|55|56|92) ;;
+              *)
+                echo "::error::Manifest fetch failed, curl exit $manifest_exit."
+                exit 1
+                ;;
+            esac
+
+            if (( manifest_attempt >= manifest_max_attempts )); then
+              break
+            fi
+
+            echo "::warning::Manifest fetch retry (curl exit $manifest_exit)."
+            sleep "$manifest_attempt"
+            manifest_attempt=$(( manifest_attempt + 1 ))
+          done
+
+          if (( manifest_exit != 0 )); then
+            echo "::error::Manifest fetch failed after all attempts."
+            echo "::error::Last curl exit $manifest_exit."
             exit 1
           fi
 

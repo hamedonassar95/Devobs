@@ -131,3 +131,79 @@ they do not guarantee availability or immediate consistency of GitHub's API.
 References: [upload-pages-artifact inputs](https://github.com/actions/upload-pages-artifact#inputs),
 [deploy-pages inputs](https://github.com/actions/deploy-pages#inputs), and
 [GitHub run variables](https://docs.github.com/en/actions/reference/workflows-and-actions/variables#default-environment-variables).
+
+## Deployment manifest verification: bounded transport retries
+
+`deployment-health-check.yml` retrieves `/deployment.json` with a bounded retry
+loop that covers transient transport failures only.
+
+Historical evidence: incident #707 recorded run
+[44401423814](https://github.com/hamedonassar95/Devobs/actions/runs/44401423814)
+on `main` at `c3998b951d8fb6b829e93105e6b34388722b2a63`. The failed job is
+`production-release / verify / verify-production`, and its only failure
+annotations are `Could not retrieve the deployment manifest.` plus the step exit
+code, so the page fetch and title check had already succeeded. That run used
+`curl --retry 5 --retry-delay 5` without `--retry-all-errors`; per the
+[curl `--retry` documentation](https://curl.se/docs/manpage.html#--retry) only
+timeouts, FTP 4xx and HTTP 408/429/5xx count as transient by default, so a
+connection-reset-class exit was never retried by that option. The incident
+reported curl exit `56` (receive error); the public job log requires admin
+access, so that exact code is treated as incident-reported rather than
+independently verified here. A single lost read-only GET was therefore enough to
+fail verification and mark the release a rollback candidate. The explicit loop
+below retries only that class of transport failure.
+
+Limits:
+
+- At most 3 attempts, so the step cannot loop indefinitely.
+- Per attempt: `--connect-timeout 5` and `--max-time 20`; delay between
+  attempts is 1s then 2s. Worst case is roughly 63s of curl time plus 3s of
+  delay, inside the existing `timeout-minutes: 5` job bound.
+- Only read-only GET requests. No request body, method override, upload flag or
+  curl-internal `--retry` is used on the manifest fetch.
+- Retried curl exit codes: `6` (resolve), `7` (connect), `18` (partial
+  transfer), `28` (timeout), `35` (TLS handshake), `52` (empty reply), `55`
+  (send), `56` (receive), `92` (HTTP/2 stream). Any other curl exit code fails
+  immediately.
+- TLS verification is never disabled: no `--insecure`, `-k` or
+  `--no-check-certificate` anywhere in the step.
+- HTTP status handling is unchanged and is never retried. A non-200 response
+  still fails the job, except the pre-existing legacy rule where HTTP `404` with
+  an empty `EXPECTED_SHA` reports a warning and passes. With a required expected
+  SHA, `404` fails closed.
+- The schema gate (`jq -er 'select(.schema_version == 1) | .source_sha'`), the
+  exact `^[0-9a-f]{40}$` check and the `deployed_sha != EXPECTED_SHA`
+  comparison are untouched, so an invalid manifest or a wrong commit cannot be
+  retried into a pass.
+- Failures print only the curl exit code and where the fetch stopped. No
+  response body, header, environment dump or credential is logged, and
+  `deployment.json` is re-downloaded per attempt rather than reused.
+
+`tests/test_deployment_health_retry.py` extracts the real `run:` block from the
+workflow, replaces only the site URL with a loopback mock server, and executes
+it with the host's bash, curl and jq. It covers connection reset followed by
+success, persistent reset, transport timeout, partial transfer followed by
+success, persistent partial transfer, HTTP `404` with and without a required
+expected SHA, HTTP `500`, invalid JSON and an invalid source SHA (neither may
+echo the response body), an incorrect source SHA, and a first-attempt success
+that must not warn. Persistent failures stop after exactly 3 requests; HTTP
+errors stop after 1. When bash, curl or jq is unavailable the affected
+behavioural cases skip with a reason instead of silently passing; the contract
+cases still assert the retry-bound, exact retry-code list and fail-closed
+invariants.
+
+Remaining risks:
+
+- Retries only help with faults shorter than the retry window. A Pages or CDN
+  outage longer than about one minute still fails the check, by design.
+- The retry does not detect a stale-yet-healthy response: if the host returns
+  HTTP `200` with an old but well-formed manifest and no `EXPECTED_SHA` is
+  supplied, the check passes. Callers that need exactness must pass
+  `expected_sha`, as the release path already does.
+- `--max-time 20` bounds a single transfer; a very large or slow manifest could
+  exceed it and consume the attempts, which still fails closed.
+- The loop retries DNS, TCP, TLS and HTTP/2 transport errors alike. It cannot
+  distinguish a transient network fault from a persistent origin
+  misconfiguration, so repeated failures remain failures.
+- The retry logic is workflow bash, not application code, so only the extracted
+  step is covered; other deployment workflows keep their own behaviour.
