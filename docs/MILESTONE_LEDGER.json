@@ -3291,6 +3291,39 @@
       "ci_run_id": 44498462081,
       "verification": "VERIFIED 2026-11-19 (GitHub): PR #710 merged exact head b996cfe9aa78b59648f9f02d6671d684b14e9b06 into 6394d901d639b8c12a72a61e5a97ae5ff2c63222 at 2026-11-19T09:41:33Z. Exact-head CI run 44498462081 completed SUCCESS, including Python 3.12/3.15, validate, security, PostgreSQL RLS, container and Terraform; node-tests were SKIPPED by change scope. Four files added/updated: P01 NO-GO review, matrix, offline tests and README. The matrix intentionally reviewed prior canonical main SHA 0f062c03dbefceebf8eaca79bdaf30c2483f99be and is historical source/read-only metadata evidence, not a current-hosted acceptance attestation.",
       "limitations": "An explicit historical source SHA in the review remains intentional and must not be silently rebound to this merge. Eight blocked NO-GO review rows are not proof of hosted failures or provider account controls. Free PostgreSQL expiry remains 2026-12-05 with separate retention/retirement decision pending; no billing or deployment action authorized. No prod checks or secrets. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-merged-pr711-ledger-reconciliation",
+      "area": "DOCUMENTATION",
+      "title": "Reconcile merged PR709/PR710 into ledger while preserving P01 NO-GO",
+      "pr_number": 711,
+      "pr_head_sha": "72d177c0bf648bea4280dc1a0682136a0eb61bb9",
+      "merge_sha": "1cd7f3e3ad2b17011aefa49e706a56d976623307",
+      "ci_run_id": 44499019095,
+      "verification": "VERIFIED 2026-11-19 (GitHub): PR #711 merged exact head 72d177c0bf648bea4280dc1a0682136a0eb61bb9 at 2026-11-19T09:47:15Z as 1cd7f3e3ad2b17011aefa49e706a56d976623307. Exact-head CI 44499019095 completed SUCCESS (Python 3.12/3.15, security, RLS, containers, Terraform and validate); only ledger, tests and STATE.md were changed.",
+      "limitations": "Historical merge and CI evidence is not hosted P01 readiness or provider budget enforcement. No live DB connection, OIDC, backup/restore, external consumer, GitLab sync or production approval verified. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-merged-pr712-render-free-expiry",
+      "area": "RELIABILITY",
+      "title": "Refresh Render Free expiry inventory with fail-closed source guard",
+      "pr_number": 712,
+      "pr_head_sha": "ee21eea97254a8cf08f6b64edb7860a6be277857",
+      "merge_sha": "ceda79a10a68b4f6ce4a81653ea6c7606067bd01",
+      "ci_run_id": 44499981446,
+      "verification": "VERIFIED 2026-11-19 (GitHub): PR #712 merged exact head ee21eea97254a8cf08f6b64edb7860a6be277857 at 2026-11-19T09:52:38Z as ceda79a10a68b4f6ce4a81653ea6c7606067bd01. Exact-head CI 44499981446 completed SUCCESS, including Python 3.12/3.15, security, RLS, containers, Terraform and validate. Dated sanitized Free PostgreSQL expiry snapshot was refreshed to 2026-11-19; provider-reported expiry 2026-12-05T10:33:24.202776Z.",
+      "limitations": "The snapshot is historical and later goes STALE_INVENTORY; Free/available does not prove runtime availability, actual consumers, restored backups, P01 authorization or consent to retire database. No Render resource was changed. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-merged-pr714-db-retirement-plan-only",
+      "area": "DOCUMENTATION",
+      "title": "Owner-gated documentation plan for retiring temporary Render Free PostgreSQL",
+      "pr_number": 714,
+      "pr_head_sha": "934a586292ec360af12c074434358131909081cc",
+      "merge_sha": "428f07ecc8c309a5f0849d3b8518bc120dda8bdc",
+      "ci_run_id": 44501730304,
+      "verification": "VERIFIED 2026-11-19 (GitHub): PR #714 merged exact head 934a586292ec360af12c074434358131909081cc at 2026-11-19T10:03:44Z as 428f07ecc8c309a5f0849d3b8518bc120dda8bdc. Exact-head CI 44501730304 completed SUCCESS for security, RLS, containers, Terraform, impact and validate; Python and Node suites were SKIPPED by documentation-only impact selection. README, Render checkpoint and new retirement plan docs were the only changed files.",
+      "limitations": "Only retirement PLAN was approved: no database deletion, suspension, export, deliberate expiration acceptance or paid upgrade. Static search found no named cross-project references, but hidden/external live consumers and actual retention obligations are UNVERIFIED. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
