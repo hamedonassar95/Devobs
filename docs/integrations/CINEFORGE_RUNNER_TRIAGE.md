@@ -42,13 +42,33 @@ and reviewing Actions, billing and runner restrictions. It cannot prove
 which account setting caused the failure.
 
 Input is a single bounded JSON object with up to two allowlisted job kinds,
-numeric runner IDs and executed-step counts. Additional fields, unsafe
+nonnegative numeric runner IDs and executed-step counts. Use explicit JSON
+`null` **only** when the connected read-only provider does not return one
+of those fields. Do not fabricate `runner_id: 0` or `executed_steps: 0`
+from an omitted/null field: zero asserts an observed fact, whereas null
+records missing evidence. With a failed run and any null value the classifier
+reports `INSUFFICIENT_RUNNER_EVIDENCE`, keeps the underlying cause `UNKNOWN`,
+and recommends checking run-level banners or independently authenticated
+job metadata. Missing keys, strings pretending to be numeric, extra fields,
+unsafe
 states and invalid combinations are rejected. The CLI reuses Devobs's
 existing strict JSON parser and rejects duplicate keys at the top level
 and inside individual jobs; it fails closed with a fixed invalid_json error,
 exit code 2 and no stdout output. No supplied text is echoed,
 no network calls or paid inference are made, and no workflow is restarted.
 A SUCCESS_CLAIM_UNVERIFIED result is **not** acceptance evidence.
+
+For example, when job-step APIs return an empty array but omit `runner_id`,
+a safe operator-supplied fixture is:
+
+~~~json
+{"schema_version":1,"source":"cineforge-ai","run_status":"completed","run_conclusion":"failure","jobs":[{"kind":"android","status":"completed","conclusion":"failure","runner_id":null,"executed_steps":null}]}
+~~~
+
+Expected `observed_classification` is `INSUFFICIENT_RUNNER_EVIDENCE`,
+**not** `FAILURE_BEFORE_RUNNER`. This is deliberately not live evidence;
+a missing/empty connector step response alone does not prove runner allocation
+failed, or that the Android/Kotlin checks ran.
 
 ## Follow-on gates
 
