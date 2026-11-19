@@ -1,5 +1,16 @@
 # P01 Render Free resource checkpoint — 2026-11-15
 
+## Read-only Render Free PostgreSQL refresh — 2026-11-19
+
+**VERIFIED (connected Render account inventory, metadata only, 2026-11-19):** the existing `devobs-ai-staging-db` is still **Free / available**, PostgreSQL 17, Frankfurt, with provider-reported `expiresAt=2026-12-05T10:33:24.202776Z`. The existing `devobs-ai-staging` web service remains **Free**, Frankfurt, branch `main`, auto-deploy **off**, not suspended. Only these sanitized non-secret metadata fields were used; no database connection, account billing, service environment, logs, credentials, production request, resource modification or hosted test occurred.
+
+**VERIFIED (official published provider policy, read-only):** [Render Free limits](https://render.com/docs/free) specify 30-day expiry and 14-day paid-upgrade grace before data deletion; Free PostgreSQL has **no backups**. [Render PostgreSQL Recovery and Backups](https://render.com/docs/postgresql-backups) confirms that provider-managed recovery/logical exports are not available for Free instances. The grace period does **not** permit ongoing Free database access or provide a restoration guarantee. The historical data-only [owner decision](RENDER_OPENAI_STAGING_RUNBOOK.md) classifies current rows as synthetic/disposable but does not approve deleting, upgrading or migrating resources.
+
+**LOCAL SOURCE ONLY:** [The sanitized snapshot](p01/render-free-expiry-snapshot.json) was updated to `observed_on=2026-11-19`, keeping all four fields and the same expiry. The offline [expiry checker](../scripts/check_render_free_expiry.py) remains fail-closed: the 2026-11-19 snapshot is `REVIEW_REQUIRED` with exit `1`; after seven days without a new authorized read-only observation, it becomes `STALE_INVENTORY`. A new behavior regression confirms no `production_approved` or `paid_activation_authorized` state. No automatic expiry watch, calendar task, payment, hosted backup or provider action was created.
+
+**Still BLOCKED:** P01 **NO-GO**, AI-9 **BLOCKED**, Codex runtime **OPEN**. The only immediate owner decision remains a separately reviewed, bounded **retirement/date** of the temporary Free DB versus a separately authorized **preservation plan** before **2026-12-05 10:33 UTC**. Do not treat a fresh `available` inventory row as API, identity, hosted RLS, TLS, recovery, billing or P01 acceptance evidence.
+
+
 **State:** READ_ONLY / NO-GO. **Scope:** existing Render `My Workspace` free-tier staging resources; not a production, billing, data-retention, security or live-API acceptance test. This is a sanitized operator-side snapshot collected through the connected Render read-only inventory, deployment and event views. No resource settings, credentials, logs, environment variables or customer data were read or changed.
 
 ## Verified provider inventory (2026-11-15 UTC)
