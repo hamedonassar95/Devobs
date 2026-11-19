@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { triageCineForgeCi } from '../scripts/integrations/cineforge_ci_runner_triage.mjs';
+import { triageCineForgeCi, triageProjectCi } from '../scripts/integrations/cineforge_ci_runner_triage.mjs';
 
 const THIS_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SCRIPT = path.join(THIS_DIR, '..', 'scripts', 'integrations', 'cineforge_ci_runner_triage.mjs');
@@ -14,6 +14,87 @@ const success = kind => ({ kind, status: 'completed', conclusion: 'success', run
 const payload = (overrides = {}) => ({
   schema_version: 1, source: 'cineforge-ai', run_status: 'completed', run_conclusion: 'failure',
   jobs: [failed('android'), failed('devobs-policy')], ...overrides,
+});
+
+const repairPayload = (kind = 'repair-monitor', overrides = {}) => ({
+  schema_version: 1,
+  source: 'phone-repair-assistant-v2',
+  run_status: 'completed',
+  run_conclusion: 'failure',
+  jobs: [{ ...failed(kind), runner_id: null, executed_steps: null }],
+  ...overrides,
+});
+
+test('repair monitor failures with missing job fields are inconclusive', () => {
+  const result = triageProjectCi(repairPayload());
+  assert.equal(result.source, 'phone-repair-assistant-v2');
+  assert.equal(result.observed_classification, 'INSUFFICIENT_RUNNER_EVIDENCE');
+  assert.equal(result.jobs_with_incomplete_runner_evidence, 1);
+  assert.equal(result.underlying_root_cause, 'UNKNOWN');
+  assert.equal(result.provenance_verified, false);
+  assert.equal(result.recommends_code_change, false);
+  assert.equal(result.automatic_execution, false);
+  assert.match(result.next_read_only_check, /never substitute zero/);
+});
+
+test('repair Scorecard can distinguish known pre-run failure from missing evidence', () => {
+  const known = triageProjectCi(repairPayload('scorecard', { jobs: [failed('scorecard')] }));
+  assert.equal(known.observed_classification, 'FAILURE_BEFORE_RUNNER');
+  assert.equal(known.jobs_failed_before_runner, 1);
+  const unknown = triageProjectCi(repairPayload('scorecard'));
+  assert.equal(unknown.observed_classification, 'INSUFFICIENT_RUNNER_EVIDENCE');
+  assert.equal(unknown.jobs_failed_before_runner, 0);
+});
+
+test('repair source rejects unrelated jobs, extra fields, raw private data and bad origin', () => {
+  const cases = [
+    repairPayload('android'),
+    repairPayload('devobs-policy'),
+    repairPayload('scorecard', { jobs: [failed('repair-monitor'), failed('repair-monitor')] }),
+    repairPayload('repair-monitor', { jobs: [{ ...failed('repair-monitor'), logs: 'private' }] }),
+    repairPayload('scorecard', { jobs: [{ ...failed('scorecard'), runner_id: '0' }] }),
+    repairPayload('scorecard', { jobs: [{ ...failed('scorecard'), runner_id: undefined }] }),
+    repairPayload('scorecard', { source: 'another-repair-repo' }),
+    payload({ jobs: [failed('scorecard')] }),
+  ];
+  for (const input of cases) assert.throws(() => triageProjectCi(input));
+});
+
+test('legacy CineForge export remains backward-compatible', () => {
+  assert.deepEqual(triageCineForgeCi(payload()), triageProjectCi(payload()));
+});
+
+test('repair monitoring workflow has no simulated connection or approval to write', () => {
+  const result = triageProjectCi(repairPayload('repair-monitor', {
+    run_conclusion: 'success',
+    jobs: [{ ...success('repair-monitor'), runner_id: null, executed_steps: null }],
+  }));
+  assert.equal(result.observed_classification, 'SUCCESS_CLAIM_UNVERIFIED');
+  assert.equal(result.requires_human_review, true);
+  assert.equal(result.automatic_execution, false);
+  assert.equal(result.provenance_verified, false);
+});
+
+test('CLI accepts sanitized repair monitor metadata without contacting providers', async t => {
+  const folder = await mkdtemp(path.join(os.tmpdir(), 'ci-triage-repair-'));
+  t.after(() => rm(folder, { recursive: true, force: true }));
+  const input = path.join(folder, 'repair.json');
+  await writeFile(input, JSON.stringify(repairPayload('repair-monitor')));
+  const good = spawnSync(process.execPath, [SCRIPT, '--input', input], { encoding: 'utf8' });
+  assert.equal(good.status, 0, good.stderr);
+  const observed = JSON.parse(good.stdout);
+  assert.equal(observed.source, 'phone-repair-assistant-v2');
+  assert.equal(observed.observed_classification, 'INSUFFICIENT_RUNNER_EVIDENCE');
+  assert.equal(observed.underlying_root_cause, 'UNKNOWN');
+  assert.equal(observed.automatic_execution, false);
+  await writeFile(input, JSON.stringify(repairPayload('repair-monitor', {
+    jobs: [{ ...failed('repair-monitor'), secret: 'not-allowed' }],
+  })));
+  const rejected = spawnSync(process.execPath, [SCRIPT, '--input', input], { encoding: 'utf8' });
+  assert.equal(rejected.status, 2);
+  assert.equal(rejected.stdout, '');
+  assert.equal(rejected.stderr, 'cineforge-ci-triage: invalid_job\n');
+  assert.equal(rejected.stderr.includes('not-allowed'), false);
 });
 
 test('classifies blocked jobs as pre-run failure, never a Kotlin failure', () => {
