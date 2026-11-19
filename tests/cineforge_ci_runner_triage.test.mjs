@@ -26,6 +26,42 @@ test('classifies blocked jobs as pre-run failure, never a Kotlin failure', () =>
   assert.equal(result.automatic_execution, false);
   assert.match(result.next_read_only_check, /GitHub run-level error banner/);
 });
+test('missing connector fields stay UNKNOWN rather than becoming false pre-run failures', () => {
+  for (const jobs of [
+    [{ ...failed('android'), runner_id: null, executed_steps: null }],
+    [failed('android'), { ...failed('devobs-policy'), runner_id: null }],
+    [{ ...failed('android'), executed_steps: null }],
+    [{ ...failed('android'), runner_id: null, executed_steps: 3 }],
+  ]) {
+    const result = triageCineForgeCi(payload({ jobs }));
+    assert.equal(result.observed_classification, 'INSUFFICIENT_RUNNER_EVIDENCE');
+    assert.equal(result.underlying_root_cause, 'UNKNOWN');
+    assert.equal(result.jobs_with_incomplete_runner_evidence, 1);
+    assert.equal(result.recommends_code_change, false);
+    assert.equal(result.provenance_verified, false);
+    assert.equal(result.automatic_execution, false);
+    assert.match(result.next_read_only_check, /never substitute zero/);
+  }
+});
+test('incomplete evidence does not falsely disprove a reported successful workflow', () => {
+  const result = triageCineForgeCi(payload({
+    run_conclusion: 'success',
+    jobs: [{ ...success('android'), runner_id: null, executed_steps: null }],
+  }));
+  assert.equal(result.observed_classification, 'SUCCESS_CLAIM_UNVERIFIED');
+  assert.equal(result.jobs_with_incomplete_runner_evidence, 1);
+  assert.equal(result.provenance_verified, false);
+});
+test('still rejects missing keys, fabricated values and inconsistent runner evidence', () => {
+  const cases = [
+    payload({ jobs: [{ ...failed('android'), runner_id: undefined }] }),
+    payload({ jobs: [{ ...failed('android'), executed_steps: undefined }] }),
+    payload({ jobs: [{ ...failed('android'), runner_id: '0' }] }),
+    payload({ jobs: [{ ...failed('android'), executed_steps: '0' }] }),
+    payload({ jobs: [{ ...failed('android'), runner_id: 0, executed_steps: 1 }] }),
+  ];
+  for (const input of cases) assert.throws(() => triageCineForgeCi(input));
+});
 test('recognizes an actual executed failure without assigning a cause', () => {
   const input = payload({ jobs: [{ ...failed('android'), runner_id: 77, executed_steps: 3 }] });
   const result = triageCineForgeCi(input);
@@ -86,6 +122,22 @@ test('CLI rejects duplicate JSON object keys without emitting advisory output', 
   }
 });
 
+test('CLI handles explicit null evidence without exposing an unsupported runner claim', async t => {
+  const folder = await mkdtemp(path.join(os.tmpdir(), 'ci-triage-unknown-'));
+  t.after(() => rm(folder, { recursive: true, force: true }));
+  const input = path.join(folder, 'unknown.json');
+  await writeFile(input, JSON.stringify(payload({
+    jobs: [{ ...failed('android'), runner_id: null, executed_steps: null }],
+  })));
+  const res = spawnSync(process.execPath, [SCRIPT, '--input', input], { encoding: 'utf8' });
+  assert.equal(res.status, 0, res.stderr);
+  const result = JSON.parse(res.stdout);
+  assert.equal(result.observed_classification, 'INSUFFICIENT_RUNNER_EVIDENCE');
+  assert.equal(result.jobs_failed_before_runner, 0);
+  assert.equal(result.jobs_with_incomplete_runner_evidence, 1);
+  assert.equal(result.underlying_root_cause, 'UNKNOWN');
+  assert.equal(result.automatic_execution, false);
+});
 test('CLI accepts bounded synthetic JSON and reports only fixed failures', async t => {
   const folder = await mkdtemp(path.join(os.tmpdir(), 'ci-triage-'));
   t.after(() => rm(folder, { recursive: true, force: true }));
