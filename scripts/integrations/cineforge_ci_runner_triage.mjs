@@ -5,8 +5,12 @@ import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { parseJsonLine } from '../ai_intelligence/event_schema.mjs';
 
-const SOURCE = 'cineforge-ai';
-const KINDS = new Set(['android', 'devobs-policy']);
+// Only allow established public project aliases and job kinds. Never
+// accept arbitrary private repository names or job labels in diagnostics.
+const ALLOWED_JOBS_BY_SOURCE = Object.freeze({
+  'cineforge-ai': new Set(['android', 'devobs-policy']),
+  'phone-repair-assistant-v2': new Set(['repair-monitor', 'scorecard']),
+});
 const STATES = new Set(['queued', 'in_progress', 'completed']);
 const RESULTS = new Set(['success', 'failure', 'cancelled']);
 const RUN_FIELDS = new Set(['schema_version', 'source', 'run_status', 'run_conclusion', 'jobs']);
@@ -29,16 +33,19 @@ function validState(status, conclusion) {
     ? RESULTS.has(conclusion) : conclusion === null);
 }
 
-/** Classify ONLY supplied observations, not the underlying root cause. */
-export function triageCineForgeCi(input) {
-  if (!exactKeys(input, RUN_FIELDS) || input.schema_version !== 1
-    || input.source !== SOURCE || !validState(input.run_status, input.run_conclusion)
+/** Classify ONLY supplied, bounded observations, never the root cause. */
+export function triageProjectCi(input) {
+  const permittedKinds = exactKeys(input, RUN_FIELDS) && typeof input.source === 'string'
+    && Object.hasOwn(ALLOWED_JOBS_BY_SOURCE, input.source)
+    ? ALLOWED_JOBS_BY_SOURCE[input.source] : null;
+  if (!permittedKinds || input.schema_version !== 1
+    || !validState(input.run_status, input.run_conclusion)
     || !Array.isArray(input.jobs) || input.jobs.length < 1 || input.jobs.length > 2) {
     invalid('invalid_run');
   }
   const seen = new Set();
   for (const job of input.jobs) {
-    if (!exactKeys(job, JOB_FIELDS) || !KINDS.has(job.kind)
+    if (!exactKeys(job, JOB_FIELDS) || !permittedKinds.has(job.kind)
       || seen.has(job.kind) || !validState(job.status, job.conclusion)
       || !(job.runner_id === null || (Number.isSafeInteger(job.runner_id) && job.runner_id >= 0))
       || !(job.executed_steps === null || (Number.isSafeInteger(job.executed_steps)
@@ -72,19 +79,19 @@ export function triageCineForgeCi(input) {
     nextCheck = 'Independently verify successful jobs and exact commit in GitHub.';
   } else if (incomplete > 0) {
     code = 'INSUFFICIENT_RUNNER_EVIDENCE';
-    nextCheck = 'Runner ID or executed-step count is missing from the evidence source. Inspect the GitHub run-level banner and authenticated job details; never substitute zero, infer a Kotlin defect, or retry automatically.';
+    nextCheck = 'Runner ID or executed-step count is missing from the evidence source. Inspect the GitHub run-level banner and authenticated job details; never substitute zero, infer an application defect, or retry automatically.';
   } else if (failedNoRunner === total) {
     code = 'FAILURE_BEFORE_RUNNER';
-    nextCheck = 'Inspect the GitHub run-level error banner and repository Actions/billing/runner restrictions; do not change Android code or retry without new evidence.';
+    nextCheck = 'Inspect the GitHub run-level error banner and repository Actions/billing/runner restrictions; do not change application code or retry without new evidence.';
   } else if (executed > 0) {
     code = 'WORKFLOW_EXECUTED_WITH_FAILURE';
-    nextCheck = 'Review the first failed step and permitted logs on the exact run; do not infer a Kotlin defect without its output.';
+    nextCheck = 'Review the first failed step and permitted logs on the exact run; do not infer an application defect without its output.';
   } else {
     code = 'MIXED_OR_PRESTEP_FAILURE';
     nextCheck = 'Inspect job-level status and run-level errors; do not infer a code defect or allocate new runners automatically.';
   }
   return {
-    schema_version: 1, source: SOURCE, mode: 'advisory_only',
+    schema_version: 1, source: input.source, mode: 'advisory_only',
     observed_classification: code, underlying_root_cause: 'UNKNOWN',
     provenance_verified: false, jobs_considered: total,
     jobs_failed_before_runner: failedNoRunner, jobs_assigned_runner: assigned,
@@ -94,6 +101,9 @@ export function triageCineForgeCi(input) {
     automatic_execution: false,
   };
 }
+// Keep the original export for existing CineForge consumers.
+export const triageCineForgeCi = triageProjectCi;
+
 export async function main(args = process.argv.slice(2)) {
   try {
     if (args.length !== 2 || args[0] !== '--input' || !args[1] || args[1].startsWith('-')) invalid('invalid_arguments');
@@ -102,7 +112,7 @@ export async function main(args = process.argv.slice(2)) {
     let parsed;
     try { parsed = parseJsonLine(new TextDecoder('utf-8', { fatal: true }).decode(raw)); }
     catch { invalid('invalid_json'); }
-    process.stdout.write(JSON.stringify(triageCineForgeCi(parsed)) + '\n');
+    process.stdout.write(JSON.stringify(triageProjectCi(parsed)) + '\n');
     return 0;
   } catch (error) {
     const code = error instanceof CiRunnerTriageError ? error.code : 'input_unavailable';
