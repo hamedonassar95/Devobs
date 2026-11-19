@@ -37,7 +37,7 @@ import os
 import pathlib
 import re
 import shutil
-import subprocess
+import subprocess  # nosec B404 - fixed-argv Git and pinned local Graphify only
 import sys
 
 POLICY = "devobs-graphify-portfolio-v1"
@@ -133,8 +133,14 @@ def is_within(path: pathlib.Path, parent: pathlib.Path) -> bool:
 
 
 def _git(repo: pathlib.Path, *args: str) -> str:
-    result = subprocess.run(
-        ["git", "-C", str(repo), *args],
+    allowed = {("config", "--get", "remote.origin.url"), ("rev-parse", "--abbrev-ref", "HEAD"), ("rev-parse", "HEAD"), ("status", "--porcelain", "--untracked-files=all")}
+    if tuple(args) not in allowed:
+        raise PortfolioError("unsupported Git inspection command")
+    git_executable = shutil.which("git")
+    if not git_executable or not pathlib.Path(git_executable).is_absolute():
+        raise PortfolioError("trusted Git executable not found")
+    result = subprocess.run(  # nosec B603 - audited fixed Git argv, no shell
+        [git_executable, "-C", str(repo), *args],
         capture_output=True,
         text=True,
         encoding="utf-8",
@@ -142,7 +148,7 @@ def _git(repo: pathlib.Path, *args: str) -> str:
         timeout=120,
     )
     if result.returncode != 0:
-        raise PortfolioError(f"git {' '.join(args)} failed: {(result.stderr or '').strip()}")
+        raise PortfolioError("Git inspection command failed")
     return result.stdout
 
 
@@ -367,7 +373,7 @@ def execute_repository(
             "provider_key_variables_blanked": list(PROVIDER_KEY_VARS),
         },
         "started_at": started.isoformat(),
-        "network_uploads": False,
+        "network_egress_verification": "not_verified",
         "hooks_installed": False,
     }
 
@@ -376,7 +382,7 @@ def execute_repository(
         result = _run(argv, env, repository.path, timeout, run)
     except (OSError, subprocess.SubprocessError) as exc:
         result = None
-        failure = f"extraction did not complete: {exc}"
+        failure = "extraction did not complete (execution error)"
     finished = datetime.datetime.now(datetime.timezone.utc)
     record["finished_at"] = finished.isoformat()
     record["duration_seconds"] = round((finished - started).total_seconds(), 3)
@@ -385,8 +391,6 @@ def execute_repository(
     record["graph"] = None
     if result is not None:
         record["exit_code"] = result.returncode
-        record["stdout_tail"] = _tail(result.stdout)
-        record["stderr_tail"] = _tail(result.stderr)
         if result.returncode != 0:
             failure = failure or f"graphify exited {result.returncode}"
     if failure is None and not graph_path.is_file():
@@ -397,15 +401,18 @@ def execute_repository(
         try:
             graph = json.loads(payload.decode("utf-8"))
         except (UnicodeError, json.JSONDecodeError) as exc:
-            failure = f"graph.json is not valid JSON: {exc}"
+            failure = "graph.json is not valid JSON"
         else:
-            record["graph"] = {
-                "path": str(graph_path),
+            if not isinstance(graph, dict) or not isinstance(graph.get("nodes"), list) or not isinstance(graph.get("links"), list):
+                failure = "graph.json has an invalid graph structure"
+            else:
+                record["graph"] = {
+                    "path": str(graph_path),
                 "sha256": hashlib.sha256(payload).hexdigest(),
                 "bytes": len(payload),
-                "nodes": len(graph.get("nodes") or []),
-                "edges": len(graph.get("links") or []),
-            }
+                    "nodes": len(graph["nodes"]),
+                    "edges": len(graph["links"]),
+                }
 
     after_status = _git(repository.path, "status", "--porcelain", "--untracked-files=all")
     after_head = _git(repository.path, "rev-parse", "HEAD").strip()
