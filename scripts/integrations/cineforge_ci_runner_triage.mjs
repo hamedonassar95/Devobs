@@ -40,9 +40,10 @@ export function triageCineForgeCi(input) {
   for (const job of input.jobs) {
     if (!exactKeys(job, JOB_FIELDS) || !KINDS.has(job.kind)
       || seen.has(job.kind) || !validState(job.status, job.conclusion)
-      || !Number.isSafeInteger(job.runner_id) || job.runner_id < 0
-      || !Number.isSafeInteger(job.executed_steps) || job.executed_steps < 0
-      || job.executed_steps > 100 || (job.runner_id === 0 && job.executed_steps > 0)
+      || !(job.runner_id === null || (Number.isSafeInteger(job.runner_id) && job.runner_id >= 0))
+      || !(job.executed_steps === null || (Number.isSafeInteger(job.executed_steps)
+        && job.executed_steps >= 0 && job.executed_steps <= 100))
+      || (job.runner_id === 0 && job.executed_steps !== null && job.executed_steps > 0)
       || (job.status !== 'completed' && input.run_status === 'completed')
       || (job.status === 'completed' && input.run_status === 'queued')
       || (job.conclusion === 'success' && job.executed_steps === 0)) {
@@ -55,6 +56,8 @@ export function triageCineForgeCi(input) {
     invalid('inconsistent_conclusion');
   }
   const total = input.jobs.length;
+  // Null means the upstream read-only tool omitted this field, NOT numerical zero.
+  const incomplete = input.jobs.filter(j => j.runner_id === null || j.executed_steps === null).length;
   const failedNoRunner = input.jobs.filter(j => j.status === 'completed'
     && j.conclusion === 'failure' && j.runner_id === 0 && j.executed_steps === 0).length;
   const assigned = input.jobs.filter(j => j.runner_id > 0).length;
@@ -67,6 +70,9 @@ export function triageCineForgeCi(input) {
   } else if (input.run_conclusion === 'success') {
     code = 'SUCCESS_CLAIM_UNVERIFIED';
     nextCheck = 'Independently verify successful jobs and exact commit in GitHub.';
+  } else if (incomplete > 0) {
+    code = 'INSUFFICIENT_RUNNER_EVIDENCE';
+    nextCheck = 'Runner ID or executed-step count is missing from the evidence source. Inspect the GitHub run-level banner and authenticated job details; never substitute zero, infer a Kotlin defect, or retry automatically.';
   } else if (failedNoRunner === total) {
     code = 'FAILURE_BEFORE_RUNNER';
     nextCheck = 'Inspect the GitHub run-level error banner and repository Actions/billing/runner restrictions; do not change Android code or retry without new evidence.';
@@ -82,7 +88,8 @@ export function triageCineForgeCi(input) {
     observed_classification: code, underlying_root_cause: 'UNKNOWN',
     provenance_verified: false, jobs_considered: total,
     jobs_failed_before_runner: failedNoRunner, jobs_assigned_runner: assigned,
-    jobs_with_executed_steps: executed, next_read_only_check: nextCheck,
+    jobs_with_executed_steps: executed, jobs_with_incomplete_runner_evidence: incomplete,
+    next_read_only_check: nextCheck,
     recommends_code_change: false, requires_human_review: true,
     automatic_execution: false,
   };
