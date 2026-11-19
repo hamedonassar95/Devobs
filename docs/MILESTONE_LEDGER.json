@@ -3236,6 +3236,39 @@
       "ci_run_id": 44394704836,
       "verification": "VERIFIED 2026-11-18 (GitHub): PR #704 merged exact head 699770c019434b803532751494f0401b89f3f503 into 213527bd372dc90d63ba96881ca0d7f618265466 at 2026-11-18T20:51:07Z. Exact-head CI 44394704836 and exact-main CI 44395339086 both SUCCESS; both ran node-tests including npm ci, npm audit --audit-level=high, tests, lint and the production build. GHSA-fc5q-39xc-vjpf was withdrawn 2026-11-18T15:38:56Z with no patched version; a local audit at 2026-11-18T20:39:02Z also found 0 vulnerabilities.",
       "limitations": "Advisory withdrawal is NOT a source-code fix: picomatch remains 4.0.7 and no dependency, lockfile, CI gate or runtime code changed. Earlier run 44340042544 failed the same audit while the advisory was active. Production reachability is untraced; sibling advisories CVE-2026-33671/CVE-2026-33672 are fixed in 4.0.4, so no downgrade or override is safe. GitLab synchronization remains PENDING, not complete. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-ledger-and-alert-pr705",
+      "area": "DOCUMENTATION",
+      "title": "Reconcile PR #702–#704 and retain unresolved Dependabot alert evidence",
+      "pr_number": 705,
+      "pr_head_sha": "729777f29b85aacf26db2f66cbf43869a5a62c6c",
+      "merge_sha": "b7be0c8c899b0684c2eb69bfad32274e2de6288d",
+      "ci_run_id": 44397346558,
+      "verification": "VERIFIED 2026-11-19 (GitHub): PR #705 merged exact head 729777f29b85aacf26db2f66cbf43869a5a62c6c into b7be0c8c899b0684c2eb69bfad32274e2de6288d. Exact-head CI 44397346558 completed SUCCESS. Recorded earlier PR #702/#703/#704 merges, withdrawn picomatch advisory, and one reported HIGH Dependabot alert without assuming its package.",
+      "limitations": "A previously reported Dependabot alert has no independently confirmed advisory identity or current disposition. CI is not hosted service evidence. No secrets, billing changes, GitLab synchronization, or production GO. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-gitlab-policy-diagnostics-pr706",
+      "area": "RELIABILITY",
+      "title": "Fail-closed GitLab merge-policy diagnostic for missing public merge_method",
+      "pr_number": 706,
+      "pr_head_sha": "92156eac7b6aa7511e4721b1723f89da09a51aba",
+      "merge_sha": "c3998b951d8fb6b829e93105e6b34388722b2a63",
+      "ci_run_id": 44401074798,
+      "verification": "VERIFIED 2026-11-19 (GitHub): PR #706 merged exact head 92156eac7b6aa7511e4721b1723f89da09a51aba into c3998b951d8fb6b829e93105e6b34388722b2a63. Exact-head CI 44401074798 completed SUCCESS. Missing unauthenticated GitLab merge_method is reported explicitly while failing closed.",
+      "limitations": "Improved diagnostics do not verify anonymous GitLab MR policy or authorize fast-forward pushes. An authenticated GitLab project read is a separate observation, not proof that unauthenticated CI can see the same field. No writes or deployment. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-gitlab-preflight-separation-pr708",
+      "area": "CI_SECURITY",
+      "title": "Separate read-only GitLab ancestry preflight from manual MR policy audit",
+      "pr_number": 708,
+      "pr_head_sha": "474797a66c601a13c55b80025345101b33d80e87",
+      "merge_sha": "0f062c03dbefceebf8eaca79bdaf30c2483f99be",
+      "ci_run_id": 44403718083,
+      "verification": "VERIFIED 2026-11-19 (GitHub): PR #708 merged exact head 474797a66c601a13c55b80025345101b33d80e87 into 0f062c03dbefceebf8eaca79bdaf30c2483f99be. Exact-head CI 44403718083 completed SUCCESS. Manual GitLab ancestry and MR-policy audit workflows are separated and remain read-only.",
+      "limitations": "A successful ancestry classification means REVIEW_REQUIRED, not SYNC_APPROVED. Manual workflow execution after merge remains UNVERIFIED; unauthenticated MR merge_method still may be missing. Live GitLab protected main remains behind verified GitHub main, with no GitLab push. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
