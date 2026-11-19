@@ -1,27 +1,31 @@
 # Graphify portfolio integration (offline, dry-run first)
 
-**Status: integration implemented and tested; rollout BLOCKED.** The orchestrator
-and its tests exist, but no authorized repository currently meets the rollout
-preconditions (clean `main`/`master` checkout), no Draft PR was opened, and no
-graph was uploaded anywhere.
+**Status: integration implemented, execution evidence hardened; rollout
+BLOCKED.** The orchestrator and its tests exist, but no authorized repository
+currently meets the rollout preconditions (clean `main`/`master` checkout), and
+the per-repository rollout Draft PRs were not opened. Run evidence no longer
+retains raw process output, and network-upload state is recorded as
+`UNVERIFIED` instead of being asserted.
 
-This document records what was verified on 2026-11-19. It is local, read-only
-evidence and not a claim that any project is connected to a Graphify service.
+This document records what was verified on 2026-11-19 and 2026-11-20. It is
+local, read-only evidence and not a claim that any project is connected to a
+Graphify service.
 
 ## 1. Scope
 
 | Item | Value |
 | --- | --- |
 | Repository | `hamedonassar95/Devobs` |
-| Branch | `feature/graphify-portfolio-integration` |
-| Base | `main` at `cbaf86b97339fb778038e51c7b2ca6724a61e3d6` |
+| Branch | `feature/graphify-safe-evidence` |
+| Base | `23b18502434b0d22f40a14037ac94c0901936e92` (head of PR #720) |
+| Parent PR | #720 (`feature/graphify-portfolio-integration`, open Draft, base `main`) |
 | Orchestrator | `scripts/integrations/graphify_portfolio.py` |
 | Tests | `tests/test_graphify_portfolio.py` |
 | Pinned Graphify release | `graphifyy==0.9.112` |
 
-Files changed by this task: the two files above, this document and a README
-link. No application source, CI workflow, hook, service inventory or Android
-configuration was modified.
+Files changed by this task: the orchestrator, its tests and this document. No
+application source, CI workflow, hook, service inventory, README or Android
+configuration was modified, and no additional repository was scanned.
 
 ## 2. Provenance of `graphifyy==0.9.112`
 
@@ -133,12 +137,17 @@ again per repository immediately before the run.
    directory is never overwritten.
 6. **Post-run proof.** The working tree and `HEAD` are snapshotted before and
    after extraction. Any change, any `graphify-out` inside the source
-   repository, a non-zero exit, missing `graph.json` or invalid JSON is reported
-   as `failed`, and the CLI exits 3.
+   repository, a non-zero exit, a missing `graph.json`, invalid JSON or a
+   structurally invalid graph is reported as `failed`, and the CLI exits 3.
 7. **No side channels.** The orchestrator never runs `graphify install`, never
    installs git hooks, never uses `--global`, `--postgres`, `--google-workspace`
    or any export/push subcommand, never uploads, publishes, deploys or
-   schedules, and never calls an LLM backend.
+   schedules, and never calls an LLM backend. `network_uploads` is recorded as
+   `UNVERIFIED`: absence of an HTTP client in this module is not an attestation
+   about the pinned binary.
+8. **Evidence hygiene.** Raw process output is never retained; credential
+   shapes are redacted before any write, and a residual match withholds the
+   whole record. See section 8.
 
 ## 6. Local discovery result
 
@@ -157,6 +166,10 @@ python scripts/integrations/graphify_portfolio.py --root C:\DevProjects --json
 Both checkouts are authorized (owner `hamedonassar95`, correct `origin`), but
 neither is eligible for a rollout graph today. No other local GitHub checkouts
 were found. Remote-only repositories were not cloned for this task.
+
+This table is a 2026-11-19 snapshot. Later branch changes (for example a Gradle
+verification branch in `CineForge-AI`) are not reflected; re-run the dry run
+before rollout.
 
 ## 7. Isolated pilot (executed)
 
@@ -184,14 +197,20 @@ with `HTTP_PROXY`/`HTTPS_PROXY` pointed at a dead local port (`127.0.0.1:9`) and
 | `graph.json` SHA-256 | `ba66e853378bbbc9ca2b22ec57990ed37a1b4d80fee9b2d40565b85732d5c403` |
 | Repository after run | unchanged (`git status` empty, `HEAD` unchanged) |
 | Stray `graphify-out` in source | none |
-| Uploads / hooks | none (`network_uploads: false`, `hooks_installed: false`) |
+| Network uploads | `UNVERIFIED` - see section 8 |
+| Hooks installed | `NOT_PERFORMED` (no install subcommand is ever invoked) |
 | `~/.graphify` global state | not created |
 | Output footprint | 402 files, 20.4 MB, all under the external output root |
 
+That pilot was produced by the previous evidence schema, which still stored a
+short stdout/stderr tail. The tail is no longer written; the graph and
+repository proof above are unaffected.
+
 The orchestrator wrote the graph outside the source tree
 (`...\graphify-pilot\graphs\Devobs-pilot\<sha>\graphify-out\graph.json`) plus a
-local `run.json` containing the argv, offline environment, exit code, graph
-hash, node/edge counts and the before/after repository state.
+local `run.json` containing the argv, offline environment, exit code and output
+byte counts, graph hash and file-derived counts, and the before/after
+repository state.
 
 Pilot limitations:
 
@@ -207,28 +226,100 @@ Pilot limitations:
 - The pilot does not make the real checkouts eligible; it only proves the
   orchestrator and the offline invocation work end to end.
 
-## 8. Draft Pull Request plan (blocked)
+## 8. Evidence model and redaction
 
-No Draft PR was opened:
+`run.json` is deliberately free of process output. It records:
 
-- `gh` is not installed on this host.
-- Extracting the credential-manager token to call the REST API is prohibited.
-- No repository is eligible for a rollout graph, so a per-repository PR would
-  document a blocked state rather than a result.
+| Field | Content |
+| --- | --- |
+| `policy`, `graphify_version` | fixed identifiers |
+| `repository` | name, path, redacted remote, branch, HEAD, dirty flag |
+| `command` | exact argv (paths only) |
+| `environment` | the two offline variables plus the *names* of blanked provider variables |
+| timing | `started_at`, `finished_at`, `duration_seconds` |
+| `exit_code`, `stdout_bytes`, `stderr_bytes` | status and output size, never output |
+| `graph` | path, SHA-256, byte size, node/edge counts from the validated file |
+| `repository_unchanged`, `stray_graphify_out_in_repository` | before/after proof |
+| `evidence` | `network_uploads: UNVERIFIED`, `hooks_installed: NOT_PERFORMED`, `process_output: NOT_RETAINED` |
+| `status`, `failure` | outcome; failure text is index-based and redacted |
 
-When a repository becomes eligible, the intended per-repository change is one
-Draft PR containing only:
+Removed by this change: `stdout_tail`, `stderr_tail` and any diagnostic dump.
+The old schema could copy file names, test names and source identifiers from
+Graphify warnings into evidence that sits beside the repository.
+
+Redaction runs before every write and before the JSON report is printed:
+
+- URL userinfo (`scheme://user:token@host`) becomes
+  `scheme://[REDACTED]@host`; the host is kept.
+- `KEY=value` / `TOKEN: value`, `Bearer ...` and provider token shapes
+  (`ghp_`, `github_pat_`, `glpat-`, `xox?-`, `AKIA...`, `AIza...`, `sk-...`),
+  JWTs and PEM private-key blocks become `[REDACTED]`.
+- Git object ids and SHA-256 digests are lowercase hex and are preserved:
+  there is no generic long-hex or base64 rule.
+- After sanitization a second scan of the serialized record must find no known
+  secret shape. If it does, the record is withheld and replaced with a fixed
+  failure stub (`sensitive_evidence_withheld: true`).
+
+This is defence in depth, not a guarantee. It cannot recognise an unknown
+credential format, and it keeps the local filesystem path and repository name
+because the operator needs them to locate the run.
+
+### Graph validation
+
+`status: extracted` requires `graph.json` to pass structural checks first: a
+JSON object root, `nodes` and `links` lists, at least one node, unique
+non-empty **string** node ids, both link endpoints resolving to a known id, and
+boolean `directed`/`multigraph` plus object `graph` metadata when present.
+Counts come from the validated file, never from stdout. Error messages cite
+node/link indexes only, so a private node id is not echoed into evidence. The
+real pilot graph satisfies these rules (8,797 unique string ids, 16,290 links,
+0 dangling endpoints), which is why the checks are strict rather than
+heuristic.
+
+## 9. Draft Pull Request plan
+
+This branch is stacked: it targets `feature/graphify-portfolio-integration`
+(PR #720), not `main`, so PR #720 can be reviewed first.
+
+No Draft PR could be opened from this host: `gh` is not installed, and
+extracting the credential-manager token to call the REST API is prohibited.
+Once `gh` is available, open a **Draft** PR with:
 
 ```text
-docs/integrations/graphify/<sha>.md   # graph summary, node/edge counts, hash
+base:   feature/graphify-portfolio-integration
+head:   feature/graphify-safe-evidence
+title:  fix(graphify): harden execution evidence and privacy
 ```
 
-and a one-line README link. The graph artifacts themselves stay outside the
-repository; only the summary belongs in Git. The PR body must state the exact
-commit, the pinned Graphify version, the offline environment variables, the
-graph SHA-256, and that no upload, LLM call, hook or deployment occurred.
+Compare URL:
 
-## 9. What this does not do
+```text
+https://github.com/hamedonassar95/Devobs/compare/feature/graphify-portfolio-integration...feature/graphify-safe-evidence
+```
+
+The PR body must reference PR #720, the hardening commits, the test result and
+the residual risks below. Future per-repository rollout PRs (not opened)
+contain only a summary under `docs/integrations/graphify/<sha>.md` plus a
+one-line README link; graph artifacts stay outside Git.
+
+## 10. Residual risks
+
+- Removing raw output means a failed run is diagnosed by re-running it, not by
+  reading a log from `run.json`.
+- Redaction cannot catch an unknown credential format, and local paths and
+  user names remain in evidence.
+- A sibling branch `feature-graphify-security-privacy` (`a344fd6`) touches the
+  same functions (sanitized diagnostics, Bandit suppressions). This branch was
+  created from `23b1850` as instructed, so the two will conflict and must be
+  reconciled before either merges. The Bandit findings (`B404`, `B603`,
+  `B607`) fixed on that sibling branch are **not** fixed here.
+- `network_uploads: UNVERIFIED` is a declaration. The dead-proxy pilot shows
+  extraction needed no HTTP; it is not proof that no connection was attempted.
+- No repository is rollout-eligible today, so the hardened path has not been
+  exercised against a real eligible checkout. It is covered by synthetic tests
+  and the earlier pilot's graph, not by a new end-to-end real run.
+
+## 11. What this does not do
 
 - No `graphify install`, no platform skill installation, no git hooks.
 - No system images, emulators or Android toolchain changes.
@@ -237,10 +328,11 @@ graph SHA-256, and that no upload, LLM call, hook or deployment occurred.
 - No merge, release, deployment or scheduler.
 - No claim about compile, lint or unit-test gates of any scanned project.
 
-## 10. Next action
+## 12. Next action
 
-1. Merge or park the paused `pages-manifest-transient-retry` work so `Devobs`
-   has a clean `main` checkout, or point the orchestrator at a clean clone.
-2. Re-run the dry run, then execute one repository with explicit `--only`.
-3. Review the local `run.json` and `graph.json` hash, then decide whether a
-   documentation-only Draft PR is worth opening.
+1. Resolve the paused `pages-manifest-transient-retry` work so `Devobs` has a
+   clean `main` checkout, or point the orchestrator at a clean clone.
+2. Reconcile with `feature-graphify-security-privacy` before merging either
+   hardening branch.
+3. Re-run the dry run, then execute one repository with explicit `--only`, and
+   review the new `run.json` schema and graph hash.
