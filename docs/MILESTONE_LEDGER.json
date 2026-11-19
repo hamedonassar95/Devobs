@@ -3324,6 +3324,28 @@
       "ci_run_id": 44501730304,
       "verification": "VERIFIED 2026-11-19 (GitHub): PR #714 merged exact head 934a586292ec360af12c074434358131909081cc at 2026-11-19T10:03:44Z as 428f07ecc8c309a5f0849d3b8518bc120dda8bdc. Exact-head CI 44501730304 completed SUCCESS for security, RLS, containers, Terraform, impact and validate; Python and Node suites were SKIPPED by documentation-only impact selection. README, Render checkpoint and new retirement plan docs were the only changed files.",
       "limitations": "Only retirement PLAN was approved: no database deletion, suspension, export, deliberate expiration acceptance or paid upgrade. Static search found no named cross-project references, but hidden/external live consumers and actual retention obligations are UNVERIFIED. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-cineforge-runner-metadata-fail-closed-pr716",
+      "area": "OPERATIONS",
+      "title": "fix(ci-triage): fail closed when runner metadata is missing",
+      "pr_number": 716,
+      "pr_head_sha": "7363bdd5f2e60a0daa6bd26f19ee5657617bd4c4",
+      "merge_sha": "8e357732ca2396d9bae9d3fdb3aa2e0a3eb9bddf",
+      "ci_run_id": 44512140617,
+      "verification": "VERIFIED 2026-11-19 (GitHub public metadata): PR #716 merged exact head 7363bdd5f2e60a0daa6bd26f19ee5657617bd4c4 at 2026-11-19T11:12:57Z as 8e357732ca2396d9bae9d3fdb3aa2e0a3eb9bddf onto 2fc295d296dd4ec4abd04996d9d72a2663db0f70. Exact-head PR CI 44512140617 completed SUCCESS: validate, security, postgres-rls, terraform-validate, site-contract, container build/smoke/scan, change-impact and node-tests succeeded; Python, production-release and controlled-incident-drill were SKIPPED by scope. Only README, the runner-triage doc, the triage script and its node tests changed (+85/-6).",
+      "limitations": "Offline advisory classifier only: no authenticated GitHub evidence, live runner proof, private log access, workflow rerun or provider write. Missing runner metadata stays UNKNOWN or INSUFFICIENT_RUNNER_EVIDENCE and is never defaulted to 0. CI success is not hosted runtime acceptance or approval to merge/deploy. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-cineforge-repair-monitor-scorecard-pr717",
+      "area": "OPERATIONS",
+      "title": "feat(ci-triage): support bounded repair monitor and Scorecard evidence",
+      "pr_number": 717,
+      "pr_head_sha": "e040bde88b8340649a59e8ee92d0232b29fd8ad7",
+      "merge_sha": "7f0a399fcfd3e075a039564a8b5afac0a4e218f4",
+      "ci_run_id": 44513170720,
+      "verification": "VERIFIED 2026-11-19 (GitHub public metadata): PR #717 merged exact head e040bde88b8340649a59e8ee92d0232b29fd8ad7 at 2026-11-19T11:25:17Z as 7f0a399fcfd3e075a039564a8b5afac0a4e218f4 onto 8e357732ca2396d9bae9d3fdb3aa2e0a3eb9bddf, the verified main at reconciliation time. Exact-head PR CI 44513170720 completed SUCCESS: validate, security, postgres-rls, terraform-validate, site-contract, container build/smoke/scan, change-impact and node-tests succeeded; Python, production-release and controlled-incident-drill were SKIPPED by scope. Only README, the runner-triage doc, the triage script and its node tests changed (+166/-21). Offline node --test at this merge SHA reports 18 of 18 passing.",
+      "limitations": "Adds allowlisted phone-repair-assistant-v2 repair-monitor and scorecard kinds with fail-closed evidence handling. It does not authenticate GitHub metadata, prove runner allocation, read private logs, rerun monitors, or authorize environment secrets or Supabase writes. Known gap: the read-only connector omitted runner IDs and executed-step counts, so results stay UNKNOWN. No private project was accessed. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
