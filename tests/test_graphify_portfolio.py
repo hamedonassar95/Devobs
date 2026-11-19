@@ -247,6 +247,41 @@ class ExecutionTests(unittest.TestCase):
         )
         self.assertEqual(record["environment"]["GRAPHIFY_BACKEND"], "none")
 
+    def test_execution_does_not_persist_child_output_or_claim_network_attestation(self):
+        class SensitiveRunner(FakeRunner):
+            def __call__(self, argv, **kwargs):
+                result = super().__call__(argv, **kwargs)
+                if argv[1:] != ["--version"]:
+                    return subprocess.CompletedProcess(argv, 0, "SENSITIVE_STDOUT_MARKER", "SENSITIVE_STDERR_MARKER")
+                return result
+
+        record = gp.execute_repository(self.repository, self.out, "graphify", run=SensitiveRunner(self.repo))
+        saved = (self.out / "demo" / self.repository.head / "run.json").read_text(encoding="utf-8")
+        self.assertEqual(record["network_egress_verification"], "not_verified")
+        self.assertNotIn("network_uploads", record)
+        self.assertNotIn("stdout_tail", record)
+        self.assertNotIn("stderr_tail", record)
+        self.assertNotIn("SENSITIVE_STDOUT_MARKER", saved)
+        self.assertNotIn("SENSITIVE_STDERR_MARKER", saved)
+
+    def test_malformed_graph_shape_fails_closed(self):
+        class MalformedRunner(FakeRunner):
+            def __call__(self, argv, **kwargs):
+                result = super().__call__(argv, **kwargs)
+                if "--out" in argv:
+                    out = pathlib.Path(argv[argv.index("--out") + 1])
+                    graph = out / "graphify-out" / "graph.json"
+                    graph.write_text('{"nodes": 123, "links": {}}', encoding="utf-8")
+                return result
+
+        record = gp.execute_repository(self.repository, self.out, "graphify", run=MalformedRunner(self.repo))
+        self.assertEqual(record["status"], "failed")
+        self.assertIn("invalid graph structure", record["failure"])
+
+    def test_git_inspection_rejects_non_allowlisted_operations(self):
+        with self.assertRaisesRegex(gp.PortfolioError, "unsupported Git inspection command"):
+            gp._git(self.repo, "push", "origin", "main")
+
     def test_version_mismatch_fails_closed_without_extraction(self):
         runner = FakeRunner(self.repo, version="graphify 0.9.200")
         with self.assertRaisesRegex(gp.PortfolioError, "not the pinned 0.9.112"):
