@@ -23,11 +23,13 @@ from .portfolio import (
     LEGACY_PORTFOLIO_CONTRACT,
     PortfolioContract,
     PortfolioError,
+    Repository,
     _git,
     discover,
     plan,
     validate_output_root,
 )
+
 
 def _run(argv, env, cwd, timeout, run):
     return run(
