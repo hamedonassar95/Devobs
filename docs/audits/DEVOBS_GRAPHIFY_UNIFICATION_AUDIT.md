@@ -171,12 +171,12 @@ Full-suite comparison:
 | Revision | Command | Result |
 | --- | --- | --- |
 | Base `41353d1` | `python -B -m unittest discover -s tests -v` | `Ran 1201 tests`, `FAILED (failures=47, errors=123, skipped=44)`, `BASELINE_UNITTEST_EXIT=1` |
-| Post-change | `python -B -m unittest discover -s tests -v` | `Ran 1212 tests`, `FAILED (failures=47, errors=123, skipped=44)`, `AFTER_UNITTEST_EXIT=1` |
+| Post-change | `python -B -m unittest discover -s tests -v` | `Ran 1212 tests`, `FAILED (failures=47, errors=123, skipped=44)`, `FINAL_UNITTEST_EXIT=1` |
 
 The 11 additional tests are the new canonical portfolio, wheel-verification and
 adapter-delegation tests. A header-set comparison of the two logs reports
-`BASE_FAILING_IDS 135`, `AFTER_FAILING_IDS 135`, `NEW_IN_AFTER 0`,
-`MISSING_FROM_AFTER 0`. The failure population is unchanged; the pre-existing
+`BASE_FAILING_IDS 135`, `FINAL_FAILING_IDS 135`, `NEW_IN_FINAL 0`,
+`MISSING_FROM_FINAL 0`. The failure population is unchanged; the pre-existing
 Windows/environment failures are not suppressed.
 
 ## F. Security verification
@@ -229,7 +229,7 @@ classified from stack-trace signatures; no test was changed to hide it:
 
 Post-change comparison: `Ran 1212 tests` with the same
 `failures=47, errors=123, skipped=44` and the same 135 unique failing-test
-headers as the base (`NEW_IN_AFTER=0`, `MISSING_FROM_AFTER=0`). The added tests
+headers as the base (`NEW_IN_FINAL=0`, `MISSING_FROM_FINAL=0`). The added tests
 all passed. This is evidence that the Windows/environment failure set did not
 change; it is not evidence that those failures are resolved. The two
 `dataset_digest_mismatch` cases remain UNVERIFIED.
