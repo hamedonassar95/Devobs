@@ -5,11 +5,15 @@ rollout BLOCKED.** The orchestrator and its tests exist, but no authorized
 repository currently meets the rollout preconditions (clean `main`/`master`
 checkout), no Draft PR was opened, and no graph was uploaded anywhere.
 
-**Canonical pointer (2026-11-20):** new work uses `tools/graphify` 0.9.113 via
-`scripts/graphify/multi_repo.py`. This document and
-`scripts/integrations/graphify_portfolio.py` describe the legacy 0.9.112 stack,
-which remains backward-compatible and now emits a deprecation notice. See
-[the Graphify consolidation plan](../architecture/GRAPHIFY_CONSOLIDATION_PLAN.md).
+**Canonical pointer (2026-11-20, F01b):** new work uses `tools/graphify` 0.9.113
+via `scripts/graphify/multi_repo.py`. This document records the historical
+legacy 0.9.112 rollout evidence. The path `scripts/integrations/graphify_portfolio.py`
+is now a thin backward-compatible adapter over
+`tools/graphify/portfolio_execution.py`; it preserves the flags, dry-run default,
+`--execute --only` authorization, report schema, exit codes and deprecation
+notice described below, but it no longer contains a second implementation. See
+[the F01b consolidation plan](../architecture/GRAPHIFY_CONSOLIDATION_PLAN.md) and
+[the rollback runbook](../runbooks/GRAPHIFY_ROLLBACK.md).
 
 This document records what was verified on 2026-11-19. It is local, read-only
 evidence and not a claim that any project is connected to a Graphify service.

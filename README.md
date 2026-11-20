@@ -456,6 +456,7 @@ points `scripts/graphify/multi_repo.py` and
 
 ```sh
 python3 scripts/graphify/multi_repo.py validate --manifest assets/graphify/multi_repo_manifest.json
+python3 scripts/graphify/repository_intelligence.py verify-wheel --wheel <local-wheel>
 python3 -m unittest discover -s tests/graphify -v
 ```
 
@@ -463,10 +464,12 @@ Privacy controls, provenance and measured local evidence are in
 [the Graphify integration design](docs/architecture/graphify-integration.md) and
 [repository intelligence](docs/architecture/repository-intelligence.md).
 
-**Legacy:** `scripts/integrations/graphify_portfolio.py` is the earlier 0.9.112
-review-only orchestrator. It remains available and backward-compatible, but now
-prints a `DEPRECATED` notice and identifies the canonical stack in JSON reports.
-Its historical provenance and blocked rollout evidence are recorded in
+**Legacy:** `scripts/integrations/graphify_portfolio.py` is a backward-compatible
+adapter for the earlier 0.9.112 review-only CLI. It contains no orchestration or
+subprocess implementation: the behavior lives in `tools/graphify/portfolio.py`
+and `tools/graphify/portfolio_execution.py`. It still prints a `DEPRECATED`
+notice and identifies the canonical stack in JSON reports. Its historical
+provenance and blocked rollout evidence are recorded in
 [docs/integrations/GRAPHIFY_PORTFOLIO_ROLLOUT.md](docs/integrations/GRAPHIFY_PORTFOLIO_ROLLOUT.md).
 Migration rules are in
 [the consolidation plan](docs/architecture/GRAPHIFY_CONSOLIDATION_PLAN.md).
