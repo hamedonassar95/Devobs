@@ -21,17 +21,19 @@ cloud deployment, billing, repository rule changes, and automatic merge.
 
 **Canonical status (2026-11-20):** `tools/graphify` with CLI
 `scripts/graphify/multi_repo.py` is the supported implementation for new work.
-`scripts/integrations/graphify_portfolio.py` is the legacy 0.9.112 orchestrator;
-it remains backward-compatible and now emits a deprecation notice. See
-[the Graphify consolidation plan](GRAPHIFY_CONSOLIDATION_PLAN.md) for evidence,
-compatibility rules and the owner-gated migration path.
+`scripts/integrations/graphify_portfolio.py` is now a thin backward-compatible
+adapter with no orchestration or subprocess implementation; it preserves the
+legacy 0.9.112 contract and emits a deprecation notice. The moved logic lives in
+`tools/graphify/portfolio.py` and `tools/graphify/portfolio_execution.py`. See
+[the F01b consolidation plan](GRAPHIFY_CONSOLIDATION_PLAN.md) for the exact
+compatibility contract and evidence.
 
 ## 2. Verified tool identity and supply chain
 
 | Property | Value | Evidence |
 | --- | --- | --- |
 | Package | `graphifyy` 0.9.113 | PyPI artifact and `graphify --version` → `graphify 0.9.113` |
-| Wheel SHA-256 | `62f8483e536c9200f93665f9c61df6489436ab087432e0a0a738bd88096e0491` | local `Get-FileHash` of the pinned PyPI wheel |
+| Wheel SHA-256 | `62f8483e536c9200f93665f9c61df6489436ab087432e0a0a738bd88096e0491` | local `Get-FileHash` of the pinned PyPI wheel; now enforced by `tools/graphify/supply_chain.py` for local wheel verification |
 | License | Apache-2.0 | package metadata |
 | Advisory | `GHSA-pcc4-rvhr-2pr8` fixed in 0.9.70; pinned 0.9.113 is above the fix | published advisory |
 | Backend | deterministic local graph; no vector store or hosted service required | official docs below |
@@ -65,6 +67,11 @@ Key implementation files:
   native Graphify features.
 - `tools/graphify/multi_repo.py` — manifest validation, per-repo isolation,
   path-safe report aggregation.
+- `tools/graphify/portfolio.py` — canonical legacy-compatibility policy,
+  discovery and plan contracts.
+- `tools/graphify/portfolio_execution.py` — canonical extraction/CLI layer used
+  by the legacy adapter; no implementation remains in `scripts/integrations`.
+- `tools/graphify/supply_chain.py` — fail-closed local wheel SHA-256 verifier.
 - `scripts/graphify/multi_repo.py` — CLI entry point.
 
 Native Graphify commands used: `extract`, `query`, `affected`, `god-nodes`,
@@ -116,6 +123,15 @@ python scripts/graphify/multi_repo.py run `
 Exit codes: `0` = no blocked repositories, `2` = configuration/policy failure,
 `3` = at least one repository blocked. `skipped` does not fail the run.
 
+To verify a locally provisioned wheel without installing or downloading it:
+
+```powershell
+python scripts/graphify/repository_intelligence.py verify-wheel --wheel <local-wheel>
+```
+
+A missing wheel, truncated digest or hash mismatch exits `2` with `FAIL
+<reason>`; this command never modifies the environment.
+
 Per-repository single-repo commands and adapters are documented in
 [repository-intelligence.md](repository-intelligence.md).
 
@@ -151,6 +167,21 @@ extract `51,341 ms` then `29,839 ms`, 8,986/8,985 nodes, 17,109/17,108 edges,
 `query ok 2829ms` and `query ok 3334ms`. The multi-repo run is not a like-for-like
 performance comparison because exclusion patterns and machine load differ.
 
+### F01b local evidence (post-consolidation)
+
+| Check | Command | Final output |
+| --- | --- | --- |
+| Canonical suite | `python -B -m unittest discover -s tests/graphify -v` | `Ran 51 tests`, `OK` |
+| Legacy contract suite | `python -B -m unittest tests.test_graphify_portfolio -v` | `Ran 28 tests`, `OK` |
+| Wheel verifier suite | `python -B -m unittest tests.graphify.test_supply_chain -v` | `Ran 6 tests`, `OK` |
+| Targeted guard suite | `python -B -m unittest tests.test_python_source_coverage tests.test_node_pipeline_selection tests.test_python_dependency_automation -v` | `Ran 11 tests`, `OK` |
+| Syntax | `python -B -m compileall -q tools/graphify scripts/graphify scripts/integrations/graphify_portfolio.py` | exit `0` |
+| Action pins | `python -B scripts/check_action_pins.py` | `Action pin check passed for 48 workflow and template files.` |
+
+The exact base and post-change full-suite comparison is recorded in the
+[unification audit](../audits/DEVOBS_GRAPHIFY_UNIFICATION_AUDIT.md). No Graphify
+binary was installed or run for these checks.
+
 ## 7. Blocked and unverified items
 
 - **BLOCKED — authenticated GitHub access.** `gh` is not installed in this
@@ -169,7 +200,8 @@ performance comparison because exclusion patterns and machine load differ.
 
 ## 8. Rollback
 
-The integration adds files only. Remove `tools/graphify/`, `scripts/graphify/`,
-`tests/graphify/`, `assets/graphify/` and the two architecture docs, then revert
-the README section. Delete only the explicitly named external index root; no
-repository source is modified by extraction.
+For the F01b consolidation, revert the reviewed implementation commits as
+described in [`docs/runbooks/GRAPHIFY_ROLLBACK.md`](../runbooks/GRAPHIFY_ROLLBACK.md).
+Do not delete `tools/graphify/`, `scripts/graphify/`, `tests/graphify/`,
+`assets/graphify/`, existing indexes or historical documentation merely because
+logic moved. No repository source was extracted or uploaded by this change.

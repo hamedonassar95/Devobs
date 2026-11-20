@@ -13,6 +13,7 @@ import pathlib
 import sys
 from collections.abc import Iterable, Sequence
 
+from . import supply_chain
 from .adapters import (
     branch_adapter,
     cross_repo_view,
@@ -139,12 +140,34 @@ def build_parser() -> argparse.ArgumentParser:
     bench.add_argument("--force-first", action="store_true")
     bench.add_argument("--json-out")
 
+    verify = sub.add_parser(
+        "verify-wheel", help="verify a local wheel against the approved full SHA-256 digest"
+    )
+    verify.add_argument("--wheel", required=True, help="local wheel file; no download is performed")
+    verify.add_argument("--json-out")
+
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
+        if args.command == "verify-wheel":
+            wheel = pathlib.Path(args.wheel)
+            digest = supply_chain.verify_wheel_sha256(wheel)
+            write_report(
+                {
+                    "schema_version": 1,
+                    "policy": POLICY_ID,
+                    "status": "verified",
+                    "pinned_version": PINNED_GRAPHIFY_VERSION,
+                    "wheel": wheel.name,
+                    "sha256": digest,
+                },
+                pathlib.Path(args.json_out).resolve() if args.json_out else None,
+            )
+            return 0
+
         if args.command == "build":
             source = pathlib.Path(args.source).resolve()
             output = pathlib.Path(args.json_out).resolve() if args.json_out else None
@@ -266,6 +289,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
             return 0
     except RepositoryIntelligenceError as exc:
+        print(f"FAIL {exc}", file=sys.stderr)
+        return 2
+    except supply_chain.SupplyChainError as exc:
         print(f"FAIL {exc}", file=sys.stderr)
         return 2
     return 2

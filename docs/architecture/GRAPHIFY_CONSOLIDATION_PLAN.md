@@ -1,86 +1,110 @@
-# Graphify consolidation plan — 2026-11-20
+# Graphify consolidation plan — F01b completion — 2026-11-20
 
-**Status:** canonical implementation designated; full code consolidation
-deferred to an owner-approved migration PR.
-**Reviewed revision:** `cecae6ce7a9b3d06b961a94d3fc13a767a8c9ed1`.
+**Status:** F01b code consolidation COMPLETE on the reviewed branch; no merge,
+deployment, gate promotion or legacy deletion.
+**Base revision:** `41353d1451524492d6ca6e3ae8bb1b7d12c87b45` (`origin/main`, PR
+#725 merge commit, VERIFIED).
+**Implementation commits:** `b95ac86`, `01b980d`, `1bbccc9`, `2df481b`,
+`c19e4a0`, `ed55a06`.
 
-## 1. Decision
+This document supersedes the F01a designation record. F01a made `tools/graphify`
+canonical without moving code. F01b performs the bounded code consolidation while
+preserving the legacy entrypoint as a compatibility adapter.
+
+## 1. Architecture after consolidation
 
 | Role | Path | Pin / policy | Status |
 | --- | --- | --- | --- |
-| **Canonical implementation** | `tools/graphify/` | `graphifyy` 0.9.113; `devobs-repository-intelligence-v1`; declared wheel SHA-256 `62f8483e536c9200f93665f9c61df6489436ab087432e0a0a738bd88096e0491` | Supported for new work. |
-| Canonical public CLI | `scripts/graphify/multi_repo.py`; `scripts/graphify/repository_intelligence.py` | Thin shims importing `tools.graphify.*` | Supported entry points. |
-| **Legacy implementation** | `scripts/integrations/graphify_portfolio.py` | `graphifyy` 0.9.112; `devobs-graphify-portfolio-v1` | Backward-compatible; emits deprecation warning. |
-| Legacy tests/docs | `tests/test_graphify_portfolio.py`; `docs/integrations/GRAPHIFY_PORTFOLIO_ROLLOUT.md` | Historical 0.9.112 evidence | Retained; not used for new acceptance. |
+| **Canonical implementation** | `tools/graphify/` | `graphifyy` 0.9.113; `devobs-repository-intelligence-v1`; approved wheel SHA-256 `62f8483e536c9200f93665f9c61df6489436ab087432e0a0a738bd88096e0491` | Sole implementation for new work. |
+| Public canonical CLIs | `scripts/graphify/multi_repo.py`, `scripts/graphify/repository_intelligence.py` | Thin shims importing `tools.graphify.*` | Supported. |
+| Legacy compatibility adapter | `scripts/integrations/graphify_portfolio.py` | Preserves `devobs-graphify-portfolio-v1` and the 0.9.112 behavioral check | Backward-compatible; contains no orchestration or subprocess implementation. |
+| Canonical compatibility modules | `tools/graphify/portfolio.py`, `tools/graphify/portfolio_execution.py` | Explicit legacy/canonical contracts | New home of all moved discovery, planning, execution and CLI behavior. |
+| Supply-chain verifier | `tools/graphify/supply_chain.py` | Fails closed unless the digest is a full 64-hex SHA-256 | Local verification only; no download or install. |
 
-`scripts/graphify/` is **not** a third implementation. Its two Python files add
-the repository root to `sys.path` and import `tools.graphify.*`; they are CLI
-entry points only.
+`scripts/graphify/` is not a third implementation: both files add the repository
+root to `sys.path` and import `tools.graphify.*`.
 
-## 2. Evidence for the decision
+## 2. Compatibility contract
 
-1. **Import direction:** `scripts/graphify/multi_repo.py:9-13` and
-   `scripts/graphify/repository_intelligence.py:14-17` import `tools.graphify.*`.
-2. **Test ownership:** five modules under `tests/graphify/` import the package
-   directly; `python -B -m unittest discover -s tests/graphify -v` →
-   `Ran 41 tests`, `OK`.
-3. **Configuration:** `assets/graphify/multi_repo_manifest.json` and
-   `docs/architecture/graphify-integration.md` describe the 0.9.113 multi-repo
-   design, external index roots and privacy controls.
-4. **Merge order:** #720 added the portfolio orchestrator; #723 added the
-   centralized `tools/graphify` package; #724 made tools-only changes visible to
-   Python CI. Current `main` is the #724 merge commit `cecae6c`.
-5. **Runtime metadata:** `tools/graphify/common.py:17-19` exposes both the pin
-   and wheel SHA; the legacy script exposes only the 0.9.112 version pin.
+The legacy adapter preserves the exact observable contract asserted by
+`tests/test_graphify_portfolio.py`:
 
-The prior recovery audit marked owner approval as required for **deletion or API
-merging**. This document makes the evidence-based designation without deleting
-or changing either implementation, so no migration action is implied.
+- same flags: `--root`, `--repo`, `--out-root`, `--only`, `--graphify`,
+  `--timeout`, `--execute`, `--json`;
+- dry-run default and `--execute --only` authorization;
+- output-root/source-overlap refusal and no-overwrite behavior;
+- read-only fixed Git argv allowlist;
+- exact `graphify extract <path> --code-only --out <dir>` argv;
+- 0.9.112 version gate and mismatch message;
+- exit codes `0` dry-run/success, `2` preflight refusal, `3` failed run;
+- deprecation notice on stderr, in `--help` and in JSON report metadata;
+- report and `run.json` field names, absolute-path evidence, and
+  `network_egress_verification: "not_verified"`.
 
-## 3. Compatibility contract
+The legacy 0.9.112 pin is retained **only** as this compatibility contract. It is
+not a second implementation and is not recommended for new work. The canonical
+pointer in every legacy report identifies `tools/graphify`, CLI
+`scripts/graphify/multi_repo.py` and pin 0.9.113.
 
-- Existing invocations of `scripts/integrations/graphify_portfolio.py` continue
-  to work with the same flags, dry-run default, `--execute --only` requirement,
-  output-root checks, exit codes and 0.9.112 version check.
-- The only observable additions are a `DEPRECATED` notice on stderr, the same
-  text in `--help`, and `legacy`/`canonical` fields in JSON reports.
-- No caller is silently redirected to a different binary, pin, schema or output
-  directory.
-- No implementation is removed; both test suites remain green.
+## 3. What changed
 
-## 4. Migration path (requires separate reviewed PR)
+1. Added `tools/graphify/portfolio.py`: policy contracts, repository discovery,
+   remote parsing, eligibility and plan construction.
+2. Added `tools/graphify/portfolio_execution.py`: offline environment, version
+   gate, fixed-argv extraction, run evidence and CLI.
+3. Replaced `scripts/integrations/graphify_portfolio.py` with a thin re-export
+   adapter. No legacy file was deleted.
+4. Added `tests/graphify/test_portfolio.py` for canonical contract parity and
+   one adapter-delegation test in `tests/test_graphify_portfolio.py`.
+5. Added `tools/graphify/supply_chain.py` and the `verify-wheel` subcommand to
+   fail closed on truncated, mismatched or missing local wheel artifacts.
 
-1. Inventory callers of the legacy CLI (`README.md`,
-   `docs/integrations/GRAPHIFY_PORTFOLIO_ROLLOUT.md`, local operators).
-2. Map legacy `--root/--repo/--only/--out-root` usage to
-   `scripts/graphify/multi_repo.py validate|run` with
-   `assets/graphify/multi_repo_manifest.json` and explicit `--source-root` /
-   `--index-root` paths.
-3. Decide whether the repository-specific discovery behavior of the legacy
-   script must be preserved as a documented adapter. If yes, port it behind the
-   canonical API with tests; do not copy the 0.9.112 subprocess path.
-4. Change README and rollout doc pointers only after the adapter parity check.
-5. Deprecate, then remove, the legacy script in a later PR with an explicit
-   rollback plan. Do not combine removal with pin or policy changes.
-6. Keep P01/AI-9/Codex gates unchanged; offline graphs are not gate evidence.
+No CLI flag was removed, no indexed data was deleted, no source tree was
+extracted, and no Graphify binary was installed, downloaded or executed during
+this change.
 
-## 5. Regression coverage
+## 4. Supply-chain boundary
 
-`tests/test_graphify_portfolio.py::CliTests::test_legacy_cli_identifies_canonical_implementation`
-asserts that the legacy CLI identifies the canonical implementation in stderr,
-`--help` and JSON output. It was verified red before the source fix, green
-after, red after a temporary source revert, and green after restoration.
+`PINNED_WHEEL_SHA256` was metadata before this change. It is now checked by
+`verify_wheel_sha256()` against a local file using a complete 64-character
+lowercase hexadecimal digest and constant-time comparison. A truncated pin,
+missing wheel or mismatch returns exit code `2` with `FAIL <reason>` and no
+report payload.
+
+```powershell
+python scripts/graphify/repository_intelligence.py verify-wheel --wheel <local-wheel>
+python -B -m unittest tests.graphify.test_supply_chain -v
+```
+
+This does **not** install or download anything. The external operator install
+step remains outside repository automation; its provenance is therefore
+UNVERIFIED in this audit. The normal `build`/`run` commands still enforce the
+0.9.113 version string; they do not accept an arbitrary local wheel path.
+
+## 5. Verification
+
+```powershell
+python -B -m unittest discover -s tests/graphify -v
+python -B -m unittest tests.test_graphify_portfolio -v
+python -B -m unittest tests.test_python_source_coverage tests.test_node_pipeline_selection tests.test_python_dependency_automation -v
+python -B -m compileall -q tools/graphify scripts/graphify scripts/integrations/graphify_portfolio.py
+python scripts/check_action_pins.py
+git diff --check
+```
+
+See [`docs/audits/DEVOBS_GRAPHIFY_UNIFICATION_AUDIT.md`](../audits/DEVOBS_GRAPHIFY_UNIFICATION_AUDIT.md)
+for exact output, Windows classification, unresolved findings and owner gates.
 
 ## 6. Non-goals
 
-- No wheel-hash enforcement (F04) is added here; the canonical constant remains
-  metadata until a reviewed installation-verification contract exists.
-- No Graphify binary is installed, downloaded, uploaded or executed.
-- No repository-wide extraction is regenerated or sent anywhere.
-- No secret, cloud, deployment, approval or release gate is changed.
+- No legacy deletion, policy merge, pin promotion or schema unification.
+- No change to `assets/graphify/multi_repo_manifest.json` or existing indexes.
+- No change to P01, AI-9 or Codex runtime acceptance gates.
+- No hosted CI assertion, merge, deployment, cloud write, secret or permission
+  change, paid inference or external upload.
 
 ## 7. Rollback
 
-See [`docs/runbooks/RECOVERY_AND_ROLLBACK.md`](../runbooks/RECOVERY_AND_ROLLBACK.md).
-Reverting the single source/test commit restores the legacy CLI exactly; no
-hosted state exists to restore.
+See [`docs/runbooks/GRAPHIFY_ROLLBACK.md`](../runbooks/GRAPHIFY_ROLLBACK.md).
+Reverting the five implementation commits restores the previous F01a state; no
+hosted state or indexed data must be restored.
