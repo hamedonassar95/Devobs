@@ -139,7 +139,7 @@ After the branch has been published, do **not** reset or force-push. Revert on a
 
 ```powershell
 git switch -c revert/windows-test-reliability
-git revert --no-edit c2e5c8ccac523c04c30cad5cd19cc3c4add10cff a1b3990574da1ba0ddfd3e45511308306db3e374 bca89b0649316214e623d1bb8287cc10bb22ef1e 58bafa5cd5c201713228470c84e7e62d5c9b4f98 6e3d2fd4d9e1a418c6639add3a6927b916cd78d2 9157281c0c7a5dd58110640bca1eabae57185eec c3201f5c6a5fbf081f1ea49774b0bf6b2a5ee2e4 407ab18709b8a9300734684fd35d556a3c1f01ca dea68ebf4096d295360513d335cbc1bc785f8542
+git revert --no-edit 2a4de5132fa3c6f8d7cca4fc4c2c947052e677a4 c2e5c8ccac523c04c30cad5cd19cc3c4add10cff a1b3990574da1ba0ddfd3e45511308306db3e374 bca89b0649316214e623d1bb8287cc10bb22ef1e 58bafa5cd5c201713228470c84e7e62d5c9b4f98 6e3d2fd4d9e1a418c6639add3a6927b916cd78d2 9157281c0c7a5dd58110640bca1eabae57185eec c3201f5c6a5fbf081f1ea49774b0bf6b2a5ee2e4 407ab18709b8a9300734684fd35d556a3c1f01ca dea68ebf4096d295360513d335cbc1bc785f8542
 ```
 
 Then rerun section 2 and open a separate review for the revert. A revert is never an approval to merge, deploy or change a release gate.
