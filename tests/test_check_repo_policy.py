@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 import tempfile
 import unittest
 import urllib.error
@@ -232,15 +233,15 @@ class RepositoryPolicyAuditTests(unittest.TestCase):
         self.assertNotIn("test-token-never-print", str(raised.exception))
 
     def test_actions_summary_includes_named_drift_findings(self) -> None:
-        with tempfile.NamedTemporaryFile(mode="r+", encoding="utf-8") as summary_file:
-            with mock.patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": summary_file.name}):
+        with tempfile.TemporaryDirectory() as directory:
+            summary_path = Path(directory) / "summary.md"
+            with mock.patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary_path)}):
                 write_step_summary(
                     "drift detected",
                     "hamedonassar95/Devobs (default branch main)",
                     ["The validate check is missing."],
                 )
-            summary_file.seek(0)
-            summary = summary_file.read()
+            summary = summary_path.read_text(encoding="utf-8")
 
         self.assertIn("Status: **drift detected**", summary)
         self.assertIn("The validate check is missing.", summary)
