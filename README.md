@@ -342,6 +342,10 @@ node --test tests/incident_guard.test.cjs tests/ai_event_ingest.test.mjs tests/a
 python3 scripts/check_site.py
 ```
 
+### Windows test reliability
+
+Windows-specific harness fixes, fixture byte handling and capability skips are documented in [the Windows test failure analysis](docs/audits/WINDOWS_TEST_FAILURE_ANALYSIS.md). Reproduction, interpretation and rollback steps are in [the cross-platform testing runbook](docs/runbooks/CROSS_PLATFORM_TESTING.md). These changes preserve fail-closed behavior and do not alter P01, AI-9 or any release gate.
+
 لتجربة استقبال محلي ببيانات اصطناعية، اتبع [دليل AI-1](docs/AI_EVENT_INGESTION.md). لا يقرأ الأمر سجلات GitHub أو الخوادم تلقائيًا.
 
 لتشغيل كشف AI-2 على السجل الاصطناعي نفسه دون تغيير الملف، اتبع [دليل كشف الشذوذ](docs/AI_ANOMALY_DETECTION.md). المخرجات مرشحات إحصائية وليست تشخيصًا أو تنبيهًا مؤكدًا.
