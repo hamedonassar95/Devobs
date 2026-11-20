@@ -12,10 +12,13 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts" / "integrations"))
 import graphify_portfolio as gp  # noqa: E402
+from tools.graphify import portfolio_execution as canonical_portfolio  # noqa: E402
 
 PINNED = gp.PINNED_GRAPHIFY_VERSION
 
@@ -375,6 +378,25 @@ class CliTests(unittest.TestCase):
             code = gp.main(["--root", str(self.root / "absent"), "--out-root", str(self.out), "--json"])
         self.assertEqual(code, 2)
         self.assertIn("scan root does not exist", stream.getvalue())
+
+    def test_legacy_module_delegates_execution_to_canonical_portfolio(self):
+        repository = gp.inspect_repository(self.repo if hasattr(self, "repo") else self.root / "alpha")
+        sentinel = {"status": "delegated"}
+        with mock.patch.object(
+            canonical_portfolio, "execute_repository", return_value=sentinel
+        ) as delegate:
+            result = gp.execute_repository(
+                repository, self.out, "graphify", timeout=17, run=object()
+            )
+        self.assertEqual(result, sentinel)
+        delegate.assert_called_once()
+        args, kwargs = delegate.call_args
+        self.assertEqual(args[0], repository)
+        self.assertEqual(args[1], self.out)
+        self.assertEqual(args[2], "graphify")
+        self.assertEqual(kwargs["timeout"], 17)
+        self.assertEqual(kwargs["contract"].policy, gp.POLICY)
+        self.assertEqual(kwargs["contract"].pinned_version, gp.PINNED_GRAPHIFY_VERSION)
 
 
 if __name__ == "__main__":
