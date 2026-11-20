@@ -1,1 +1,8 @@
 .github/workflows/*.lock.yml linguist-generated=true
+
+# Byte-pinned fixtures are hashed from their raw checkout bytes. Keep LF on
+# every platform so Windows CRLF conversion cannot invalidate the pins.
+tests/fixtures/ai-evals/decisions-triage.jsonl text eol=lf
+tests/fixtures/intelligence_eval_cases.json text eol=lf
+tests/fixtures/intelligence_eval_cases_v2.json text eol=lf
+deploy/keycloak-hosted/render.yaml text eol=lf
