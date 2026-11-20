@@ -2,6 +2,8 @@
 PyJWT[crypto]==2.15.1
 cryptography==50.0.2
 psycopg[binary]==3.3.9
+# psycopg requires tzdata on Windows; pin the transitive dependency for hash-locked installs.
+tzdata==2026.6 ; sys_platform == "win32"
 gunicorn==27.0.1
 # Optional local-only OpenTelemetry metrics; no logs or traces exporter.
 opentelemetry-exporter-otlp-proto-http==1.45.2

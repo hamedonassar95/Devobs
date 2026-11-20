@@ -60,6 +60,47 @@ class PythonDependencyAutomationTests(unittest.TestCase):
                     self.assertRegex("\n".join(stanza), r"--hash=sha256:[0-9a-f]{64}")
                 self.assertGreater(found, 0)
 
+    def test_windows_only_transitive_dependencies_are_hash_locked(self):
+        cases = (
+            (
+                "requirements-api.txt",
+                "requirements-api.lock",
+                "tzdata",
+                r'(?m)^tzdata==[0-9][^\s]* ; sys_platform == "win32"$',
+                "psycopg",
+            ),
+            (
+                "requirements-dev.txt",
+                "requirements-dev.lock",
+                "colorama",
+                r'(?m)^colorama==[0-9][^\s]* ; platform_system == "Windows"$',
+                "bandit",
+            ),
+        )
+        requirement_start = re.compile(r"^[A-Za-z0-9_.-]+==")
+        for source_name, lock_name, package, source_pattern, parent in cases:
+            with self.subTest(package=package):
+                source = (ROOT / source_name).read_text(encoding="utf-8")
+                lock = (ROOT / lock_name).read_text(encoding="utf-8")
+                self.assertRegex(source, source_pattern)
+                lines = lock.splitlines()
+                stanzas = []
+                for index, line in enumerate(lines):
+                    if not line.startswith(f"{package}=="):
+                        continue
+                    body = [line]
+                    for candidate in lines[index + 1:]:
+                        if candidate.strip() and (
+                            requirement_start.match(candidate) or candidate.startswith("# via")
+                        ):
+                            break
+                        body.append(candidate)
+                    stanzas.append("\n".join(body))
+                self.assertEqual(len(stanzas), 1, f"{package} must be pinned exactly once")
+                self.assertRegex(stanzas[0], rf"^{package}==[0-9][^\s]*")
+                self.assertRegex(stanzas[0], r"--hash=sha256:[0-9a-f]{64}")
+                self.assertIn(f"#   {parent}", stanzas[0])
+
     def test_python_ci_consumes_hash_locked_files_and_dependency_changes_select_it(self):
         ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
         reusable = (ROOT / ".github/workflows/reusable-python-ci.yml").read_text(encoding="utf-8")
