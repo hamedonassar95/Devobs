@@ -21,7 +21,7 @@ class PythonDependencyAutomationTests(unittest.TestCase):
             "python3 -m pip install --disable-pip-version-check --require-hashes -r requirements-dev.lock",
             workflow,
         )
-        self.assertIn("python3 -m bandit -r scripts -x scripts/check_site.py", workflow)
+        self.assertIn("python3 -m bandit -r scripts tools -x scripts/check_site.py", workflow)
         self.assertIn("pip-audit --requirement requirements-dev.lock", workflow)
         self.assertIn("pip-audit --requirement requirements-api.lock", workflow)
 

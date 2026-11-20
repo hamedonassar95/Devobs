@@ -102,7 +102,7 @@ def recent_touch_counts() -> Counter[str]:
 
 
 def is_python(path: PurePosixPath) -> bool:
-    return path.suffix == ".py" and path.parts[:1] in {("scripts",), ("tests",)}
+    return path.suffix == ".py" and path.parts[:1] in {("scripts",), ("tests",), ("tools",)}
 
 
 def is_ai_intelligence_console(path: PurePosixPath) -> bool:
