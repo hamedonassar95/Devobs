@@ -5,6 +5,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { requireNoFollowCapability } from './node_platform_support.mjs';
 import { parseEventLines } from '../scripts/ai_intelligence/event_schema.mjs';
 import {
   convertText,
@@ -177,17 +178,7 @@ test('enforces the shared one MiB and 100-event batch limits', () => {
   assert.throws(() => convertText(jsonl(batch)), { code: 'invalid_batch_size' });
 });
 
-test('CLI reads a file or stdin and writes only a complete normalized batch', async t => {
-  const directory = await tempDir(t);
-  const inputPath = path.join(directory, 'input.jsonl');
-  await writeFile(inputPath, jsonl([event()]), 'utf8');
-  const fromFile = spawnSync(process.execPath, [SCRIPT, '--input', inputPath], {
-    encoding: 'utf8', timeout: 10_000,
-  });
-  assert.equal(fromFile.status, 0, fromFile.stderr);
-  assert.equal(fromFile.stderr, '');
-  assert.equal(parseEventLines(fromFile.stdout).events.length, 1);
-
+test('CLI reads stdin and writes only a complete normalized batch', () => {
   const fromStdin = spawnSync(process.execPath, [SCRIPT, '--input', '-'], {
     input: jsonl([event()]), encoding: 'utf8', timeout: 10_000,
   });
@@ -204,7 +195,21 @@ test('CLI reads a file or stdin and writes only a complete normalized batch', as
   assert.equal(failed.stderr.includes('bad-run'), false);
 });
 
+test('CLI reads a file and writes only a complete normalized batch', async t => {
+  if (!requireNoFollowCapability(t)) return;
+  const directory = await tempDir(t);
+  const inputPath = path.join(directory, 'input.jsonl');
+  await writeFile(inputPath, jsonl([event()]), 'utf8');
+  const fromFile = spawnSync(process.execPath, [SCRIPT, '--input', inputPath], {
+    encoding: 'utf8', timeout: 10_000,
+  });
+  assert.equal(fromFile.status, 0, fromFile.stderr);
+  assert.equal(fromFile.stderr, '');
+  assert.equal(parseEventLines(fromFile.stdout).events.length, 1);
+});
+
 test('CLI reports only fixed error categories and never echoes sensitive-looking input', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const directory = await tempDir(t);
   const inputPath = path.join(directory, 'sensitive.jsonl');
   const marker = 'operator@example.invalid';
@@ -222,6 +227,7 @@ test('CLI reports only fixed error categories and never echoes sensitive-looking
 
 
 test('synthetic CloudEvents reach the read-only AI-7 API through AI-1 without duplicate storage', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const { ingestText, readEventStore } = await import('../scripts/ai_intelligence/event_ingest.mjs');
   const { createDashboardServer } = await import('../scripts/ai_intelligence/dashboard_server.mjs');
   const directory = await tempDir(t);

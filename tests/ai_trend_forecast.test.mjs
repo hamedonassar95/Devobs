@@ -5,6 +5,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { requireNoFollowCapability } from './node_platform_support.mjs';
 import { ingestText, normalizeEvent } from '../scripts/ai_intelligence/event_ingest.mjs';
 import { TrendAnalysisError, forecastMetricEvents, MIN_FORECAST_DAYS, SES_ALPHA } from '../scripts/ai_intelligence/trend_forecast.mjs';
 import { buildOperationalTrendReport, renderOperationalTrendMarkdown } from '../scripts/ai_intelligence/trend_report.mjs';
@@ -121,6 +122,7 @@ test('returns an explicit no-events report instead of a fabricated forecast', ()
 });
 
 test('offline CLI reads a synthetic store without changing it or printing paths and event payloads', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const directory = await mkdtemp(path.join(os.tmpdir(), 'devobs-trend-report-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const storePath = path.join(directory, 'events.jsonl');

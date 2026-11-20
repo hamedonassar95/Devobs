@@ -5,6 +5,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { requireNoFollowCapability } from './node_platform_support.mjs';
 import { ingestText, normalizeEvent } from '../scripts/ai_intelligence/event_ingest.mjs';
 import { analyzeIncidentEvents } from '../scripts/ai_intelligence/incident_analysis.mjs';
 import { RecommendationError, recommendFromIncidentAnalysis } from '../scripts/ai_intelligence/recommendations.mjs';
@@ -97,6 +98,7 @@ test('rejects malformed and over-limit analysis with fixed error codes', () => {
 });
 
 test('offline CLI reads synthetic JSONL, returns bounded guidance, and leaves the store unchanged', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const directory = await mkdtemp(path.join(os.tmpdir(), 'devobs-recommendations-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const storePath = path.join(directory, 'events.jsonl');

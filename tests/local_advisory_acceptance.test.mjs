@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { requireNoFollowCapability } from './node_platform_support.mjs';
 import {
   parseSyntheticFixture,
   runLocalAdvisoryAcceptance,
@@ -28,7 +29,8 @@ async function withTemporaryParent(run) {
   }
 }
 
-test('CLI executes AI-1 through AI-7 locally, checks the read-only API, and shuts down cleanly', () => {
+test('CLI executes AI-1 through AI-7 locally, checks the read-only API, and shuts down cleanly', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const result = spawnSync(process.execPath, [SCRIPT], {
     cwd: ROOT,
     env: { PATH: process.env.PATH ?? '' },
@@ -74,7 +76,8 @@ test('rejects malformed or oversized fixture data without echoing it or starting
   assert.deepEqual(await readdir(parent), []);
 }));
 
-test('keeps logs private, closes the dashboard, and removes temporary files', async () => withTemporaryParent(async parent => {
+test('keeps logs private, closes the dashboard, and removes temporary files', async t => withTemporaryParent(async parent => {
+  if (!requireNoFollowCapability(t)) return;
   const fixtureText = await readFile(FIXTURE, 'utf8');
   const output = await runLocalAdvisoryAcceptance({ fixtureText, tempParent: parent });
   const serialized = JSON.stringify(output);

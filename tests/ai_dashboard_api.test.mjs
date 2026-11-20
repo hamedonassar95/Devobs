@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { requireNoFollowCapability } from './node_platform_support.mjs';
 import { ingestText, normalizeEvent, readEventStore } from '../scripts/ai_intelligence/event_ingest.mjs';
 import { analyzeIncidentEvents } from '../scripts/ai_intelligence/incident_analysis.mjs';
 import { createDashboardServer, buildDashboardSnapshot } from '../scripts/ai_intelligence/dashboard_server.mjs';
@@ -99,6 +100,7 @@ test('six-case synthetic rule-coverage set yields the expected cause category on
 });
 
 test('read-only local API returns bounded aggregates and hides raw log/path/hash identifiers', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const { directory, storePath, events } = await makeStore(t);
   const ledgerPath = path.join(directory, 'feedback.jsonl');
   for (const [index, decision] of ['accepted', 'accepted', 'rejected'].entries()) {
@@ -194,6 +196,7 @@ test('read-only local API returns bounded aggregates and hides raw log/path/hash
 });
 
 test('server is loopback-only, same-origin, read-only, and emits browser hardening headers', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const { storePath } = await makeStore(t);
   const server = await createDashboardServer({ storePath });
   const port = await listen(server);
@@ -345,6 +348,7 @@ test('server is loopback-only, same-origin, read-only, and emits browser hardeni
 });
 
 test('Google OAuth configuration is opt-in, public-client-only, and bounded', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const { storePath } = await makeStore(t);
   const server = await createDashboardServer({
     storePath,

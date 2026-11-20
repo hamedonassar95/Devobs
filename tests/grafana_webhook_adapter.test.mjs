@@ -4,6 +4,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { requireNoFollowCapability } from './node_platform_support.mjs';
 import { fileURLToPath } from 'node:url';
 import { convertText as alertmanager, MAX_INPUT_BYTES, MAX_EVENTS_PER_BATCH } from '../scripts/integrations/alertmanager_adapter.mjs';
 import { ALLOWED_SOURCES } from '../scripts/integrations/project_sources.mjs';
@@ -125,7 +126,8 @@ test('batch bounds and late malformed alerts never produce partial output', () =
   assert.equal(r.stderr, 'grafana-webhook-adapter: input_too_large\n');
 });
 
-test('deterministic replay reaches the actual local event store and AI-7 snapshot', async () => {
+test('deterministic replay reaches the actual local event store and AI-7 snapshot', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const reversed = fresh(); reversed.alerts.reverse(); assert.equal(convert(reversed), convert());
   const folder = await mkdtemp(path.join(os.tmpdir(), 'devobs-grafana-'));
   try {
@@ -140,7 +142,8 @@ test('deterministic replay reaches the actual local event store and AI-7 snapsho
   } finally { await rm(folder, { recursive: true, force: true }); }
 });
 
-test('CLI supports regular files and returns fixed non-sensitive input errors', async () => {
+test('CLI supports regular files and returns fixed non-sensitive input errors', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const folder = await mkdtemp(path.join(os.tmpdir(), 'devobs-grafana-cli-'));
   try {
     const file = path.join(folder, 'synthetic.json'); await writeFile(file, JSON.stringify(fresh()));

@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { requireNoFollowCapability } from './node_platform_support.mjs';
 import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
@@ -39,7 +40,7 @@ test('ops CI source does not authorize ops for unrelated provider adapters', () 
   assert.equal(Object.keys(ALLOWED_SOURCES).length, 7);
 });
 
-test('four source-bound CloudEvents pass the real converter and AI-7 analysis', async t => {
+test('four source-bound CloudEvents pass the real converter and AI-7 analysis', () => {
   const exported = buildPortfolioCloudEvents(report());
   assert.deepEqual({ included: exported.included, excluded: exported.excluded, total: exported.total },
     { included: 4, excluded: 0, total: 4 });
@@ -62,9 +63,11 @@ test('four source-bound CloudEvents pass the real converter and AI-7 analysis', 
   assert.equal(analysis.pipeline[2].status, 'no_logs');
   assert.equal(analysis.pipeline[3].status, 'no_matches');
   assert.doesNotMatch(JSON.stringify(analysis), /UNTRUSTED_TITLE_NEVER_EXPORTED|PRIVATE/);
+});
 
-  // The generated file is accepted by the existing persisted AI-1 engine
-  // without duplicate events, proving the standalone local handoff path.
+test('generated CloudEvents persist through the real AI-1 engine without duplicate events', async t => {
+  if (!requireNoFollowCapability(t)) return;
+  const exported = buildPortfolioCloudEvents(report());
   const folder = await mkdtemp(path.join(os.tmpdir(), 'devobs-public-portfolio-'));
   t.after(() => rm(folder, { recursive: true, force: true }));
   const store = path.join(folder, 'events.jsonl');

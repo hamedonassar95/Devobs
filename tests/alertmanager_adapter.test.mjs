@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { requireNoFollowCapability } from './node_platform_support.mjs';
 import { convertText, MAX_INPUT_BYTES, MAX_EVENTS_PER_BATCH } from '../scripts/integrations/alertmanager_adapter.mjs';
 import { ALLOWED_SOURCES } from '../scripts/integrations/project_sources.mjs';
 import { parseEventLines } from '../scripts/ai_intelligence/event_schema.mjs';
@@ -132,7 +133,8 @@ test('whole-input and alert-count limits reject excess without output', () => {
   assert.equal(events(value).length, MAX_EVENTS_PER_BATCH);
 });
 
-test('permutation and replay remain deterministic through real local ingestion and dashboard counts', async () => {
+test('permutation and replay remain deterministic through real local ingestion and dashboard counts', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const value = fresh(); value.alerts.reverse(); assert.equal(convert(value), convert());
   const parent = await mkdtemp(path.join(os.tmpdir(), 'devobs-alertmanager-'));
   try {
@@ -147,17 +149,24 @@ test('permutation and replay remain deterministic through real local ingestion a
   } finally { await rm(parent, { recursive: true, force: true }); }
 });
 
-test('CLI reads files/stdin and emits only fixed errors for missing scope, invalid UTF-8 and private paths', async () => {
+test('CLI reads stdin and emits only fixed errors for missing scope and invalid UTF-8', () => {
+  const valid = cli(JSON.stringify(fresh()));
+  assert.equal(valid.status, 0, valid.stderr); assert.equal(valid.stderr, ''); assert.equal(valid.stdout, convert());
+  for (const [input, cliArgs, code] of [['{}', ['--input', '-'], 'invalid_arguments'], [Buffer.from([0xff]), args, 'invalid_utf8']]) {
+    const result = cli(input, cliArgs); assert.equal(result.status, 2); assert.equal(result.stdout, '');
+    assert.equal(result.stderr, `alertmanager-adapter: ${code}\n`);
+  }
+});
+
+test('CLI reads files and rejects private file paths', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const parent = await mkdtemp(path.join(os.tmpdir(), 'devobs-alertmanager-cli-'));
   try {
     const file = path.join(parent, 'synthetic.json'); await writeFile(file, JSON.stringify(fresh()));
-    for (const result of [cli(JSON.stringify(fresh())), cli('', ['--input', file, ...args.slice(2)])]) {
-      assert.equal(result.status, 0, result.stderr); assert.equal(result.stderr, ''); assert.equal(result.stdout, convert());
-    }
-    for (const [input, arguments_, code] of [['{}', ['--input', '-'], 'invalid_arguments'],
-      [Buffer.from([0xff]), args, 'invalid_utf8'], ['', ['--input', path.join(parent, 'PRIVATE_SENTINEL'), ...args.slice(2)], 'input_unavailable']]) {
-      const result = cli(input, arguments_); assert.equal(result.status, 2); assert.equal(result.stdout, '');
-      assert.equal(result.stderr, `alertmanager-adapter: ${code}\n`);
-    }
+    const result = cli('', ['--input', file, ...args.slice(2)]);
+    assert.equal(result.status, 0, result.stderr); assert.equal(result.stderr, ''); assert.equal(result.stdout, convert());
+    const denied = cli('', ['--input', path.join(parent, 'PRIVATE_SENTINEL'), ...args.slice(2)]);
+    assert.equal(denied.status, 2); assert.equal(denied.stdout, '');
+    assert.equal(denied.stderr, 'alertmanager-adapter: input_unavailable\n');
   } finally { await rm(parent, { recursive: true, force: true }); }
 });

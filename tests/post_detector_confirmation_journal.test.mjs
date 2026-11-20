@@ -3,6 +3,7 @@ import { mkdtemp, readFile, rm, writeFile, chmod, symlink } from 'node:fs/promis
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { hasJournalCapability, requireJournalCapability } from './node_platform_support.mjs';
 import {
   createPostDetectorConfirmationJournal,
   POST_DETECTOR_CONFIRMATION_JOURNAL_VERSION,
@@ -16,7 +17,8 @@ const window = (index, channels = ['z_score']) => ({
   metrics: [{ metric: 'cpu_percent', channels }],
 });
 
-async function withJournal(run) {
+async function withJournal(t, run) {
+  if (!requireJournalCapability(t)) return;
   const directory = await mkdtemp(path.join(os.tmpdir(), 'devobs-ai9-journal-'));
   const filePath = path.join(directory, 'journal.json');
   try {
@@ -26,8 +28,22 @@ async function withJournal(run) {
   }
 }
 
-test('checkpoint and incident outbox survive journal reconstruction and share the same commit', async () => {
-  await withJournal(async ({ filePath, journal }) => {
+test('secure journal fails closed when no-follow open is unavailable', t => {
+  if (hasJournalCapability()) {
+    t.skip('host supports O_NOFOLLOW; unsupported-journal path is not applicable');
+    return;
+  }
+  assert.throws(() => createPostDetectorConfirmationJournal({
+    filePath: path.join(os.tmpdir(), 'devobs-ai9-unsupported-journal.json'),
+  }), error => {
+    assert.equal(error.code, 'unsupported_journal_platform');
+    assert.equal(error.message.includes('devobs-ai9'), false);
+    return true;
+  });
+});
+
+test('checkpoint and incident outbox survive journal reconstruction and share the same commit', async t => {
+  await withJournal(t, async ({ filePath, journal }) => {
     assert.deepEqual(await journal.listPendingEvents(), []);
     await journal.processServiceWindow(window(0));
     const started = await journal.processServiceWindow(window(1));
@@ -49,10 +65,10 @@ test('checkpoint and incident outbox survive journal reconstruction and share th
   });
 });
 
-test('event identifiers are deterministic for the same synthetic transitions', async () => {
+test('event identifiers are deterministic for the same synthetic transitions', async t => {
   const eventIds = [];
   for (let run = 0; run < 2; run++) {
-    await withJournal(async ({ journal }) => {
+    await withJournal(t, async ({ journal }) => {
       await journal.processServiceWindow(window(0));
       const result = await journal.processServiceWindow(window(1));
       eventIds.push(result.queued_events[0].event_id);
@@ -61,8 +77,8 @@ test('event identifiers are deterministic for the same synthetic transitions', a
   assert.equal(eventIds[0], eventIds[1]);
 });
 
-test('an exact retry does not duplicate or resurrect an acknowledged event', async () => {
-  await withJournal(async ({ filePath, journal }) => {
+test('an exact retry does not duplicate or resurrect an acknowledged event', async t => {
+  await withJournal(t, async ({ filePath, journal }) => {
     await journal.processServiceWindow(window(0));
     const accepted = await journal.processServiceWindow(window(1));
     const id = accepted.queued_events[0].event_id;
@@ -80,8 +96,8 @@ test('an exact retry does not duplicate or resurrect an acknowledged event', asy
   });
 });
 
-test('interrupted incidents create a distinct outbox event with a fixed reason', async () => {
-  await withJournal(async ({ journal }) => {
+test('interrupted incidents create a distinct outbox event with a fixed reason', async t => {
+  await withJournal(t, async ({ journal }) => {
     await journal.processServiceWindow(window(0));
     await journal.processServiceWindow(window(1));
     const interrupted = await journal.processServiceWindow(window(3, []));
@@ -91,8 +107,8 @@ test('interrupted incidents create a distinct outbox event with a fixed reason',
   });
 });
 
-test('invalid or conflicting input leaves the previous checkpoint and outbox bytes unchanged', async () => {
-  await withJournal(async ({ filePath, journal }) => {
+test('invalid or conflicting input leaves the previous checkpoint and outbox bytes unchanged', async t => {
+  await withJournal(t, async ({ filePath, journal }) => {
     await journal.processServiceWindow(window(0));
     await journal.processServiceWindow(window(1));
     const before = await readFile(filePath);
@@ -109,8 +125,8 @@ test('invalid or conflicting input leaves the previous checkpoint and outbox byt
   });
 });
 
-test('an existing exclusive lock fails closed without modifying the journal', async () => {
-  await withJournal(async ({ filePath, journal }) => {
+test('an existing exclusive lock fails closed without modifying the journal', async t => {
+  await withJournal(t, async ({ filePath, journal }) => {
     await journal.processServiceWindow(window(0));
     const before = await readFile(filePath);
     await writeFile(`${filePath}.lock`, 'synthetic active writer\n', { mode: 0o600, flag: 'wx' });
@@ -119,8 +135,8 @@ test('an existing exclusive lock fails closed without modifying the journal', as
   });
 });
 
-test('insecure permissions, symlinks, and malformed journal documents are refused', async () => {
-  await withJournal(async ({ directory, filePath, journal }) => {
+test('insecure permissions, symlinks, and malformed journal documents are refused', async t => {
+  await withJournal(t, async ({ directory, filePath, journal }) => {
     await journal.processServiceWindow(window(0));
     await chmod(filePath, 0o644);
     await assert.rejects(journal.listPendingEvents(), { code: 'unsafe_journal_permissions' });
@@ -134,8 +150,8 @@ test('insecure permissions, symlinks, and malformed journal documents are refuse
   });
 });
 
-test('acknowledgement and list limits reject malformed callers', async () => {
-  await withJournal(async ({ journal }) => {
+test('acknowledgement and list limits reject malformed callers', async t => {
+  await withJournal(t, async ({ journal }) => {
     await assert.rejects(journal.listPendingEvents({ limit: 0 }), { code: 'invalid_outbox_limit' });
     await assert.rejects(journal.acknowledgeEvents(['not-a-sha']), {
       code: 'invalid_outbox_acknowledgement',
@@ -147,7 +163,8 @@ test('acknowledgement and list limits reject malformed callers', async () => {
   });
 });
 
-test('directories must already be canonical, private, and writable by the caller', async () => {
+test('directories must already be canonical, private, and writable by the caller', async t => {
+  if (!requireJournalCapability(t)) return;
   const directory = await mkdtemp(path.join(os.tmpdir(), 'devobs-ai9-public-dir-'));
   const filePath = path.join(directory, 'journal.json');
   try {
@@ -159,8 +176,8 @@ test('directories must already be canonical, private, and writable by the caller
   }
 });
 
-test('oversized journal files and excessive pending outbox counts fail closed', async () => {
-  await withJournal(async ({ filePath, journal }) => {
+test('oversized journal files and excessive pending outbox counts fail closed', async t => {
+  await withJournal(t, async ({ filePath, journal }) => {
     await writeFile(filePath, Buffer.alloc(8 * 1024 * 1024 + 1, 0x20), { mode: 0o600 });
     await assert.rejects(journal.listPendingEvents(), { code: 'journal_size_limit' });
     await writeFile(filePath, JSON.stringify({

@@ -3,6 +3,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { requireNoFollowCapability } from './node_platform_support.mjs';
 import * as api from '../assets/public-ci/api.mjs';
 import { convertText } from '../scripts/integrations/cloudevents_ci_adapter.mjs';
 import { ingestText, readEventStore } from '../scripts/ai_intelligence/event_ingest.mjs';
@@ -76,18 +77,25 @@ test('attempt and creation-time metadata fail closed before display or export', 
   assert.ok(exportEvent(normalize(p)), 'Timestamp ordering must compare instants, not strings');
 });
 
-test('same attempt replays identically even if update time changes', async t => {
+test('same attempt replays identically even if update time changes', () => {
+  const p = payload(); const first = exportEvent(normalize(p));
+  p.workflow_runs[0].updated_at = '2026-11-16T02:00:00Z';
+  const replay = exportEvent(normalize(p));
+  assert.equal(replay, first, 'observation/update time must not change event identity');
+});
+
+test('replayed public CI events persist without duplicate events', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const folder = await mkdtemp(path.join(os.tmpdir(), 'devobs-ci-export-'));
   t.after(() => rm(folder, { recursive: true, force: true }));
   const store = path.join(folder, 'events.jsonl');
   const p = payload(); const first = exportEvent(normalize(p));
   p.workflow_runs[0].updated_at = '2026-11-16T02:00:00Z';
   const replay = exportEvent(normalize(p));
-  assert.equal(replay, first, 'observation/update time must not change event identity');
-  assert.equal((await ingestText(convertText(first), store)).accepted, 1);
-  assert.equal((await ingestText(convertText(replay), store)).duplicateIgnored, 1);
   p.workflow_runs[0].run_attempt = 2;
   const second = exportEvent(normalize(p));
+  assert.equal((await ingestText(convertText(first), store)).accepted, 1);
+  assert.equal((await ingestText(convertText(replay), store)).duplicateIgnored, 1);
   assert.equal((await ingestText(convertText(second), store)).accepted, 1);
   const repeated = await ingestText(convertText(first + second), store);
   assert.equal(repeated.accepted, 0); assert.equal(repeated.duplicateIgnored, 2);

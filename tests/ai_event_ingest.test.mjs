@@ -5,6 +5,17 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { constants as fsConstants } from 'node:fs';
+import {
+  canCreateSymlink,
+  hasJournalCapability,
+  hasNoFollowCapability,
+  journalErrorCode,
+  noFollowErrorCode,
+  requireJournalCapability,
+  requireNoFollowCapability,
+  requireSymlinkCreation,
+} from './node_platform_support.mjs';
 import {
   EventIngestError,
   ingestText,
@@ -62,6 +73,7 @@ async function temporaryStore(t) {
 }
 
 test('normalizes and locally stores log, incident, CI, and metric events', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const { storePath } = await temporaryStore(t);
   const result = await ingestText(toJsonl(fixtures), storePath);
   const events = await readEventStore(storePath);
@@ -79,6 +91,7 @@ test('normalizes and locally stores log, incident, CI, and metric events', async
 });
 
 test('repeated deterministic events are ignored without rewriting the store', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const { storePath } = await temporaryStore(t);
   await ingestText(toJsonl([fixtures[0]]), storePath);
   const before = await readFile(storePath);
@@ -140,30 +153,48 @@ test('rejects common sensitive-looking text locally and does not echo values', a
   await assert.rejects(lstat(storePath), { code: 'ENOENT' });
 });
 
-test('rejects symlinked input store paths and malformed existing storage', async t => {
-  const { directory, storePath } = await temporaryStore(t);
+test('rejects symlinked input store paths', async t => {
+  const { directory } = await temporaryStore(t);
+  if (!requireSymlinkCreation(t)) return;
   const targetPath = path.join(directory, 'target.jsonl');
   await writeFile(targetPath, '');
   const linkPath = path.join(directory, 'linked.jsonl');
   await symlink(targetPath, linkPath);
   await assert.rejects(readInputFile(linkPath), { code: 'unsafe_path' });
   await assert.rejects(ingestText(toJsonl([fixtures[0]]), linkPath), { code: 'unsafe_store_path' });
+});
 
+test('rejects malformed existing storage', async t => {
+  const { storePath } = await temporaryStore(t);
   await writeFile(storePath, '{broken}\n');
   await chmod(storePath, 0o600);
   await assert.rejects(readEventStore(storePath), { code: 'invalid_store' });
 });
 
 test('rejects an active writer lock instead of racing concurrent appends', async t => {
-  const { directory, storePath } = await temporaryStore(t);
+  const { storePath } = await temporaryStore(t);
   const lockPath = `${storePath}.lock`;
   await writeFile(lockPath, '');
 
-  await assert.rejects(ingestText(toJsonl([fixtures[0]]), storePath), { code: 'store_locked' });
+  await assert.rejects(ingestText(toJsonl([fixtures[0]]), storePath), { code: noFollowErrorCode('store_locked') });
   await assert.rejects(lstat(storePath), { code: 'ENOENT' });
 });
 
+test('secure storage fails closed when no-follow open is unavailable', async t => {
+  if (hasNoFollowCapability()) {
+    t.skip('host supports O_NOFOLLOW; unsupported-capability path is not applicable');
+    return;
+  }
+  const { storePath } = await temporaryStore(t);
+  await assert.rejects(ingestText(toJsonl([fixtures[0]]), storePath), error => {
+    assert.equal(error.code, 'platform_no_follow_unsupported');
+    assert.equal(error.message.includes(storePath), false);
+    return true;
+  });
+});
+
 test('offline CLI stores synthetic records and prints counts without event content or paths', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const { directory, storePath } = await temporaryStore(t);
   const inputPath = path.join(directory, 'input.jsonl');
   await writeFile(inputPath, toJsonl([fixtures[0]]), 'utf8');
@@ -211,6 +242,7 @@ test('valid leap dates and timezone offsets keep canonical UTC timestamps and ID
 });
 
 test('an impossible timestamp rejects a batch without changing existing storage', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const { storePath } = await temporaryStore(t);
   await ingestText(toJsonl([fixtures[0]]), storePath);
   const before = await readFile(storePath);
@@ -218,4 +250,24 @@ test('an impossible timestamp rejects a batch without changing existing storage'
     fixtures[1], { ...fixtures[2], occurred_at: '2026-02-30T00:00:00Z' },
   ]), storePath), { code: 'invalid_timestamp' });
   assert.deepEqual(await readFile(storePath), before);
+});
+
+test('node capability helpers report the host capabilities without relaxing storage checks', () => {
+  assert.equal(hasNoFollowCapability(), typeof fsConstants.O_NOFOLLOW === 'number');
+  assert.equal(hasJournalCapability(), hasNoFollowCapability());
+  assert.equal(typeof canCreateSymlink(), 'boolean');
+  assert.equal(typeof requireNoFollowCapability, 'function');
+  assert.equal(typeof requireJournalCapability, 'function');
+  assert.equal(typeof requireSymlinkCreation, 'function');
+});
+
+test('no-follow helper substitutes only the explicit fail-closed code on unsupported hosts', () => {
+  assert.equal(
+    noFollowErrorCode('store_locked'),
+    hasNoFollowCapability() ? 'store_locked' : 'platform_no_follow_unsupported',
+  );
+  assert.equal(
+    journalErrorCode('journal_locked'),
+    hasJournalCapability() ? 'journal_locked' : 'unsupported_journal_platform',
+  );
 });

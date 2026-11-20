@@ -5,6 +5,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { requireNoFollowCapability } from './node_platform_support.mjs';
 import { ingestText, normalizeEvent } from '../scripts/ai_intelligence/event_ingest.mjs';
 import { analyzeIncidentEvents, IncidentAnalysisError } from '../scripts/ai_intelligence/incident_analysis.mjs';
 
@@ -85,6 +86,7 @@ test('fails closed on malformed or over-limit input without disclosing content',
 });
 
 test('offline CLI reads a synthetic store and emits only aggregates and bounded hypotheses', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const directory = await mkdtemp(path.join(os.tmpdir(), 'devobs-incident-analysis-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const storePath = path.join(directory, 'events.jsonl');

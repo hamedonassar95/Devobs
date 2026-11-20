@@ -6,6 +6,11 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import {
+  noFollowErrorCode,
+  requireNoFollowCapability,
+  requireSymlinkCreation,
+} from './node_platform_support.mjs';
+import {
   applyFeedbackLearning,
   createRecommendationFeedbackKey,
   FeedbackLearningError,
@@ -77,6 +82,7 @@ test('feedback keys are stable digests and reject invalid targets', () => {
 });
 
 test('explicit decisions are written to a private ledger without free-form fields', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const directory = await temporaryDirectory(t);
   const ledgerPath = path.join(directory, 'feedback.jsonl');
   assert.deepEqual(await recordRecommendationFeedback({
@@ -91,6 +97,7 @@ test('explicit decisions are written to a private ledger without free-form field
 });
 
 test('latest choice replaces earlier votes for the same recommendation during aggregation', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const directory = await temporaryDirectory(t);
   const ledgerPath = path.join(directory, 'feedback.jsonl');
   await recordRecommendationFeedback({ ledgerPath, recommendationKey: KEY, causeId: 'timeout', decision: 'accepted', recordedAt: '2026-10-27T00:00:00.000Z' });
@@ -134,26 +141,36 @@ test('three distinct reviewed recommendations enable deterministic smoothed orde
   assert.equal(result.recommendations.every(item => item.requires_human_approval === true && item.automatic_execution === false), true);
 });
 
-test('invalid, over-permissive, linked, or locked ledgers fail closed without echoing paths', async t => {
+test('insecure and malformed ledgers fail closed without echoing paths', async t => {
   const directory = await temporaryDirectory(t);
   const publicLedger = path.join(directory, 'public.jsonl');
   await writeFile(publicLedger, `${JSON.stringify(record(KEY, 'timeout', 'accepted'))}\n`, { mode: 0o644 });
   await chmod(publicLedger, 0o644);
-  await assert.rejects(readFeedbackLedger(publicLedger), error => error.code === 'unsafe_ledger_permissions' && !error.message.includes(publicLedger));
+  await assert.rejects(readFeedbackLedger(publicLedger), error =>
+    error.code === noFollowErrorCode('unsafe_ledger_permissions') && !error.message.includes(publicLedger));
 
   const malformed = path.join(directory, 'malformed.jsonl');
   await writeFile(malformed, '{broken}\n', { mode: 0o600 });
-  await assert.rejects(readFeedbackLedger(malformed), { code: 'invalid_ledger' });
+  await assert.rejects(readFeedbackLedger(malformed), { code: noFollowErrorCode('invalid_ledger') });
+});
 
+test('feedback ledger rejects symlinked ledger paths', async t => {
+  const directory = await temporaryDirectory(t);
+  if (!requireSymlinkCreation(t)) return;
   const target = path.join(directory, 'target.jsonl');
   await writeFile(target, '', { mode: 0o600 });
   const linked = path.join(directory, 'linked.jsonl');
   await symlink(target, linked);
   await assert.rejects(readFeedbackLedger(linked), { code: 'unsafe_ledger' });
+});
 
+test('an active ledger writer lock fails closed without echoing paths', async t => {
+  const directory = await temporaryDirectory(t);
   const locked = path.join(directory, 'locked.jsonl');
   await writeFile(`${locked}.lock`, '', { mode: 0o600 });
-  await assert.rejects(recordRecommendationFeedback({ ledgerPath: locked, recommendationKey: KEY, causeId: 'timeout', decision: 'accepted' }), { code: 'ledger_locked' });
+  await assert.rejects(recordRecommendationFeedback({
+    ledgerPath: locked, recommendationKey: KEY, causeId: 'timeout', decision: 'accepted',
+  }), error => error.code === noFollowErrorCode('ledger_locked') && !error.message.includes(locked));
 });
 
 test('rejects invalid decisions, identifiers, timestamps, and schema fields', async t => {
@@ -175,6 +192,7 @@ test('rejects invalid decisions, identifiers, timestamps, and schema fields', as
 });
 
 test('CLI records only an explicit choice and report remains local, bounded, and sanitized', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const directory = await temporaryDirectory(t);
   const storePath = path.join(directory, 'events.jsonl');
   const ledgerPath = path.join(directory, 'feedback.jsonl');

@@ -5,6 +5,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { requireNoFollowCapability } from './node_platform_support.mjs';
 import { ingestText, normalizeEvent } from '../scripts/ai_intelligence/event_ingest.mjs';
 import { analyzeMetricEvents, AnomalyAnalysisError, MIN_HISTORY_POINTS } from '../scripts/ai_intelligence/anomaly_detector.mjs';
 
@@ -89,6 +90,7 @@ test('rejects malformed records and unbounded input with fixed error codes', () 
 });
 
 test('offline CLI reads the local event store and prints no path or event payload', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const directory = await mkdtemp(path.join(os.tmpdir(), 'devobs-anomaly-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const storePath = path.join(directory, 'events.jsonl');

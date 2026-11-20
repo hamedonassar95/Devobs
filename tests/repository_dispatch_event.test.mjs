@@ -4,6 +4,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { requireNoFollowCapability } from './node_platform_support.mjs';
 
 import { readEventStore } from '../scripts/ai_intelligence/event_ingest.mjs';
 import {
@@ -144,6 +145,7 @@ test('repository dispatch workflow subscribes to both approved source actions', 
 });
 
 test('receiver CLI validates and ingests only bounded CI metadata locally', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const directory = await mkdtemp(path.join(os.tmpdir(), 'devobs-dispatch-contract-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const inputPath = path.join(directory, 'dispatch.json');

@@ -3,6 +3,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { requireJournalCapability } from './node_platform_support.mjs';
 import { normalizeEvent } from '../scripts/ai_intelligence/event_ingest.mjs';
 import { createPostDetectorConfirmationLayer } from '../scripts/ai_intelligence/post_detector_confirmation.mjs';
 import { createPostDetectorConfirmationJournal } from '../scripts/ai_intelligence/post_detector_confirmation_journal.mjs';
@@ -51,6 +52,7 @@ test('an isolated real detector signal remains unconfirmed by the composed layer
 });
 
 test('persistent detector output starts one journaled incident without persisting metric values', async t => {
+  if (!requireJournalCapability(t)) return;
   const directory = await mkdtemp(path.join(os.tmpdir(), 'devobs-ai9-adapter-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
   const filePath = path.join(directory, 'journal.json');

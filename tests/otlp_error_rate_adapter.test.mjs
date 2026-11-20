@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { requireNoFollowCapability } from './node_platform_support.mjs';
 import { parseEventLines } from '../scripts/ai_intelligence/event_schema.mjs';
 import { convertText, MAX_EVENTS_PER_BATCH, MAX_INPUT_BYTES } from '../scripts/integrations/otlp_error_rate_adapter.mjs';
 
@@ -86,16 +87,8 @@ test('rejects duplicate JSON keys, including nested keys, before any output', ()
   for (const input of duplicates) assert.throws(() => convertText(input));
 });
 
-test('CLI emits approved output only after validation and fixed non-sensitive errors', async t => {
-  const folder = await mkdtemp(path.join(tmpdir(), 'devobs-otlp-'));
-  t.after(() => rm(folder, { recursive: true, force: true }));
-  const file = path.join(folder, 'snapshot.json');
+test('CLI emits approved output only after validation and fixed non-sensitive errors', () => {
   const valid = JSON.stringify(request());
-  await writeFile(file, valid);
-  const good = spawnSync(process.execPath, [SCRIPT, '--input', file], { encoding: 'utf8' });
-  assert.equal(good.status, 0, good.stderr);
-  assert.equal(parseEventLines(good.stdout).events.length, 1);
-  assert.equal(good.stderr, '');
   const stdin = spawnSync(process.execPath, [SCRIPT, '--input', '-'], { encoding: 'utf8', input: valid });
   assert.equal(stdin.status, 0, stdin.stderr);
 
@@ -106,4 +99,16 @@ test('CLI emits approved output only after validation and fixed non-sensitive er
   assert.equal(bad.stderr, 'otlp-error-rate-adapter: duplicate_json_key\n');
   assert.equal(bad.stderr.includes('devobs'), false);
   assert.throws(() => convertText('x'.repeat(MAX_INPUT_BYTES + 1)));
+});
+
+test('CLI accepts a regular file only where secure reads are supported', async t => {
+  if (!requireNoFollowCapability(t)) return;
+  const folder = await mkdtemp(path.join(tmpdir(), 'devobs-otlp-'));
+  t.after(() => rm(folder, { recursive: true, force: true }));
+  const file = path.join(folder, 'snapshot.json');
+  await writeFile(file, JSON.stringify(request()));
+  const good = spawnSync(process.execPath, [SCRIPT, '--input', file], { encoding: 'utf8' });
+  assert.equal(good.status, 0, good.stderr);
+  assert.equal(parseEventLines(good.stdout).events.length, 1);
+  assert.equal(good.stderr, '');
 });

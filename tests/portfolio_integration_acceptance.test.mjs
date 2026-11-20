@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { requireNoFollowCapability } from './node_platform_support.mjs';
 
 const scriptUrl = new URL('../scripts/portfolio_integration_acceptance.mjs', import.meta.url);
 const script = fileURLToPath(scriptUrl);
@@ -30,7 +31,8 @@ function report(result) {
   return JSON.parse(result.stdout);
 }
 
-test('one command proves three-provider ingestion and replay in seven separate local stores', () => {
+test('one command proves three-provider ingestion and replay in seven separate local stores', t => {
+  if (!requireNoFollowCapability(t)) return;
   const r = report(child([script]));
   assert.equal(r.schema_version, 1); assert.equal(r.status, 'PASS');
   assert.equal(r.scope, 'offline_synthetic_namespaces_only');
@@ -49,14 +51,16 @@ test('one command proves three-provider ingestion and replay in seven separate l
   }
 });
 
-test('published aggregate report equals the real acceptance run', async () => {
+test('published aggregate report equals the real acceptance run', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const expected = report(child([script]));
   const published = JSON.parse(await readFile(new URL('../assets/free-devobs/integration-acceptance.json', import.meta.url), 'utf8'));
   assert.deepEqual(published, expected);
   assert.doesNotMatch(JSON.stringify(published), /PRIVATE_SENTINEL|https?:\/\/|[a-f0-9]{40}/);
 });
 
-test('aggregate values come from converted events rather than fixed success counters', () => {
+test('aggregate values come from converted events rather than fixed success counters', t => {
+  if (!requireNoFollowCapability(t)) return;
   const fixtures = { ...fixtureTexts };
   const rows = fixtures.cloudevents.trim().split('\n').map(JSON.parse); rows[0].data.conclusion = 'timed_out';
   fixtures.cloudevents = rows.map(JSON.stringify).join('\n') + '\n';
@@ -65,7 +69,8 @@ test('aggregate values come from converted events rather than fixed success coun
   assert.deepEqual(r.totals.severity_counts, { critical: 14, warning: 15, info: 4, error: 2, unknown: 0 });
 });
 
-test('discarded private display fields cannot reach the aggregate report', () => {
+test('discarded private display fields cannot reach the aggregate report', t => {
+  if (!requireNoFollowCapability(t)) return;
   const fixtures = { ...fixtureTexts };
   for (const key of ['alertmanager', 'grafana']) {
     const value = JSON.parse(fixtures[key]); value.commonAnnotations = { log: 'Bearer PRIVATE_SENTINEL' };
@@ -93,7 +98,8 @@ test('missing or duplicate namespace coverage and invalid fixtures reject the en
   }
 });
 
-test('success and a later project scope failure clean up all task-owned files', async () => {
+test('success and a later project scope failure clean up all task-owned files', async t => {
+  if (!requireNoFollowCapability(t)) return;
   const folder = await mkdtemp(path.join(os.tmpdir(), 'devobs-acceptance-test-'));
   try {
     report(child([script], '', folder)); assert.deepEqual(await readdir(folder), []);
