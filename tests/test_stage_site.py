@@ -7,10 +7,14 @@ import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
-from stage_site import stage_site
+from stage_site import resolve_source_dir, stage_site
 
 
 class StageSiteTests(unittest.TestCase):
+    def test_workspace_short_path_is_normalized_consistently(self):
+        resolved = resolve_source_dir(self.source, self.root)
+        self.assertEqual(resolved, self.source.resolve(strict=True))
+
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp_dir.cleanup)

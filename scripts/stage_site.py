@@ -63,6 +63,10 @@ def resolve_source_dir(source_dir: Path, workspace_dir: Path) -> Path:
     workspace = workspace_input.resolve(strict=True)
     if not workspace.is_dir():
         raise ValueError("GITHUB_WORKSPACE must be a directory")
+    # Keep a lexical form that matches os.path.abspath(candidate_input). On
+    # Windows resolve() expands 8.3 short names while abspath() does not, so
+    # mixing them rejects valid children of the workspace.
+    workspace_lexical = Path(os.path.abspath(workspace_input))
 
     candidate_input = Path(source_dir)
     if ".." in candidate_input.parts:
@@ -73,11 +77,11 @@ def resolve_source_dir(source_dir: Path, workspace_dir: Path) -> Path:
     # component can be rejected before following them.
     candidate_lexical = Path(os.path.abspath(candidate_input))
     try:
-        relative = candidate_lexical.relative_to(workspace)
+        relative = candidate_lexical.relative_to(workspace_lexical)
     except ValueError as exc:
         raise ValueError("source directory must resolve inside GITHUB_WORKSPACE") from exc
 
-    current = workspace
+    current = workspace_lexical
     for component in relative.parts:
         current = current / component
         if current.is_symlink():
