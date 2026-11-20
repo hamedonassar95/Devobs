@@ -22,6 +22,16 @@ the reusable module layout and native-versus-Devobs feature split are in
 [repository intelligence](docs/architecture/repository-intelligence.md).
 This is local evidence only and does not change P01, AI-9 or Codex runtime gates.
 
+## Root-cause audit and remediation roadmap (2026-11-20)
+
+An evidence-driven audit of `origin/main` `4299a9d` confirmed one P1 root cause:
+Python code under `tools/` was excluded from CI change selection, compilation
+and Bandit scanning. The fix and its regression evidence are in
+[the root-cause audit](docs/audits/DEVOBS_ROOT_CAUSE_AUDIT.md),
+[the remediation roadmap](docs/roadmap/REMEDIATION_ROADMAP.md), and
+[the rollback runbook](docs/runbooks/REMEDIATION_ROLLBACK.md). P01 remains
+NO-GO/BLOCKED, AI-9 remains BLOCKED, and Codex runtime acceptance remains OPEN.
+
 ## مراجعة خطط Codex والكود بصريًا — Plannotator (اختياري)
 
 أضفنا [دليل تكامل Plannotator مع Codex](docs/integrations/PLANNOTATOR_CODEX_REVIEW.md) لإجراء مراجعات بصرية يدوية للخطط والـ diff على جهاز موثوق، دون تفعيل Hooks أو تشغيل خدمات أو إضافة تبعيات داخل المستودع. **الحالة: موثّق فقط / التشغيل غير متحقق.** يحتاج استخدام الأداة إلى تثبيت اختياري يراجعه المالك على جهازه؛ دعم ChatGPT على iPhone أو Codex السحابي غير مثبت. تستمر موافقات الإنسان وحماية `main` وفحوص CI وبوابات P01/AI-9 دون تغيير.
