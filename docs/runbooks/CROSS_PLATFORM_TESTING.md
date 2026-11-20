@@ -77,6 +77,25 @@ foreach ($p in $paths) {
 "NODE_SMOKE_OK files=$($paths.Count)"
 ```
 
+### Node test batches
+
+Run every `node --test` command from `ci.yml`, failing closed if any batch fails:
+
+```powershell
+$batches = @(Select-String -Path '.github/workflows/ci.yml' -Pattern '^\s+node --test (.+)$' | ForEach-Object { $_.Matches[0].Groups[1].Value.Trim() -split '\s+' })
+if ($batches.Count -eq 0) { throw 'no node --test batches found' }
+$failed = 0
+foreach ($batch in $batches) {
+  node --test @batch
+  if ($LASTEXITCODE -ne 0) { $failed += 1 }
+}
+"NODE_TEST_BATCHES=$($batches.Count)"
+"NODE_TEST_FAILED_BATCHES=$failed"
+if ($failed -ne 0) { exit 1 }
+```
+
+Expected final local result for this branch: `NODE_SMOKE_OK files=88`; `NODE_TEST_BATCHES=23`, `NODE_TEST_FAILED_BATCHES=0`, with aggregate TAP output `284 tests`, `239 pass`, `45 skipped`, `0 fail`. Skips are limited to POSIX-only secure-storage, journal and symlink paths; the Windows fail-closed codes are asserted explicitly.
+
 ## 3. Capability decision table
 
 | Symptom | Probe / helper | Correct action |
@@ -86,6 +105,8 @@ foreach ($p in $paths) {
 | `python3` exits `49` or `jq` unavailable | `write_python3_shim()`, test-only `fake_jq` | Bind the workflow command to the shim and keep executing the real production script. Unknown jq filters must fail closed. |
 | `secure_open_unavailable` | `has_secure_open_capability()` | Skip only POSIX-content assertions; keep the explicit fail-closed adapter assertions active. |
 | Symlink creation returns `WinError 1314` | `require_symlink_creation()` | Skip only the symlink fixture. Split mixed tests so all other assertions remain active. |
+| Node `O_NOFOLLOW` or secure journal unavailable | `hasNoFollowCapability()`, `hasJournalCapability()`, `requireNoFollowCapability()`, `requireJournalCapability()` | Skip only POSIX-content and journal-write paths. Keep explicit assertions that production returns `platform_no_follow_unsupported` or `unsupported_journal_platform`. |
+| Node symlink creation returns `EPERM` | `canCreateSymlink()`, `requireSymlinkCreation()` | Skip only symlink fixture setup; keep adjacent conversion and validation assertions active. |
 | `os.mkfifo` absent | `require_fifo_creation()` | Skip only FIFO fixture setup. |
 | `chmod(0o755)` does not expose POSIX mode bits | `require_posix_mode_bits()` | Skip only executable-mode-bit assertions. |
 | SQLite/temp cleanup returns `WinError 32` | direct inspection | Close connections with `contextlib.closing`; never ignore cleanup errors. |
@@ -120,26 +141,26 @@ Before requesting review, confirm:
 
 - No production `fail closed` branch, security check, CI job, action pin or permission was disabled.
 - Capability skips are narrow and report the missing capability.
-- `secure_open_unavailable` has an active negative test on hosts without POSIX flags.
+- `secure_open_unavailable`, `platform_no_follow_unsupported` and `unsupported_journal_platform` have active negative tests on hosts without POSIX flags.
 - Fake tools accept only the exact contracts used by production scripts and fail closed on unknown input.
 - No secret, token, credential, cloud setting, provider resource or paid service was touched.
-- The full suite, Graphify suite, compileall, Bandit, action pins, YAML parse, Node smoke checks and `git diff --check` were run with fresh exit codes.
+- The full suite, Graphify suite, compileall, Bandit, action pins, YAML parse, Node smoke checks, all Node test batches and `git diff --check` were run with fresh exit codes.
 - Hosted CI results are reported separately from local results.
 
 ## 6. Rollback
 
-The nine code commits are ordered in [the Windows failure analysis](../audits/WINDOWS_TEST_FAILURE_ANALYSIS.md#commit-sequence). If the branch has not been pushed, a local-only reset to the verified base is sufficient:
+The ten code commits are ordered in [the Windows failure analysis](../audits/WINDOWS_TEST_FAILURE_ANALYSIS.md#commit-sequence). If the branch has not been pushed, a local-only reset to the verified base is sufficient:
 
 ```powershell
 git switch feature/windows-test-reliability
 git reset --hard 799efe673a72aeadf3016667eaed853d2553aaa8
 ```
 
-After the branch has been published, do **not** reset or force-push. Revert on a new review branch, newest first, including the documentation commit:
+After the branch has been published, do **not** reset or force-push. Revert on a new review branch, newest first, including every documentation commit on the branch:
 
 ```powershell
 git switch -c revert/windows-test-reliability
-git revert --no-edit 2a4de5132fa3c6f8d7cca4fc4c2c947052e677a4 c2e5c8ccac523c04c30cad5cd19cc3c4add10cff a1b3990574da1ba0ddfd3e45511308306db3e374 bca89b0649316214e623d1bb8287cc10bb22ef1e 58bafa5cd5c201713228470c84e7e62d5c9b4f98 6e3d2fd4d9e1a418c6639add3a6927b916cd78d2 9157281c0c7a5dd58110640bca1eabae57185eec c3201f5c6a5fbf081f1ea49774b0bf6b2a5ee2e4 407ab18709b8a9300734684fd35d556a3c1f01ca dea68ebf4096d295360513d335cbc1bc785f8542
+git revert --no-edit 69440f3900523fd26b70cfb0054072213b0603b8 e48d852c5d8119f6667616f4a466a634fd844551 2a4de5132fa3c6f8d7cca4fc4c2c947052e677a4 c2e5c8ccac523c04c30cad5cd19cc3c4add10cff a1b3990574da1ba0ddfd3e45511308306db3e374 bca89b0649316214e623d1bb8287cc10bb22ef1e 58bafa5cd5c201713228470c84e7e62d5c9b4f98 6e3d2fd4d9e1a418c6639add3a6927b916cd78d2 9157281c0c7a5dd58110640bca1eabae57185eec c3201f5c6a5fbf081f1ea49774b0bf6b2a5ee2e4 407ab18709b8a9300734684fd35d556a3c1f01ca dea68ebf4096d295360513d335cbc1bc785f8542
 ```
 
 Then rerun section 2 and open a separate review for the revert. A revert is never an approval to merge, deploy or change a release gate.
