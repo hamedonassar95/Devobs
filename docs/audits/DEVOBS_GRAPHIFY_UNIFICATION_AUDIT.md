@@ -244,7 +244,9 @@ NOT RUN locally.
   hash check NOT RUN.
 - `python3` alias fails locally (`exit=9009`); `python` (3.12.10) was used.
 - `npm` scripts blocked by PowerShell execution policy; Node smoke test ran.
-- `gh` CLI unavailable; Draft PR must be opened from the browser/compare page.
+- `gh` CLI unavailable; the in-app browser GitHub session is signed out
+  (`hasSignIn=true`, no `Create pull request` control on the loaded compare
+  page). The branch is pushed, but Draft PR creation is BLOCKED.
 - Bandit module unavailable for the post-change rerun.
 - No hosted CI, cloud, database, identity, Keycloak, Terraform, Trivy or
   deployment runtime evidence was produced.
@@ -264,16 +266,18 @@ unrelated P2/P3 findings listed in section C.
 
 ## J. PR URL
 
-Draft PR was not created from this environment because `gh` is unavailable.
-Exact compare URL after push:
+The branch was pushed successfully (`PUSH_EXIT=0`, new remote branch). Draft PR
+creation is **BLOCKED**: `gh` is unavailable and the in-app browser GitHub
+session is signed out; the loaded compare page showed `hasSignIn=true` and no
+`Create pull request` control. Exact compare URL:
 
 https://github.com/hamedonassar95/Devobs/compare/main...feature/graphify-unification-readiness
 
-Owner action: open the compare page, select **Draft pull request**, target
-`main`, and paste this audit as the review checklist. No merge approval is
-requested here.
+Owner action: sign in to GitHub, open the compare page above, select **Draft
+pull request**, target `main`, and paste this audit as the review checklist. No
+merge approval is requested here.
 
 ## K. Next single task
 
-Push the reviewed branch, open the Draft PR from the compare URL, and record the
-exact-head hosted CI run ID. Do not merge or promote any gate from this task.
+Open the Draft PR from the compare URL and record the exact-head hosted CI run
+ID. Do not merge or promote any gate from this task.
