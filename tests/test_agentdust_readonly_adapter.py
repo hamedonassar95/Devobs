@@ -15,7 +15,14 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from tests.platform_support import require_bash, to_bash_path
+from tests.platform_support import (
+    has_secure_open_capability,
+    require_bash,
+    require_fifo_creation,
+    require_secure_open,
+    require_symlink_creation,
+    to_bash_path,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -24,6 +31,20 @@ import agentdust_readonly_adapter as adapter  # noqa: E402
 
 
 SENTINEL = "SYNTHETIC_PRIVATE_PROCESS_SENTINEL"
+
+# These tests do not open a report through the POSIX secure-open path. Keeping
+# them active on Windows preserves their fail-closed and workflow contracts.
+CAPABILITY_INDEPENDENT_TESTS = frozenset(
+    {
+        "test_unexpected_programming_error_is_fixed_and_fails_closed",
+        "test_workflow_summary_hides_unexpected_programming_error_and_fails_closed",
+        "test_workflow_source_fetch_failure_fails_closed",
+        "test_workflow_source_sha_mismatch_fails_closed",
+        "test_workflow_source_missing_validator_files_fails_closed",
+        "test_workflow_source_validation_uses_same_event_commit",
+        "test_adapter_imports_no_process_or_network_modules",
+    }
+)
 
 
 def valid_report() -> dict[str, object]:
@@ -86,6 +107,8 @@ class AgentDustReadOnlyAdapterTests(unittest.TestCase):
         self.temp_dir = tempfile.TemporaryDirectory(prefix="agentdust-adapter-test-")
         self.addCleanup(self.temp_dir.cleanup)
         self.root = Path(self.temp_dir.name)
+        if self._testMethodName not in CAPABILITY_INDEPENDENT_TESTS:
+            require_secure_open(self)
 
     def write_json(self, name: str, value: object) -> Path:
         path = self.root / name
@@ -345,12 +368,14 @@ class AgentDustReadOnlyAdapterTests(unittest.TestCase):
         self.assert_rejected(self.write_json("too-many-findings.json", report), "findings_limit_exceeded")
 
     def test_symbolic_link_is_rejected(self) -> None:
+        require_symlink_creation(self)
         target = self.write_json("target.json", valid_report())
         link = self.root / "report-link.json"
         link.symlink_to(target)
         self.assert_rejected(link, "symbolic_link_rejected")
 
     def test_symbolic_link_in_parent_path_is_rejected(self) -> None:
+        require_symlink_creation(self)
         target_dir = self.root / "target-dir"
         target_dir.mkdir()
         self.write_json("target-dir/report.json", valid_report())
@@ -363,6 +388,7 @@ class AgentDustReadOnlyAdapterTests(unittest.TestCase):
         self.assert_rejected(path.parent / "unused" / ".." / path.name, "invalid_path")
 
     def test_non_regular_file_is_rejected_without_blocking(self) -> None:
+        require_fifo_creation(self)
         fifo = self.root / "report.fifo"
         os.mkfifo(fifo)
         self.assert_rejected(fifo, "not_regular_file")
@@ -615,6 +641,50 @@ class AgentDustReadOnlyAdapterTests(unittest.TestCase):
             for patcher in forbidden_calls:
                 stack.enter_context(patcher)
             self.assertEqual(adapter.summarize_report(path)["status_code"], "REPORT_VALID")
+
+
+class AgentDustPlatformCapabilityTests(unittest.TestCase):
+    """Verify fail-closed behavior when POSIX secure-open flags are absent."""
+
+    def setUp(self) -> None:
+        if has_secure_open_capability():
+            self.skipTest("secure-open flags are available on this host")
+        self.temp_dir = tempfile.TemporaryDirectory(prefix="agentdust-capability-test-")
+        self.addCleanup(self.temp_dir.cleanup)
+
+    def test_report_summary_fails_closed_without_secure_open(self) -> None:
+        path = Path(self.temp_dir.name) / "valid.json"
+        path.write_text(json.dumps(valid_report()), encoding="utf-8")
+        with self.assertRaises(adapter.AdapterError) as caught:
+            adapter.summarize_report(path)
+        self.assertEqual(caught.exception.code, "secure_open_unavailable")
+
+        stdout, stderr = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            exit_code = adapter.main([str(path)])
+        self.assertEqual(exit_code, 2)
+        self.assertEqual(stdout.getvalue(), "")
+        self.assertEqual(stderr.getvalue(), "adapter_error=secure_open_unavailable\n")
+        self.assertNotIn(str(path), stdout.getvalue() + stderr.getvalue())
+
+    def test_workflow_summary_fails_closed_without_secure_open(self) -> None:
+        path = Path(self.temp_dir.name) / "workflow.json"
+        path.write_text(json.dumps(valid_report()), encoding="utf-8")
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            exit_code = adapter.main(["--workflow-summary", str(path), "0"])
+        self.assertEqual(exit_code, 1)
+        self.assertEqual(
+            stdout.getvalue().splitlines(),
+            [
+                "doctor_exit_code=0",
+                "processes_detected=unavailable",
+                "findings=unavailable",
+                "doctor_success=false",
+                "doctor_failure_reason=secure_open_unavailable",
+            ],
+        )
+        self.assertNotIn(str(path), stdout.getvalue())
 
 
 if __name__ == "__main__":

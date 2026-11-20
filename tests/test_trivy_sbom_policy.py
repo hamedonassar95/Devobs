@@ -11,7 +11,11 @@ import unittest
 from pathlib import Path
 
 from scripts.trivy_sbom_policy import MAX_SBOM_BYTES, InvalidSbom, _read_sbom, evaluate_sbom, main
-from tests.platform_support import require_bash
+from tests.platform_support import (
+    require_bash,
+    to_bash_path,
+    write_python3_shim,
+)
 
 
 REVISION = "0123456789abcdef0123456789abcdef01234567"
@@ -189,6 +193,11 @@ class TrivySbomWorkflowContractTests(unittest.TestCase):
                                  invalid_sbom=False):
         bash = require_bash(self)
         script = self.sbom_step().split("        run: |\n", 1)[1]
+        script = script.replace(
+            "python3 scripts/trivy_sbom_policy.py",
+            '"$FAKE_PYTHON3" scripts/trivy_sbom_policy.py',
+        )
+        self.assertIn('"$FAKE_PYTHON3" scripts/trivy_sbom_policy.py', script)
         temp = tempfile.TemporaryDirectory()
         self.addCleanup(temp.cleanup)
         root = Path(temp.name)
@@ -211,6 +220,7 @@ class TrivySbomWorkflowContractTests(unittest.TestCase):
         )
         docker.chmod(0o755)
         trivy.chmod(0o755)
+        python3_shim = write_python3_shim(bin_dir)
         sbom_path = root / "sbom.cdx.json"
         evidence_path = root / "evidence.json"
         summary_path = root / "summary.md"
@@ -219,7 +229,8 @@ class TrivySbomWorkflowContractTests(unittest.TestCase):
             sbom_value["bomFormat"] = "invalid"
         env = os.environ.copy()
         env.update({
-            "PATH": f"{bin_dir}:{env.get('PATH', '')}",
+            "PATH": f"{to_bash_path(bin_dir)}:{env.get('PATH', '')}",
+            "FAKE_PYTHON3": to_bash_path(python3_shim),
             "SBOM_PATH": str(sbom_path),
             "EVIDENCE_PATH": str(evidence_path),
             "GITHUB_STEP_SUMMARY": str(summary_path),
@@ -233,7 +244,8 @@ class TrivySbomWorkflowContractTests(unittest.TestCase):
         })
         result = subprocess.run(
             [bash, "-euo", "pipefail", "-c", script],
-            cwd=Path.cwd(), env=env, text=True, capture_output=True, check=False,
+            cwd=Path.cwd(), env=env, text=True, encoding="utf-8",
+            capture_output=True, check=False,
         )
         return result, sbom_path, evidence_path, summary_path
 

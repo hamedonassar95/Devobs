@@ -7,7 +7,12 @@ import tempfile
 import threading
 import unittest
 
-from tests.platform_support import require_bash
+from tests.platform_support import (
+    require_bash,
+    to_bash_path,
+    write_python3_shim,
+    write_python_cli_shim,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -71,6 +76,38 @@ class VercelSiteHealthBehaviorTests(unittest.TestCase):
         self.addCleanup(self.temp_dir.cleanup)
         self.contract = Path(self.temp_dir.name) / "site-contract.json"
         self.contract.write_text(json.dumps({"required_text_any": ["Devobs"]}), encoding="utf-8")
+        self.bin_dir = Path(self.temp_dir.name) / "bin"
+        self.bin_dir.mkdir()
+        self.fake_python3 = write_python3_shim(self.bin_dir)
+        self.fake_jq = write_python_cli_shim(
+            self.bin_dir, "jq", ROOT / "tests" / "fixtures" / "fake_jq.py"
+        )
+        self.checker_script = Path(self.temp_dir.name) / "check_vercel_site.fixture.sh"
+        self.checker_script.write_text(self._patched_checker_script(), encoding="utf-8")
+
+    def _patched_checker_script(self):
+        """Bind the production script's CLI calls to explicit offline fixtures."""
+        script = (ROOT / "scripts" / "check_vercel_site.sh").read_text(encoding="utf-8")
+        marker = "\ndone\n"
+        tool_loop_end = script.index(marker) + len(marker)
+        head, tail = script[:tool_loop_end], script[tool_loop_end:]
+        patched_tail = tail.replace("python3 ", '"$FAKE_PYTHON3" ').replace(
+            "jq ", '"$FAKE_JQ" '
+        )
+        patched = head + patched_tail
+        self.assertIn('"$FAKE_PYTHON3" -', patched)
+        self.assertIn('"$FAKE_JQ" -e', patched)
+        self.assertIn("for tool in curl jq python3", head)
+        self.assertNotIn(" python3 ", patched_tail)
+        self.assertNotIn(" jq ", patched_tail)
+        return patched
+
+    def checker_environment(self):
+        env = os.environ.copy()
+        env["PATH"] = f"{to_bash_path(self.bin_dir)}:{env.get('PATH', '')}"
+        env["FAKE_PYTHON3"] = to_bash_path(self.fake_python3)
+        env["FAKE_JQ"] = to_bash_path(self.fake_jq)
+        return env
 
     def _stop_server(self):
         self.server.shutdown()
@@ -79,7 +116,7 @@ class VercelSiteHealthBehaviorTests(unittest.TestCase):
 
     def run_checker(self, expected_sha=EXPECTED_SHA):
         bash = require_bash(self)
-        env = os.environ.copy()
+        env = self.checker_environment()
         env.update({
             "SITE_URL": f"http://127.0.0.1:{self.server.server_port}",
             "EXPECTED_SHA": expected_sha,
@@ -89,11 +126,12 @@ class VercelSiteHealthBehaviorTests(unittest.TestCase):
             "POLL_INTERVAL_SECONDS": "0",
         })
         return subprocess.run(
-            [bash, str(ROOT / "scripts" / "check_vercel_site.sh")],
+            [bash, to_bash_path(self.checker_script)],
             cwd=ROOT,
             env=env,
             capture_output=True,
             text=True,
+            encoding="utf-8",
             check=False,
         )
 
@@ -128,7 +166,7 @@ class VercelSiteHealthBehaviorTests(unittest.TestCase):
 
     def test_missing_site_url_does_not_fall_back_to_production_url(self):
         bash = require_bash(self)
-        env = os.environ.copy()
+        env = self.checker_environment()
         env.update({
             "VERCEL_PRODUCTION_URL": f"http://127.0.0.1:{self.server.server_port}",
             "EXPECTED_SHA": EXPECTED_SHA,
@@ -137,11 +175,12 @@ class VercelSiteHealthBehaviorTests(unittest.TestCase):
         })
         env.pop("SITE_URL", None)
         result = subprocess.run(
-            [bash, str(ROOT / "scripts" / "check_vercel_site.sh")],
+            [bash, to_bash_path(self.checker_script)],
             cwd=ROOT,
             env=env,
             capture_output=True,
             text=True,
+            encoding="utf-8",
             check=False,
         )
         self.assertEqual(result.returncode, 2)

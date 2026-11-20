@@ -9,7 +9,13 @@ import tempfile
 import textwrap
 import unittest
 
-from tests.platform_support import require_bash
+from tests.platform_support import (
+    require_bash,
+    require_executable_mode_bit,
+    require_symlink_creation,
+    to_bash_path,
+    write_python3_shim,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -35,6 +41,44 @@ class SharedStagingTests(unittest.TestCase):
         (assets / ".private.css").write_text("hidden{}", encoding="utf-8")
         self.output = self.workspace / "_site"
         self.source_sha = "a" * 40
+        self.bin_dir = self.workspace / "test-bin"
+        self.bin_dir.mkdir()
+        self.python3_shim = write_python3_shim(self.bin_dir)
+
+    def downloaded_validator(self):
+        """Bind the workflow's inline Python call to an offline interpreter shim."""
+        workflow = (ROOT / ".github/workflows/deploy-pages.yml").read_text(encoding="utf-8")
+        block = workflow.split("      - name: Validate downloaded CI artifact\n", 1)[1].split(
+            "      - name:", 1
+        )[0]
+        self.assertIn("SITE_ROOT=_site python3 scripts/check_site.py", block)
+        run_body = block.split("        run: |\n", 1)[1].split(
+            "          SITE_ROOT=_site python3 scripts/check_site.py", 1
+        )[0]
+        validator = textwrap.dedent(
+            "\n".join(line[10:] for line in run_body.splitlines() if line.startswith("          "))
+        )
+        validator = validator.replace(
+            "python3 - <<'PY'", '"$FAKE_PYTHON3" - <<\'PY\''
+        )
+        self.assertIn('"$FAKE_PYTHON3" -', validator)
+        return validator
+
+    def run_downloaded_validator(self):
+        return subprocess.run(
+            [require_bash(self), "-e", "-u", "-o", "pipefail", "-c", self.downloaded_validator()],
+            cwd=self.workspace,
+            env={
+                **os.environ,
+                "EXPECTED_SOURCE_SHA": self.source_sha,
+                "FAKE_PYTHON3": to_bash_path(self.python3_shim),
+                "PATH": f"{to_bash_path(self.bin_dir)}:{os.environ.get('PATH', '')}",
+            },
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=False,
+        )
 
     def run_stage(self, source):
         env = os.environ.copy()
@@ -229,47 +273,16 @@ class SharedStagingTests(unittest.TestCase):
         self.assertEqual(artifacts[producer_attempt_1], files)
 
     def test_downloaded_pages_artifact_validator_accepts_exact_staged_fixture(self):
-        bash = require_bash(self)
+        require_bash(self)
         self.create_valid_staged_artifact()
-        workflow = (ROOT / ".github/workflows/deploy-pages.yml").read_text(encoding="utf-8")
-        block = workflow.split("      - name: Validate downloaded CI artifact\n", 1)[1].split(
-            "      - name:", 1
-        )[0]
-        run_body = block.split("        run: |\n", 1)[1].split("          SITE_ROOT=_site python3 scripts/check_site.py", 1)[0]
-        validator = textwrap.dedent("\n".join(line[10:] for line in run_body.splitlines() if line.startswith("          ")))
-        self.assertIn("SITE_ROOT=_site python3 scripts/check_site.py", block)
-        result = subprocess.run(
-            [bash, "-e", "-u", "-o", "pipefail", "-c", validator],
-            cwd=self.workspace,
-            env={**os.environ, "EXPECTED_SOURCE_SHA": self.source_sha},
-            capture_output=True,
-            text=True,
-            check=False,
-        )
+        result = self.run_downloaded_validator()
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         check = self.run_site_check()
         self.assertEqual(check.returncode, 0, check.stdout + check.stderr)
 
-    def test_downloaded_pages_artifact_validator_fails_closed_for_missing_or_wrong_artifact(self):
-        bash = require_bash(self)
-        workflow = (ROOT / ".github/workflows/deploy-pages.yml").read_text(encoding="utf-8")
-        block = workflow.split("      - name: Validate downloaded CI artifact\n", 1)[1].split(
-            "      - name:", 1
-        )[0]
-        run_body = block.split("        run: |\n", 1)[1].split("          SITE_ROOT=_site python3 scripts/check_site.py", 1)[0]
-        validator = textwrap.dedent("\n".join(line[10:] for line in run_body.splitlines() if line.startswith("          ")))
-
-        def run_validator():
-            return subprocess.run(
-                [bash, "-e", "-u", "-o", "pipefail", "-c", validator],
-                cwd=self.workspace,
-                env={**os.environ, "EXPECTED_SOURCE_SHA": self.source_sha},
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-
-        missing = run_validator()
+    def test_downloaded_pages_artifact_validator_fails_closed_for_invalid_artifact(self):
+        require_bash(self)
+        missing = self.run_downloaded_validator()
         self.assertNotEqual(missing.returncode, 0)
 
         self.output.mkdir()
@@ -277,48 +290,54 @@ class SharedStagingTests(unittest.TestCase):
         (self.output / "deployment.json").write_text(
             json.dumps({"schema_version": 1, "source_sha": "b" * 40}), encoding="utf-8"
         )
-        wrong_sha = run_validator()
+        wrong_sha = self.run_downloaded_validator()
         self.assertNotEqual(wrong_sha.returncode, 0)
 
         (self.output / "deployment.json").write_text(
             json.dumps({"schema_version": 2, "source_sha": self.source_sha}), encoding="utf-8"
         )
-        wrong_manifest = run_validator()
+        wrong_manifest = self.run_downloaded_validator()
         self.assertNotEqual(wrong_manifest.returncode, 0)
 
         (self.output / "deployment.json").write_text(
             json.dumps({"schema_version": 1, "source_sha": self.source_sha}), encoding="utf-8"
         )
         (self.output / "assets").write_text("not an assets directory", encoding="utf-8")
-        invalid_assets_root = run_validator()
+        invalid_assets_root = self.run_downloaded_validator()
         self.assertNotEqual(invalid_assets_root.returncode, 0)
         (self.output / "assets").unlink()
         (self.output / "assets").mkdir()
         (self.output / "assets" / "site.css").write_text("body{}", encoding="utf-8")
         (self.output / "unexpected.py").write_text("print('not public site data')", encoding="utf-8")
-        unexpected_file = run_validator()
+        unexpected_file = self.run_downloaded_validator()
         self.assertNotEqual(unexpected_file.returncode, 0)
 
         (self.output / "unexpected.py").unlink()
         (self.output / "assets" / ".private.css").write_text("hidden{}", encoding="utf-8")
-        hidden_file = run_validator()
+        hidden_file = self.run_downloaded_validator()
         self.assertNotEqual(hidden_file.returncode, 0)
-        (self.output / "assets" / ".private.css").unlink()
-        (self.output / "assets" / "outside-link").symlink_to(self.source / "index.html")
-        symlink = run_validator()
-        self.assertNotEqual(symlink.returncode, 0)
-        (self.output / "assets" / "outside-link").unlink()
-
-        executable_asset = self.output / "assets" / "script.js"
-        executable_asset.write_text("/* fixture */", encoding="utf-8")
-        executable_asset.chmod(0o755)
-        executable = run_validator()
-        self.assertNotEqual(executable.returncode, 0)
-        executable_asset.unlink()
 
         (self.output / "index.html").write_text("not valid html", encoding="utf-8")
         invalid_site = self.run_site_check()
         self.assertNotEqual(invalid_site.returncode, 0)
+
+    def test_downloaded_pages_artifact_validator_rejects_symlink_asset(self):
+        require_bash(self)
+        require_symlink_creation(self)
+        self.create_valid_staged_artifact()
+        (self.output / "assets" / "outside-link").symlink_to(self.source / "index.html")
+        result = self.run_downloaded_validator()
+        self.assertNotEqual(result.returncode, 0)
+
+    def test_downloaded_pages_artifact_validator_rejects_executable_asset(self):
+        require_bash(self)
+        require_executable_mode_bit(self)
+        self.create_valid_staged_artifact()
+        executable_asset = self.output / "assets" / "script.js"
+        executable_asset.write_text("/* fixture */", encoding="utf-8")
+        executable_asset.chmod(0o755)
+        result = self.run_downloaded_validator()
+        self.assertNotEqual(result.returncode, 0)
 
 
 if __name__ == "__main__":

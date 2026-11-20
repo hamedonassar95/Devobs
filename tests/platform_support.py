@@ -11,7 +11,10 @@ from __future__ import annotations
 import os
 from pathlib import Path
 import re
+import shlex
 import shutil
+import stat
+import sys
 import tempfile
 from typing import Protocol, runtime_checkable
 
@@ -77,6 +80,47 @@ def fifo_creation_supported() -> bool:
     return hasattr(os, "mkfifo")
 
 
+def executable_mode_bit_supported() -> bool:
+    """Probe whether chmod exposes POSIX executable mode bits on this host."""
+    with tempfile.TemporaryDirectory() as directory:
+        path = Path(directory) / "executable-probe"
+        path.write_text("probe", encoding="utf-8")
+        try:
+            path.chmod(0o755)
+            return bool(path.stat().st_mode & stat.S_IXUSR)
+        except OSError:
+            return False
+
+
+def write_python_cli_shim(directory: str | os.PathLike[str], name: str,
+                          script: str | os.PathLike[str]) -> Path:
+    """Write a POSIX shell shim that runs a Python CLI with the test interpreter."""
+    script_path = Path(script)
+    if not script_path.is_file():
+        raise FileNotFoundError(script_path)
+    shim = Path(directory) / name
+    body = "#!/bin/sh\n" + " ".join(
+        (
+            "exec",
+            shlex.quote(sys.executable),
+            shlex.quote(os.fspath(script_path)),
+            '"$@"',
+        )
+    ) + "\n"
+    shim.write_bytes(body.encode("utf-8"))
+    shim.chmod(0o755)
+    return shim
+
+
+def write_python3_shim(directory: str | os.PathLike[str]) -> Path:
+    """Write a python3 shim that uses the active Python instead of WindowsApps."""
+    shim = Path(directory) / "python3"
+    body = "#!/bin/sh\nexec " + shlex.quote(sys.executable) + ' "$@"\n'
+    shim.write_bytes(body.encode("utf-8"))
+    shim.chmod(0o755)
+    return shim
+
+
 def require_bash(case: _SkipCapable) -> str:
     bash = find_bash()
     if bash is None:
@@ -97,3 +141,8 @@ def require_symlink_creation(case: _SkipCapable) -> None:
 def require_fifo_creation(case: _SkipCapable) -> None:
     if not fifo_creation_supported():
         case.skipTest("os.mkfifo is unavailable on this host")
+
+
+def require_executable_mode_bit(case: _SkipCapable) -> None:
+    if not executable_mode_bit_supported():
+        case.skipTest("POSIX executable mode bits are unavailable on this host")
