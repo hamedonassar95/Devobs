@@ -7,7 +7,8 @@ import json
 import os
 import pathlib
 import shutil
-import subprocess
+# Required for pinned offline CLI invocation with fixed, validated argv.
+import subprocess  # nosec B404
 import time
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -109,7 +110,8 @@ class GraphifyRunner:
     ) -> subprocess.CompletedProcess[str]:
         argv = [self.binary, *args]
         try:
-            result = subprocess.run(
+            # Fixed argv from a verified binary path; shell is disabled.
+            result = subprocess.run(  # nosec B603
                 argv,
                 capture_output=True,
                 text=True,

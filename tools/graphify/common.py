@@ -7,7 +7,8 @@ import hashlib
 import json
 import pathlib
 import re
-import subprocess
+# Required for read-only, no-shell git subprocesses with fixed argv.
+import subprocess  # nosec B404
 import sys
 import time
 from collections.abc import Iterable, Sequence
@@ -181,7 +182,8 @@ def sanitize_json(value: object) -> object:
 
 def run_git(repo: pathlib.Path, *args: str) -> str:
     """Run a read-only git command; never contacts a remote."""
-    result = subprocess.run(
+    # Read-only git command: fixed argv, no shell, no remote operations.
+    result = subprocess.run(  # nosec B603, B607
         ["git", "-C", str(repo), *args],
         capture_output=True,
         text=True,

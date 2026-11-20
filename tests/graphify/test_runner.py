@@ -160,7 +160,7 @@ class RunnerTests(unittest.TestCase):
         runner.version = ri.PINNED_GRAPHIFY_VERSION
         runner.timeout = 5
         failure = subprocess.CompletedProcess(["graphify", "extract"], 1, "", SENTINEL)
-        with mock.patch.object(ri.subprocess, "run", return_value=failure):
+        with mock.patch("tools.graphify.runner.subprocess.run", return_value=failure):
             with self.assertRaises(ri.GraphifyRunnerError) as caught:
                 runner._run(["extract", "source"])
         message = str(caught.exception)

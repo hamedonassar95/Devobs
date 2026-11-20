@@ -72,7 +72,7 @@ jobs:
       python_version: ${{ matrix.python_version }}
       requirements_file: requirements-api.lock
       require_hashes: true
-      compile_paths_json: '["scripts", "tests"]'
+      compile_paths_json: '["scripts", "tests", "tools"]'
       test_runner: unittest
       test_path: tests
       source_ref: ${{ inputs.source_ref || github.sha }}
@@ -342,7 +342,7 @@ jobs:
         if: github.event_name == 'pull_request'
         run: python3 scripts/lint_authored_workflows.py "$RUNNER_TEMP/actionlint-bin"
       - name: Static analysis with Bandit
-        run: python3 -m bandit -r scripts -x scripts/check_site.py
+        run: python3 -m bandit -r scripts tools -x scripts/check_site.py
       - name: Audit Python dependencies for known vulnerabilities
         run: |
           pip-audit --requirement requirements-dev.lock

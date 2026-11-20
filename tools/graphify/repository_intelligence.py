@@ -10,7 +10,6 @@ import argparse
 import datetime
 import json
 import pathlib
-import subprocess
 import sys
 from collections.abc import Iterable, Sequence
 
