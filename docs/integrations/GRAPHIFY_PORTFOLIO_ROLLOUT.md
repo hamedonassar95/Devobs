@@ -1,9 +1,15 @@
 # Graphify portfolio integration (offline, dry-run first)
 
-**Status: integration implemented and tested; rollout BLOCKED.** The orchestrator
-and its tests exist, but no authorized repository currently meets the rollout
-preconditions (clean `main`/`master` checkout), no Draft PR was opened, and no
-graph was uploaded anywhere.
+**Status: LEGACY historical evidence — integration implemented and tested;
+rollout BLOCKED.** The orchestrator and its tests exist, but no authorized
+repository currently meets the rollout preconditions (clean `main`/`master`
+checkout), no Draft PR was opened, and no graph was uploaded anywhere.
+
+**Canonical pointer (2026-11-20):** new work uses `tools/graphify` 0.9.113 via
+`scripts/graphify/multi_repo.py`. This document and
+`scripts/integrations/graphify_portfolio.py` describe the legacy 0.9.112 stack,
+which remains backward-compatible and now emits a deprecation notice. See
+[the Graphify consolidation plan](../architecture/GRAPHIFY_CONSOLIDATION_PLAN.md).
 
 This document records what was verified on 2026-11-19. It is local, read-only
 evidence and not a claim that any project is connected to a Graphify service.

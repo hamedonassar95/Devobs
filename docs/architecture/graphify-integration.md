@@ -19,6 +19,13 @@ per-repository isolation, privacy checks and measured search latency.
 Out of scope: hosted OAuth/MCP, `gh`-authenticated features such as `graphify prs`,
 cloud deployment, billing, repository rule changes, and automatic merge.
 
+**Canonical status (2026-11-20):** `tools/graphify` with CLI
+`scripts/graphify/multi_repo.py` is the supported implementation for new work.
+`scripts/integrations/graphify_portfolio.py` is the legacy 0.9.112 orchestrator;
+it remains backward-compatible and now emits a deprecation notice. See
+[the Graphify consolidation plan](GRAPHIFY_CONSOLIDATION_PLAN.md) for evidence,
+compatibility rules and the owner-gated migration path.
+
 ## 2. Verified tool identity and supply chain
 
 | Property | Value | Evidence |

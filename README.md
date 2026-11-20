@@ -32,6 +32,15 @@ and Bandit scanning. The fix and its regression evidence are in
 [the rollback runbook](docs/runbooks/REMEDIATION_ROLLBACK.md). P01 remains
 NO-GO/BLOCKED, AI-9 remains BLOCKED, and Codex runtime acceptance remains OPEN.
 
+A subsequent recovery assessment of `origin/main` `cecae6c` verified that fix on
+`main`, selected the remaining P1 Graphify canonicalization ambiguity for a
+bounded repair, and documented all other blockers. See
+[the recovery audit](docs/audits/DEVOBS_RECOVERY_AUDIT.md),
+[the recovery roadmap](docs/roadmap/DEVOBS_RECOVERY_ROADMAP.md),
+[the recovery rollback runbook](docs/runbooks/RECOVERY_AND_ROLLBACK.md), and
+[the Graphify consolidation plan](docs/architecture/GRAPHIFY_CONSOLIDATION_PLAN.md).
+No release gate was promoted by this work.
+
 ## مراجعة خطط Codex والكود بصريًا — Plannotator (اختياري)
 
 أضفنا [دليل تكامل Plannotator مع Codex](docs/integrations/PLANNOTATOR_CODEX_REVIEW.md) لإجراء مراجعات بصرية يدوية للخطط والـ diff على جهاز موثوق، دون تفعيل Hooks أو تشغيل خدمات أو إضافة تبعيات داخل المستودع. **الحالة: موثّق فقط / التشغيل غير متحقق.** يحتاج استخدام الأداة إلى تثبيت اختياري يراجعه المالك على جهازه؛ دعم ChatGPT على iPhone أو Codex السحابي غير مثبت. تستمر موافقات الإنسان وحماية `main` وفحوص CI وبوابات P01/AI-9 دون تغيير.
@@ -439,20 +448,31 @@ unset GRAFANA_ADMIN_PASSWORD
 - [P01 Keycloak Docker smoke evidence](docs/P01_KEYCLOAK_DOCKER_SMOKE_EVIDENCE.md): real localhost-only runtime evidence for the pinned Keycloak 26.8.2 image, with the realm imported and the discovery/JWKS preflight passing. Local HTTP still does not establish production issuer readiness.
 - [P01 Keycloak HTTPS discovery and JWKS preflight](docs/P01_KEYCLOAK_HTTPS_PREFLIGHT.md): the offline checker targets the exact `https://localhost` issuer on standard port 443; the fixture binds `127.0.0.1:443` to Keycloak's internal HTTPS port 8443 and reuses the strict OIDC metadata verifier. The narrow exception recorded by merged PR #608 is effective only after this reconciliation PR is merged. Until this reconciliation PR is merged, the general secret-handling prohibition remains binding and no Keycloak runtime may start. After activation, every runtime test requires separate explicit owner approval for that run naming the full reviewed source SHA (40-character SHA), a unique Docker Compose project name, and exact test scope. It permits only automatic generation and internal use of disposable realm signing material for synthetic identities, using the pinned image and a local Unix socket Docker context; `ssh://`, `tcp://`, named-pipe, cloud, and remote endpoints are BLOCKED. No private-key inspection/export, credential or token logging, or raw secret-bearing logs are allowed. Live TLS and signed-token acceptance remain NOT_TESTED.
 
-## Graphify portfolio integration (offline, dry-run first)
+## Graphify integrations (offline, opt-in)
 
-A review-only orchestrator discovers authorized local checkouts and, only with
-explicit `--execute --only <repository>`, builds an offline AST-only code graph
-with the pinned `graphifyy==0.9.112` release. Graph output is written outside
-source repositories; nothing is uploaded, published, scheduled or deployed, and
-no LLM backend is selected.
+**Canonical:** `tools/graphify` pinned to `graphifyy` 0.9.113, with CLI entry
+points `scripts/graphify/multi_repo.py` and
+`scripts/graphify/repository_intelligence.py`. Use it for new work:
+
+```sh
+python3 scripts/graphify/multi_repo.py validate --manifest assets/graphify/multi_repo_manifest.json
+python3 -m unittest discover -s tests/graphify -v
+```
+
+Privacy controls, provenance and measured local evidence are in
+[the Graphify integration design](docs/architecture/graphify-integration.md) and
+[repository intelligence](docs/architecture/repository-intelligence.md).
+
+**Legacy:** `scripts/integrations/graphify_portfolio.py` is the earlier 0.9.112
+review-only orchestrator. It remains available and backward-compatible, but now
+prints a `DEPRECATED` notice and identifies the canonical stack in JSON reports.
+Its historical provenance and blocked rollout evidence are recorded in
+[docs/integrations/GRAPHIFY_PORTFOLIO_ROLLOUT.md](docs/integrations/GRAPHIFY_PORTFOLIO_ROLLOUT.md).
+Migration rules are in
+[the consolidation plan](docs/architecture/GRAPHIFY_CONSOLIDATION_PLAN.md).
 
 ```sh
 python3 scripts/integrations/graphify_portfolio.py --json
 python3 -m unittest discover -s tests -p 'test_graphify_portfolio.py' -v
 ```
-
-Provenance checks, the security-advisory assessment, the rejected
-`--backend none` flag and the current blocked rollout state are recorded in
-[docs/integrations/GRAPHIFY_PORTFOLIO_ROLLOUT.md](docs/integrations/GRAPHIFY_PORTFOLIO_ROLLOUT.md).
 - [Disposable Keycloak public OAuth client](docs/P01_KEYCLOAK_OIDC_PROFILE.md#disposable-local-public-oauth-client): one offline-validated Authorization Code + PKCE S256 client configuration with exact loopback redirects and an opt-in `devobs.read` scope. Live runtime remains NOT_TESTED and requires the reconciliation PR to be merged plus separate per-run owner approval. The exception does not authorize credential or token creation, hosted identity, production changes, paid AI inference, or deployment; P01 remains NO-GO and AI-9 remains BLOCKED.
