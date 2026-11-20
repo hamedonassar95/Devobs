@@ -352,6 +352,23 @@ class CliTests(unittest.TestCase):
         self.assertEqual(states, {"alpha": True, "gamma": False})
         self.assertNotIn("run", report["plan"][0])
 
+    def test_legacy_cli_identifies_canonical_implementation(self):
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            code = gp.main(["--root", str(self.root), "--out-root", str(self.out), "--json"])
+        report = json.loads(stdout.getvalue())
+        self.assertEqual(code, 0)
+        self.assertIn("deprecated", stderr.getvalue().lower())
+        self.assertTrue(report["legacy"])
+        self.assertEqual(report["canonical"]["implementation"], "tools/graphify")
+        self.assertEqual(report["canonical"]["cli"], "scripts/graphify/multi_repo.py")
+        self.assertEqual(report["canonical"]["pinned_version"], "0.9.113")
+        self.assertIn(
+            "scripts/graphify/multi_repo.py",
+            gp._build_parser().format_help(),
+        )
+
     def test_missing_scan_root_fails_closed(self):
         stream = io.StringIO()
         with contextlib.redirect_stderr(stream):

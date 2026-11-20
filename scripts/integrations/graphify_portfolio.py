@@ -1,4 +1,4 @@
-"""Dry-run-first, offline Graphify portfolio orchestrator (review-only).
+"""LEGACY Graphify portfolio orchestrator (canonical: tools/graphify).
 
 This module discovers authorized local checkouts of ``hamedonassar95`` GitHub
 repositories, reports whether each one is eligible for an offline code graph,
@@ -42,6 +42,15 @@ import sys
 
 POLICY = "devobs-graphify-portfolio-v1"
 PINNED_GRAPHIFY_VERSION = "0.9.112"
+CANONICAL_IMPLEMENTATION = "tools/graphify"
+CANONICAL_CLI = "scripts/graphify/multi_repo.py"
+CANONICAL_PINNED_VERSION = "0.9.113"
+CANONICAL_MIGRATION_DOC = "docs/architecture/GRAPHIFY_CONSOLIDATION_PLAN.md"
+LEGACY_NOTICE = (
+    "DEPRECATED: scripts/integrations/graphify_portfolio.py is the legacy "
+    "Graphify portfolio orchestrator; use scripts/graphify/multi_repo.py "
+    "(tools/graphify, pinned 0.9.113) for new work."
+)
 AUTHORIZED_OWNER = "hamedonassar95"
 ROLLOUT_BRANCHES = ("main", "master")
 DEFAULT_TIMEOUT_SECONDS = 900
@@ -435,7 +444,10 @@ def execute_repository(
 
 
 def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(
+        description=__doc__.splitlines()[0],
+        epilog=LEGACY_NOTICE,
+    )
     parser.add_argument("--root", type=pathlib.Path, default=pathlib.Path(__file__).resolve().parents[2].parent)
     parser.add_argument("--repo", type=pathlib.Path, action="append", default=[], help="extra checkout path")
     parser.add_argument("--out-root", type=pathlib.Path, default=pathlib.Path.home() / ".devobs" / "graphify-portfolio")
@@ -450,6 +462,7 @@ def _build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
+    print(LEGACY_NOTICE, file=sys.stderr)
     try:
         repositories, skipped = discover(args.root, args.repo)
         if not repositories:
@@ -491,6 +504,14 @@ def main(argv: list[str] | None = None) -> int:
 
         report = {
             "policy": POLICY,
+            "legacy": True,
+            "deprecation_notice": LEGACY_NOTICE,
+            "canonical": {
+                "implementation": CANONICAL_IMPLEMENTATION,
+                "cli": CANONICAL_CLI,
+                "pinned_version": CANONICAL_PINNED_VERSION,
+                "migration_doc": CANONICAL_MIGRATION_DOC,
+            },
             "mode": "execute" if args.execute else "dry-run",
             "graphify": {
                 "expected_version": PINNED_GRAPHIFY_VERSION,
