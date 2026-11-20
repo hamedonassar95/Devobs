@@ -131,8 +131,65 @@ No unavailable or unexecuted check is reported as passing.
 
 ## 6. Post-change validation log
 
-This section is completed after the final source state is verified; it records
-fresh commands only, not remembered output.
+All commands below were run from `C:\DevProjects\Devobs` on the final source
+state (`6635c52` at capture time). Logs are in the approved temporary directory.
+
+```text
+git diff --check
+  DIFF_CHECK_EXIT=0
+
+python -B -m compileall -q tools/graphify scripts/graphify scripts/integrations/graphify_portfolio.py
+  COMPILEALL_EXIT=0
+
+python -B -m unittest tests.test_python_source_coverage tests.test_node_pipeline_selection tests.test_python_dependency_automation -v
+  Ran 11 tests in 0.097s
+  OK
+  TARGETED_AFTER_EXIT=0
+
+python -B -m unittest discover -s tests/graphify -v
+  Ran 41 tests in 6.796s
+  OK
+  GRAPHIFY_AFTER_EXIT=0
+
+python -B -m unittest tests.test_graphify_portfolio -v
+  Ran 27 tests in 30.140s
+  OK
+  PORTFOLIO_AFTER_EXIT=0
+
+Bandit 1.9.4 (local audit virtual environment):
+  python -m bandit -r scripts tools -x scripts/check_site.py -q
+  90 manager warning lines about "Test in comment" (pre-existing comment text)
+  0 issue-summary lines
+  BANDIT_AFTER_EXIT=0
+
+python -B -m unittest discover -s tests -v
+  BASELINE: Ran 1200 tests in 279.679s; FAILED (failures=47, errors=123, skipped=44)
+  AFTER:    Ran 1201 tests in 196.234s; FAILED (failures=47, errors=123, skipped=44)
+  AFTER_UNITTEST_EXIT=1
+  Header comparison: BASE_HEADERS=170, AFTER_HEADERS=170, NEW_IN_AFTER=0, MISSING_FROM_AFTER=0
+
+python scripts/check_action_pins.py
+  Action pin check passed for 48 workflow and template files.
+  ACTION_PINS_AFTER_EXIT=0
+
+node --test tests/incident_guard.test.cjs
+  ℹ tests 22
+  ℹ pass 22
+  ℹ fail 0
+  ℹ skipped 0
+  ℹ duration_ms 128.5375
+  NODE_SMOKE_AFTER_EXIT=0
+
+YAML safe_load of 43 workflow files (audit virtual environment)
+  YAML_PARSE_OK 43
+  YAML_AFTER_EXIT=0
+```
+
+The one extra test is the new legacy-canonical regression. The full local suite
+still fails with the same 170 pre-existing Windows/optional-dependency headers;
+no failure was suppressed, skipped or reclassified by this change. Hosted Ubuntu
+CI remains the source-acceptance signal, but no new hosted run was requested for
+this Draft PR.
 
 ## 7. Gate status
 
