@@ -9,6 +9,8 @@ import tempfile
 import textwrap
 import unittest
 
+from tests.platform_support import require_bash
+
 
 ROOT = Path(__file__).resolve().parents[1]
 STAGE_SCRIPT = ROOT / "scripts" / "stage_site.py"
@@ -227,6 +229,7 @@ class SharedStagingTests(unittest.TestCase):
         self.assertEqual(artifacts[producer_attempt_1], files)
 
     def test_downloaded_pages_artifact_validator_accepts_exact_staged_fixture(self):
+        bash = require_bash(self)
         self.create_valid_staged_artifact()
         workflow = (ROOT / ".github/workflows/deploy-pages.yml").read_text(encoding="utf-8")
         block = workflow.split("      - name: Validate downloaded CI artifact\n", 1)[1].split(
@@ -236,7 +239,7 @@ class SharedStagingTests(unittest.TestCase):
         validator = textwrap.dedent("\n".join(line[10:] for line in run_body.splitlines() if line.startswith("          ")))
         self.assertIn("SITE_ROOT=_site python3 scripts/check_site.py", block)
         result = subprocess.run(
-            ["bash", "-e", "-u", "-o", "pipefail", "-c", validator],
+            [bash, "-e", "-u", "-o", "pipefail", "-c", validator],
             cwd=self.workspace,
             env={**os.environ, "EXPECTED_SOURCE_SHA": self.source_sha},
             capture_output=True,
@@ -248,6 +251,7 @@ class SharedStagingTests(unittest.TestCase):
         self.assertEqual(check.returncode, 0, check.stdout + check.stderr)
 
     def test_downloaded_pages_artifact_validator_fails_closed_for_missing_or_wrong_artifact(self):
+        bash = require_bash(self)
         workflow = (ROOT / ".github/workflows/deploy-pages.yml").read_text(encoding="utf-8")
         block = workflow.split("      - name: Validate downloaded CI artifact\n", 1)[1].split(
             "      - name:", 1
@@ -257,7 +261,7 @@ class SharedStagingTests(unittest.TestCase):
 
         def run_validator():
             return subprocess.run(
-                ["bash", "-e", "-u", "-o", "pipefail", "-c", validator],
+                [bash, "-e", "-u", "-o", "pipefail", "-c", validator],
                 cwd=self.workspace,
                 env={**os.environ, "EXPECTED_SOURCE_SHA": self.source_sha},
                 capture_output=True,

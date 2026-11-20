@@ -11,6 +11,7 @@ import unittest
 from pathlib import Path
 
 from scripts.trivy_sbom_policy import MAX_SBOM_BYTES, InvalidSbom, _read_sbom, evaluate_sbom, main
+from tests.platform_support import require_bash
 
 
 REVISION = "0123456789abcdef0123456789abcdef01234567"
@@ -186,6 +187,7 @@ class TrivySbomWorkflowContractTests(unittest.TestCase):
 
     def run_sbom_step_with_stubs(self, *, image_missing=False, scanner_failure=False,
                                  invalid_sbom=False):
+        bash = require_bash(self)
         script = self.sbom_step().split("        run: |\n", 1)[1]
         temp = tempfile.TemporaryDirectory()
         self.addCleanup(temp.cleanup)
@@ -230,7 +232,7 @@ class TrivySbomWorkflowContractTests(unittest.TestCase):
             "FAKE_TRIVY_FAILURE": "1" if scanner_failure else "0",
         })
         result = subprocess.run(
-            ["bash", "-euo", "pipefail", "-c", script],
+            [bash, "-euo", "pipefail", "-c", script],
             cwd=Path.cwd(), env=env, text=True, capture_output=True, check=False,
         )
         return result, sbom_path, evidence_path, summary_path

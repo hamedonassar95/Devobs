@@ -5,6 +5,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from tests.platform_support import require_bash
+
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = (
@@ -136,6 +138,7 @@ class AiDevKitStatusTests(unittest.TestCase):
     def run_script(
         self, script, *, lint_exit=0, feature=None, use_default_cli=False, lint_stderr="", cwd=None
     ):
+        bash = require_bash(self)
         env = os.environ.copy()
         env.update(
             {
@@ -150,10 +153,11 @@ class AiDevKitStatusTests(unittest.TestCase):
             env.pop("AI_DEVKIT_BIN", None)
             env["PATH"] = f"{self.workdir}{os.pathsep}{env['PATH']}"
         return subprocess.run(
-            ["bash", str(script), feature or self.feature],
+            [bash, str(script), feature or self.feature],
             cwd=cwd or self.workdir,
             env=env,
             text=True,
+            encoding="utf-8",
             capture_output=True,
             check=False,
         )

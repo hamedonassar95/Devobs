@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 import unittest
 
@@ -9,6 +10,7 @@ from tests.platform_support import (
     find_bash,
     has_secure_open_capability,
     symlink_creation_supported,
+    to_bash_path,
 )
 
 
@@ -24,6 +26,14 @@ class PlatformSupportTests(unittest.TestCase):
 
     def test_symlink_probe_does_not_leave_artifacts(self):
         self.assertIsInstance(symlink_creation_supported(), bool)
+
+    def test_windows_drive_paths_are_converted_for_bash(self):
+        if os.name != "nt":
+            self.skipTest("drive-letter conversion applies only to Windows")
+        self.assertEqual(to_bash_path(r"C:\Temp\fixture"), "/c/Temp/fixture")
+
+    def test_bash_paths_are_left_unchanged(self):
+        self.assertEqual(to_bash_path("/tmp/fixture"), "/tmp/fixture")
 
 
 if __name__ == "__main__":

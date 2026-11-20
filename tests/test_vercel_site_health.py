@@ -7,6 +7,8 @@ import tempfile
 import threading
 import unittest
 
+from tests.platform_support import require_bash
+
 
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_SHA = "a" * 40
@@ -76,6 +78,7 @@ class VercelSiteHealthBehaviorTests(unittest.TestCase):
         self.thread.join(timeout=5)
 
     def run_checker(self, expected_sha=EXPECTED_SHA):
+        bash = require_bash(self)
         env = os.environ.copy()
         env.update({
             "SITE_URL": f"http://127.0.0.1:{self.server.server_port}",
@@ -86,7 +89,7 @@ class VercelSiteHealthBehaviorTests(unittest.TestCase):
             "POLL_INTERVAL_SECONDS": "0",
         })
         return subprocess.run(
-            ["bash", str(ROOT / "scripts" / "check_vercel_site.sh")],
+            [bash, str(ROOT / "scripts" / "check_vercel_site.sh")],
             cwd=ROOT,
             env=env,
             capture_output=True,
@@ -124,6 +127,7 @@ class VercelSiteHealthBehaviorTests(unittest.TestCase):
         )
 
     def test_missing_site_url_does_not_fall_back_to_production_url(self):
+        bash = require_bash(self)
         env = os.environ.copy()
         env.update({
             "VERCEL_PRODUCTION_URL": f"http://127.0.0.1:{self.server.server_port}",
@@ -133,7 +137,7 @@ class VercelSiteHealthBehaviorTests(unittest.TestCase):
         })
         env.pop("SITE_URL", None)
         result = subprocess.run(
-            ["bash", str(ROOT / "scripts" / "check_vercel_site.sh")],
+            [bash, str(ROOT / "scripts" / "check_vercel_site.sh")],
             cwd=ROOT,
             env=env,
             capture_output=True,

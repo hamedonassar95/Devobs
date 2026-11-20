@@ -6,31 +6,68 @@ import subprocess
 import tempfile
 import unittest
 
+from tests.platform_support import require_bash, to_bash_path
+
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "deploy/keycloak-hosted/start.sh"
 
 
 class HostedKeycloakTests(unittest.TestCase):
+    def bash_ca_path(self, bash, ca):
+        """Expose the synthetic CA under a Bash path matching the production contract."""
+        if os.name != "nt":
+            return str(ca)
+        result = subprocess.run(
+            [
+                bash,
+                "-c",
+                'dir="$(mktemp -d /tmp/devobs-ca.XXXXXX)"; '
+                'cp "$1" "$dir/public-ca.pem"; printf "%s\\n" "$dir/public-ca.pem"',
+                "--",
+                to_bash_path(ca),
+            ],
+            text=True,
+            encoding="utf-8",
+            capture_output=True,
+            check=True,
+        )
+        path = result.stdout.strip()
+        self.assertTrue(path.startswith("/tmp/devobs-ca."), path)
+        self.addCleanup(
+            subprocess.run,
+            [bash, "-c", 'rm -rf -- "$1"', "--", path],
+            capture_output=True,
+            check=False,
+        )
+        return path
+
     def run_config(self, changes=None):
+        bash = require_bash(self)
         with tempfile.TemporaryDirectory() as directory:
             ca = Path(directory) / "public-ca.pem"
             ca.write_text("public certificate fixture; not a live trust anchor")
-            env = {
-                "PATH": os.defpath,
-                "RENDER_EXTERNAL_URL": "https://devobs-keycloak-hosted.onrender.com",
-                "DEVOBS_OIDC_REDIRECT_URI": "https://devobs.onrender.com/callback",
-                "DEVOBS_KEYCLOAK_DB_HOST": "dpg-fixture-a.frankfurt-postgres.render.com",
-                "DEVOBS_KEYCLOAK_DB_NAME": "keycloak_identity",
-                "KC_DB_USERNAME": "keycloak_idp",
-                "KC_DB_PASSWORD": "synthetic-db-marker",
-                "KC_BOOTSTRAP_ADMIN_USERNAME": "bootstrap",
-                "KC_BOOTSTRAP_ADMIN_PASSWORD": "synthetic-admin-marker",
-                "DEVOBS_KEYCLOAK_DB_CA_FILE": str(ca),
-            }
+            # Preserve Git Bash's own environment so POSIX path mounts resolve;
+            # every configuration value under test is explicitly overwritten.
+            env = os.environ.copy()
+            for optional in ("PORT", "DEVOBS_KEYCLOAK_DB_PORT"):
+                env.pop(optional, None)
+            env.update(
+                {
+                    "RENDER_EXTERNAL_URL": "https://devobs-keycloak-hosted.onrender.com",
+                    "DEVOBS_OIDC_REDIRECT_URI": "https://devobs.onrender.com/callback",
+                    "DEVOBS_KEYCLOAK_DB_HOST": "dpg-fixture-a.frankfurt-postgres.render.com",
+                    "DEVOBS_KEYCLOAK_DB_NAME": "keycloak_identity",
+                    "KC_DB_USERNAME": "keycloak_idp",
+                    "KC_DB_PASSWORD": "synthetic-db-marker",
+                    "KC_BOOTSTRAP_ADMIN_USERNAME": "bootstrap",
+                    "KC_BOOTSTRAP_ADMIN_PASSWORD": "synthetic-admin-marker",
+                    "DEVOBS_KEYCLOAK_DB_CA_FILE": self.bash_ca_path(bash, ca),
+                }
+            )
             env.update(changes or {})
             return subprocess.run(
-                ["bash", "-c", 'source "$1"; validate_config || exit 1; printf "%s\\n" "$KC_HOSTNAME" "$DEVOBS_OIDC_CLIENT_ORIGIN" "$KC_DB_URL" "$KC_HTTP_PORT"', "--", str(SCRIPT)],
-                env=env, text=True, capture_output=True, check=False,
+                [bash, "-c", 'source "$1"; validate_config || exit 1; printf "%s\\n" "$KC_HOSTNAME" "$DEVOBS_OIDC_CLIENT_ORIGIN" "$KC_DB_URL" "$KC_HTTP_PORT"', "--", to_bash_path(SCRIPT)],
+                env=env, text=True, encoding="utf-8", capture_output=True, check=False,
             )
 
     def test_valid_configuration_exports_verified_tls_and_exact_origin(self):

@@ -7,11 +7,14 @@ import threading
 import time
 import unittest
 
+from tests.platform_support import require_bash
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
 class ContainerSmokeHtmlTests(unittest.TestCase):
     def check_page(self, body, *, status=200, truncated=False):
+        bash = require_bash(self)
         class Handler(http.server.BaseHTTPRequestHandler):
             def log_message(self, *args):
                 pass
@@ -38,7 +41,7 @@ class ContainerSmokeHtmlTests(unittest.TestCase):
             end = workflow.index('      - name:', start)
             fragment = textwrap.dedent(workflow[start:end])
             fragment = fragment.replace('http://127.0.0.1:18080/', f'http://127.0.0.1:{server.server_port}/')
-            return subprocess.run(['bash', '-c', 'set -euo pipefail\n' + fragment],
+            return subprocess.run([bash, '-c', 'set -euo pipefail\n' + fragment],
                                   capture_output=True, text=True, timeout=5)
         finally:
             server.shutdown()

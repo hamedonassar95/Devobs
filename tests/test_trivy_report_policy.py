@@ -11,6 +11,7 @@ import unittest
 from pathlib import Path
 
 from scripts.trivy_report_policy import main
+from tests.platform_support import require_bash
 
 
 REVISION = "0123456789abcdef0123456789abcdef01234567"
@@ -205,6 +206,7 @@ class TrivyReportPolicyTests(unittest.TestCase):
 
 class TrivyWorkflowContractTests(unittest.TestCase):
     def run_scan_step_with_stubs(self, *, image_missing=False, scanner_failure=False):
+        bash = require_bash(self)
         workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
         job = container_build_job(workflow)
         scan_step = job.split("      - name: Scan the exact image that passed the smoke test\n", 1)[1].split("\n      - name: Upload Trivy report", 1)[0]
@@ -249,7 +251,7 @@ class TrivyWorkflowContractTests(unittest.TestCase):
             "FAKE_TRIVY_FAILURE": "1" if scanner_failure else "0",
         })
         result = subprocess.run(
-            ["bash", "-euo", "pipefail", "-c", script],
+            [bash, "-euo", "pipefail", "-c", script],
             cwd=Path.cwd(), env=env, text=True, capture_output=True, check=False,
         )
         return result, marker.exists(), summary_path.exists()

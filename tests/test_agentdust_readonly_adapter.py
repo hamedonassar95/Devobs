@@ -15,6 +15,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from tests.platform_support import require_bash, to_bash_path
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
@@ -102,17 +104,22 @@ class AgentDustReadOnlyAdapterTests(unittest.TestCase):
         fetched_sha: str = "1" * 40,
         files_missing: bool = False,
     ) -> subprocess.CompletedProcess[str]:
+        bash = require_bash(self)
         workflow = (ROOT / ".github/workflows/agentdust-doctor-sandbox.yml").read_text(
             encoding="utf-8"
         )
         block_start = workflow.index('          source_dir="$work_dir/devobs-source"')
         block_end = workflow.index("          node_path=", block_start)
+        # Git Bash prepends its own tools to PATH, so override the executable
+        # explicitly instead of relying on a fixture directory taking priority.
         validation_block = textwrap.dedent(workflow[block_start:block_end])
+        validation_block = validation_block.replace("git -C", '"$FAKE_GIT" -C')
+        validation_block = validation_block.replace("git init", '"$FAKE_GIT" init')
+        self.assertIn('"$FAKE_GIT" -C', validation_block)
 
         fake_bin = self.root / "fake-bin"
         fake_bin.mkdir()
-        fake_git = fake_bin / "git"
-        fake_git.write_text(
+        git_source = (
             f"#!{sys.executable}\n"
             + textwrap.dedent(
                 """
@@ -145,10 +152,26 @@ class AgentDustReadOnlyAdapterTests(unittest.TestCase):
                         raise SystemExit(0)
                 raise SystemExit(97)
                 """
-            ),
-            encoding="utf-8",
+            )
         )
-        fake_git.chmod(0o700)
+        if os.name == "nt":
+            git_script = fake_bin / "fake-git.py"
+            git_script.write_text(git_source, encoding="utf-8")
+            fake_git = fake_bin / "git.cmd"
+            fake_git.write_text(
+                "\n".join(
+                    [
+                        "@echo off",
+                        f'"{sys.executable}" "{git_script}" %*',
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+        else:
+            fake_git = fake_bin / "git"
+            fake_git.write_text(git_source, encoding="utf-8")
+            fake_git.chmod(0o700)
         fake_python = fake_bin / "python3"
         fake_python.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
         fake_python.chmod(0o700)
@@ -165,8 +188,9 @@ class AgentDustReadOnlyAdapterTests(unittest.TestCase):
             """
         )
         env = {
-            "PATH": str(fake_bin),
-            "WORK_DIR": str(work_dir),
+            "PATH": to_bash_path(fake_bin),
+            "FAKE_GIT": to_bash_path(fake_git),
+            "WORK_DIR": to_bash_path(work_dir),
             "GITHUB_REPOSITORY": "hamedonassar95/Devobs",
             "GITHUB_SERVER_URL": "https://github.com",
             "GITHUB_SHA": "1" * 40,
@@ -174,14 +198,23 @@ class AgentDustReadOnlyAdapterTests(unittest.TestCase):
             "SIM_FETCH_FAIL": "1" if fetch_fails else "0",
             "SIM_FETCHED_SHA": fetched_sha,
             "SIM_FILES_MISSING": "1" if files_missing else "0",
-            "TMPDIR": str(self.root),
+            "TMPDIR": to_bash_path(self.root),
         }
+        if os.name == "nt":
+            env.update(
+                {
+                    "SystemRoot": os.environ.get("SystemRoot", ""),
+                    "COMSPEC": os.environ.get("COMSPEC", ""),
+                    "PATHEXT": ".COM;.EXE;.BAT;.CMD",
+                }
+            )
         return subprocess.run(
-            ["/bin/bash", "-c", harness + validation_block],
+            [bash, "-c", harness + validation_block],
             capture_output=True,
             check=False,
             env=env,
             text=True,
+            encoding="utf-8",
             timeout=5,
         )
 

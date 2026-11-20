@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+import re
 import shutil
 import tempfile
 from typing import Protocol, runtime_checkable
@@ -20,6 +21,18 @@ _REQUIRED_OPEN_FLAGS = ("O_NOFOLLOW", "O_DIRECTORY", "O_CLOEXEC", "O_NONBLOCK")
 @runtime_checkable
 class _SkipCapable(Protocol):
     def skipTest(self, reason: str) -> None: ...
+
+
+def to_bash_path(path: str | os.PathLike[str]) -> str:
+    """Convert a native path to the POSIX form Git Bash understands."""
+    value = os.fspath(path)
+    if os.name != "nt":
+        return value
+    normalized = value.replace("\\", "/")
+    drive = re.match(r"^([A-Za-z]):/(.*)$", normalized)
+    if drive:
+        return f"/{drive.group(1).lower()}/{drive.group(2)}"
+    return normalized
 
 
 def find_bash() -> str | None:
