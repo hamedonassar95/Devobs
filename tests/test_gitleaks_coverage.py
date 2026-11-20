@@ -35,6 +35,26 @@ def git(repository: Path, *arguments: str) -> str:
 
 
 class GitleaksCoverageTests(unittest.TestCase):
+    def test_git_executable_is_discovered_on_this_platform(self):
+        executable = coverage.resolve_git_executable()
+        self.assertTrue(Path(executable).is_file(), executable)
+
+    def test_missing_git_discovery_fails_closed(self):
+        with patch.object(coverage, "GIT_EXECUTABLE", None):
+            with self.assertRaisesRegex(coverage.CoverageFailure, "Git unavailable"):
+                coverage.resolve_git_executable()
+
+    def test_fake_scanner_runs_on_this_platform(self):
+        result = subprocess.run(
+            [str(self.fake_scanner), "version"],
+            capture_output=True,
+            text=True,
+            env={"GITLEAKS_FAKE_VERSION": coverage.EXPECTED_GITLEAKS_VERSION},
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), coverage.EXPECTED_GITLEAKS_VERSION)
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         self.root = Path(self.temporary.name)
@@ -57,8 +77,7 @@ class GitleaksCoverageTests(unittest.TestCase):
         self.temporary.cleanup()
 
     def _write_fake_scanner(self):
-        self.fake_scanner.write_text(
-            """#!/usr/bin/env python3
+        scanner_source = """#!/usr/bin/env python3
 import json, os, subprocess, sys
 args = sys.argv[1:]
 report = next((arg.split('=', 1)[1] for arg in args if arg.startswith('--report-path=')), None)
@@ -120,15 +139,31 @@ if mode == 'scanner-failure-missing-count':
 parts = log_opts.split()
 if parts and parts[0] == '-m':
     parts = parts[1:]
-count = int(subprocess.check_output(['git', 'rev-list', '--topo-order', '--reverse', *parts], text=True).count('\\n'))
+count = int(subprocess.check_output([os.environ['GITLEAKS_TEST_GIT'], 'rev-list', '--topo-order', '--reverse', *parts], text=True).count('\\n'))
 if report: open(report, 'w', encoding='utf-8').write('[]')
 print(f'{count} commits scanned.')
-""",
-            encoding="utf-8",
-        )
-        self.fake_scanner.chmod(0o755)
+"""
+        if os.name == "nt":
+            script = self.root / "gitleaks-fixture.py"
+            script.write_text(scanner_source, encoding="utf-8")
+            self.fake_scanner = self.root / "gitleaks-fixture.cmd"
+            self.fake_scanner.write_text(
+                "\n".join(
+                    [
+                        "@echo off",
+                        f'"{sys.executable}" "{script}" %*',
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+        else:
+            self.fake_scanner = self.root / "gitleaks-fixture"
+            self.fake_scanner.write_text(scanner_source, encoding="utf-8")
+            self.fake_scanner.chmod(0o755)
 
-    def _run(self, event_name: str, event: dict, checkout_sha: str, *, mode: str = "valid"):
+    def _run(self, event_name: str, event: dict, checkout_sha: str, *, mode: str = "valid",
+             fake_version: str | None = None):
         self.event_path.write_text(json.dumps(event), encoding="utf-8")
         environment = {
             "GITHUB_EVENT_NAME": event_name,
@@ -141,7 +176,20 @@ print(f'{count} commits scanned.')
             "GITLEAKS_VERSION": coverage.EXPECTED_GITLEAKS_VERSION,
             "GITLEAKS_TEST_MODE": mode,
             "GITLEAKS_TEST_RECORD": str(self.record_path),
+            "GITLEAKS_TEST_GIT": coverage.resolve_git_executable(),
         }
+        if fake_version is not None:
+            environment["GITLEAKS_FAKE_VERSION"] = fake_version
+        if os.name == "nt":
+            # Windows needs these to launch the synthetic .cmd scanner while the
+            # test intentionally clears all other environment variables.
+            environment.update(
+                {
+                    "SystemRoot": os.environ.get("SystemRoot", ""),
+                    "COMSPEC": os.environ.get("COMSPEC", ""),
+                    "PATHEXT": ".COM;.EXE;.BAT;.CMD",
+                }
+            )
         stdout = StringIO()
         stderr = StringIO()
         with patch.dict(os.environ, environment, clear=True):
@@ -296,25 +344,11 @@ print(f'{count} commits scanned.')
     def test_scanner_version_mismatch_fails_before_scan(self):
         after = self._new_commit("version-mismatch.txt")
         event = {"before": self.base, "after": after}
-        self.event_path.write_text(json.dumps(event), encoding="utf-8")
-        environment = {
-            "GITHUB_EVENT_NAME": "push",
-            "GITHUB_EVENT_PATH": str(self.event_path),
-            "GITHUB_STEP_SUMMARY": str(self.summary_path),
-            "GITHUB_WORKSPACE": str(self.repository),
-            "GITLEAKS_SOURCE_SHA": after,
-            "GITLEAKS_BIN": str(self.fake_scanner),
-            "GITLEAKS_VERSION": coverage.EXPECTED_GITLEAKS_VERSION,
-            "GITLEAKS_FAKE_VERSION": "9.99.9",
-            "GITLEAKS_TEST_RECORD": str(self.record_path),
-        }
-        with patch.dict(os.environ, environment, clear=True):
-            with redirect_stdout(StringIO()), redirect_stderr(StringIO()):
-                code = coverage.main()
+        code, _, _, summary = self._run("push", event, after, fake_version="9.99.9")
 
         self.assertEqual(code, 1)
         self.assertFalse(self.record_path.exists())
-        self.assertIn("executable does not match the pinned version", self.summary_path.read_text())
+        self.assertIn("executable does not match the pinned version", summary)
 
     def test_ci_reuses_security_job_with_checksum_pinned_cli_and_no_token(self):
         self.assertIn("permissions:\n      contents: read", SECURITY_JOB)

@@ -13,6 +13,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 # Calls below use separate argv entries and never enable shell parsing.
 import subprocess  # nosec B404
 import sys
@@ -27,11 +28,23 @@ ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 MAX_EVENT_BYTES = 16 * 1024 * 1024
 MAX_REPORT_BYTES = 20 * 1024 * 1024
 SCAN_TIMEOUT_SECONDS = 8 * 60
-GIT_EXECUTABLE = "/usr/bin/git"
+LEGACY_GIT_EXECUTABLE = "/usr/bin/git"
+# Resolve once at import, before callers replace the environment with the
+# minimal CI event variables. Never accept an executable path from that event.
+GIT_EXECUTABLE = shutil.which("git")
+if not GIT_EXECUTABLE and Path(LEGACY_GIT_EXECUTABLE).is_file():
+    GIT_EXECUTABLE = LEGACY_GIT_EXECUTABLE
 
 
 class CoverageFailure(ValueError):
     """A scope, scan, or scanner-output condition that must fail closed."""
+
+
+def resolve_git_executable() -> str:
+    """Return the Git executable discovered before the CI environment is narrowed."""
+    if not GIT_EXECUTABLE:
+        raise CoverageFailure("Git unavailable")
+    return GIT_EXECUTABLE
 
 
 class ScanFailure(CoverageFailure):
@@ -75,8 +88,9 @@ def _git(repository: Path, *arguments: str) -> subprocess.CompletedProcess[str]:
     }.get(operation, "Git history")
     try:
         # Arguments are fixed Git flags and validated revision values.
+        executable = resolve_git_executable()
         result = subprocess.run(  # nosec B603
-            [GIT_EXECUTABLE, "-C", str(repository), *arguments],
+            [executable, "-C", str(repository), *arguments],
             check=False,
             capture_output=True,
             text=True,
@@ -84,6 +98,8 @@ def _git(repository: Path, *arguments: str) -> subprocess.CompletedProcess[str]:
             errors="replace",
             timeout=30,
         )
+    except CoverageFailure:
+        raise CoverageFailure(f"{stage} verification failed: Git unavailable or timed out") from None
     except (OSError, subprocess.TimeoutExpired):
         raise CoverageFailure(f"{stage} verification failed: Git unavailable or timed out") from None
     if result.returncode != 0:
@@ -94,12 +110,15 @@ def _git(repository: Path, *arguments: str) -> subprocess.CompletedProcess[str]:
 def _is_ancestor(repository: Path, ancestor: str, descendant: str) -> bool:
     try:
         # Both arguments are validated full Git SHAs.
+        executable = resolve_git_executable()
         result = subprocess.run(  # nosec B603
-            [GIT_EXECUTABLE, "-C", str(repository), "merge-base", "--is-ancestor", ancestor, descendant],
+            [executable, "-C", str(repository), "merge-base", "--is-ancestor", ancestor, descendant],
             check=False,
             capture_output=True,
             timeout=30,
         )
+    except CoverageFailure as exc:
+        raise CoverageFailure("GitHub event revisions are not verifiable in checkout") from exc
     except (OSError, subprocess.TimeoutExpired) as exc:
         raise CoverageFailure("GitHub event revisions are not verifiable in checkout") from exc
     if result.returncode not in (0, 1):
