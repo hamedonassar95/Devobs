@@ -8,6 +8,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from scripts import openai_decisions_triage as decisions
+from tests.platform_support import require_symlink_creation
 
 
 class _LocalDecisionsHandler(BaseHTTPRequestHandler):
@@ -238,12 +239,14 @@ class OpenAIDecisionsTriageTests(unittest.TestCase):
                 with patch.object(decisions, "_send_request", return_value=json.dumps(body).encode("utf-8")):
                     self.assertEqual(self.run_cli("--confirm-billable", "--confirm-data-redacted"), 2)
 
-    def test_input_limits_and_symlink_inputs_are_rejected(self):
+    def test_input_limits_are_rejected(self):
         oversized = Path(self.temp_dir.name) / "oversized.txt"
         oversized.write_bytes(b"x" * (decisions.MAX_INPUT_BYTES + 1))
         with self.assertRaisesRegex(decisions.DecisionError, "byte limit"):
             decisions._read_input(str(oversized))
 
+    def test_symlink_inputs_are_rejected(self):
+        require_symlink_creation(self)
         symlink = Path(self.temp_dir.name) / "link.txt"
         symlink.symlink_to(self.input_path)
         with self.assertRaisesRegex(decisions.DecisionError, "symlink"):

@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 from scripts.lint_authored_workflows import list_authored_workflows, run_actionlint
+from tests.platform_support import require_symlink_creation
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,6 +41,7 @@ class ActionlintGateTests(unittest.TestCase):
                 list_authored_workflows(root)
 
     def test_fails_closed_on_workflow_yaml_symlinks(self):
+        require_symlink_creation(self)
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
             workflow_directory = root / ".github" / "workflows"

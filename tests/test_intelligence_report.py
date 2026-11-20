@@ -1,4 +1,5 @@
 """Behavioral tests for the local, read-only intelligence audit report."""
+import contextlib
 import hashlib
 import json
 import sqlite3
@@ -151,7 +152,7 @@ class IntelligenceReportTests(unittest.TestCase):
         self.assertEqual(_file_sha256(self.database), before)
 
     def test_incompatible_schema_returns_fixed_error_without_migration(self):
-        with sqlite3.connect(self.database) as connection:
+        with contextlib.closing(sqlite3.connect(self.database)) as connection, connection:
             connection.execute('CREATE TABLE audit (seq INTEGER PRIMARY KEY, event_id TEXT)')
         before = _file_sha256(self.database)
 
@@ -165,7 +166,7 @@ class IntelligenceReportTests(unittest.TestCase):
             'error_code': 'unsupported_schema',
         })
         self.assertEqual(_file_sha256(self.database), before)
-        with sqlite3.connect(self.database) as connection:
+        with contextlib.closing(sqlite3.connect(self.database)) as connection, connection:
             self.assertEqual(
                 {row[1] for row in connection.execute('PRAGMA table_info(audit)')},
                 {'seq', 'event_id'},

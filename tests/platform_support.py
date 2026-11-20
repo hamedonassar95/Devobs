@@ -143,6 +143,9 @@ def require_fifo_creation(case: _SkipCapable) -> None:
         case.skipTest("os.mkfifo is unavailable on this host")
 
 
-def require_executable_mode_bit(case: _SkipCapable) -> None:
+def require_posix_mode_bits(case: _SkipCapable) -> None:
     if not executable_mode_bit_supported():
-        case.skipTest("POSIX executable mode bits are unavailable on this host")
+        case.skipTest("POSIX mode bits are unavailable on this host")
+
+
+require_executable_mode_bit = require_posix_mode_bits

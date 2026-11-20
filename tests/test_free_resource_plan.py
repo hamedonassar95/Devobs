@@ -10,6 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 from check_free_resource_plan import EXPECTED, load_plan, validate_plan  # noqa: E402
+from tests.platform_support import require_symlink_creation
 
 
 class FreeResourcePlanTests(unittest.TestCase):
@@ -54,6 +55,7 @@ class FreeResourcePlanTests(unittest.TestCase):
             self.assertTrue(validate_plan(self.original, Path(folder)))
 
     def test_symlink_cannot_be_used_as_verified_checkout_file(self):
+        require_symlink_creation(self)
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             target = root / EXPECTED["ci"][0]

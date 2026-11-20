@@ -1,4 +1,5 @@
 """Synthetic tampering/idempotency/metadata-only audit tests."""
+import contextlib
 import hashlib
 import json
 import sqlite3
@@ -17,6 +18,7 @@ from devobs_intelligence.context import ServiceTopologySnapshot
 from devobs_intelligence.contracts import parse_event
 from devobs_intelligence.policy import evaluate_action
 from devobs_intelligence.audit_store import AuditStore, AuditError
+from tests.platform_support import require_symlink_creation
 
 _TOPOLOGY_ATTESTATION_DOMAIN = b'devobs-topology-attestation-v1\n'
 _AUDIT_TEST_NOW = datetime(2026, 10, 25, 12, 1, tzinfo=timezone.utc)
@@ -327,23 +329,26 @@ class AuditStoreTests(unittest.TestCase):
         with self.assertRaisesRegex(AuditError, '^unsupported_schema$'):
             AuditStore.open_readonly(str(legacy))
         self.assertEqual(legacy.read_bytes(), before)
-        with sqlite3.connect(legacy) as connection:
-            self.assertEqual(
-                {row[1] for row in connection.execute('PRAGMA table_info(audit)')},
-                {'seq', 'event_id'},
-            )
+        with contextlib.closing(sqlite3.connect(legacy)) as connection:
+            with connection:
+                self.assertEqual(
+                    {row[1] for row in connection.execute('PRAGMA table_info(audit)')},
+                    {'seq', 'event_id'},
+                )
 
     def test_readonly_open_rejects_unsafe_paths_and_non_files(self):
         for path in (None, '', 'file:shared?mode=memory&cache=shared', 'bad\x00path'):
             with self.subTest(path=path), self.assertRaisesRegex(AuditError, '^invalid_path$'):
                 AuditStore.open_readonly(path)
+        with self.assertRaisesRegex(AuditError, '^storage_unavailable$'):
+            AuditStore.open_readonly(self.temp.name)
 
+    def test_readonly_open_rejects_symlinked_database(self):
+        require_symlink_creation(self)
         symlink = Path(self.temp.name) / 'audit-link.sqlite3'
         symlink.symlink_to(Path(self.path))
         with self.assertRaisesRegex(AuditError, '^invalid_path$'):
             AuditStore.open_readonly(str(symlink))
-        with self.assertRaisesRegex(AuditError, '^storage_unavailable$'):
-            AuditStore.open_readonly(self.temp.name)
 
     def test_append_reserves_write_transaction_before_reading_chain(self):
         statements=[]

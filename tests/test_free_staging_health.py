@@ -10,6 +10,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import check_free_staging_health as check  # noqa: E402
+from tests.platform_support import require_symlink_creation
 
 NOW = datetime(2026, 11, 18, 9, 0, tzinfo=timezone.utc)
 
@@ -151,13 +152,20 @@ class FreeStagingHealthTests(unittest.TestCase):
             with self.assertRaises(check.InvalidSnapshot):
                 check.assess_snapshot(s, NOW)
 
-    def test_loader_rejects_duplicate_keys_and_symlinks(self):
+    def test_loader_rejects_duplicate_keys(self):
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
             p = root / "report.json"
             p.write_text('{"scope":"foo","scope":"bar"}', encoding="utf-8")
             with self.assertRaises(check.InvalidSnapshot):
                 check.load_snapshot(p)
+
+    def test_loader_rejects_symlinks(self):
+        require_symlink_creation(self)
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            p = root / "report.json"
+            p.write_text(json.dumps(fixture()), encoding="utf-8")
             link = root / "link.json"
             link.symlink_to(p)
             with self.assertRaises(check.InvalidSnapshot):

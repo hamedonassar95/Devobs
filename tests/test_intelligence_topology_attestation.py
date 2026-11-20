@@ -1,4 +1,5 @@
 """Offline tests for signed topology metadata and caller-supplied trust."""
+import contextlib
 import json
 import sqlite3
 import sys
@@ -413,7 +414,7 @@ class RotatingTopologyKeyringTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "topology-trust.sqlite3"
             self.persistent_keyring(path)
-            with sqlite3.connect(path) as connection:
+            with contextlib.closing(sqlite3.connect(path)) as connection, connection:
                 state_json = connection.execute(
                     "SELECT state_json FROM topology_keyring_state "
                     "WHERE singleton = 1").fetchone()[0]
@@ -436,7 +437,7 @@ class RotatingTopologyKeyringTests(unittest.TestCase):
             self.persistent_keyring(path)
             oversized_state = "x" * (
                 topology_attestation._MAX_PERSISTED_STATE_BYTES + 1)
-            with sqlite3.connect(path) as connection:
+            with contextlib.closing(sqlite3.connect(path)) as connection, connection:
                 connection.execute(
                     "UPDATE topology_keyring_state SET state_json = ? "
                     "WHERE singleton = 1", (oversized_state,),
@@ -447,7 +448,7 @@ class RotatingTopologyKeyringTests(unittest.TestCase):
                     "^invalid_topology_keyring_store$"):
                 self.persistent_keyring(path)
 
-            with sqlite3.connect(path) as connection:
+            with contextlib.closing(sqlite3.connect(path)) as connection, connection:
                 stored_state = connection.execute(
                     "SELECT state_json FROM topology_keyring_state "
                     "WHERE singleton = 1").fetchone()[0]

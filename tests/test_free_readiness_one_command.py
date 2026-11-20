@@ -7,6 +7,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import free_readiness_one_command as check
+from tests.platform_support import require_symlink_creation
 
 
 class FreeReadinessCoordinatorTests(unittest.TestCase):
@@ -54,7 +55,24 @@ class FreeReadinessCoordinatorTests(unittest.TestCase):
             self.assertEqual(result["status"], "INVALID_CHECKS")
             self.assertEqual(result["checks"][3]["state"], "INVALID_OR_UNAVAILABLE")
 
-    def test_missing_or_symlinked_script_never_runs(self):
+    def test_missing_script_never_runs(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            self.fake_tree(root)
+            bad = root / "scripts" / check.CHECKS[0][1]
+            bad.unlink()
+            called = []
+
+            def runner(cmd, **kwargs):
+                called.append(cmd)
+                return subprocess.CompletedProcess(cmd, 1)
+
+            result = check.inspect_offline(root, runner)
+            self.assertEqual(result["status"], "INVALID_CHECKS")
+            self.assertEqual(len(called), 4)
+
+    def test_symlinked_script_never_runs(self):
+        require_symlink_creation(self)
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             self.fake_tree(root)

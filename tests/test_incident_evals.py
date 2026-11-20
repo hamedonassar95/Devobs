@@ -5,6 +5,8 @@ from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
 from pathlib import Path
 
+from tests.platform_support import require_symlink_creation
+
 from scripts.evaluate_incident_investigator import (
     evaluate_records,
     grade_report,
@@ -225,6 +227,7 @@ class IncidentEvalTests(unittest.TestCase):
                 load_jsonl(path, "dataset")
 
     def test_loader_rejects_symlinks(self):
+        require_symlink_creation(self)
         with tempfile.TemporaryDirectory() as temp_dir:
             target = Path(temp_dir) / "target.jsonl"
             link = Path(temp_dir) / "link.jsonl"

@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from devobs_intelligence import otel_metrics  # noqa: E402
+from tests.platform_support import require_posix_mode_bits
 
 
 class CapturingExporter(MetricExporter):
@@ -97,6 +98,7 @@ class OTelApiMetricsTests(unittest.TestCase):
                 self.assertNotIn("synthetic-secret-marker", str(error.exception))
 
     def test_request_histogram_has_no_request_attributes_or_exemplars(self):
+        require_posix_mode_bits(self)
         exporter = CapturingExporter()
         with patch.object(otel_metrics, "OTLPMetricExporter", return_value=exporter) as factory:
             metrics = otel_metrics.create_local_metrics(self.settings)

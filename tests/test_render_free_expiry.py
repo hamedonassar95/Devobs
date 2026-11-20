@@ -9,6 +9,7 @@ import subprocess
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from check_render_free_expiry import assess_expiry, InvalidSnapshot, load_snapshot
+from tests.platform_support import require_symlink_creation
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -107,13 +108,19 @@ class RenderFreeExpiryTests(unittest.TestCase):
             self.assertFalse(result["provider_access_performed"])
             self.assertFalse(result["production_approved"])
 
-    def test_loader_rejects_duplicate_fields_and_symlinks(self):
+    def test_loader_rejects_duplicate_fields(self):
         with tempfile.TemporaryDirectory() as folder:
-            root = Path(folder)
-            path = root / "snapshot.json"
+            path = Path(folder) / "snapshot.json"
             path.write_text('{"plan":"free","plan":"free"}', encoding="utf-8")
             with self.assertRaises(InvalidSnapshot):
                 load_snapshot(path)
+
+    def test_loader_rejects_symlinks(self):
+        require_symlink_creation(self)
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            path = root / "snapshot.json"
+            path.write_text(json.dumps(snapshot()), encoding="utf-8")
             alias = root / "alias.json"
             alias.symlink_to(path)
             with self.assertRaises(InvalidSnapshot):

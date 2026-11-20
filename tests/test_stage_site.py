@@ -8,6 +8,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from stage_site import resolve_source_dir, stage_site
+from tests.platform_support import require_symlink_creation
 
 
 class StageSiteTests(unittest.TestCase):
@@ -37,6 +38,7 @@ class StageSiteTests(unittest.TestCase):
         )
 
     def test_rejects_asset_symlink_that_points_outside_source(self):
+        require_symlink_creation(self)
         outside = self.root / "outside.txt"
         outside.write_text("private", encoding="utf-8")
         (self.source / "assets" / "external.txt").symlink_to(outside)
@@ -79,6 +81,7 @@ class StageSiteTests(unittest.TestCase):
         self.assertEqual((result / "dashboard.js").read_text(), "public browser fixture")
 
     def test_free_demo_rejects_browser_file_symlink_without_replacing_output(self):
+        require_symlink_creation(self)
         client, _, _ = self.make_free_demo_fixture()
         self.output.mkdir()
         (self.output / "index.html").write_text("previous valid release")
@@ -91,6 +94,7 @@ class StageSiteTests(unittest.TestCase):
         self.assertEqual((self.output / "index.html").read_text(), "previous valid release")
 
     def test_free_demo_rejects_symlink_in_browser_source_parents(self):
+        require_symlink_creation(self)
         client, _, _ = self.make_free_demo_fixture()
         moved = self.root / "outside-browser-assets"
         client.rename(moved)
@@ -163,6 +167,7 @@ class StageSiteTests(unittest.TestCase):
         self.assertIn("inside GITHUB_WORKSPACE", result.stderr)
 
     def test_source_dir_option_rejects_symlink(self):
+        require_symlink_creation(self)
         workspace = self.root / "workspace"
         workspace.mkdir()
         outside = self.root / "outside"
