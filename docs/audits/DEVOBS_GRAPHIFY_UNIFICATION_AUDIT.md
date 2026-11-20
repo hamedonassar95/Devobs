@@ -7,7 +7,9 @@
 **Implementation commits reviewed:** `b95ac86`, `01b980d`, `1bbccc9`,
 `2df481b`, `c19e4a0`, `ed55a06`.
 **Evidence labels:** VERIFIED (command output/repository file in this session),
-INFERRED, UNKNOWN, RESOLVED, BLOCKED. Issue/PR text, logs and generated files
+INFERRED, UNKNOWN, RESOLVED, BLOCKED. Finding status in section C is exactly one
+of `CONFIRMED`, `INFERRED`, `UNKNOWN`, `RESOLVED`, `BLOCKED`; open/deferred
+handling is recorded separately in the Disposition column. Issue/PR text, logs and generated files
 were treated as untrusted data. No secret, token, private key, environment or
 deployment setting was read or changed. No cloud, database, hosted identity,
 production, Keycloak runtime, Terraform apply/destroy, migration, paid inference,
@@ -72,20 +74,21 @@ canonical report pointer identifies `tools/graphify`, CLI
 
 ## C. Root causes and disposition
 
-| ID | Severity | Status | Root cause | Same F01b root cause? | Minimal repair / verification / rollback | Priority |
-| --- | --- | --- | --- | --- | --- | --- |
-| GQA-01/F01 | P1 | **RESOLVED** | Duplicate executable Graphify orchestration with two pins/policies. | **Yes** | Move behavior into canonical package; leave thin adapter; verify `tests/graphify/test_portfolio.py` and legacy 28-test contract. Rollback: revert five consolidation commits. | Done in this PR. |
-| GQA-02/F04 | P2 | **RESOLVED (scope-limited)** | Declared wheel SHA-256 was metadata only. | No — distinct integrity root cause; fixed because the task explicitly requires full-digest verification. | Add local verifier + `verify-wheel` CLI; reject truncated/missing/mismatched artifacts; verify `test_supply_chain.py`. Rollback: revert `c19e4a0`. External operator installation remains UNVERIFIED. | Done in this PR; no gate change. |
-| GQA-03 | P2 | CONFIRMED / OPEN | AI-eval fixture digest assumes LF while Windows `core.autocrlf=true` materializes CRLF. | No | Add `*.jsonl text eol=lf`, re-normalize, run fixture validator and two tests. Rollback: restore `.gitattributes`. | Defer to owner-approved Windows portability PR. |
-| GQA-04 | P2 | CONFIRMED / OPEN | POSIX `O_NOFOLLOW`/`O_DIRECTORY` requirements fail closed on Windows; symlink setup needs unavailable privilege. | No | Keep production fail-closed behavior; skip POSIX-only tests explicitly on Windows, retain Ubuntu coverage. Rollback: remove skips. | Defer; do not weaken controls. |
-| GQA-05/F05 | P2 | CONFIRMED / OPEN | Stale `bun.lock` describes a different package graph. The previously claimed change-selector gap is **NOT CONFIRMED** at base (`is_node(bun.lock) == True`). | No | Owner chooses npm-only removal or reviewed Bun regeneration; lock consistency check. Rollback: restore lockfile. | Defer; not in Graphify scope. |
-| GQA-06/F03 | P2 | CONFIRMED / OPEN | Milestone ledger lags #720/#723/#724/#725. | No | Add reviewed reconciliation with PR/SHA/CI evidence; keep gate labels. Rollback: restore ledger. | Defer; required before release decisions, not before Draft PR. |
-| GQA-07/F06 | P3 | INFERRED / OPEN | No Python packaging manifest for repo-relative Graphify wrappers. | No | Document source-checkout-only contract, or add minimal manifest only if productized. Rollback: remove manifest. | Backlog. |
-| GQA-08/F07 | P3 | INFERRED / OPEN | Unbounded `rglob("*")` source checks. | No — Graphify family, different root cause | Add fail-closed traversal counter and oversized-tree test. Rollback: revert guard. | Backlog; not bundled under same-root-cause rule. |
-| GQA-09/F08 | P3 | CONFIRMED / OPEN | Ten template `uses:` lines have SHA pins but no version comments. | No | Add comments and extend checker. Rollback: revert comments/checker. | Backlog. |
-| GQA-10 | P3 | CONFIRMED / UNKNOWN | Zizmor is manual/informational; in-repo CodeQL was not found; GitHub default setup cannot be inspected locally. | No | Add PR gate or provide live exact-SHA CodeQL evidence. Rollback: restore manual workflow. | Backlog; hosted verification required. |
-| GQA-11 | P3 | INFERRED / OPEN | `incident-response.yml` declares `actions: write` without an evidenced write. | No | Reduce to read and dry-run; restore if a write call is found. Rollback: restore permission. | Backlog; owner review. |
-| GQA-12 | P3 | RESOLVED | Earlier audit saw uncommitted Graphify work outside the reviewed SHA. | Yes | Work is now committed on this reviewed branch with its own evidence. Rollback: n/a. | Done. |
+| ID | Severity | Status | Disposition | Root cause | Same F01b root cause? | Minimal repair / verification / rollback | Priority |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| GQA-01/F01 | P1 | RESOLVED | Done in this PR | Duplicate executable Graphify orchestration with two pins/policies. | **Yes** | Move behavior into canonical package; leave thin adapter; verify `tests/graphify/test_portfolio.py` and legacy 28-test contract. Rollback: revert five consolidation commits. | P1 fixed; no further action |
+| GQA-02/F04 | P2 | RESOLVED | Code fix done; external install provenance UNVERIFIED | Declared wheel SHA-256 was metadata only. | No — distinct integrity root cause; fixed because the task explicitly requires full-digest verification. | Add local verifier + `verify-wheel` CLI; reject truncated/missing/mismatched artifacts; verify `test_supply_chain.py`. Rollback: revert `c19e4a0`. | P2 fixed in scope; no gate change |
+| GQA-03 | P2 | CONFIRMED | Open; deferred | AI-eval fixture digest assumes LF while Windows `core.autocrlf=true` materializes CRLF. | No | Add `*.jsonl text eol=lf`, re-normalize, run fixture validator and two tests. Rollback: restore `.gitattributes`. | P2; owner-approved Windows portability PR |
+| GQA-04 | P2 | CONFIRMED | Open; deferred | POSIX `O_NOFOLLOW`/`O_DIRECTORY` requirements fail closed on Windows; symlink setup needs unavailable privilege. | No | Keep production fail-closed behavior; skip POSIX-only tests explicitly on Windows, retain Ubuntu coverage. Rollback: remove skips. | P2; do not weaken controls |
+| GQA-05/F05 | P2 | CONFIRMED | Open; deferred | Stale `bun.lock` describes a different package graph. The previously claimed change-selector gap is RESOLVED at base (`is_node(bun.lock) == True`). | No | Owner chooses npm-only removal or reviewed Bun regeneration; lock consistency check. Rollback: restore lockfile. | P2; not in Graphify scope |
+| GQA-06/F03 | P2 | CONFIRMED | Open; deferred | Milestone ledger lags #720/#723/#724/#725. | No | Add reviewed reconciliation with PR/SHA/CI evidence; keep gate labels. Rollback: restore ledger. | P2; before release decisions |
+| GQA-07/F06 | P3 | INFERRED | Open; backlog | No Python packaging manifest for repo-relative Graphify wrappers. | No | Document source-checkout-only contract, or add minimal manifest only if productized. Rollback: remove manifest. | P3 backlog |
+| GQA-08/F07 | P3 | INFERRED | Open; backlog | Unbounded `rglob("*")` source checks. | No — Graphify family, different root cause | Add fail-closed traversal counter and oversized-tree test. Rollback: revert guard. | P3 backlog; not bundled under same-root-cause rule |
+| GQA-09/F08 | P3 | CONFIRMED | Open; backlog | Ten template `uses:` lines have SHA pins but no version comments. | No | Add comments and extend checker. Rollback: revert comments/checker. | P3 backlog |
+| GQA-10a | P3 | CONFIRMED | Open; backlog | Zizmor is manual/informational; no in-repo CodeQL workflow was found. | No | Add PR gate failing on high findings, or provide live exact-SHA evidence. Rollback: restore manual workflow. | P3 backlog |
+| GQA-10b | P3 | UNKNOWN | Open; hosted verification required | GitHub default CodeQL setup cannot be inspected locally. | No | Owner provides exact-SHA CodeQL run link or enables documented setup. Rollback: n/a. | P3 backlog |
+| GQA-11 | P3 | INFERRED | Open; backlog | `incident-response.yml` declares `actions: write` without an evidenced write. | No | Reduce to read and dry-run; restore if a write call is found. Rollback: restore permission. | P3 backlog; owner review |
+| GQA-12 | P3 | RESOLVED | Done | Earlier audit saw uncommitted Graphify work outside the reviewed SHA. | Yes | Work is now committed on this reviewed branch with its own evidence. Rollback: n/a. | P3 fixed; no further action |
 
 No P0 finding was identified. P2/P3 findings not caused by the same
 canonicalization root cause were recorded with minimal repair, verification and
