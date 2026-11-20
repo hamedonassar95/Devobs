@@ -49,6 +49,15 @@ DEFAULT_EXCLUDES = (
     "**/*.p12",
     "**/*.pfx",
     "**/*.log",
+    "**/credentials",
+    "**/.aws/**",
+    "**/.ssh/**",
+    "**/id_rsa*",
+    "**/id_ed25519*",
+    "**/.npmrc",
+    "**/.netrc",
+    "**/.pypirc",
+    "**/.git-credentials",
     "**/node_modules/**",
     "**/dist/**",
     "**/build/**",
@@ -63,6 +72,8 @@ _EXCLUDED_PARTS = frozenset(
     {
         ".git",
         ".env",
+        ".aws",
+        ".ssh",
         "secrets",
         "credentials",
         "node_modules",
@@ -80,6 +91,13 @@ _EXCLUDED_PARTS = frozenset(
 )
 _EXCLUDED_NAME_PATTERNS = (
     ".env*",
+    "credentials",
+    "id_rsa*",
+    "id_ed25519*",
+    ".npmrc",
+    ".netrc",
+    ".pypirc",
+    ".git-credentials",
     "*credentials*.json",
     "service-account*.json",
     "terraform.tfvars*",
@@ -145,6 +163,20 @@ def sanitize_output(text: str, replacements: Iterable[pathlib.Path | str] = ()) 
         value = value.replace(str(item), "<path>")
     value = _ABS_PATH_RE.sub("<path>", value)
     return value[:MAX_OUTPUT_CHARS]
+
+
+def sanitize_json(value: object) -> object:
+    """Recursively bound and de-path JSON-shaped data before reporting it."""
+    if isinstance(value, str):
+        return sanitize_output(value)
+    if isinstance(value, list):
+        return [sanitize_json(item) for item in value[:200]]
+    if isinstance(value, dict):
+        return {
+            str(key)[:200]: sanitize_json(item)
+            for key, item in list(value.items())[:200]
+        }
+    return value
 
 
 def run_git(repo: pathlib.Path, *args: str) -> str:

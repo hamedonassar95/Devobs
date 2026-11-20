@@ -21,6 +21,7 @@ from .common import (
     is_within,
     read_graph,
     run_git,
+    sanitize_output,
 )
 
 def _tracked_files(source: pathlib.Path) -> list[str]:
@@ -243,10 +244,9 @@ def dependency_adapter(graph_path: pathlib.Path | None, source: pathlib.Path) ->
     }
     if graph_path is None:
         return result
-    _document, stats, _edge_key, _digest = read_graph(graph_path)
+    document, stats, _edge_key, _digest = read_graph(graph_path)
     tracked = set(_tracked_files(source))
     source_files: set[str] = set()
-    document, _stats, _key, _digest = read_graph(graph_path)
     for node in document.get("nodes", []):
         if isinstance(node, dict) and isinstance(node.get("source_file"), str):
             source_files.add(node["source_file"].replace("\\", "/"))
@@ -313,7 +313,21 @@ def cross_repo_view(config_path: pathlib.Path) -> dict:
             raise RepositoryIntelligenceError("cross_repo_path_not_found")
         if is_within(graph, source):
             raise RepositoryIntelligenceError("cross_repo_graph_inside_source")
-        document, stats, _edge_key, digest = read_graph(graph)
+        try:
+            document, stats, _edge_key, digest = read_graph(graph)
+        except RepositoryIntelligenceError as exc:
+            # One unreadable repository must not abort the other views.
+            entries.append(
+                {
+                    "tag": tag,
+                    "source": "<path>",
+                    "graph": "<path>",
+                    "status": "blocked",
+                    "reason": sanitize_output(str(exc)),
+                    "stats": None,
+                }
+            )
+            continue
         entries.append(
             {
                 "tag": tag,

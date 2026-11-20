@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "policy": "devobs-repository-intelligence-v1",
+  "description": "Explicit allowlist of authorized repositories. Local roots are supplied at run time; no absolute paths are stored here.",
+  "repositories": [
+    {
+      "tag": "devobs",
+      "github": "hamedonassar95/Devobs",
+      "directory": "Devobs",
+      "source_root": "primary",
+      "enabled": true,
+      "extra_excludes": [
+        "dev/keycloak/**",
+        "deploy/keycloak-hosted/**"
+      ],
+      "search_terms": [
+        "validate_graph",
+        "repository_intelligence"
+      ]
+    },
+    {
+      "tag": "cineforge",
+      "github": "hamedonassar95/CineForge-AI",
+      "directory": "CineForge-AI",
+      "source_root": "primary",
+      "enabled": true,
+      "extra_excludes": [
+        "**/firebase-applet-config.json",
+        "**/firebase-applet-config.xml",
+        "**/firebase-blueprint.json",
+        "**/google-services.json"
+      ],
+      "search_terms": [
+        "StudioPreviewCopy",
+        "GoogleWebClientId",
+        "OneClickProductionClaims"
+      ]
+    },
+    {
+      "tag": "devobs-saas",
+      "github": "hamedonassar95/devobs-saas",
+      "directory": "devobs-saas",
+      "source_root": "portfolio",
+      "enabled": true,
+      "extra_excludes": [
+        "**/terraform.tfvars.example",
+        "**/firebase*.json"
+      ],
+      "search_terms": [
+        "tenant",
+        "membership"
+      ]
+    },
+    {
+      "tag": "liveops",
+      "github": "hamedonassar95/LiveOps-Integration",
+      "directory": "LiveOps-Integration",
+      "source_root": "portfolio",
+      "enabled": true,
+      "extra_excludes": [
+        "**/firebase-applet-config.json",
+        "**/firebase-blueprint.json"
+      ],
+      "search_terms": [
+        "wallpaper",
+        "gemini"
+      ]
+    },
+    {
+      "tag": "ops",
+      "github": "hamedonassar95/ops",
+      "directory": "ops",
+      "source_root": "portfolio",
+      "enabled": true,
+      "extra_excludes": [
+        "**/firebase-applet-config.json",
+        "**/firebase-blueprint.json"
+      ],
+      "search_terms": [
+        "server",
+        "monitor"
+      ]
+    },
+    {
+      "tag": "al-dala-mobile",
+      "github": "hamedonassar95/al-dala-mobile",
+      "directory": "al-dala-mobile",
+      "source_root": "portfolio",
+      "enabled": true,
+      "extra_excludes": [],
+      "search_terms": []
+    },
+    {
+      "tag": "phone-repair-assistant-v2",
+      "github": "hamedonassar95/phone-repair-assistant-v2",
+      "directory": "phone-repair-assistant-v2",
+      "source_root": "portfolio",
+      "enabled": false,
+      "reason": "public_api_404_and_no_local_checkout",
+      "extra_excludes": [],
+      "search_terms": []
+    },
+    {
+      "tag": "devobs-ai-intelligence",
+      "github": "hamedonassar95/DevObs-ai-Intelligence-",
+      "directory": "DevObs-ai-Intelligence-",
+      "source_root": "portfolio",
+      "enabled": false,
+      "reason": "public_api_404_and_no_local_checkout",
+      "extra_excludes": [],
+      "search_terms": []
+    }
+  ]
+}

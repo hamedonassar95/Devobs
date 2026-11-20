@@ -11,6 +11,17 @@
 
 **Retirement planning approved (no deletion, 2026-11-19):** [Owner-gated Render Free PostgreSQL retirement plan](docs/plans/2026-11-19-render-free-postgres-retirement-plan.md). The plan documents dependencies, rollback limits and separate execution approval; it makes no hosted changes and P01 remains NO-GO.
 
+## Offline Graphify repository intelligence (local, opt-in)
+
+A pinned, offline Graphify CLI can build one local graph index per authorized
+repository from a single installation, with no source upload, hosted service or
+repository permission change. The allowlist, privacy controls, measured
+per-repository results and current blockers are in
+[the Graphify integration design](docs/architecture/graphify-integration.md);
+the reusable module layout and native-versus-Devobs feature split are in
+[repository intelligence](docs/architecture/repository-intelligence.md).
+This is local evidence only and does not change P01, AI-9 or Codex runtime gates.
+
 ## مراجعة خطط Codex والكود بصريًا — Plannotator (اختياري)
 
 أضفنا [دليل تكامل Plannotator مع Codex](docs/integrations/PLANNOTATOR_CODEX_REVIEW.md) لإجراء مراجعات بصرية يدوية للخطط والـ diff على جهاز موثوق، دون تفعيل Hooks أو تشغيل خدمات أو إضافة تبعيات داخل المستودع. **الحالة: موثّق فقط / التشغيل غير متحقق.** يحتاج استخدام الأداة إلى تثبيت اختياري يراجعه المالك على جهازه؛ دعم ChatGPT على iPhone أو Codex السحابي غير مثبت. تستمر موافقات الإنسان وحماية `main` وفحوص CI وبوابات P01/AI-9 دون تغيير.

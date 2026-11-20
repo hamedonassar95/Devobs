@@ -35,6 +35,8 @@ from .common import (
     RepositoryIntelligenceError,
     is_within,
     read_graph,
+    sanitize_json,
+    sanitize_output,
     validate_graph,
 )
 from .runner import ExtractResult, GraphifyRunner
@@ -68,7 +70,7 @@ def build_report(
 
 def write_report(report: dict, output: pathlib.Path | None) -> None:
     """Write JSON only to an explicit path outside protected inputs."""
-    payload = json.dumps(report, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
+    payload = json.dumps(sanitize_json(report), indent=2, sort_keys=True, ensure_ascii=False) + "\n"
     if output is None:
         sys.stdout.write(payload)
         return
@@ -214,13 +216,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             view = cross_repo_view(config)
             try:
                 config_doc = json.loads(config.read_text(encoding="utf-8"))
-                sources = [pathlib.Path(item["source"]) for item in config_doc["repositories"]]
-            except (KeyError, TypeError, json.JSONDecodeError) as exc:
+                repositories = config_doc["repositories"]
+                if not isinstance(repositories, list):
+                    raise TypeError("repositories_not_list")
+                sources = [pathlib.Path(item["source"]) for item in repositories]
+                graphs = [pathlib.Path(item["graph"]) for item in repositories]
+            except (KeyError, TypeError, UnicodeDecodeError, json.JSONDecodeError) as exc:
                 raise RepositoryIntelligenceError("cross_repo_config_unreadable") from exc
             if args.merge_out:
                 output = pathlib.Path(args.merge_out).resolve()
                 _require_outside_output(output, sources)
-                graphs = [pathlib.Path(item["graph"]) for item in config_doc["repositories"]]
                 runner = GraphifyRunner(args.graphify_bin)
                 runner.verify_version()
                 view["native_merge"] = runner.merge_graphs(graphs, output)

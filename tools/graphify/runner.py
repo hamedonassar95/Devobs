@@ -25,6 +25,7 @@ from .common import (
     hash_text,
     is_within,
     read_graph,
+    sanitize_json,
     sanitize_output,
     snapshot_source,
     validate_graph,
@@ -74,13 +75,23 @@ class GraphifyRunner:
         self.timeout = timeout
 
     @staticmethod
-    def offline_env() -> dict[str, str]:
+    def offline_env(state_root: pathlib.Path | None = None) -> dict[str, str]:
         """Child environment with no LLM backend and no usable network path."""
         env = os.environ.copy()
         for key in PROVIDER_KEY_VARS:
             env[key] = ""
         env["GRAPHIFY_BACKEND"] = "none"
         env["GRAPHIFY_QUERY_LOG_DISABLE"] = "1"
+        if state_root is not None:
+            # Redirect any tool-side home/config state into the explicit
+            # external output root so ~/.graphify is never touched.
+            state = state_root.resolve()
+            for name in (".graphify-home", ".graphify-config", ".graphify-data"):
+                (state / name).mkdir(parents=True, exist_ok=True)
+            env["HOME"] = str(state / ".graphify-home")
+            env["USERPROFILE"] = str(state / ".graphify-home")
+            env["XDG_CONFIG_HOME"] = str(state / ".graphify-config")
+            env["XDG_DATA_HOME"] = str(state / ".graphify-data")
         env["HTTP_PROXY"] = "http://127.0.0.1:9"
         env["HTTPS_PROXY"] = "http://127.0.0.1:9"
         env["ALL_PROXY"] = "http://127.0.0.1:9"
@@ -159,12 +170,14 @@ class GraphifyRunner:
         if force:
             args.append("--force")
         started = time.perf_counter()
-        result = self._run(args, env=self.offline_env())
+        result = self._run(args, env=self.offline_env(output_root))
         elapsed_ms = int((time.perf_counter() - started) * 1000)
 
         graph_path = output_root / "graphify-out" / "graph.json"
         if not graph_path.is_file():
             raise GraphifyRunnerError("graph_json_not_written")
+        if not is_within(graph_path, output_root):
+            raise GraphifyRunnerError("graph_path_escapes_output_root")
         with graph_path.open("rb") as handle:
             raw = handle.read()
         if not raw or len(raw) > MAX_GRAPH_BYTES:
@@ -174,6 +187,8 @@ class GraphifyRunner:
         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
             raise GraphSchemaError(f"graph_json_invalid {type(exc).__name__}") from exc
         stats = validate_graph(document)
+        if stats.node_count == 0 or stats.source_file_count == 0:
+            raise GraphSchemaError("graph_empty")
 
         after = snapshot_source(source)
         if before != after:
@@ -222,7 +237,7 @@ class GraphifyRunner:
         else:
             raise RepositoryIntelligenceError("unsupported_search_kind")
         started = time.perf_counter()
-        result = self._run(args, allowed_codes=frozenset({0, 3, 4}))
+        result = self._run(args, allowed_codes=frozenset({0, 3, 4}), env=self.offline_env(path.parent))
         elapsed_ms = int((time.perf_counter() - started) * 1000)
         status = {0: "ok", 3: "ambiguous", 4: "no_match"}[result.returncode]
         payload: dict = {
@@ -236,7 +251,7 @@ class GraphifyRunner:
         }
         if kind in {"god-nodes", "diagnose"}:
             try:
-                payload["result"] = json.loads(result.stdout)
+                payload["result"] = sanitize_json(json.loads(result.stdout))
             except json.JSONDecodeError as exc:
                 raise GraphifyRunnerError(f"graphify_{kind}_json_invalid") from exc
         else:
@@ -256,7 +271,7 @@ class GraphifyRunner:
             raise RepositoryIntelligenceError("merge_output_overwrites_input")
         output_path.parent.mkdir(parents=True, exist_ok=True)
         args = ["merge-graphs", *(str(path) for path in paths), "--out", str(output_path)]
-        self._run(args)
+        self._run(args, env=self.offline_env(output_path.parent))
         document, stats, _edge_key, digest = read_graph(output_path)
         return {
             "native_graphify_feature": True,
