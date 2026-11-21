@@ -103,6 +103,15 @@ No release gate was promoted by this work.
 
 [AI Incident Intelligence](docs/agents/AI_INCIDENT_INTELLIGENCE.md) builds on CI Failure Intelligence with evidence-linked hypotheses, explicit `HIGH`/`MEDIUM`/`LOW` confidence, advisory remediation steps, and human-readable summaries. It classifies dependency, configuration, timeout, test, CI failure, infrastructure, and unknown failures from sanitized logs, and maps bounded existing adviser signals to CI/infrastructure categories with schema-validated JSON reports. The raw project reference and source SHA stay inside the strict envelope boundary. AI providers are disabled by default; no automatic fixes, external API calls, merges, or deployments are performed.
 
+## Integration Verification Hub (deterministic, offline-first)
+
+[Integration Verification Hub](docs/architecture/INTEGRATION_VERIFICATION_HUB.md) inventories Devobs integration components, validates contracts/dependencies/ownership/evidence, and emits fail-closed `READY_FOR_HUMAN_REVIEW | BLOCKED | INSUFFICIENT_EVIDENCE | POLICY_VIOLATION` reports. Read-only, deterministic, secret-redacting; human review required, never merge/deploy. See [policy](docs/security/INTEGRATION_VERIFICATION_POLICY.md) and [runbook](docs/runbooks/INTEGRATION_VERIFICATION.md).
+
+```sh
+python -m py_compile devobs/integration_verification/*.py tests/integration_verification/*.py
+python -m unittest discover -s tests/integration_verification -p "test_*.py" -v
+```
+
 ## Incident Intelligence Engine (offline orchestration)
 
 [Incident Intelligence Engine](docs/architecture/INCIDENT_INTELLIGENCE_ENGINE.md) adds a thin `devobs/incidents/` layer over the merged analyzer and CI redaction primitives. It ingests sanitized CI/operational evidence, maps findings to eight bounded categories, detects repeated signatures and recurrence, reports insufficient evidence, and emits schema-validated JSON/Markdown with explicit approval states. Local structured events are available through an adapter; there is no network call, provider by default, or remediation executor. See the [offline triage runbook](docs/runbooks/INCIDENT_TRIAGE.md).
