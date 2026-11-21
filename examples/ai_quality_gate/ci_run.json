@@ -1,0 +1,15 @@
+{
+  "conclusion": "success",
+  "head_branch": "feature/ai-quality-coordination-gate",
+  "head_commit": {
+    "id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "message": "offline fixture"
+  },
+  "head_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "html_url": "https://github.com/hamedonassar95/Devobs/actions/runs/1",
+  "id": 1,
+  "name": "CI",
+  "repository": {
+    "full_name": "hamedonassar95/Devobs"
+  }
+}
