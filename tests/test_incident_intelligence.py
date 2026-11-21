@@ -175,10 +175,8 @@ class IncidentIntelligenceTests(unittest.TestCase):
         provider = RecordingProvider("AI note: inspect the pinned lockfile token=LEAKED_AI")
 
         report = analyze_incident(
-            incident(
-                logs=["pip install failed token=SUPERSECRET"],
-                ai_provider=provider,
-            )
+            incident(logs=["pip install failed token=SUPERSECRET"]),
+            ai_provider=provider,
         )
 
         self.assertEqual(len(provider.prompts), 1)
@@ -189,7 +187,7 @@ class IncidentIntelligenceTests(unittest.TestCase):
         self.assertEqual(report.category, CATEGORY_DEPENDENCY)
 
     def test_ai_provider_error_fails_closed_without_exposing_provider_text(self):
-        report = analyze_incident(incident(ai_provider=FailingProvider()))
+        report = analyze_incident(incident(), ai_provider=FailingProvider())
 
         self.assertEqual(report.ai_provider.status, "error")
         self.assertNotIn("SECRET_PROVIDER_ERROR", json.dumps(report.to_dict()))

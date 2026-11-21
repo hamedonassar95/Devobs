@@ -53,7 +53,8 @@ FAILURE_RULES: tuple[FailureRule, ...] = (
         category=CATEGORY_DEPENDENCY,
         pattern=re.compile(
             r"(?im)\bnpm ERR!|\bERESOLVE\b|ResolutionImpossible|Could not find a version|"
-            r"\bETARGET\b|pip(?:3)? install\b.*(?:failed|error)|\bModuleNotFoundError\b|No module named"
+            r"\bETARGET\b|pip(?:3)? install\b.*(?:failed|error)|"
+            r"\bModuleNotFoundError\b|No module named"
         ),
     ),
     FailureRule(
@@ -62,7 +63,8 @@ FAILURE_RULES: tuple[FailureRule, ...] = (
         pattern=re.compile(
             r"(?im)\bConfigurationError\b|InvalidConfiguration|"
             r"required environment variable[^\n]*\b(?:not set|missing|undefined)\b|"
-            r"KeyError:\s*['\"]?[A-Z][A-Z0-9_]+|\byaml\b[^\n]*\b(?:invalid|could not find expected)\b|"
+            r"KeyError:\s*['\"]?[A-Z][A-Z0-9_]+|"
+            r"\byaml\b[^\n]*\b(?:invalid|could not find expected)\b|"
             r"\bJSONDecodeError\b"
         ),
     ),
@@ -175,7 +177,10 @@ def classify_failure(logs: Iterable[str], job: str = "", step: str = "") -> Clas
                 rationale=f"{rule.name} matched job or step metadata only.",
             )
 
-    fallback = redact_secrets(log_text.strip())[:240] if log_text.strip() else "No sanitized log evidence supplied."
+    if log_text.strip():
+        fallback = redact_secrets(log_text.strip())[:240]
+    else:
+        fallback = "No sanitized log evidence supplied."
     return Classification(
         category=CATEGORY_UNKNOWN,
         confidence=CONFIDENCE_LOW,
