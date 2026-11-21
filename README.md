@@ -103,6 +103,10 @@ No release gate was promoted by this work.
 
 [AI Incident Intelligence](docs/agents/AI_INCIDENT_INTELLIGENCE.md) builds on CI Failure Intelligence with evidence-linked hypotheses, explicit `HIGH`/`MEDIUM`/`LOW` confidence, advisory remediation steps, and human-readable summaries. It classifies dependency, configuration, timeout, test, CI failure, infrastructure, and unknown failures from sanitized logs, and maps bounded existing adviser signals to CI/infrastructure categories with schema-validated JSON reports. The raw project reference and source SHA stay inside the strict envelope boundary. AI providers are disabled by default; no automatic fixes, external API calls, merges, or deployments are performed.
 
+## Incident Intelligence Engine (offline orchestration)
+
+[Incident Intelligence Engine](docs/architecture/INCIDENT_INTELLIGENCE_ENGINE.md) adds a thin `devobs/incidents/` layer over the merged analyzer and CI redaction primitives. It ingests sanitized CI/operational evidence, maps findings to eight bounded categories, detects repeated signatures and recurrence, reports insufficient evidence, and emits schema-validated JSON/Markdown with explicit approval states. Local structured events are available through an adapter; there is no network call, provider by default, or remediation executor. See the [offline triage runbook](docs/runbooks/INCIDENT_TRIAGE.md).
+
 ## مراجعة خطط Codex والكود بصريًا — Plannotator (اختياري)
 
 أضفنا [دليل تكامل Plannotator مع Codex](docs/integrations/PLANNOTATOR_CODEX_REVIEW.md) لإجراء مراجعات بصرية يدوية للخطط والـ diff على جهاز موثوق، دون تفعيل Hooks أو تشغيل خدمات أو إضافة تبعيات داخل المستودع. **الحالة: موثّق فقط / التشغيل غير متحقق.** يحتاج استخدام الأداة إلى تثبيت اختياري يراجعه المالك على جهازه؛ دعم ChatGPT على iPhone أو Codex السحابي غير مثبت. تستمر موافقات الإنسان وحماية `main` وفحوص CI وبوابات P01/AI-9 دون تغيير.
