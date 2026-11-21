@@ -103,6 +103,15 @@ No release gate was promoted by this work.
 
 [AI Incident Intelligence](docs/agents/AI_INCIDENT_INTELLIGENCE.md) builds on CI Failure Intelligence with evidence-linked hypotheses, explicit `HIGH`/`MEDIUM`/`LOW` confidence, advisory remediation steps, and human-readable summaries. It classifies dependency, configuration, timeout, test, CI failure, infrastructure, and unknown failures from sanitized logs, and maps bounded existing adviser signals to CI/infrastructure categories with schema-validated JSON reports. The raw project reference and source SHA stay inside the strict envelope boundary. AI providers are disabled by default; no automatic fixes, external API calls, merges, or deployments are performed.
 
+## Production Readiness Intelligence (offline, deterministic)
+
+[Production Readiness Intelligence](docs/production-readiness.md) evaluates CI/CD, dependency/supply-chain, secret exposure, ownership conflicts, PR risk, deployment config, observability, and duplicate tasks from verified snapshot evidence. Deterministic, read-only, fail-closed; AI analysis optional/read-only/disabled by default and non-authoritative. No merge/deploy/destructive action.
+
+```sh
+python -m unittest discover -s tests/readiness -p "test_*.py" -v
+python -m tools.readiness.cli --input snapshot.json --format markdown
+```
+
 ## Incident Intelligence Engine (offline orchestration)
 
 [Incident Intelligence Engine](docs/architecture/INCIDENT_INTELLIGENCE_ENGINE.md) adds a thin `devobs/incidents/` layer over the merged analyzer and CI redaction primitives. It ingests sanitized CI/operational evidence, maps findings to eight bounded categories, detects repeated signatures and recurrence, reports insufficient evidence, and emits schema-validated JSON/Markdown with explicit approval states. Local structured events are available through an adapter; there is no network call, provider by default, or remediation executor. See the [offline triage runbook](docs/runbooks/INCIDENT_TRIAGE.md).
