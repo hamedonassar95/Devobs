@@ -1,5 +1,15 @@
 # Devobs
 
+## Optional Pulumi Delivery and Azure Catalyst readiness
+
+[Pulumi Delivery assessment](docs/integrations/PULUMI_DELIVERY_READINESS.md),
+[Azure Catalyst assessment](docs/integrations/AZURE_CATALYST_READINESS.md),
+[vendor-neutral architecture](docs/architecture/MULTICLOUD_INTEGRATION_ARCHITECTURE.md)
+and [execution plan](docs/roadmap/INTEGRATION_EXECUTION_PLAN.md) preserve the
+existing GitHub Actions/GCP architecture. The offline, dependency-free checker
+accepts only read-only `DRY_RUN` policy fixtures; PASS is design validation,
+not authentication, human approval or permission to deploy. No provider is activated.
+
 ## P01 readiness: verified NO-GO evidence (2026-11-19)
 
 [Read the fixed-SHA P01 NO-GO owner decision and acceptance matrix](docs/p01/P01_NO_GO_DECISION_2026-11-19.md) for the reviewed `main` SHA `0f062c03dbefceebf8eaca79bdaf30c2483f99be`. This is source/read-only metadata evidence, **not** a provider hard-cap, hosted test or P01 approval. The existing P01 evidence sample and P01/AI-9/Codex gates are unchanged. A separate owner decision is needed before the existing Free PostgreSQL expiry on 2026-12-05.
