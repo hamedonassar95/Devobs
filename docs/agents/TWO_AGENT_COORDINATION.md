@@ -113,11 +113,17 @@ A `PASS` result is invalid while the task is still `planned` or `in_progress`.
 | `BLOCKED` | 1 | Valid contract, but a task is blocked or ownership conflicts exist. |
 | `FAIL` | 2 | Invalid contract or unreadable manifest; never treated as approval. |
 
-The tool reports `blocked_tasks` (`unresolved_dependency`, `agent_not_enabled`)
-and `conflicts` (`concurrent_file_ownership`, `concurrent_branch_ownership`).
-Dependency-ordered tasks sharing a file are allowed while the predecessor is
-`complete`; two active tasks on the same file or branch are blocked. Transitive
-incomplete dependencies are reported for each blocked task.
+The tool reports `blocked_tasks` (`task_blocked`, `unresolved_dependency`,
+`agent_not_enabled`) and `conflicts` (`concurrent_file_ownership`,
+`concurrent_branch_ownership`). Every task with `status: "blocked"` is reported
+with reason `task_blocked` and its unresolved dependencies; a manifest containing
+blocked work returns `BLOCKED` (exit 1), never `PASS`. Blocked tasks keep their
+declared files and branch until a separately reviewed release mechanism removes
+or reassigns them, so a blocked task sharing a file or branch with active work is
+reported as a conflict. Dependency-ordered tasks sharing a file are allowed while
+the predecessor is `complete`; two active or blocked tasks on the same file or
+branch are blocked. Transitive incomplete dependencies are reported for each
+blocked task. Completed tasks are excluded from active ownership checks.
 
 ```sh
 python scripts/check_two_agent_tasks.py --help
@@ -175,7 +181,8 @@ authorization or enforcement boundary.
 2. اربط المهام بالتبعيات؛ إذا كانت مهمة تعتمد على أخرى غير مكتملة فتظهر
    `BLOCKED` ولا يجوز اعتبارها جاهزة.
 3. لا تسمح لعاملين بتعديل الملف نفسه في الوقت نفسه؛ الفحص يمنع التعارض ويسمح
-   بالتسلسل عند اكتمال المهمة السابقة.
+   بالتسلسل عند اكتمال المهمة السابقة. المهمة `blocked` تبقى مالكة لملفاتها
+   وفرعها حتى إصدار مراجع منفصل، وتُبلغ عنها النتيجة `BLOCKED` وليس `PASS`.
 4. لا تُعلَّم مهمة `complete` إلا بعد `source_sha` صحيح و`verification.result`
    بقيمة `PASS` مع أمر ودليل مكتوب.
 5. قيم `approval` الأربع تبقى `pending_human` دائمًا؛ موافقة الإنسان مطلوبة قبل
