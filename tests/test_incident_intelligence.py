@@ -5,6 +5,7 @@ import json
 import unittest
 
 from devobs.incident_intelligence import (
+    CATEGORY_CI_FAILURE,
     CATEGORY_CONFIGURATION,
     CATEGORY_DEPENDENCY,
     CATEGORY_INFRASTRUCTURE,
@@ -13,10 +14,13 @@ from devobs.incident_intelligence import (
     CATEGORY_UNKNOWN,
     CONFIDENCE_HIGH,
     CONFIDENCE_LOW,
+    CONFIDENCE_MEDIUM,
     analyze_incident,
+    analyze_signals,
     analyze_workflow_run,
     render_summary,
 )
+from devobs.incident_intelligence.schema import SchemaError, validate_report_json
 
 
 class RecordingProvider:
@@ -226,6 +230,94 @@ class IncidentIntelligenceTests(unittest.TestCase):
         self.assertIn("# Incident Intelligence Report", markdown)
         self.assertIn(CONFIDENCE_HIGH, markdown)
         self.assertIn("Human approval", markdown)
+
+
+def signal_event(**overrides):
+    payload = {
+        "schema_version": 1,
+        "event_id": "ci-hardening-1",
+        "provider": "github",
+        "project_ref": "raw-project-name-should-not-leak",
+        "source_sha": "c" * 40,
+        "kind": "incident",
+        "observed_at": "2026-11-21T12:00:00Z",
+        "evidence_digests": ["d" * 64],
+    }
+    payload.update(overrides)
+    return payload
+
+
+def signals(**overrides):
+    payload = {"failed_checks": 0, "error_rate_pct": 0.0, "capacity_pct": 20.0}
+    payload.update(overrides)
+    return payload
+
+
+class IncidentSignalHardeningTests(unittest.TestCase):
+    def test_ci_failure_signal_uses_existing_adviser_without_leaking_project_ref(self):
+        report = analyze_signals(signal_event(), signals(failed_checks=2))
+
+        self.assertEqual(report.source, "devobs_intelligence")
+        self.assertEqual(report.category, CATEGORY_CI_FAILURE)
+        self.assertEqual(report.confidence, CONFIDENCE_HIGH)
+        self.assertEqual(report.signal, "ci_failure")
+        self.assertTrue(report.evidence)
+        self.assertTrue(
+            all(evidence.source == "devobs_intelligence" for evidence in report.evidence)
+        )
+        blob = report.to_json()
+        self.assertNotIn("raw-project-name-should-not-leak", blob)
+        self.assertNotIn("c" * 40, blob)
+
+    def test_high_error_rate_signal_is_classified_as_infrastructure_alert(self):
+        report = analyze_signals(signal_event(event_id="error-rate-1"), signals(error_rate_pct=8.0))
+
+        self.assertEqual(report.category, CATEGORY_INFRASTRUCTURE)
+        self.assertEqual(report.confidence, CONFIDENCE_MEDIUM)
+        self.assertEqual(report.signal, "high_error_rate")
+
+    def test_capacity_pressure_signal_is_classified_as_infrastructure_alert(self):
+        report = analyze_signals(signal_event(event_id="capacity-1"), signals(capacity_pct=95.0))
+
+        self.assertEqual(report.category, CATEGORY_INFRASTRUCTURE)
+        self.assertEqual(report.confidence, CONFIDENCE_MEDIUM)
+        self.assertEqual(report.signal, "capacity_pressure")
+
+    def test_invalid_signals_fail_closed_without_exposing_raw_values(self):
+        report = analyze_signals(
+            signal_event(event_id="invalid-1"),
+            {"failed_checks": -1, "error_rate_pct": 0, "capacity_pct": 0, "raw_log": "TOPSECRET"},
+        )
+
+        self.assertEqual(report.category, CATEGORY_UNKNOWN)
+        self.assertEqual(report.confidence, CONFIDENCE_LOW)
+        self.assertTrue(report.warnings)
+        self.assertNotIn("TOPSECRET", report.to_json())
+
+    def test_json_summary_validates_against_declared_schema(self):
+        report = analyze_incident(incident())
+        payload = json.loads(report.to_json())
+
+        self.assertEqual(payload["schema_version"], "1.1")
+        self.assertEqual(payload["signal"], "dependency-install")
+        self.assertTrue(validate_report_json(payload))
+        evidence_ids = {item["id"] for item in payload["evidence"]}
+        for hypothesis in payload["hypotheses"]:
+            self.assertTrue(set(hypothesis["evidence_ids"]).issubset(evidence_ids))
+
+    def test_schema_rejects_dangling_evidence_reference(self):
+        payload = analyze_incident(incident()).to_dict()
+        payload["hypotheses"][0]["evidence_ids"] = ["ev-does-not-exist"]
+
+        with self.assertRaisesRegex(SchemaError, "dangling_evidence_reference"):
+            validate_report_json(payload)
+
+    def test_schema_rejects_missing_top_level_field(self):
+        payload = analyze_incident(incident()).to_dict()
+        payload.pop("guardrails")
+
+        with self.assertRaisesRegex(SchemaError, "invalid_report_fields"):
+            validate_report_json(payload)
 
 
 if __name__ == "__main__":
