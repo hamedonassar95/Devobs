@@ -107,6 +107,15 @@ No release gate was promoted by this work.
 
 [Incident Intelligence Engine](docs/architecture/INCIDENT_INTELLIGENCE_ENGINE.md) adds a thin `devobs/incidents/` layer over the merged analyzer and CI redaction primitives. It ingests sanitized CI/operational evidence, maps findings to eight bounded categories, detects repeated signatures and recurrence, reports insufficient evidence, and emits schema-validated JSON/Markdown with explicit approval states. Local structured events are available through an adapter; there is no network call, provider by default, or remediation executor. See the [offline triage runbook](docs/runbooks/INCIDENT_TRIAGE.md).
 
+## xAI Grok adapter (offline-first, advisory only)
+
+[The xAI Grok adapter](docs/integrations/XAI_GROK.md) adds a bounded, typed provider with deterministic offline mock mode, source-linked pricing (`grok-4.7`, $2/$0.50/$6 per 1M tokens below 200k prompt tokens, $4/$1/$12 at or above), pre-flight maximum-cost estimation, and explicit states (`MOCK_SUCCESS`, `CONFIGURATION_BLOCKED`, `AUTHENTICATION_REQUIRED`, `BUDGET_BLOCKED`, `PROVIDER_UNAVAILABLE`, `VERIFIED_RESPONSE`). It is disabled by default, reads `XAI_API_KEY` only from the environment when a live provider is built, sends no tools, redacts secrets, refuses redirects, bounds retries, and never claims mock output is a real Grok response. No paid call occurs without explicit per-call authorization and the existing repo-wide budget flag. No router, workflow, orchestration, or deployment code was changed.
+
+```sh
+python -m compileall -q devobs
+python -m unittest discover -s tests/ai/providers -p "test_*.py" -v
+```
+
 ## مراجعة خطط Codex والكود بصريًا — Plannotator (اختياري)
 
 أضفنا [دليل تكامل Plannotator مع Codex](docs/integrations/PLANNOTATOR_CODEX_REVIEW.md) لإجراء مراجعات بصرية يدوية للخطط والـ diff على جهاز موثوق، دون تفعيل Hooks أو تشغيل خدمات أو إضافة تبعيات داخل المستودع. **الحالة: موثّق فقط / التشغيل غير متحقق.** يحتاج استخدام الأداة إلى تثبيت اختياري يراجعه المالك على جهازه؛ دعم ChatGPT على iPhone أو Codex السحابي غير مثبت. تستمر موافقات الإنسان وحماية `main` وفحوص CI وبوابات P01/AI-9 دون تغيير.
