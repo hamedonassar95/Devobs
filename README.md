@@ -63,6 +63,17 @@ python tools/agent_task_status_report.py --manifest /path/to/tasks.json --json-o
 python -m unittest discover -s tests -p "test_agent_task_status_report.py" -v
 ```
 
+A local [agent security audit](docs/agents/SECURITY_AUDIT.md) now adds advisory
+findings over the same manifest before a human starts either worker. It reports
+duplicate ownership, case-insensitive file conflicts, protected or invalid refs,
+missing or blocked dependencies, altered human approvals and stale completion
+evidence. It is read-only: no dispatch, network call, Git write or approval.
+
+```sh
+python -m devobs.agents.security_audit --manifest /path/to/tasks.json
+python -m unittest discover -s tests -p "test_agent_security_audit.py" -v
+```
+
 ## Root-cause audit and remediation roadmap (2026-11-20)
 
 An evidence-driven audit of `origin/main` `4299a9d` confirmed one P1 root cause:
