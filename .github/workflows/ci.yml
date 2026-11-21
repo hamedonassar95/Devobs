@@ -291,6 +291,39 @@ jobs:
         run: python3 scripts/check_agent_spec.py
       - name: Validate evidence-linked milestone index
         run: python3 scripts/milestone_ledger.py
+      - name: Evaluate advisory AI quality gate on offline fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          result="$RUNNER_TEMP/ai_quality_gate.json"
+          python3 -m devobs.ai_quality_gate \
+            --input examples/ai_quality_gate/snapshot.json \
+            --ci-run-json examples/ai_quality_gate/ci_run.json \
+            --ci-jobs-json examples/ai_quality_gate/ci_jobs.json \
+            --format json > "$result"
+          python3 - "$result" <<'PY'
+          import json
+          import sys
+
+          from devobs.ai_quality_gate.models import validate_result
+
+          with open(sys.argv[1], encoding="utf-8") as handle:
+              payload = json.load(handle)
+          if not validate_result(payload):
+              raise SystemExit("AI quality gate result failed schema validation")
+          checks = {
+              "mode": payload["mode"] == "DRY_RUN",
+              "offline": payload["offline"] is True,
+              "merge_authorized": payload["merge_authorized"] is False,
+              "human_approval": payload["human_approval"] == "PENDING_HUMAN",
+              "decision": payload["decision"] == "PASS",
+          }
+          failures = [name for name, ok in checks.items() if not ok]
+          if failures:
+              raise SystemExit("AI quality gate invariant failed: " + ", ".join(failures))
+          print("AI quality gate: DRY_RUN PASS; no authority granted.")
+          PY
+          printf 'AI quality gate: DRY_RUN PASS; advisory only; no authority granted.\n' >> "$GITHUB_STEP_SUMMARY"
       - name: Validate pinned synthetic AI evaluation dataset
         run: python3 scripts/validate_ai_eval_fixtures.py
       - name: Set up Python with dependency cache
