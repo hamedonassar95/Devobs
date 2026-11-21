@@ -19,7 +19,7 @@ on:
   steps:
     - name: Check trusted incident and existing investigation
       id: incident_gate
-      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
       with:
         script: |
           // Read-only gate shared by pre-activation and the final comment writer.
@@ -145,7 +145,7 @@ jobs:
     pre-steps:
       - name: Recheck trusted incident before writing
         id: incident_gate
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             // Read-only gate shared by pre-activation and the final comment writer.

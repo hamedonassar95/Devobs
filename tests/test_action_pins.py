@@ -62,5 +62,87 @@ class PullRequestTargetGuardTests(unittest.TestCase):
         pin_check.assert_not_called()
 
 
+class VersionCommentGuardTests(unittest.TestCase):
+    CHECKOUT = "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+    GITHUB_SCRIPT = "actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3"
+    SETUP_NODE = "actions/setup-node@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0"
+
+    def test_repository_remote_actions_declare_versions(self):
+        self.assertEqual(check_action_pins.missing_version_comments(), [])
+
+    def test_detects_missing_and_non_version_comments_but_allows_exemptions(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            (root / "missing.yml").write_text(
+                f"steps:\n  - uses: {self.CHECKOUT}\n",
+                encoding="utf-8",
+            )
+            (root / "non-version.yml").write_text(
+                f"steps:\n  - uses: {self.GITHUB_SCRIPT} # pinned\n",
+                encoding="utf-8",
+            )
+            (root / "valid.yml").write_text(
+                "\n".join(
+                    [
+                        "steps:",
+                        f"  - uses: {self.SETUP_NODE} # v7.1.0",
+                        "  - uses: ./.github/workflows/reusable.yml",
+                        "  - uses: docker://alpine@sha256:"
+                        + "a" * 64,
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            self.assertEqual(
+                check_action_pins.missing_version_comments(root),
+                [
+                    (root / "missing.yml", 2, self.CHECKOUT, ""),
+                    (root / "non-version.yml", 2, self.GITHUB_SCRIPT, "pinned"),
+                ],
+            )
+
+    def test_fails_closed_when_workflow_directory_is_missing(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            with self.assertRaises(FileNotFoundError):
+                check_action_pins.missing_version_comments(
+                    Path(temporary_directory) / "missing"
+                )
+
+    def test_checker_reports_missing_version_comments(self):
+        output = io.StringIO()
+        with (
+            patch.object(
+                check_action_pins,
+                "pull_request_target_references",
+                return_value=[],
+            ),
+            patch.object(
+                check_action_pins,
+                "mutable_action_references",
+                return_value=[],
+            ),
+            patch.object(
+                check_action_pins,
+                "missing_version_comments",
+                return_value=[
+                    (
+                        Path(".github/workflows/example.yml"),
+                        7,
+                        self.GITHUB_SCRIPT,
+                        "",
+                    )
+                ],
+            ),
+            contextlib.redirect_stdout(output),
+        ):
+            result = check_action_pins.main()
+
+        self.assertEqual(result, 1)
+        self.assertIn("example.yml:7", output.getvalue())
+        self.assertIn("same-line comment", output.getvalue())
+
+
 if __name__ == "__main__":
     unittest.main()

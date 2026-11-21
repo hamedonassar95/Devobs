@@ -1,7 +1,9 @@
-"""Reject mutable references to remote GitHub Actions.
+"""Reject mutable references to remote GitHub Actions and undocumented versions.
 
 Workflow lock files and agent workflow templates are included because they can
-also introduce executable Actions definitions.
+also introduce executable Actions definitions. GitHub documents that Dependabot
+updates version documentation when the comment is on the same line:
+https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions#keeping-the-actions-in-your-workflows-secure-and-up-to-date
 """
 
 from __future__ import annotations
@@ -14,6 +16,11 @@ from pathlib import Path
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW_ROOT = REPOSITORY_ROOT / ".github" / "workflows"
 USES_PATTERN = re.compile(r"^\s*(?:-\s*)?uses:\s*(?P<reference>[^\s#]+)")
+USES_WITH_COMMENT_PATTERN = re.compile(
+    r"^\s*(?:-\s*)?uses:\s*(?P<reference>[^\s#]+)"
+    r"(?:\s+#\s*(?P<comment>.*?))?\s*$"
+)
+VERSION_COMMENT_PATTERN = re.compile(r"^[vV]?\d+(?:\.\d+)*(?:[-+][A-Za-z0-9.-]+)?$")
 REMOTE_ACTION_PATTERN = re.compile(
     r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_./-]+)?@"
     r"(?P<sha>[0-9a-fA-F]{40})$"
@@ -79,6 +86,41 @@ def pull_request_target_references(
     return violations
 
 
+def missing_version_comments(
+    workflow_root: Path = WORKFLOW_ROOT,
+) -> list[tuple[Path, int, str, str]]:
+    """Find remote Actions without a same-line, version-shaped comment."""
+    if not workflow_root.is_dir():
+        raise FileNotFoundError(f"Workflow directory not found: {workflow_root}")
+
+    violations: list[tuple[Path, int, str, str]] = []
+    workflow_files = sorted(
+        path
+        for path in workflow_root.rglob("*")
+        if path.is_file() and path.suffix.lower() in {".md", ".yaml", ".yml"}
+    )
+    for path in workflow_files:
+        for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            match = USES_WITH_COMMENT_PATTERN.match(line)
+            if not match:
+                continue
+
+            reference = match.group("reference")
+            if reference.startswith("./") or reference.startswith("docker://"):
+                continue
+
+            comment = (match.group("comment") or "").strip()
+            if VERSION_COMMENT_PATTERN.fullmatch(comment):
+                continue
+
+            try:
+                display_path: Path = path.relative_to(REPOSITORY_ROOT)
+            except ValueError:
+                display_path = path
+            violations.append((display_path, line_number, reference, comment))
+    return violations
+
+
 def main() -> int:
     trigger_violations = pull_request_target_references()
     if trigger_violations:
@@ -92,6 +134,14 @@ def main() -> int:
         print("Remote GitHub Actions must use a full commit SHA or image digest:")
         for path, line_number, reference in violations:
             print(f"  {path}:{line_number}: {reference}")
+        return 1
+
+    version_violations = missing_version_comments()
+    if version_violations:
+        print("Remote GitHub Actions must declare a version in a same-line comment:")
+        for path, line_number, reference, comment in version_violations:
+            detail = f" comment={comment!r}" if comment else ""
+            print(f"  {path}:{line_number}: {reference}{detail}")
         return 1
 
     checked_files = len(workflow_sources())

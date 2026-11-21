@@ -16,13 +16,13 @@ on:
     pull-requests: read
   steps:
     - name: Checkout policy and guard code
-      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         ref: main
         persist-credentials: false
     - name: Evaluate live incident policy
       id: live_policy
-      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
+      uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
       with:
         script: |
           const { evaluateLiveIncident } = require("./scripts/phase8b_live_gate.cjs");
@@ -41,12 +41,12 @@ jobs:
       actions: read
     pre-steps:
       - name: Checkout trusted policy and guard code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
           persist-credentials: false
       - name: Recheck live incident policy before PR creation
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const { evaluateLiveIncident } = require("./scripts/phase8b_live_gate.cjs");
