@@ -1,5 +1,10 @@
 # Devobs
 
+## Human-supervised multi-agent repository workflow
+
+[AI Multi-Agent Repository Workflow](docs/AI_MULTI_AGENT_WORKFLOW.md) documents isolated Codex/OpenCode worktrees, non-overlapping file ownership, Draft PR review, verification evidence, and owner-only merge/deploy decisions. This is a documented operating policy, not an activated agent scheduler or automatic dispatch service.
+
+
 ## Optional Pulumi Delivery and Azure Catalyst readiness
 
 [Pulumi Delivery assessment](docs/integrations/PULUMI_DELIVERY_READINESS.md),
