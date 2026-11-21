@@ -129,6 +129,25 @@ On Windows hosts where `python3` is unavailable, use `python`; both invoke the
 same Python 3.12-compatible code. The checker uses only the standard library and
 makes no network request, Git write, credential read or scheduled action.
 
+## Local dispatch preflight (no dispatch)
+
+[The agent dispatch operating guide](AGENT_DISPATCH_OPERATING_GUIDE.md) adds a
+local advisory layer on top of this validator:
+
+```sh
+python scripts/agent_dispatch_preflight.py --manifest /path/to/tasks.json
+python -m unittest discover -s tests -p "test_agent_dispatch_preflight.py" -v
+```
+
+The preflight reuses `check_two_agent_tasks.evaluate` as the rule source of
+truth. It detects whether `codex` and `opencode` are present on the local
+`PATH` without invoking them, prepares separate `CODEX_instructions.md` and
+`OPENCODE_instructions.md` files, and prints five human-approval actions.
+`DRY_RUN` is the default and only mode; there is no dispatch command. A missing
+required CLI, a conflict, or an unauthorized task blocks instruction creation.
+`PASS` (0), `BLOCKED` (1) and `FAIL` (2) keep the same advisory meaning as the
+checker and never grant approval.
+
 ## Human gates and limitations
 
 `approval.merge`, `approval.deploy`, `approval.billing` and `approval.production`
