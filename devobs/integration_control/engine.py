@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .advisory import build_advisory
 from .coordination import evaluate_coordination
 from .evidence_registry import build_registry
 from .models import BLOCKED, NEEDS_EVIDENCE, POLICY_VIOLATION, READY_FOR_HUMAN_REVIEW, Finding, MAX_FINDINGS, utc_now_iso
@@ -20,7 +21,7 @@ def _add(findings: list[Finding], code: str, severity: str, category: str, messa
         findings.append(Finding(code, severity, category, message, redact(evidence or {})))
 
 
-def evaluate_integration(raw: Any) -> dict[str, Any]:
+def evaluate_integration(raw: Any, advisory_provider: Any | None = None) -> dict[str, Any]:
     findings: list[Finding] = []
     try:
         ev = normalize_input(raw)
@@ -35,8 +36,8 @@ def evaluate_integration(raw: Any) -> dict[str, Any]:
             "findings": [Finding("MALFORMED_INPUT", "error", "validation", str(exc)).as_dict()],
             "evidence_registry": [],
             "recommended_next_action": "Provide valid, bounded integration evidence.",
-            "advisory": {"authoritative": False, "summary": "Deterministic validation failed."},
         }
+        report["advisory"] = build_advisory(report, advisory_provider)
         return redact(report)
 
     repo, base, head = ev.get("repository"), ev.get("base_branch"), ev.get("head_branch")
@@ -150,12 +151,11 @@ def evaluate_integration(raw: Any) -> dict[str, Any]:
         "evidence_registry": registry,
         "coordination": coordination,
         "recommended_next_action": next_action,
-        "advisory": {
-            "authoritative": False,
-            "engine": "deterministic-advisory",
-            "summary": "Advisory only; deterministic policy and human approval remain authoritative.",
-            "recommendations": [f.code for f in findings][:20],
-        },
         "untrusted_pr_text_handling": {"accepted": ev.get("untrusted_pr_text") is not None, "executed": False, "redacted": True},
     }
+    report["advisory"] = build_advisory(
+        report,
+        advisory_provider,
+        deterministic_recommendations=[f.code for f in findings][:20],
+    )
     return redact(report)
