@@ -76,6 +76,10 @@ python tools/agent_task_status_report.py --manifest /path/to/tasks.json --json-o
 python -m unittest discover -s tests -p "test_agent_task_status_report.py" -v
 ```
 
+## Scheduler integration audit (read-only)
+
+[Scheduler Integration Audit](docs/agents/SCHEDULER_INTEGRATION_AUDIT.md) records an evidence-based audit of whether `ResourceConstrainedScheduler` is integrated on `origin/main`. Current audited state: no `devobs/scheduling` implementation, no `tests/test_resource_scheduler.py`, no `docs/agents/RESOURCE_SCHEDULER.md`; scheduler compatibility is **UNVERIFIED/FAILED/BLOCKED** where implementation is absent. Existing contracts were inspected for dependency validation, DRY_RUN dispatch preflight, pending-human approvals, and ownership/cycle handling. No production scheduler code was imported or changed.
+
 ## Root-cause audit and remediation roadmap (2026-11-20)
 
 An evidence-driven audit of `origin/main` `4299a9d` confirmed one P1 root cause:
