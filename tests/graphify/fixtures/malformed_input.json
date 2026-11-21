@@ -1,0 +1,8 @@
+{
+  "nodes": [
+    {
+      "id": "a"
+    }
+  ],
+  "edges": "not-an-array"
+}

@@ -95,6 +95,16 @@ bounded repair, and documented all other blockers. See
 [the Graphify consolidation plan](docs/architecture/GRAPHIFY_CONSOLIDATION_PLAN.md).
 No release gate was promoted by this work.
 
+## Graphify Integration Regression Testing
+
+[Graphify integration regression tests](docs/integrations/graphify-testing.md) add deterministic offline coverage for valid graphs, missing node references, duplicate edges, dependency cycles, and malformed inputs. They use fixtures/mocks only, produce actionable fail-closed diagnostics, and do not change production Graphify behavior or security/scheduler/incident modules.
+
+```sh
+python -m unittest tests.graphify.test_graphify_regressions -v
+python -m unittest tests.test_graphify_portfolio -v
+python -m unittest discover -s tests/graphify -p "test_*.py" -v
+```
+
 ## CI Failure Intelligence (read-only)
 
 [CI Failure Intelligence](docs/agents/CI_FAILURE_INTELLIGENCE.md) provides deterministic, evidence-based diagnostics for failed GitHub Actions runs. It classifies failures (code/infrastructure/ambiguous), detects repeated signatures, correlates commit evidence, redacts secrets, labels findings `VERIFIED/INFERRED/UNVERIFIED`, and supports optional injectable AI summaries with rule-based fallback. Read-only: no code changes, reruns, merges, or deploys.

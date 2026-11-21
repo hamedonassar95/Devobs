@@ -1,0 +1,28 @@
+{
+  "nodes": [
+    {
+      "id": "a",
+      "label": "a.py",
+      "source_file": "a.py"
+    },
+    {
+      "id": "b",
+      "label": "b.py",
+      "source_file": "b.py"
+    }
+  ],
+  "edges": [
+    {
+      "source": "a",
+      "target": "b",
+      "relation": "imports",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "source": "b",
+      "target": "a",
+      "relation": "imports",
+      "confidence": "EXTRACTED"
+    }
+  ]
+}
