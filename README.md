@@ -51,6 +51,18 @@ python scripts/agent_dispatch_preflight.py --manifest /path/to/tasks.json
 python -m unittest discover -s tests -p "test_agent_dispatch_preflight.py" -v
 ```
 
+A local [agent task-status report](docs/agents/AGENT_TASK_STATUS_REPORT.md) now
+reuses the same manifest contract to print required task fields, blocked tasks,
+PR references and evidence states. It is advisory local data only: it never
+executes stored commands, fetches GitHub data, starts agents or treats a
+manifest `PASS` as verification or approval. Arabic usage is included.
+
+```sh
+python tools/agent_task_status_report.py --manifest /path/to/tasks.json
+python tools/agent_task_status_report.py --manifest /path/to/tasks.json --json-only
+python -m unittest discover -s tests -p "test_agent_task_status_report.py" -v
+```
+
 ## Root-cause audit and remediation roadmap (2026-11-20)
 
 An evidence-driven audit of `origin/main` `4299a9d` confirmed one P1 root cause:
