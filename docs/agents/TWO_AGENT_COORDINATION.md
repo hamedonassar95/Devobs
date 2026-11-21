@@ -82,13 +82,13 @@ fields fail closed. Exact top-level keys: `schema_version`, `repositories`,
 | `id` | Unique, uppercase, 3-64 chars (`A-Z0-9_-`). |
 | `repository` | Must be listed in `repositories`. Tasks may span authorized repositories. |
 | `assigned_agent` | Must exist in `agents` and be enabled. |
-| `branch` | Non-`main` `feature/`, `fix/`, `docs/` or `chore/` branch. |
-| `affected_files` | Non-empty unique repository-relative paths; `..`, absolute and drive paths are rejected. `\\` is normalised to `/`. |
+| `branch` | A `feature/`, `fix/`, `docs/` or `chore/` ref only; bare protected branches and Git-invalid spellings are rejected. |
+| `affected_files` | Non-empty repository-relative paths; `..`, absolute and drive paths are rejected. `\\` is normalised to `/`, and uniqueness/ownership conflicts are case-insensitive. |
 | `dependencies` | Task IDs in the same repository; no self-reference, duplicates or cycles. |
 | `status` | One of `planned`, `in_progress`, `evidence_ready`, `complete`, `blocked`. |
 | `previous_status` | `none` or a status; the pair must be an allowed transition. |
 | `source_sha` | `null` or 40 lowercase hex characters; required for `evidence_ready` and `complete`. |
-| `verification` | `commands` (bounded strings), `result` (`PENDING`, `PASS`, `FAIL`), `evidence` (bounded text). |
+| `verification` | `commands` (bounded strings), `result` (`PENDING`, `PASS`, `FAIL`), `evidence` (bounded text). `FAIL` cannot support `evidence_ready` or `complete`. |
 | `pr_reference` | `null`, `#<number>` or a `https://github.com/<owner>/<repo>/pull/<number>` URL. |
 | `requested_actions` | From `code_change`, `review`, `test`, `documentation`. |
 
@@ -104,6 +104,9 @@ fields fail closed. Exact top-level keys: `schema_version`, `repositories`,
 A task may be marked `complete` only with a 40-character `source_sha` and
 `verification.result` of `PASS` with at least one command and non-empty evidence.
 A `PASS` result is invalid while the task is still `planned` or `in_progress`.
+A `FAIL` result may be recorded on `in_progress` work, but it cannot support
+`evidence_ready` or `complete`. Transition checks compare fields in one record;
+they do not prove that the claimed prior state was ever observed.
 
 ## Checks and exit codes
 
@@ -124,6 +127,13 @@ reported as a conflict. Dependency-ordered tasks sharing a file are allowed whil
 the predecessor is `complete`; two active or blocked tasks on the same file or
 branch are blocked. Transitive incomplete dependencies are reported for each
 blocked task. Completed tasks are excluded from active ownership checks.
+
+Task branches are validated against the ref-format rules documented at
+<https://git-scm.com/docs/git-check-ref-format>; empty or dot components, `..`,
+`.lock` suffixes and invalid ref characters are rejected before ownership is
+compared. Branch keys and file paths are compared case-insensitively so
+near-duplicate spellings cannot evade exclusivity. An enabled `assigned_agent`
+is required for every status, including `complete` and `blocked`.
 
 ```sh
 python scripts/check_two_agent_tasks.py --help

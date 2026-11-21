@@ -49,7 +49,8 @@ TASK_KEYS = frozenset(
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 ID_RE = re.compile(r"^[A-Z][A-Z0-9_-]{2,63}$")
 REPO_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
-BRANCH_RE = re.compile(r"^(feature|fix|docs|chore)/[A-Za-z0-9._/-]+$")
+BRANCH_PREFIXES = ("feature", "fix", "docs", "chore")
+BRANCH_SEGMENT_RE = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9._-]*$")
 PR_RE = re.compile(
     r"^(?:#\d+|https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/pull/\d+)$"
 )
@@ -72,6 +73,31 @@ def _normal_path(value):
     if any(part in ("", ".", "..") for part in parts):
         return None
     return "/".join(parts)
+
+
+def _valid_branch(value):
+    """Validate a task branch without ever creating or resolving a Git ref.
+
+    The checks mirror the ref-format prohibitions documented at
+    https://git-scm.com/docs/git-check-ref-format: no empty, dot-only or
+    trailing-dot components, no ``..``, no ``.lock`` suffix, and no characters
+    that Git rejects in ref names. Only non-protected prefix namespaces are
+    valid task targets, so a bare ``main`` or ``master`` ref cannot be targeted.
+    """
+    if not _text(value, 200):
+        return False
+    prefix, separator, suffix = value.partition("/")
+    if not separator or prefix not in BRANCH_PREFIXES:
+        return False
+    for segment in suffix.split("/"):
+        if (not segment
+                or segment.startswith(".")
+                or segment.endswith(".")
+                or ".." in segment
+                or segment.endswith(".lock")
+                or not BRANCH_SEGMENT_RE.fullmatch(segment)):
+            return False
+    return True
 
 
 def _depends_on(task_id, target, by_id):
@@ -170,7 +196,8 @@ def evaluate(manifest):
     seen_ids = set()
     extras = []
     for task in tasks:
-        record = {"_paths": set(), "_deps": []}
+        record = {"_paths": set(), "_path_display": {}, "_branch_key": None,
+                  "_deps": []}
         extras.append(record)
         if not isinstance(task, dict) or set(task) != TASK_KEYS:
             errors.append("invalid task fields")
@@ -189,17 +216,24 @@ def evaluate(manifest):
             errors.append("invalid assigned_agent")
         elif agent not in agents:
             errors.append("assigned_agent is not registered")
-        if not _text(task["branch"], 200) or not BRANCH_RE.fullmatch(task["branch"]):
+        if not _valid_branch(task["branch"]):
             errors.append("invalid task branch")
+        else:
+            record["_branch_key"] = task["branch"].casefold()
         paths = task["affected_files"]
         if not isinstance(paths, list) or not 1 <= len(paths) <= 100:
             errors.append("affected_files must be a non-empty bounded list")
         else:
             normalised = [_normal_path(path) for path in paths]
-            if any(path is None for path in normalised) or len(set(normalised)) != len(normalised):
+            if any(path is None for path in normalised):
                 errors.append("affected_files must be unique repository-relative paths")
             else:
-                record["_paths"] = set(normalised)
+                keys = [path.casefold() for path in normalised]
+                if len(set(keys)) != len(keys):
+                    errors.append("affected_files must be unique repository-relative paths")
+                else:
+                    record["_paths"] = set(keys)
+                    record["_path_display"] = dict(zip(keys, normalised))
         deps = task["dependencies"]
         if not isinstance(deps, list) or len(deps) > 50:
             errors.append("dependencies must be a bounded list")
@@ -240,6 +274,8 @@ def evaluate(manifest):
                 errors.append("complete requires PASS commands and evidence")
             if result == "PASS" and status not in ("evidence_ready", "complete"):
                 errors.append("PASS evidence requires evidence_ready or complete status")
+            if result == "FAIL" and status in ("evidence_ready", "complete"):
+                errors.append("FAIL evidence cannot support reviewed work")
         pr = task["pr_reference"]
         if pr is not None and (not isinstance(pr, str) or not PR_RE.fullmatch(pr)):
             errors.append("invalid pr_reference")
@@ -276,15 +312,14 @@ def evaluate(manifest):
     blocked_tasks = []
     conflicts = []
     for task_id, task in by_id.items():
-        if task["status"] == "complete":
-            continue
         unresolved = _unresolved_dependencies(task_id, by_id)
-        if task["status"] == "blocked":
-            blocked_tasks.append({"task": task_id, "reason": "task_blocked",
-                                  "dependencies": unresolved})
-            continue
         if task["assigned_agent"] not in agents or not agents[task["assigned_agent"]]["enabled"]:
             blocked_tasks.append({"task": task_id, "reason": "agent_not_enabled",
+                                  "dependencies": unresolved})
+        elif task["status"] == "complete":
+            continue
+        elif task["status"] == "blocked":
+            blocked_tasks.append({"task": task_id, "reason": "task_blocked",
                                   "dependencies": unresolved})
         elif unresolved:
             blocked_tasks.append({"task": task_id, "reason": "unresolved_dependency",
@@ -307,9 +342,13 @@ def evaluate(manifest):
             both_running = (first["status"] in RUNNING_STATUSES
                             and second["status"] in RUNNING_STATUSES)
             if shared and (both_running or not related):
-                conflicts.append({"tasks": [first_id, second_id],
-                                  "reason": "concurrent_file_ownership", "files": shared})
-            elif first["branch"] == second["branch"] and (both_running or not related):
+                conflicts.append({
+                    "tasks": [first_id, second_id],
+                    "reason": "concurrent_file_ownership",
+                    "files": [first["_path_display"][path] for path in shared],
+                })
+            elif (first["_branch_key"] == second["_branch_key"]
+                  and (both_running or not related)):
                 conflicts.append({"tasks": [first_id, second_id],
                                   "reason": "concurrent_branch_ownership",
                                   "branches": [first["branch"]]})

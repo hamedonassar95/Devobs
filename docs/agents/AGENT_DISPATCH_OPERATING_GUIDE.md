@@ -91,8 +91,8 @@ The implementation relies on documented standard-library behavior:
 
 | Check | Source | Failure behavior |
 | --- | --- | --- |
-| Manifest schema, status transitions, dependencies, cycles, repository/agent authorization | `check_two_agent_tasks.evaluate` | `FAIL` (exit 2), no instructions |
-| Concurrent file or branch ownership | `check_two_agent_tasks.evaluate` | `BLOCKED` (exit 1), no instructions |
+| Manifest schema, status transitions, failed evidence, dependencies, cycles, protected-branch-safe refs and repository/agent authorization | `check_two_agent_tasks.evaluate` | `FAIL` (exit 2), no instructions |
+| Blocked tasks or concurrent file/branch ownership (case-insensitive) | `check_two_agent_tasks.evaluate` | `BLOCKED` (exit 1), no instructions |
 | Restricted actions (`merge`, `deploy`, `billing`, `production`) or altered approval fields | `check_two_agent_tasks.evaluate` | `FAIL` (exit 2), no instructions |
 | Missing required local CLI for a task in `planned`, `in_progress`, or `evidence_ready` | `shutil.which` | `BLOCKED` (exit 1), no instructions |
 | Unreadable or oversized manifest | Local file read | `FAIL` (exit 2), no instructions |

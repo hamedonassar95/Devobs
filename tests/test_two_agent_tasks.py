@@ -332,6 +332,74 @@ class TwoAgentManifestTests(unittest.TestCase):
         self.assertEqual(result["blocked_tasks"], [])
         self.assertEqual(result["summary"]["complete"], 1)
 
+    def test_protected_and_malformed_branch_targets_fail_closed(self):
+        branches = (
+            "main", "master", "release", "develop",
+            "feature/../main", "feature//x", "feature/x.lock",
+            "feature/x..y", "feature/x/",
+        )
+        for branch in branches:
+            with self.subTest(branch=branch):
+                result = evaluate(manifest([task("TASK-001", branch=branch)]))
+                self.assertEqual(result["decision"], "FAIL")
+                self.assertIn("invalid task branch", result["errors"])
+
+    def test_equivalent_branch_spellings_share_ownership(self):
+        result = evaluate(manifest([
+            task("TASK-001", status="in_progress", previous_status="planned",
+                 branch="feature/Task-001", affected_files=["codex.py"]),
+            task("TASK-002", assigned_agent="OPENCODE", status="in_progress",
+                 previous_status="planned", branch="feature/task-001",
+                 affected_files=["opencode.py"]),
+        ]))
+        self.assertEqual(result["decision"], "BLOCKED")
+        self.assertEqual(result["conflicts"], [{
+            "tasks": ["TASK-001", "TASK-002"],
+            "reason": "concurrent_branch_ownership",
+            "branches": ["feature/Task-001"],
+        }])
+
+    def test_case_only_file_paths_share_ownership(self):
+        result = evaluate(manifest([
+            task("TASK-001", affected_files=["Shared/Module.py"]),
+            task("TASK-002", assigned_agent="OPENCODE",
+                 affected_files=["shared/module.py"]),
+        ]))
+        self.assertEqual(result["decision"], "BLOCKED")
+        self.assertEqual(result["conflicts"][0]["reason"], "concurrent_file_ownership")
+        self.assertEqual(result["conflicts"][0]["files"], ["Shared/Module.py"])
+
+    def test_disabled_agent_cannot_own_complete_or_blocked_tasks(self):
+        agents = {"CODEX": {"enabled": True}, "OPENCODE": {"enabled": True},
+                  "FUTURE": {"enabled": False}}
+        finished = evaluate(manifest([
+            complete("TASK-001", assigned_agent="FUTURE"),
+        ], agents=agents))
+        self.assertEqual(finished["decision"], "BLOCKED")
+        self.assertEqual(finished["blocked_tasks"][0]["reason"], "agent_not_enabled")
+        held = evaluate(manifest([
+            blocked("TASK-001", assigned_agent="FUTURE"),
+        ], agents=agents))
+        self.assertEqual(held["decision"], "BLOCKED")
+        self.assertEqual(held["blocked_tasks"][0]["reason"], "agent_not_enabled")
+
+    def test_failed_verification_cannot_support_reviewed_work(self):
+        evidence_ready = evaluate(manifest([
+            task("TASK-001", status="evidence_ready", previous_status="in_progress",
+                 source_sha=SHA,
+                 verification={"commands": ["python -m unittest"],
+                               "result": "FAIL", "evidence": "tests failed"}),
+        ]))
+        self.assertEqual(evidence_ready["decision"], "FAIL")
+        self.assertIn("FAIL evidence cannot support reviewed work",
+                      evidence_ready["errors"])
+        in_progress = evaluate(manifest([
+            task("TASK-001", status="in_progress", previous_status="planned",
+                 verification={"commands": ["python -m unittest"],
+                               "result": "FAIL", "evidence": "still failing"}),
+        ]))
+        self.assertEqual(in_progress["decision"], "PASS")
+
 
 if __name__ == "__main__":
     unittest.main()
