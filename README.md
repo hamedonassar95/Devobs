@@ -40,6 +40,17 @@ python -m unittest discover -s tests -p "test_two_agent_tasks.py" -v
 `PASS` (0), `BLOCKED` (1) and `FAIL` (2) are advisory; P01 stays NO-GO, AI-9 stays
 BLOCKED and Codex runtime acceptance stays OPEN.
 
+A local [agent dispatch preflight guide](docs/agents/AGENT_DISPATCH_OPERATING_GUIDE.md)
+now builds on that validator. It reuses the same contract, detects whether the
+`codex` and `opencode` CLIs are present without invoking them, writes separate
+per-worker instruction files, and lists the exact human-approval actions. Its
+default and only mode is `DRY_RUN`; it starts no agent and grants no approval.
+
+```sh
+python scripts/agent_dispatch_preflight.py --manifest /path/to/tasks.json
+python -m unittest discover -s tests -p "test_agent_dispatch_preflight.py" -v
+```
+
 ## Root-cause audit and remediation roadmap (2026-11-20)
 
 An evidence-driven audit of `origin/main` `4299a9d` confirmed one P1 root cause:
