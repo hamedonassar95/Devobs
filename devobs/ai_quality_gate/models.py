@@ -16,7 +16,7 @@ GATE_SCHEMA = "ai-quality-gate/1.0"
 GATE_POLICY_VERSION = "ai-quality-gate-policy-v1"
 MODE_DRY_RUN = "DRY_RUN"
 
-PASS = "PASS"
+PASS = "PASS"  # nosec B105 - public decision enum, not a password
 BLOCKED = "BLOCKED"
 UNVERIFIED = "UNVERIFIED"
 INVALID = "INVALID"
