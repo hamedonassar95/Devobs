@@ -82,6 +82,10 @@ bounded repair, and documented all other blockers. See
 [the Graphify consolidation plan](docs/architecture/GRAPHIFY_CONSOLIDATION_PLAN.md).
 No release gate was promoted by this work.
 
+## CI Failure Intelligence (read-only)
+
+[CI Failure Intelligence](docs/agents/CI_FAILURE_INTELLIGENCE.md) provides deterministic, evidence-based diagnostics for failed GitHub Actions runs. It classifies failures (code/infrastructure/ambiguous), detects repeated signatures, correlates commit evidence, redacts secrets, labels findings `VERIFIED/INFERRED/UNVERIFIED`, and supports optional injectable AI summaries with rule-based fallback. Read-only: no code changes, reruns, merges, or deploys.
+
 ## مراجعة خطط Codex والكود بصريًا — Plannotator (اختياري)
 
 أضفنا [دليل تكامل Plannotator مع Codex](docs/integrations/PLANNOTATOR_CODEX_REVIEW.md) لإجراء مراجعات بصرية يدوية للخطط والـ diff على جهاز موثوق، دون تفعيل Hooks أو تشغيل خدمات أو إضافة تبعيات داخل المستودع. **الحالة: موثّق فقط / التشغيل غير متحقق.** يحتاج استخدام الأداة إلى تثبيت اختياري يراجعه المالك على جهازه؛ دعم ChatGPT على iPhone أو Codex السحابي غير مثبت. تستمر موافقات الإنسان وحماية `main` وفحوص CI وبوابات P01/AI-9 دون تغيير.
