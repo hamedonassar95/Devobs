@@ -63,6 +63,18 @@ python tools/agent_task_status_report.py --manifest /path/to/tasks.json --json-o
 python -m unittest discover -s tests -p "test_agent_task_status_report.py" -v
 ```
 
+A local [agent security policy engine](docs/agents/AGENT_POLICY_ENGINE.md) now
+validates proposed multi-agent actions with deny-by-default `ALLOW`, `DENY` and
+`UNVERIFIED` decisions, sanitized audit events and no executor. It reuses the
+two-agent contract, enforces DRY_RUN, declared permissions, file locks,
+protected refs and pending-human gates. `UNVERIFIED` is never authorization.
+
+```sh
+python -m devobs.security.agent_policy --help
+python -m devobs.security.agent_policy --request /path/to/policy-request.json
+python -m unittest discover -s tests -p "test_agent_policy.py" -v
+```
+
 ## Root-cause audit and remediation roadmap (2026-11-20)
 
 An evidence-driven audit of `origin/main` `4299a9d` confirmed one P1 root cause:
