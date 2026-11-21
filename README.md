@@ -76,6 +76,18 @@ python tools/agent_task_status_report.py --manifest /path/to/tasks.json --json-o
 python -m unittest discover -s tests -p "test_agent_task_status_report.py" -v
 ```
 
+A local [AI quality and agent coordination gate](docs/ai-quality-gate.md) now
+composes those deterministic controls into one `DRY_RUN`, read-only JSON
+decision with audit events and advisory remediation notes. It detects
+conflicting task ownership, dependency cycles, blocked tasks, duplicate
+verification claims and evidence-classified CI failures. It grants no merge,
+deploy, billing or production authority and makes no network call.
+
+```sh
+python -m devobs.ai_quality_gate --input examples/ai_quality_gate/snapshot.json
+python -m unittest discover -s tests/ai_quality_gate -p "test_*.py" -v
+```
+
 ## Root-cause audit and remediation roadmap (2026-11-20)
 
 An evidence-driven audit of `origin/main` `4299a9d` confirmed one P1 root cause:
