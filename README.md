@@ -111,6 +111,8 @@ No release gate was promoted by this work.
 
 [Integration Control Plane](docs/architecture/INTEGRATION_CONTROL_PLANE.md) combines the existing PR readiness gate and two-agent task validator into one deterministic, offline decision with duplicate-evidence rejection, secret redaction, branch-change detection, and separate passed/failed/skipped checks. It runs no network call or agent and never authorizes a merge; `PROCEED_TO_HUMAN_REVIEW` still requires normal human approval. See the [offline runbook](docs/runbooks/INTEGRATION_CONTROL.md) and `python -m devobs.integration_control --help`.
 
+[Integration Control Hardening](docs/architecture/INTEGRATION_CONTROL_HARDENING.md) adds opt-in approval-evidence diagnostics, explicit prohibited-action and unsafe-retry findings, and an optional local event adapter without changing the report schema or granting authority. See the [hardening runbook](docs/runbooks/INTEGRATION_CONTROL_HARDENING.md).
+
 ```sh
 python -m unittest discover -s tests/integration_control -p "test_*.py" -v
 ```
