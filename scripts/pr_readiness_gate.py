@@ -12,7 +12,7 @@ import argparse
 import json
 import os
 import re
-import subprocess
+import subprocess  # nosec B404 - fixed gh executable; read-only commands, no shell.
 import sys
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -526,7 +526,7 @@ def subprocess_runner(timeout: int = 30) -> Callable[[list[str]], CommandResult]
         if not args or args[0] != "gh":
             raise ValueError("only read-only gh commands are allowed")
         try:
-            done = subprocess.run(  # noqa: S603 - fixed argv, shell=False, read-only gh subcommands.
+            done = subprocess.run(  # noqa: S603  # nosec B603 - fixed gh argv, shell=False, read-only.
                 args, capture_output=True, text=True, timeout=timeout, env=env, check=False,
             )
         except (OSError, subprocess.TimeoutExpired) as exc:
