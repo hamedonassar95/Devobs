@@ -332,6 +332,67 @@ class TwoAgentManifestTests(unittest.TestCase):
         self.assertEqual(result["blocked_tasks"], [])
         self.assertEqual(result["summary"]["complete"], 1)
 
+    def test_invalid_branch_segments_fail_closed(self):
+        for branch in ("feature/../main", "feature//x", "feature/x/..", "feature/x."):
+            with self.subTest(branch=branch):
+                result = evaluate(manifest([task("TASK-001", branch=branch)]))
+                self.assertEqual(result["decision"], "FAIL")
+                self.assertIn("invalid task branch", result["errors"])
+
+    def test_pr_reference_is_repository_bound_and_bounded(self):
+        valid_url = f"https://github.com/{REPO}/pull/123"
+        for pr in ("#123", valid_url, None):
+            with self.subTest(pr=pr):
+                self.assertEqual(evaluate(manifest([task("TASK-001", pr_reference=pr)]))["decision"],
+                                 "PASS")
+        for pr in ("#0", "#1" + "0" * 100, "https://github.com/other/repo/pull/123",
+                   f"https://github.com/{REPO}/pull/0"):
+            with self.subTest(pr=pr):
+                result = evaluate(manifest([task("TASK-001", pr_reference=pr)]))
+                self.assertEqual(result["decision"], "FAIL")
+                self.assertIn("invalid pr_reference", result["errors"])
+
+    def test_case_only_path_collision_is_a_conflict(self):
+        result = evaluate(manifest([
+            task("TASK-001", affected_files=["Shared/Module.py"]),
+            task("TASK-002", assigned_agent="OPENCODE",
+                 affected_files=["shared/module.py"]),
+        ]))
+        self.assertEqual(result["decision"], "BLOCKED")
+        self.assertEqual(result["conflicts"][0]["reason"], "concurrent_file_ownership")
+        self.assertEqual(result["conflicts"][0]["files"], ["Shared/Module.py"])
+
+    def test_disabled_agent_cannot_own_a_complete_task(self):
+        agents = {"CODEX": {"enabled": True}, "OPENCODE": {"enabled": True},
+                  "FUTURE": {"enabled": False}}
+        result = evaluate(manifest([complete("TASK-001", assigned_agent="FUTURE")],
+                                   agents=agents))
+        self.assertEqual(result["decision"], "FAIL")
+        self.assertIn("complete task assigned to a disabled agent", result["errors"])
+
+    def test_repository_allowlist_rejects_dot_navigation(self):
+        result = evaluate(manifest([task("TASK-001")], repositories=["../.."]))
+        self.assertEqual(result["decision"], "FAIL")
+        self.assertIn("invalid repository name", result["errors"])
+
+    def test_main_fails_closed_on_duplicate_keys_and_deep_nesting(self):
+        script = str(ROOT / "scripts" / "check_two_agent_tasks.py")
+        duplicate = json.dumps(manifest([task("TASK-001")]))
+        duplicate = duplicate.replace(
+            '"schema_version": 1', '"schema_version": 1, "schema_version": 1'
+        )
+        with tempfile.TemporaryDirectory() as folder:
+            path = pathlib.Path(folder) / "manifest.json"
+            for raw, label in ((duplicate, "duplicate"), ("[" * 5000 + "]" * 5000, "deep")):
+                with self.subTest(case=label):
+                    path.write_text(raw, encoding="utf-8")
+                    run = subprocess.run([sys.executable, script, "--manifest", str(path)],
+                                         capture_output=True, text=True)
+                    self.assertEqual(run.returncode, 2, label)
+                    payload = json.loads(run.stdout)
+                    self.assertEqual(payload["decision"], "FAIL")
+                    self.assertIn("invalid manifest file", payload["errors"][0])
+
 
 if __name__ == "__main__":
     unittest.main()

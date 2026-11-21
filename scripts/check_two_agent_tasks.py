@@ -7,6 +7,11 @@ a task may be marked complete.
 
 It never starts an agent, calls a network service, changes Git state, or grants
 merge, deployment, billing or production authority. Those remain human gates.
+
+The validator checks the *shape* of completion evidence and status history. It
+cannot confirm that recorded commands actually ran or that a previous_status
+was observed in an earlier trusted manifest; those claims stay advisory and
+require separate operator evidence and human sign-off.
 """
 import argparse
 import json
@@ -48,10 +53,11 @@ TASK_KEYS = frozenset(
 )
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 ID_RE = re.compile(r"^[A-Z][A-Z0-9_-]{2,63}$")
-REPO_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
-BRANCH_RE = re.compile(r"^(feature|fix|docs|chore)/[A-Za-z0-9._/-]+$")
-PR_RE = re.compile(
-    r"^(?:#\d+|https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/pull/\d+)$"
+REPO_RE = re.compile(r"^([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+)$")
+BRANCH_RE = re.compile(r"^(feature|fix|docs|chore)/[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)*$")
+PR_NUMBER_RE = re.compile(r"^[1-9][0-9]{0,6}$")
+PR_URL_RE = re.compile(
+    r"^https://github\.com/([A-Za-z0-9_.-]+)/([A-Za-z0-9_.-]+)/pull/([1-9][0-9]{0,6})$"
 )
 
 
@@ -72,6 +78,40 @@ def _normal_path(value):
     if any(part in ("", ".", "..") for part in parts):
         return None
     return "/".join(parts)
+
+
+def _valid_repo_name(value):
+    """Accept a concrete owner/name pair, never dot navigation."""
+    if not _text(value, 200):
+        return False
+    match = REPO_RE.fullmatch(value)
+    if match is None:
+        return False
+    return all(part not in (".", "..") and not part.startswith(".")
+               for part in match.groups())
+
+
+def _valid_branch(value):
+    """Accept normalised branches; reject empty, dot and dot-dot segments."""
+    if not _text(value, 200) or not BRANCH_RE.fullmatch(value):
+        return False
+    return all(part not in (".", "..") and ".." not in part and not part.endswith(".")
+               for part in value.split("/")[1:])
+
+
+def _valid_pr_reference(value, repository):
+    """Bind URL references to the task repository and bound every PR number."""
+    if value is None:
+        return True
+    if not isinstance(value, str):
+        return False
+    if value.startswith("#"):
+        return bool(PR_NUMBER_RE.fullmatch(value[1:]))
+    match = PR_URL_RE.fullmatch(value)
+    if match is None:
+        return False
+    owner, name, number = match.groups()
+    return f"{owner}/{name}" == repository and bool(PR_NUMBER_RE.fullmatch(number))
 
 
 def _depends_on(task_id, target, by_id):
@@ -139,7 +179,7 @@ def evaluate(manifest):
         repositories = []
     else:
         for repo in repositories:
-            if not _text(repo, 200) or not REPO_RE.fullmatch(repo):
+            if not _valid_repo_name(repo):
                 errors.append("invalid repository name")
         if len(set(repositories)) != len(repositories):
             errors.append("duplicate repository name")
@@ -170,7 +210,7 @@ def evaluate(manifest):
     seen_ids = set()
     extras = []
     for task in tasks:
-        record = {"_paths": set(), "_deps": []}
+        record = {"_paths": set(), "_path_keys": set(), "_deps": []}
         extras.append(record)
         if not isinstance(task, dict) or set(task) != TASK_KEYS:
             errors.append("invalid task fields")
@@ -189,17 +229,21 @@ def evaluate(manifest):
             errors.append("invalid assigned_agent")
         elif agent not in agents:
             errors.append("assigned_agent is not registered")
-        if not _text(task["branch"], 200) or not BRANCH_RE.fullmatch(task["branch"]):
+        elif task["status"] == "complete" and not agents[agent]["enabled"]:
+            errors.append("complete task assigned to a disabled agent")
+        if not _valid_branch(task["branch"]):
             errors.append("invalid task branch")
         paths = task["affected_files"]
         if not isinstance(paths, list) or not 1 <= len(paths) <= 100:
             errors.append("affected_files must be a non-empty bounded list")
         else:
             normalised = [_normal_path(path) for path in paths]
-            if any(path is None for path in normalised) or len(set(normalised)) != len(normalised):
+            keys = [path.casefold() for path in normalised if path is not None]
+            if any(path is None for path in normalised) or len(set(keys)) != len(keys):
                 errors.append("affected_files must be unique repository-relative paths")
             else:
                 record["_paths"] = set(normalised)
+                record["_path_keys"] = set(keys)
         deps = task["dependencies"]
         if not isinstance(deps, list) or len(deps) > 50:
             errors.append("dependencies must be a bounded list")
@@ -241,7 +285,7 @@ def evaluate(manifest):
             if result == "PASS" and status not in ("evidence_ready", "complete"):
                 errors.append("PASS evidence requires evidence_ready or complete status")
         pr = task["pr_reference"]
-        if pr is not None and (not isinstance(pr, str) or not PR_RE.fullmatch(pr)):
+        if not _valid_pr_reference(pr, task["repository"]):
             errors.append("invalid pr_reference")
         actions = task["requested_actions"]
         if not isinstance(actions, list) or any(
@@ -303,7 +347,9 @@ def evaluate(manifest):
                 continue
             related = (_depends_on(first_id, second_id, by_id)
                        or _depends_on(second_id, first_id, by_id))
-            shared = sorted(first["_paths"] & second["_paths"])
+            shared_keys = first["_path_keys"] & second["_path_keys"]
+            shared = sorted(path for path in first["_paths"]
+                            if path.casefold() in shared_keys)
             both_running = (first["status"] in RUNNING_STATUSES
                             and second["status"] in RUNNING_STATUSES)
             if shared and (both_running or not related):
@@ -325,6 +371,15 @@ def evaluate(manifest):
             "conflicts": conflicts, "summary": summary}
 
 
+def _reject_duplicate_keys(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON key: {key}")
+        result[key] = value
+    return result
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
@@ -335,8 +390,9 @@ def main(argv=None):
     try:
         if args.manifest.stat().st_size > MAX_MANIFEST_BYTES:
             raise ValueError("manifest exceeds 512 KiB")
-        manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, ValueError) as exc:
+        manifest = json.loads(args.manifest.read_text(encoding="utf-8"),
+                              object_pairs_hook=_reject_duplicate_keys)
+    except (OSError, UnicodeError, ValueError, RecursionError, MemoryError) as exc:
         result = {"decision": "FAIL", "errors": [f"invalid manifest file: {type(exc).__name__}"],
                   "blocked_tasks": [], "conflicts": [], "summary": {}}
         print(json.dumps(result, sort_keys=True))
