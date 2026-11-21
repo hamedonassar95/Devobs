@@ -62,6 +62,12 @@ def complete(task_id, **overrides):
     return task(task_id, **values)
 
 
+def blocked(task_id, **overrides):
+    values = {"status": "blocked", "previous_status": "planned"}
+    values.update(overrides)
+    return task(task_id, **values)
+
+
 class TwoAgentManifestTests(unittest.TestCase):
     def test_valid_manifest_passes_with_separate_worker_roles(self):
         result = evaluate(manifest([task("TASK-001", assigned_agent="CODEX"),
@@ -263,6 +269,68 @@ class TwoAgentManifestTests(unittest.TestCase):
             with contextlib.redirect_stdout(io.StringIO()):
                 code = main(["--manifest", str(pathlib.Path(folder) / "absent.json")])
         self.assertEqual(code, 2)
+
+    def test_blocked_task_alone_is_reported_and_blocks(self):
+        result = evaluate(manifest([blocked("TASK-001")]))
+        self.assertEqual(result["decision"], "BLOCKED")
+        self.assertEqual(result["errors"], [])
+        self.assertEqual(result["blocked_tasks"], [
+            {"task": "TASK-001", "reason": "task_blocked", "dependencies": []},
+        ])
+        self.assertEqual(result["conflicts"], [])
+
+    def test_blocked_task_sharing_file_with_active_task_is_conflict(self):
+        result = evaluate(manifest([
+            blocked("TASK-001", affected_files=["shared/module.py"]),
+            task("TASK-002", assigned_agent="OPENCODE", status="in_progress",
+                 previous_status="planned", affected_files=["shared/module.py"]),
+        ]))
+        self.assertEqual(result["decision"], "BLOCKED")
+        self.assertEqual(result["blocked_tasks"][0]["reason"], "task_blocked")
+        self.assertEqual(result["conflicts"], [{
+            "tasks": ["TASK-001", "TASK-002"],
+            "reason": "concurrent_file_ownership",
+            "files": ["shared/module.py"],
+        }])
+
+    def test_blocked_task_sharing_active_branch_is_conflict(self):
+        result = evaluate(manifest([
+            blocked("TASK-001", branch="feature/shared"),
+            task("TASK-002", assigned_agent="OPENCODE", status="in_progress",
+                 previous_status="planned", branch="feature/shared"),
+        ]))
+        self.assertEqual(result["decision"], "BLOCKED")
+        self.assertEqual(result["blocked_tasks"][0]["reason"], "task_blocked")
+        self.assertEqual(result["conflicts"], [{
+            "tasks": ["TASK-001", "TASK-002"],
+            "reason": "concurrent_branch_ownership",
+            "branches": ["feature/shared"],
+        }])
+
+    def test_blocked_task_cli_exit_code_is_one(self):
+        script = str(ROOT / "scripts" / "check_two_agent_tasks.py")
+        with tempfile.TemporaryDirectory() as folder:
+            path = pathlib.Path(folder) / "manifest.json"
+            path.write_text(json.dumps(manifest([blocked("TASK-001")])), encoding="utf-8")
+            run = subprocess.run([sys.executable, script, "--manifest", str(path)],
+                                 capture_output=True, text=True)
+            self.assertEqual(run.returncode, 1, run.stderr)
+            payload = json.loads(run.stdout)
+            self.assertEqual(payload["decision"], "BLOCKED")
+            self.assertEqual(payload["blocked_tasks"][0]["reason"], "task_blocked")
+
+    def test_completed_task_does_not_hold_active_ownership(self):
+        result = evaluate(manifest([
+            complete("TASK-001", affected_files=["shared/module.py"],
+                     branch="feature/shared"),
+            task("TASK-002", assigned_agent="OPENCODE", status="in_progress",
+                 previous_status="planned", affected_files=["shared/module.py"],
+                 branch="feature/shared"),
+        ]))
+        self.assertEqual(result["decision"], "PASS")
+        self.assertEqual(result["conflicts"], [])
+        self.assertEqual(result["blocked_tasks"], [])
+        self.assertEqual(result["summary"]["complete"], 1)
 
 
 if __name__ == "__main__":

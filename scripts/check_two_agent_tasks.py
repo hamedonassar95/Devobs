@@ -29,8 +29,11 @@ ALLOWED_TRANSITIONS = {
     "blocked": ("blocked", "planned", "in_progress"),
     "complete": ("complete",),
 }
-OWNED_STATUSES = ("planned", "in_progress", "evidence_ready")
-RUNNING_STATUSES = ("in_progress", "evidence_ready")
+# Blocked work keeps its declared files and branch until a separately reviewed
+# release mechanism removes or reassigns it; it is never an implicit release.
+OWNED_STATUSES = ("planned", "in_progress", "evidence_ready", "blocked")
+# Blocked tasks also count as concurrent owners so active work conflicts with them.
+RUNNING_STATUSES = ("in_progress", "evidence_ready", "blocked")
 VERIFICATION_RESULTS = ("PENDING", "PASS", "FAIL")
 MAX_MANIFEST_BYTES = 512 * 1024
 TOP_LEVEL_KEYS = frozenset(
@@ -273,9 +276,13 @@ def evaluate(manifest):
     blocked_tasks = []
     conflicts = []
     for task_id, task in by_id.items():
-        if task["status"] in ("complete", "blocked"):
+        if task["status"] == "complete":
             continue
         unresolved = _unresolved_dependencies(task_id, by_id)
+        if task["status"] == "blocked":
+            blocked_tasks.append({"task": task_id, "reason": "task_blocked",
+                                  "dependencies": unresolved})
+            continue
         if task["assigned_agent"] not in agents or not agents[task["assigned_agent"]]["enabled"]:
             blocked_tasks.append({"task": task_id, "reason": "agent_not_enabled",
                                   "dependencies": unresolved})
