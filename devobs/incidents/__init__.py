@@ -6,6 +6,8 @@ modules. It never executes remediation.
 """
 from __future__ import annotations
 
+from .approval import ApprovalEngine, ApprovalRecord
+from .engine import IncidentIntelligenceEngine
 from .models import (
     CATEGORY_AUTHENTICATION_CONFIGURATION,
     CATEGORY_CI_CONFIGURATION_FAILURE,
@@ -27,10 +29,28 @@ from .models import (
     RepeatedSignature,
     TimelineEvent,
 )
+from .observability import (
+    EVENT_NAMES,
+    LoggingEventSink,
+    MemoryEventSink,
+    NullEventSink,
+)
+from .reports import (
+    render_engine_json,
+    render_engine_markdown,
+    validate_engine_report_json,
+)
 
 __all__ = [
     "AdvisoryRecommendation",
     "ApprovalDecision",
+    "ApprovalEngine",
+    "ApprovalRecord",
+    "EVENT_NAMES",
+    "IncidentIntelligenceEngine",
+    "LoggingEventSink",
+    "MemoryEventSink",
+    "NullEventSink",
     "CATEGORY_AUTHENTICATION_CONFIGURATION",
     "CATEGORY_CI_CONFIGURATION_FAILURE",
     "CATEGORY_CONTAINER_BUILD_FAILURE",
@@ -48,4 +68,7 @@ __all__ = [
     "RepeatedSignature",
     "SUPPORTED_CATEGORIES",
     "TimelineEvent",
+    "render_engine_json",
+    "render_engine_markdown",
+    "validate_engine_report_json",
 ]
