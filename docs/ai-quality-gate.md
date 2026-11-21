@@ -178,14 +178,21 @@ creates a bypass path.
 | Check | Command | Evidence |
 | --- | --- | --- |
 | Targeted gate tests | `python -m unittest discover -s tests/ai_quality_gate -p "test_*.py" -v` | 23 tests, `OK`, exit 0. |
-| Integration-control regression | `python -m unittest discover -s tests/integration_control -p "test_*.py" -v` | 48 tests, `OK`, exit 0 (pre-change baseline; re-run in final verification). |
+| Integration-control regression | `python -m unittest discover -s tests/integration_control -p "test_*.py" -v` | 48 tests, `OK`, exit 0 (fresh run after all commits). |
+| Related existing suites | `python -m unittest tests.test_action_pins tests.test_two_agent_tasks tests.test_ci_failure_intelligence tests.test_human_approval_gate tests.test_agent_dispatch_preflight` | 67 tests, `OK`, exit 0. |
+| Full suite vs baseline | `python -m unittest discover -s tests -p "test_*.py" -v` | 1419 tests, `FAILED (failures=47, errors=123, skipped=44)`, exit 1. Pre-change baseline: 1396 tests, `FAILED (failures=47, errors=123, skipped=44)`. The 23 added tests pass; failure/error/skip counts are unchanged. |
 | Compile | `python -m compileall -q devobs/ai_quality_gate tests/ai_quality_gate` | exit 0. |
 | Deterministic CLI JSON | `python -m devobs.ai_quality_gate --input examples/ai_quality_gate/snapshot.json --format json` | `PASS`, `DRY_RUN`, `merge_authorized=false`, exit 0. |
-| Action pin policy | `python scripts/check_action_pins.py` | 48 workflow/template files, exit 0 (pre-change; re-run after CI edit). |
+| CI-step invariant replay | In-process `validate_result` plus DRY_RUN/offline/no-authority field checks on CLI JSON | `PASS schema=True`, exit 0. |
+| Action pin policy | `python scripts/check_action_pins.py` | 48 workflow/template files, exit 0 (fresh run after CI edit). |
+| Workflow YAML parse | `python -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))"` | 11 jobs, 15 security steps, exit 0. |
+| Whitespace | `git diff --check HEAD~6..HEAD` | exit 0. |
 | Hosted required checks | `.github/workflows/ci.yml` `validate` on the exact head SHA | Pending hosted run for this branch. |
 
-Final numbers are recorded in the draft PR description after the branch is
-pushed; local evidence is reported with exact commands and exit codes.
+The full-suite failure is pre-existing and unchanged in kind and count; the
+example failure is `tests/test_stage_site.py` requiring `GITHUB_WORKSPACE`,
+which is a CI-only environment variable. No new failure is attributable to
+this change. Local evidence is reported with exact commands and exit codes.
 
 ## Limitations and open gates
 
