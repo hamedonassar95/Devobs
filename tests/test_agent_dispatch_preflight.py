@@ -265,6 +265,19 @@ class AgentDispatchPreflightTests(unittest.TestCase):
             self.assertEqual(unauthorized["rejection_reason"], "validator_contract_failure")
             self.assertFalse(instructions_dir.exists())
 
+    def test_malformed_branch_blocks_dispatch_without_instructions(self):
+        with tempfile.TemporaryDirectory() as folder:
+            instructions_dir = pathlib.Path(folder) / "instructions"
+            result = build_preflight(
+                manifest([task("TASK-001", branch="feature/../main")]),
+                instructions_dir=instructions_dir,
+                which=available_cli,
+            )
+            self.assertEqual(result["decision"], "FAIL")
+            self.assertFalse(result["dispatched"])
+            self.assertEqual(result["rejection_reason"], "validator_contract_failure")
+            self.assertFalse(instructions_dir.exists())
+
     def test_instructions_are_scoped_to_each_assigned_worker(self):
         with tempfile.TemporaryDirectory() as folder:
             instructions_dir = pathlib.Path(folder) / "instructions"

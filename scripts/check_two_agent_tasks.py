@@ -49,7 +49,8 @@ TASK_KEYS = frozenset(
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 ID_RE = re.compile(r"^[A-Z][A-Z0-9_-]{2,63}$")
 REPO_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
-BRANCH_RE = re.compile(r"^(feature|fix|docs|chore)/[A-Za-z0-9._/-]+$")
+BRANCH_PREFIXES = ("feature", "fix", "docs", "chore")
+BRANCH_SEGMENT_RE = re.compile(r"^[A-Za-z0-9._-]+$")
 PR_RE = re.compile(
     r"^(?:#\d+|https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/pull/\d+)$"
 )
@@ -57,6 +58,32 @@ PR_RE = re.compile(
 
 def _text(value, limit=200):
     return isinstance(value, str) and 0 < len(value) <= limit
+
+
+def _valid_branch(value):
+    """Return True for an allowed branch that is also a valid Git ref.
+
+    The rejected spellings follow git-check-ref-format: no control characters,
+    space, backslash, `~^:?*[`, `@{`, `..`, `//`, leading dot, trailing dot or
+    trailing `.lock`. See https://git-scm.com/docs/git-check-ref-format.
+    """
+    if not _text(value, 200):
+        return False
+    if any(ord(character) < 0x20 or ord(character) == 0x7F for character in value):
+        return False
+    if any(character in value for character in " \\~^:?*["):
+        return False
+    if "@{" in value or ".." in value or "//" in value:
+        return False
+    parts = value.split("/")
+    if len(parts) < 2 or parts[0] not in BRANCH_PREFIXES:
+        return False
+    return all(
+        BRANCH_SEGMENT_RE.fullmatch(part)
+        and not part.startswith(".")
+        and not part.endswith((".", ".lock"))
+        for part in parts
+    )
 
 
 def _normal_path(value):
@@ -189,7 +216,7 @@ def evaluate(manifest):
             errors.append("invalid assigned_agent")
         elif agent not in agents:
             errors.append("assigned_agent is not registered")
-        if not _text(task["branch"], 200) or not BRANCH_RE.fullmatch(task["branch"]):
+        if not _valid_branch(task["branch"]):
             errors.append("invalid task branch")
         paths = task["affected_files"]
         if not isinstance(paths, list) or not 1 <= len(paths) <= 100:

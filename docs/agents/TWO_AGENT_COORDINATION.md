@@ -82,7 +82,7 @@ fields fail closed. Exact top-level keys: `schema_version`, `repositories`,
 | `id` | Unique, uppercase, 3-64 chars (`A-Z0-9_-`). |
 | `repository` | Must be listed in `repositories`. Tasks may span authorized repositories. |
 | `assigned_agent` | Must exist in `agents` and be enabled. |
-| `branch` | Non-`main` `feature/`, `fix/`, `docs/` or `chore/` branch. |
+| `branch` | Non-`main` `feature/`, `fix/`, `docs/` or `chore/` branch that is also a valid Git ref. Reject `..`, `//`, backslash, control characters, spaces, `@{`, a leading or trailing dot, and a `.lock` suffix. See [git check-ref-format](https://git-scm.com/docs/git-check-ref-format). |
 | `affected_files` | Non-empty unique repository-relative paths; `..`, absolute and drive paths are rejected. `\\` is normalised to `/`. |
 | `dependencies` | Task IDs in the same repository; no self-reference, duplicates or cycles. |
 | `status` | One of `planned`, `in_progress`, `evidence_ready`, `complete`, `blocked`. |

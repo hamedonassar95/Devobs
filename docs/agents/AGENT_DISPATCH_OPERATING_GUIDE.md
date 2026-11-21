@@ -92,6 +92,7 @@ The implementation relies on documented standard-library behavior:
 | Check | Source | Failure behavior |
 | --- | --- | --- |
 | Manifest schema, status transitions, dependencies, cycles, repository/agent authorization | `check_two_agent_tasks.evaluate` | `FAIL` (exit 2), no instructions |
+| Malformed branch ref, including `feature/../main` or `feature//x` | `check_two_agent_tasks.evaluate` | `FAIL` (exit 2), no instructions |
 | Concurrent file or branch ownership | `check_two_agent_tasks.evaluate` | `BLOCKED` (exit 1), no instructions |
 | Restricted actions (`merge`, `deploy`, `billing`, `production`) or altered approval fields | `check_two_agent_tasks.evaluate` | `FAIL` (exit 2), no instructions |
 | Missing required local CLI for a task in `planned`, `in_progress`, or `evidence_ready` | `shutil.which` | `BLOCKED` (exit 1), no instructions |

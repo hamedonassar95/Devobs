@@ -155,6 +155,31 @@ class TwoAgentManifestTests(unittest.TestCase):
         self.assertEqual(result["decision"], "BLOCKED")
         self.assertEqual(result["conflicts"][0]["reason"], "concurrent_branch_ownership")
 
+    def test_malformed_git_ref_branches_fail_closed(self):
+        for branch in (
+            "main",
+            "feature/../main",
+            "feature//x",
+            "feature/trailing.",
+            "feature/.hidden",
+            "feature/x.lock",
+            "feature/x..y",
+            "feature/x@{1}",
+            "feature/x y",
+            "feature/x\\y",
+            "feature/x/",
+        ):
+            with self.subTest(branch=branch):
+                result = evaluate(manifest([task("TASK-001", branch=branch)]))
+                self.assertEqual(result["decision"], "FAIL")
+                self.assertIn("invalid task branch", result["errors"])
+
+    def test_valid_ref_branch_with_dots_underscores_and_hyphens_passes(self):
+        result = evaluate(manifest([
+            task("TASK-001", branch="feature/task.01_fix"),
+        ]))
+        self.assertEqual(result["decision"], "PASS")
+
     def test_complete_requires_source_sha_and_evidence(self):
         missing_evidence = evaluate(manifest([
             complete("TASK-001", verification={"commands": ["python -m unittest"],
