@@ -1,0 +1,154 @@
+{
+  "approval": {
+    "billing": "pending_human",
+    "deploy": "pending_human",
+    "merge": "pending_human",
+    "production": "pending_human"
+  },
+  "artifacts": [],
+  "branch_observations": [
+    {
+      "branch": "feature/integration-control-fixture",
+      "observed_at": "2026-11-21T00:00:00Z",
+      "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  ],
+  "coordination": {
+    "agents": {
+      "CODEX": {
+        "enabled": true
+      },
+      "OPENCODE": {
+        "enabled": true
+      }
+    },
+    "approval": {
+      "billing": "pending_human",
+      "deploy": "pending_human",
+      "merge": "pending_human",
+      "production": "pending_human"
+    },
+    "repositories": [
+      "hamedonassar95/Devobs"
+    ],
+    "schema_version": 1,
+    "tasks": [
+      {
+        "affected_files": [
+          "devobs/integration_control/icp01.py"
+        ],
+        "assigned_agent": "OPENCODE",
+        "branch": "feature/integration-control-fixture",
+        "dependencies": [],
+        "id": "ICP01",
+        "pr_reference": "#123",
+        "previous_status": "planned",
+        "repository": "hamedonassar95/Devobs",
+        "requested_actions": [
+          "code_change"
+        ],
+        "source_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "status": "in_progress",
+        "verification": {
+          "commands": [
+            "python -m unittest discover -s tests/integration_control -v"
+          ],
+          "evidence": "offline fixture",
+          "result": "PENDING"
+        }
+      }
+    ]
+  },
+  "expected_head_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "github": {
+    "pr_ref": "123",
+    "repository": "hamedonassar95/Devobs",
+    "responses": [
+      {
+        "argv": [
+          "gh",
+          "pr",
+          "view",
+          "123",
+          "--repo",
+          "hamedonassar95/Devobs",
+          "--json",
+          "number,state,isDraft,url,headRefOid,baseRefName,mergeable,mergeStateStatus,reviewDecision"
+        ],
+        "returncode": 0,
+        "stderr": "",
+        "stdout": "{\"baseRefName\":\"main\",\"headRefOid\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"isDraft\":false,\"mergeStateStatus\":\"CLEAN\",\"mergeable\":true,\"number\":123,\"reviewDecision\":\"APPROVED\",\"state\":\"OPEN\",\"url\":\"https://github.com/hamedonassar95/Devobs/pull/123\"}"
+      },
+      {
+        "argv": [
+          "gh",
+          "api",
+          "repos/hamedonassar95/Devobs/commits/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "--jq",
+          ".commit.committer.date",
+          "--hostname",
+          "github.com"
+        ],
+        "returncode": 0,
+        "stderr": "",
+        "stdout": "2026-11-21T00:00:00Z\n"
+      },
+      {
+        "argv": [
+          "gh",
+          "api",
+          "repos/hamedonassar95/Devobs/branches/main/protection",
+          "--hostname",
+          "github.com"
+        ],
+        "returncode": 0,
+        "stderr": "",
+        "stdout": "{\"required_pull_request_reviews\":{\"dismiss_stale_reviews\":true,\"required_approving_review_count\":1},\"required_status_checks\":{\"contexts\":[\"CI\"],\"strict\":true}}"
+      },
+      {
+        "argv": [
+          "gh",
+          "pr",
+          "checks",
+          "123",
+          "--repo",
+          "hamedonassar95/Devobs",
+          "--json",
+          "bucket,completedAt,description,event,link,name,startedAt,state,workflow"
+        ],
+        "returncode": 0,
+        "stderr": "",
+        "stdout": "[{\"bucket\":\"pass\",\"completedAt\":\"2026-11-21T00:05:00Z\",\"name\":\"CI\",\"state\":\"SUCCESS\",\"workflow\":\"CI\"}]"
+      },
+      {
+        "argv": [
+          "gh",
+          "api",
+          "repos/hamedonassar95/Devobs/pulls/123/reviews",
+          "--paginate",
+          "--slurp",
+          "--hostname",
+          "github.com"
+        ],
+        "returncode": 0,
+        "stderr": "",
+        "stdout": "[{\"commit_id\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"state\":\"APPROVED\",\"submitted_at\":\"2026-11-21T00:05:00Z\",\"user\":{\"login\":\"human-reviewer\",\"type\":\"User\"}}]"
+      },
+      {
+        "argv": [
+          "gh",
+          "api",
+          "repos/hamedonassar95/Devobs/pulls/123/requested_reviewers",
+          "--hostname",
+          "github.com"
+        ],
+        "returncode": 0,
+        "stderr": "",
+        "stdout": "{\"teams\":[],\"users\":[]}"
+      }
+    ]
+  },
+  "run_id": "integration-control-fixture",
+  "schema_version": 1,
+  "untrusted_text": ""
+}

@@ -1,0 +1,14 @@
+{
+  "jobs": [
+    {
+      "conclusion": "success",
+      "name": "validate",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "verify"
+        }
+      ]
+    }
+  ]
+}
