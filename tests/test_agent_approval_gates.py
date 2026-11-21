@@ -5,6 +5,7 @@ import io
 import json
 import os
 import pathlib
+import sys
 import tempfile
 import unittest
 
@@ -362,6 +363,23 @@ class AgentApprovalGateTests(unittest.TestCase):
 
         self.assertEqual(result["decision"], "DENY")
         self.assertIn("contract_validation_failed", result["reason_codes"])
+
+    def test_shared_validator_import_failure_is_unverified(self):
+        request = _request()
+        models = sys.modules["devobs.agent_security.policy_models"]
+        original_import_error = module.IMPORT_ERROR
+        original_models_error = models.SHARED_IMPORT_ERROR
+        module.IMPORT_ERROR = "shared validator import failed"
+        models.SHARED_IMPORT_ERROR = "shared validator import failed"
+        try:
+            result = evaluate_approval(request)
+        finally:
+            module.IMPORT_ERROR = original_import_error
+            models.SHARED_IMPORT_ERROR = original_models_error
+
+        self.assertEqual(result["decision"], "UNVERIFIED")
+        self.assertIn("validator_unavailable", result["reason_codes"])
+        self.assertFalse(result["authorization"]["approval_granted"])
 
     def test_validator_exception_is_unverified(self):
         original = module.evaluate

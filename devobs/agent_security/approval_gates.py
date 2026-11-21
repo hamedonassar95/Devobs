@@ -10,6 +10,7 @@ production or Phase 8 approval. ``ALLOW`` is advisory only.
 import argparse
 import json
 import pathlib
+import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -28,6 +29,12 @@ try:
     )
 except ImportError:  # fail closed when the shared contract is unavailable
     IMPORT_ERROR = "shared validator import failed"
+    APPROVED_TASK_ACTIONS = ()
+    ID_RE = re.compile(r"(?!)")
+    MAX_MANIFEST_BYTES = 512 * 1024
+    RESTRICTED_ACTIONS = ("merge", "deploy", "billing", "production")
+    WORKER_ROLES = ()
+    evaluate = None
 else:
     IMPORT_ERROR = None
 
@@ -272,7 +279,9 @@ def evaluate_approval(request):
     try:
         parsed = ApprovalRequest.from_json(request)
     except ModelValidationError as exc:
-        if exc.reason == "malformed_approval_scope":
+        if exc.reason == "validator_unavailable":
+            evaluation.unverified("validator_unavailable")
+        elif exc.reason == "malformed_approval_scope":
             evaluation.deny("malformed_approval_scope")
         else:
             evaluation.deny(exc.reason)
