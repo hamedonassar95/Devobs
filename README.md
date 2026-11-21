@@ -7,6 +7,15 @@
 
 [![CI](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml)
 
+## PR Readiness Engine (deterministic, fail-closed)
+
+[PR Readiness Engine](docs/architecture/PR_READINESS_ENGINE.md) evaluates pre-collected PR evidence (identity, head SHA, mergeability, required CI checks, security/dependency findings, approvals, ownership conflicts) into `READY_FOR_HUMAN_REVIEW`, `BLOCKED`, `NEEDS_EVIDENCE`, or `POLICY_VIOLATION`. It is read-only, redacts sensitive values, treats PR content as untrusted, and never auto-approves/merges. See [runbook](docs/runbooks/PR_READINESS.md).
+
+```sh
+python -m py_compile devobs/pr_readiness/*.py tests/pr_readiness/*.py
+python -m unittest discover -s tests/pr_readiness -p "test_*.py" -v
+```
+
 ## Read-only PR readiness gate
 
 [The PR Readiness Gate](docs/agents/PR_READINESS_GATE.md) is a read-only CLI that combines GitHub
