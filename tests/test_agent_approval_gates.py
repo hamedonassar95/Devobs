@@ -242,6 +242,25 @@ class AgentApprovalGateTests(unittest.TestCase):
         self.assertEqual(result["decision"], "DENY")
         self.assertIn("stale_approval", result["reason_codes"])
 
+    def test_approval_becomes_stale_after_source_sha_change(self):
+        task = _task(source_sha="a" * 40)
+        approval = _approval(task)
+        task["source_sha"] = "b" * 40
+
+        result = evaluate_approval(_request(task=task, approval=approval))
+
+        self.assertEqual(result["decision"], "DENY")
+        self.assertIn("stale_approval", result["reason_codes"])
+
+    def test_approval_agent_mismatch_is_denied(self):
+        task = _task()
+        approval = _approval(task, agent="OPENCODE")
+
+        result = evaluate_approval(_request(task=task, approval=approval))
+
+        self.assertEqual(result["decision"], "DENY")
+        self.assertIn("approval_agent_mismatch", result["reason_codes"])
+
     def test_forged_fingerprint_is_denied(self):
         request = _request()
         request["approval"]["task_fingerprint"] = "sha256:" + "0" * 64
