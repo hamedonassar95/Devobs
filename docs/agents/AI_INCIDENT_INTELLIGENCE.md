@@ -16,10 +16,18 @@ pushes to `main`, deploys, calls an external API by default, or runs
   sanitizer.
 - `analyze_workflow_run()` wraps PR #734's `analyze_run()` so GitHub Actions job
   and step findings become incident evidence.
-- It complements `scripts/devobs_intelligence/adviser.py`, which works from
-  bounded aggregate signals. This package adds incident-level hypotheses for
-  failed jobs and steps.
+- It reuses `scripts/devobs_intelligence/contracts.py` and
+  `scripts/devobs_intelligence/adviser.py` through `analyze_signals()`. The
+  strict envelope hashes raw project identifiers; this package returns only
+  derived digests, bounded classifications, and advisory recommendations.
 - It adds no CLI, no web server, no workflow, and no live provider client.
+
+The hardening work uses the repository's existing corresponding paths. The
+requested `tests/incident_intelligence/` and `docs/incident-intelligence/`
+directories do not exist, so tests remain in `tests/test_incident_intelligence.py`
+and this document remains at `docs/agents/AI_INCIDENT_INTELLIGENCE.md`. The
+implementation stays in `devobs/incident_intelligence/`; no duplicate service
+was added.
 
 ## Public API
 
@@ -50,15 +58,44 @@ from devobs.incident_intelligence import analyze_workflow_run
 report = analyze_workflow_run(run_metadata, jobs_data)
 ```
 
+For bounded aggregate signals from the existing offline adviser:
+
+```python
+from devobs.incident_intelligence import analyze_signals
+
+event = {
+    "schema_version": 1,
+    "event_id": "ci-123",
+    "provider": "github",
+    "project_ref": "internal-project-name",
+    "source_sha": "a" * 40,
+    "kind": "incident",
+    "observed_at": "2026-11-21T12:00:00Z",
+    "evidence_digests": ["b" * 64],
+}
+signals = {"failed_checks": 1, "error_rate_pct": 0.0, "capacity_pct": 20.0}
+
+report = analyze_signals(event, signals)
+print(report.category)   # ci_failure
+print(report.signal)     # ci_failure
+```
+
+The strict contract hashes `project_ref` into `project_digest`; `source_sha`
+stays inside the validated envelope and adviser digest boundary. Neither raw
+value is copied into the incident report or an injected AI provider prompt.
+Invalid envelopes or signals fail closed as `unknown` with fixed,
+non-sensitive warnings.
+
 ## Categories
 
 | Category | Typical evidence |
 | --- | --- |
+| `ci_failure` | Existing adviser classification from `failed_checks` in a valid evidence envelope |
 | `dependency` | `pip install failed`, `npm ERR!`, resolution conflicts, missing modules |
 | `configuration` | `ConfigurationError`, missing required environment variable, invalid config keys |
 | `timeout` | `ETIMEDOUT`, `TimeoutError`, `timed out`, timeout exceeded |
 | `test` | `FAILED`, `AssertionError`, `FAIL:`, failed test suite |
-| `infrastructure` | Lost runner, disk quota, OOM, 502/503, rate limits, DNS or connection resets |
+| `infrastructure` | Lost runner, disk quota, OOM, 502/503, rate limits, DNS or connection resets, high error rate, capacity pressure |
 | `unknown` | No trusted pattern matched; root cause remains unverified |
 
 Rules are ordered and deterministic. A dependency-install signal wins over a
@@ -77,6 +114,26 @@ a job/step-name-only match.
   evidence entries.
 - Unknown or malformed input fails closed with warnings instead of inventing a
   root cause.
+- Bounded adviser signals are `HIGH` for `ci_failure` and `MEDIUM` for
+  `high_error_rate` or `capacity_pressure`; these are rule labels, not calibrated
+  probabilities.
+
+## Structured JSON schema
+
+Reports use schema version `1.1`. `Report.to_dict()` is JSON-normalized and
+`Report.to_json()` emits deterministic, sorted JSON. Every summary includes:
+
+- `source`, `category`, `signal`, and a `HIGH`/`MEDIUM`/`LOW` `confidence` label.
+- `evidence` entries with stable `id`, `source`, redacted `excerpt`, and
+  `VERIFIED`/`INFERRED`/`UNVERIFIED` confidence.
+- `hypotheses` whose `evidence_ids` resolve to those evidence entries.
+- `recommendations` whose `hypothesis_id` resolves to a hypothesis and whose
+  `requires_human_approval` is always `true`.
+- An `ai_provider` status and a `guardrails` map.
+
+`validate_report_json()` checks the complete decoded structure, supported
+values, and internal references. It rejects dangling evidence or hypothesis
+references, missing fields, and any report that permits automatic fixes.
 
 ## Advisory AI boundary
 
@@ -117,5 +174,10 @@ commands or authorizations.
 ```bash
 python -m unittest tests.test_incident_intelligence tests.test_ci_failure_intelligence -v
 python -m py_compile devobs/incident_intelligence/*.py
+python -m compileall -q devobs/incident_intelligence
 git diff --check
 ```
+
+`python -m pytest` can be used instead when `pytest` is installed; it was not
+available in the verification environment, so the equivalent `unittest` runner
+above was used.

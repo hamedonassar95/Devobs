@@ -5,6 +5,7 @@ from .analyzer import (
     AIProvider,
     DisabledAIProvider,
     analyze_incident,
+    analyze_signals,
     analyze_workflow_run,
     render_summary,
 )
@@ -17,6 +18,7 @@ from .models import (
     Recommendation,
 )
 from .rules import (
+    CATEGORY_CI_FAILURE,
     CATEGORY_CONFIGURATION,
     CATEGORY_DEPENDENCY,
     CATEGORY_INFRASTRUCTURE,
@@ -30,10 +32,12 @@ from .rules import (
     EVIDENCE_UNVERIFIED,
     EVIDENCE_VERIFIED,
 )
+from .schema import SchemaError, validate_report_json
 
 __all__ = [
     "AIProvider",
     "AIProviderReport",
+    "CATEGORY_CI_FAILURE",
     "CATEGORY_CONFIGURATION",
     "CATEGORY_DEPENDENCY",
     "CATEGORY_INFRASTRUCTURE",
@@ -52,7 +56,10 @@ __all__ = [
     "IncidentInput",
     "IncidentReport",
     "Recommendation",
+    "SchemaError",
     "analyze_incident",
+    "analyze_signals",
     "analyze_workflow_run",
     "render_summary",
+    "validate_report_json",
 ]

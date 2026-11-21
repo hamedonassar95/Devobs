@@ -293,6 +293,17 @@ class IncidentSignalHardeningTests(unittest.TestCase):
         self.assertEqual(report.confidence, CONFIDENCE_LOW)
         self.assertTrue(report.warnings)
         self.assertNotIn("TOPSECRET", report.to_json())
+        self.assertFalse(report.guardrails["automatic_fixes"])
+        self.assertTrue(report.guardrails["human_approval_required"])
+
+    def test_signal_provider_receives_no_raw_envelope_identifiers(self):
+        provider = RecordingProvider("AI note: human review required")
+
+        analyze_signals(signal_event(), signals(failed_checks=1), ai_provider=provider)
+
+        self.assertEqual(len(provider.prompts), 1)
+        self.assertNotIn("raw-project-name-should-not-leak", provider.prompts[0])
+        self.assertNotIn("c" * 40, provider.prompts[0])
 
     def test_json_summary_validates_against_declared_schema(self):
         report = analyze_incident(incident())
@@ -318,6 +329,37 @@ class IncidentSignalHardeningTests(unittest.TestCase):
 
         with self.assertRaisesRegex(SchemaError, "invalid_report_fields"):
             validate_report_json(payload)
+
+    def test_all_report_surfaces_validate_against_schema(self):
+        reports = (
+            analyze_incident(incident()),
+            analyze_workflow_run(
+                workflow_run(),
+                workflow_jobs(
+                    {
+                        "name": "python-tests",
+                        "conclusion": "failure",
+                        "steps": [
+                            {
+                                "name": "Run tests",
+                                "conclusion": "failure",
+                                "log": "FAILED tests/test_x.py::test_y - AssertionError: boom",
+                            }
+                        ],
+                    }
+                ),
+            ),
+            analyze_signals(signal_event(), signals(failed_checks=1)),
+            analyze_signals(signal_event(event_id="alert-1"), signals(error_rate_pct=9.0)),
+            analyze_signals(
+                signal_event(event_id="invalid-2"),
+                {"failed_checks": 0, "error_rate_pct": -1, "capacity_pct": 0},
+            ),
+        )
+
+        for report in reports:
+            with self.subTest(source=report.source, signal=report.signal):
+                self.assertTrue(validate_report_json(json.loads(report.to_json())))
 
 
 if __name__ == "__main__":

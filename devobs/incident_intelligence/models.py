@@ -1,10 +1,11 @@
 """Evidence-first data models for the offline incident intelligence engine."""
 from __future__ import annotations
 
+import json
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-SCHEMA_VERSION = "1.0"
+SCHEMA_VERSION = "1.1"
 
 
 @dataclass(frozen=True)
@@ -67,6 +68,7 @@ class IncidentReport:
     schema_version: str
     source: str
     category: str
+    signal: str
     confidence: str
     summary: str
     evidence: tuple[Evidence, ...]
@@ -77,4 +79,8 @@ class IncidentReport:
     guardrails: dict[str, bool]
 
     def to_dict(self) -> dict[str, Any]:
-        return asdict(self)
+        """Return a JSON-normalized view (tuples become lists)."""
+        return json.loads(json.dumps(asdict(self), sort_keys=True, separators=(",", ":")))
+
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict(), sort_keys=True, separators=(",", ":"))

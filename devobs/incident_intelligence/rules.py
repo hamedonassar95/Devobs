@@ -21,11 +21,22 @@ CATEGORY_CONFIGURATION = "configuration"
 CATEGORY_TIMEOUT = "timeout"
 CATEGORY_TEST = "test"
 CATEGORY_INFRASTRUCTURE = "infrastructure"
+CATEGORY_CI_FAILURE = "ci_failure"
 CATEGORY_UNKNOWN = "unknown"
 
 CONFIDENCE_HIGH = "HIGH"
 CONFIDENCE_MEDIUM = "MEDIUM"
 CONFIDENCE_LOW = "LOW"
+
+# Mapping from the existing offline adviser's bounded signal categories. The
+# adviser deliberately emits only these known strings, so classification stays
+# deterministic and cannot be steered by freeform model output.
+ADVISER_SIGNAL_CLASSES = {
+    "ci_failure": (CATEGORY_CI_FAILURE, CONFIDENCE_HIGH),
+    "high_error_rate": (CATEGORY_INFRASTRUCTURE, CONFIDENCE_MEDIUM),
+    "capacity_pressure": (CATEGORY_INFRASTRUCTURE, CONFIDENCE_MEDIUM),
+    "unknown": (CATEGORY_UNKNOWN, CONFIDENCE_LOW),
+}
 
 
 @dataclass(frozen=True)
@@ -92,6 +103,10 @@ FAILURE_RULES: tuple[FailureRule, ...] = (
 )
 
 _HYPOTHESES = {
+    CATEGORY_CI_FAILURE: (
+        "Existing aggregate signals show failing CI checks; the leading explanation "
+        "is a CI failure at the pinned source revision."
+    ),
     CATEGORY_DEPENDENCY: (
         "A dependency resolution or installation failure is the leading explanation "
         "for this incident."
@@ -117,6 +132,11 @@ _HYPOTHESES = {
 }
 
 _RECOMMENDATIONS = {
+    CATEGORY_CI_FAILURE: (
+        "Inspect the failed checks and their bounded evidence digests at the pinned "
+        "source revision; do not rerun workflows or change checks without approval.",
+        "The existing offline adviser classified failed checks from aggregate signals only.",
+    ),
     CATEGORY_DEPENDENCY: (
         "Inspect the dependency manifest and lockfile at the pinned source SHA; compare "
         "the resolved versions with the failing install step.",
@@ -189,6 +209,11 @@ def classify_failure(logs: Iterable[str], job: str = "", step: str = "") -> Clas
         evidence_confidence=EVIDENCE_UNVERIFIED,
         rationale="No trusted pattern matched the supplied evidence.",
     )
+
+
+def classify_adviser_signal(signal: str) -> tuple[str, str]:
+    """Map a bounded adviser category to an incident category and confidence label."""
+    return ADVISER_SIGNAL_CLASSES.get(signal, (CATEGORY_UNKNOWN, CONFIDENCE_LOW))
 
 
 def hypothesis_statement(category: str) -> str:

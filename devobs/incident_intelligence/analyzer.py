@@ -11,6 +11,8 @@ import json
 from typing import Any, Mapping, Protocol
 
 from scripts.ci_failure_intelligence import analyze_run, redact_secrets
+from scripts.devobs_intelligence.adviser import propose
+from scripts.devobs_intelligence.contracts import parse_event
 
 from .models import (
     SCHEMA_VERSION,
@@ -24,7 +26,10 @@ from .models import (
 from .rules import (
     CATEGORY_UNKNOWN,
     CONFIDENCE_LOW,
+    EVIDENCE_INFERRED,
     EVIDENCE_UNVERIFIED,
+    Classification,
+    classify_adviser_signal,
     classify_failure,
     hypothesis_statement,
     recommendation_for,
@@ -195,17 +200,21 @@ def _summary(
     )
 
 
-def analyze_incident(
-    incident: Any,
+def _build_report(
+    normalized: IncidentInput,
+    classification: Classification,
     *,
-    source: str = "provided_evidence",
-    evidence_source: str = "provided_evidence",
-    ai_provider: AIProvider | None = None,
+    source: str,
+    evidence_source: str,
+    ai_provider: AIProvider | None,
+    evidence: tuple[Evidence, ...] | None = None,
 ) -> IncidentReport:
-    """Produce a deterministic, evidence-linked incident report."""
-    normalized = _normalize_input(incident)
-    classification = classify_failure(normalized.logs, normalized.job, normalized.step)
-    evidence = _build_evidence(normalized, classification, evidence_source)
+    """Assemble a report from deterministic classification and safe evidence."""
+    evidence = (
+        evidence
+        if evidence is not None
+        else _build_evidence(normalized, classification, evidence_source)
+    )
 
     hypothesis = Hypothesis(
         id="H1",
@@ -235,6 +244,7 @@ def analyze_incident(
         schema_version=SCHEMA_VERSION,
         source=source,
         category=classification.category,
+        signal=classification.signal,
         confidence=classification.confidence,
         summary=summary,
         evidence=evidence,
@@ -252,6 +262,137 @@ def analyze_incident(
             "external_api_calls_by_default": False,
             "human_approval_required": True,
         },
+    )
+
+
+def analyze_incident(
+    incident: Any,
+    *,
+    source: str = "provided_evidence",
+    evidence_source: str = "provided_evidence",
+    ai_provider: AIProvider | None = None,
+) -> IncidentReport:
+    """Produce a deterministic, evidence-linked incident report."""
+    normalized = _normalize_input(incident)
+    classification = classify_failure(normalized.logs, normalized.job, normalized.step)
+    return _build_report(
+        normalized,
+        classification,
+        source=source,
+        evidence_source=evidence_source,
+        ai_provider=ai_provider,
+    )
+
+
+def _signal_evidence(proposal: Any) -> tuple[Evidence, ...]:
+    """Derive evidence from the adviser output without copying raw identifiers."""
+    evidence: list[Evidence] = []
+    adviser_excerpt = _safe_text(
+        "offline adviser classification: "
+        f"signal={proposal.hypothesis}; status={proposal.status}; "
+        f"runbook_ids={','.join(proposal.runbook_ids) or 'none'}; "
+        f"suggested_tests={'; '.join(proposal.recommended_tests) or 'none'}; "
+        f"proposal_digest={proposal.proposal_digest}"
+    )
+    evidence.append(
+        Evidence(
+            id=f"ev-adviser-{proposal.proposal_digest}",
+            source="devobs_intelligence",
+            excerpt=adviser_excerpt,
+            confidence=EVIDENCE_INFERRED,
+        )
+    )
+    for digest in proposal.evidence_digests:
+        safe_digest = _safe_text(digest)
+        if not safe_digest:
+            continue
+        evidence.append(
+            Evidence(
+                id=f"ev-envelope-{safe_digest}",
+                source="devobs_intelligence",
+                excerpt=f"Validated evidence envelope digest: {safe_digest}",
+                confidence=EVIDENCE_INFERRED,
+            )
+        )
+    return tuple(evidence)
+
+
+def _signal_failure_report(
+    warnings: tuple[str, ...],
+    *,
+    ai_provider: AIProvider | None,
+) -> IncidentReport:
+    """Fail closed when the strict envelope or aggregate signals are invalid."""
+    classification = Classification(
+        category=CATEGORY_UNKNOWN,
+        confidence=CONFIDENCE_LOW,
+        signal="unknown",
+        excerpt="No validated aggregate signals were supplied.",
+        evidence_confidence=EVIDENCE_UNVERIFIED,
+        rationale="Evidence envelope or aggregate signals failed validation; fail closed.",
+    )
+    evidence = (
+        Evidence(
+            id="ev-invalid-aggregate-signals",
+            source="devobs_intelligence",
+            excerpt="No validated aggregate signals were supplied.",
+            confidence=EVIDENCE_UNVERIFIED,
+        ),
+    )
+    return _build_report(
+        IncidentInput(warnings=warnings),
+        classification,
+        source="devobs_intelligence",
+        evidence_source="devobs_intelligence",
+        ai_provider=ai_provider,
+        evidence=evidence,
+    )
+
+
+def analyze_signals(
+    event: Any,
+    signal_values: Any,
+    *,
+    ai_provider: AIProvider | None = None,
+) -> IncidentReport:
+    """Classify bounded aggregate signals via the existing offline adviser.
+
+    The strict evidence envelope hashes raw project identifiers. This wrapper
+    returns only deterministic classifications, derived digests, and advisory
+    recommendations; it never returns the project reference or source SHA.
+    """
+    try:
+        parsed_event = parse_event(event)
+    except Exception:  # fixed warning; validation errors are never echoed
+        return _signal_failure_report(
+            ("Evidence envelope was rejected by the strict contract.",),
+            ai_provider=ai_provider,
+        )
+
+    try:
+        proposal = propose(parsed_event, signal_values)
+    except Exception:  # fixed warning; raw signal values are never echoed
+        return _signal_failure_report(
+            ("Aggregate signals were rejected by the offline adviser.",),
+            ai_provider=ai_provider,
+        )
+
+    category, confidence = classify_adviser_signal(proposal.hypothesis)
+    classification = Classification(
+        category=category,
+        confidence=confidence,
+        signal=proposal.hypothesis,
+        excerpt=_safe_text(f"offline adviser signal: {proposal.hypothesis}"),
+        evidence_confidence=EVIDENCE_INFERRED,
+        rationale="Existing offline adviser classified bounded aggregate signals from a valid envelope.",
+    )
+    return _build_report(
+        IncidentInput(),
+        classification,
+        source="devobs_intelligence",
+        evidence_source="devobs_intelligence",
+        ai_provider=ai_provider,
+        evidence=_signal_evidence(proposal),
     )
 
 
@@ -330,6 +471,7 @@ def render_summary(report: IncidentReport) -> str:
         "",
         f"- Source: `{redact_secrets(report.source)}`",
         f"- Category: `{redact_secrets(report.category)}`",
+        f"- Signal: `{redact_secrets(report.signal)}`",
         f"- Confidence: `{redact_secrets(report.confidence)}`",
         "",
         "## Evidence",
