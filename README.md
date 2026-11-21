@@ -64,6 +64,22 @@ python scripts/agent_dispatch_preflight.py --manifest /path/to/tasks.json
 python -m unittest discover -s tests -p "test_agent_dispatch_preflight.py" -v
 ```
 
+[The offline approval gate](docs/agents/APPROVAL_GATES.md) adds a fail-closed
+`DRY_RUN` check over the same manifest contract. It matches one approval to one
+task, action, scope, expiration and current policy state; it rejects missing,
+expired, revoked, consumed/replayed, stale and cross-task approvals. Its single
+audit event is deterministic and contains no task evidence or secrets. It starts
+no agent, has no production executor, and its `ALLOW` result grants no merge,
+deploy, billing, production or Phase 8 approval.
+
+```sh
+python -m devobs.agent_security.approval_gates --request /path/to/request.json
+python -m unittest discover -s tests -p "test_agent_approval_gates.py" -v
+```
+
+Exit codes are `0` for advisory `ALLOW`, `1` for `DENY` and `2` for
+`UNVERIFIED`; missing policy state is never treated as success.
+
 A local [agent task-status report](docs/agents/AGENT_TASK_STATUS_REPORT.md) now
 reuses the same manifest contract to print required task fields, blocked tasks,
 PR references and evidence states. It is advisory local data only: it never
