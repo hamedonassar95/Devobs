@@ -12,6 +12,21 @@
 
 The main Codex thread acts as **orchestrator**, decides when to delegate, owns changes and asks the operator for decisions. The above roles are task-scoped instructions; they are not background workers, external integrations or a security boundary.
 
+## Two-worker offline coordination (CODEX + OPENCODE)
+
+The [offline two-agent task contract](agents/TWO_AGENT_COORDINATION.md) treats
+`CODEX` and `OPENCODE` as separate worker roles in a local JSON manifest. It
+defines task IDs, repository, assigned agent, branch, affected files,
+dependencies, status, source SHA, verification evidence and PR reference. The
+`scripts/check_two_agent_tasks.py` validator fails closed on duplicate tasks,
+illegal transitions, conflicting concurrent ownership, unresolved dependencies
+and missing completion evidence. It **does not start either agent**, perform
+network calls, or approve merge, deployment, billing or production work; those
+values stay `pending_human` and require the existing human gate. New agents may
+be registered only as disabled until a separate reviewed contract change. This
+documentation and its `PASS` result do not change the Codex runtime OPEN,
+AI-9 BLOCKED or P01 NO-GO gates.
+
 ## OpenAI documentation MCP operational acceptance
 
 The trusted repository-scoped Codex config declares `openaiDeveloperDocs` at `https://developers.openai.com/mcp`; [OpenAI's official Docs MCP guidance](https://developers.openai.com/resources/docs-mcp) describes this endpoint as public, documentation-only and read-only.

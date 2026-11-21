@@ -22,6 +22,24 @@ the reusable module layout and native-versus-Devobs feature split are in
 [repository intelligence](docs/architecture/repository-intelligence.md).
 This is local evidence only and does not change P01, AI-9 or Codex runtime gates.
 
+## Two-agent offline task coordination (manual; no agents started)
+
+[The offline task contract](docs/agents/TWO_AGENT_COORDINATION.md) defines `CODEX`
+and `OPENCODE` as separate worker roles driven by a local JSON manifest. The
+checker validates unique task IDs, status transitions, concurrent file/branch
+ownership, unresolved dependencies and completion evidence. It starts no agent,
+makes no network call and does not grant merge, deploy, billing or production
+approval. Arabic guidance is included in the same document.
+
+```sh
+python scripts/check_two_agent_tasks.py --help
+python scripts/check_two_agent_tasks.py --manifest /path/to/tasks.json
+python -m unittest discover -s tests -p "test_two_agent_tasks.py" -v
+```
+
+`PASS` (0), `BLOCKED` (1) and `FAIL` (2) are advisory; P01 stays NO-GO, AI-9 stays
+BLOCKED and Codex runtime acceptance stays OPEN.
+
 ## Root-cause audit and remediation roadmap (2026-11-20)
 
 An evidence-driven audit of `origin/main` `4299a9d` confirmed one P1 root cause:
