@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .advisory import build_advisory
 from .coordination import evaluate_coordination
 from .evidence_registry import build_registry
 from .models import BLOCKED, NEEDS_EVIDENCE, POLICY_VIOLATION, READY_FOR_HUMAN_REVIEW, Finding, MAX_FINDINGS, utc_now_iso
@@ -20,24 +21,36 @@ def _add(findings: list[Finding], code: str, severity: str, category: str, messa
         findings.append(Finding(code, severity, category, message, redact(evidence or {})))
 
 
-def evaluate_integration(raw: Any) -> dict[str, Any]:
+def build_failure_report(
+    code: str,
+    message: str,
+    *,
+    category: str = "validation",
+    advisory_provider: Any | None = None,
+) -> dict[str, Any]:
+    """Build a fail-closed report when evidence cannot be collected or parsed."""
+
+    report = {
+        "schema_version": 1,
+        "engine": "devobs.integration_control",
+        "generated_at": utc_now_iso(),
+        "decision": NEEDS_EVIDENCE,
+        "human_review_required": True,
+        "summary": "Integration evidence unavailable; fail closed.",
+        "findings": [Finding(code, "error", category, message).as_dict()],
+        "evidence_registry": [],
+        "recommended_next_action": "Collect verified evidence and rerun the integration check.",
+    }
+    report["advisory"] = build_advisory(report, advisory_provider)
+    return redact(report)
+
+
+def evaluate_integration(raw: Any, advisory_provider: Any | None = None) -> dict[str, Any]:
     findings: list[Finding] = []
     try:
         ev = normalize_input(raw)
     except ValidationError as exc:
-        report = {
-            "schema_version": 1,
-            "engine": "devobs.integration_control",
-            "generated_at": utc_now_iso(),
-            "decision": NEEDS_EVIDENCE,
-            "human_review_required": True,
-            "summary": "Invalid input; fail closed.",
-            "findings": [Finding("MALFORMED_INPUT", "error", "validation", str(exc)).as_dict()],
-            "evidence_registry": [],
-            "recommended_next_action": "Provide valid, bounded integration evidence.",
-            "advisory": {"authoritative": False, "summary": "Deterministic validation failed."},
-        }
-        return redact(report)
+        return build_failure_report("MALFORMED_INPUT", str(exc), advisory_provider=advisory_provider)
 
     repo, base, head = ev.get("repository"), ev.get("base_branch"), ev.get("head_branch")
     head_sha, reviewed_sha = ev.get("head_sha"), ev.get("reviewed_head_sha")
@@ -150,12 +163,7 @@ def evaluate_integration(raw: Any) -> dict[str, Any]:
         "evidence_registry": registry,
         "coordination": coordination,
         "recommended_next_action": next_action,
-        "advisory": {
-            "authoritative": False,
-            "engine": "deterministic-advisory",
-            "summary": "Advisory only; deterministic policy and human approval remain authoritative.",
-            "recommendations": [f.code for f in findings][:20],
-        },
         "untrusted_pr_text_handling": {"accepted": ev.get("untrusted_pr_text") is not None, "executed": False, "redacted": True},
     }
+    report["advisory"] = build_advisory(report, advisory_provider)
     return redact(report)

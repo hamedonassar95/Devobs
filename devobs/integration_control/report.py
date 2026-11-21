@@ -33,5 +33,18 @@ def render_markdown_report(report: Mapping[str, Any]) -> str:
     for f in findings:
         if isinstance(f, dict):
             lines.append(f"- **{f.get('severity','')} {f.get('code','')}** [{f.get('category','')}]: {f.get('message','')}")
-    lines += ["", "## Evidence registry", f"- Records: {len(r.get('evidence_registry', []) if isinstance(r.get('evidence_registry'), list) else [])}", "", "> Deterministic policy authoritative. No merge/deploy performed."]
+    advisory = r.get("advisory", {}) if isinstance(r.get("advisory"), Mapping) else {}
+    recommendations = advisory.get("recommendations", []) if isinstance(advisory.get("recommendations"), list) else []
+    lines += [
+        "",
+        "## Evidence registry",
+        f"- Records: {len(r.get('evidence_registry', []) if isinstance(r.get('evidence_registry'), list) else [])}",
+        "",
+        "## Advisory",
+        f"- **Engine:** `{advisory.get('engine', '')}`",
+        f"- **Authoritative:** `{bool(advisory.get('authoritative', False))}`",
+        f"- **Summary:** {advisory.get('summary', '')}",
+    ]
+    lines.extend(f"  - {item}" for item in recommendations)
+    lines += ["", "> Deterministic policy authoritative. No merge/deploy performed."]
     return "\n".join(lines) + "\n"
