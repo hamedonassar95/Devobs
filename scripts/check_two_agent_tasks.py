@@ -336,7 +336,14 @@ def main(argv=None):
         return 2
     result = evaluate(manifest)
     print(json.dumps(result, sort_keys=True, ensure_ascii=False))
-    return {"PASS": 0, "BLOCKED": 1, "FAIL": 2}[result["decision"]]
+    decision = result["decision"]
+    if decision == "PASS":
+        return 0
+    if decision == "BLOCKED":
+        return 1
+    if decision == "FAIL":
+        return 2
+    return 2  # unknown decisions fail closed
 
 
 if __name__ == "__main__":
