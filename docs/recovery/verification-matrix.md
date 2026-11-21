@@ -80,7 +80,7 @@ The full Python suite was **not** rerun after this change. Its base result remai
 
 ## 7. Final branch publication state
 
-- Local commits (VERIFIED): `d46d201efff4ed403228cd699ed73a5f6aa40914` (validator fix), `fd246554f1cf00fc0ba4d2885dd1f80643333f93` (recovery docs). Base `bf8bf31c289d1ee0a9c930e8dd1fc14a3e59b86f`; `git rev-list --left-right --count origin/main...HEAD` → `0	2`.
-- Push (VERIFIED): `git push -u origin feature/repository-recovery-hardening` → `* [new branch] feature/repository-recovery-hardening -> feature/repository-recovery-hardening`, `PUSH_EXIT=0`; `git ls-remote origin refs/heads/feature/repository-recovery-hardening` → `fd246554f1cf00fc0ba4d2885dd1f80643333f93`.
+- Substantive commits (VERIFIED): `d46d201efff4ed403228cd699ed73a5f6aa40914` (validator fix), `fd246554f1cf00fc0ba4d2885dd1f80643333f93` (recovery docs); later commits in this section are documentation-only. Base `bf8bf31c289d1ee0a9c930e8dd1fc14a3e59b86f`.
+- Push (VERIFIED): `git push -u origin feature/repository-recovery-hardening` → `* [new branch] feature/repository-recovery-hardening -> feature/repository-recovery-hardening`, `PUSH_EXIT=0`. Later `git push origin feature/repository-recovery-hardening` updated the branch; `git ls-remote origin refs/heads/feature/repository-recovery-hardening` matched local HEAD after each push.
 - Draft PR creation: **BLOCKED**. `gh` is not installed or on `PATH` in this session (`GH_NOT_ON_PATH`; no executable in standard install locations). The earlier session also recorded unauthenticated `gh` and an exhausted REST core rate limit. No authenticated PR API call was made. Owner can open the Draft PR at the push-provided URL: `https://github.com/hamedonassar95/Devobs/pull/new/feature/repository-recovery-hardening`.
 - Hosted CI/CodeQL on `fd24655` is UNVERIFIED; no check claim is made for the published head.
