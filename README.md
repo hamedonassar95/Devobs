@@ -107,6 +107,14 @@ No release gate was promoted by this work.
 
 [Incident Intelligence Engine](docs/architecture/INCIDENT_INTELLIGENCE_ENGINE.md) adds a thin `devobs/incidents/` layer over the merged analyzer and CI redaction primitives. It ingests sanitized CI/operational evidence, maps findings to eight bounded categories, detects repeated signatures and recurrence, reports insufficient evidence, and emits schema-validated JSON/Markdown with explicit approval states. Local structured events are available through an adapter; there is no network call, provider by default, or remediation executor. See the [offline triage runbook](docs/runbooks/INCIDENT_TRIAGE.md).
 
+## Offline Integration Control Plane (advisory only)
+
+[Integration Control Plane](docs/architecture/INTEGRATION_CONTROL_PLANE.md) combines the existing PR readiness gate and two-agent task validator into one deterministic, offline decision with duplicate-evidence rejection, secret redaction, branch-change detection, and separate passed/failed/skipped checks. It runs no network call or agent and never authorizes a merge; `PROCEED_TO_HUMAN_REVIEW` still requires normal human approval. See the [offline runbook](docs/runbooks/INTEGRATION_CONTROL.md) and `python -m devobs.integration_control --help`.
+
+```sh
+python -m unittest discover -s tests/integration_control -p "test_*.py" -v
+```
+
 ## مراجعة خطط Codex والكود بصريًا — Plannotator (اختياري)
 
 أضفنا [دليل تكامل Plannotator مع Codex](docs/integrations/PLANNOTATOR_CODEX_REVIEW.md) لإجراء مراجعات بصرية يدوية للخطط والـ diff على جهاز موثوق، دون تفعيل Hooks أو تشغيل خدمات أو إضافة تبعيات داخل المستودع. **الحالة: موثّق فقط / التشغيل غير متحقق.** يحتاج استخدام الأداة إلى تثبيت اختياري يراجعه المالك على جهازه؛ دعم ChatGPT على iPhone أو Codex السحابي غير مثبت. تستمر موافقات الإنسان وحماية `main` وفحوص CI وبوابات P01/AI-9 دون تغيير.
