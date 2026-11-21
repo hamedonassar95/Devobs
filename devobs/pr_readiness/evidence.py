@@ -195,6 +195,12 @@ def normalize_evidence(raw: Mapping[str, Any] | Any) -> dict[str, Any]:
             raise EvidenceValidationError(f"required_checks[{i}] is invalid")
         req_norm.append(name)
 
+    wf = as_mapping(evidence.get("workflow_permissions", {}), "workflow_permissions") if evidence.get("workflow_permissions") is not None else {}
+    wf_norm = {}
+    if isinstance(wf, Mapping):
+        for k in ("unsafe", "write_all", "reviewed", "contents", "actions", "pull_requests", "id_token"):
+            if k in wf:
+                wf_norm[k] = bool(wf.get(k)) if isinstance(wf.get(k), bool) else redact(wf.get(k))
     return {
         "repository": norm_repo(pr.get("repository") or evidence.get("repository")),
         "pr_number": pr.get("pr_number") if isinstance(pr.get("pr_number"), int) and not isinstance(pr.get("pr_number"), bool) else None,
@@ -226,4 +232,5 @@ def normalize_evidence(raw: Mapping[str, Any] | Any) -> dict[str, Any]:
         },
         "timestamps": {str(k): norm_text(v, f"timestamps.{k}", 80) for k, v in timestamps.items()},
         "policy": redact(as_mapping(evidence.get("policy", {}), "policy")) if evidence.get("policy") is not None else {},
+        "workflow_permissions": wf_norm,
     }

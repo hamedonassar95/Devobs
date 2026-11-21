@@ -14,7 +14,7 @@ A deterministic, fail-closed, read-only engine that evaluates pull request evide
 ## Decisions
 - `READY_FOR_HUMAN_REVIEW` - all required evidence verified; human approval still required before merge.
 - `BLOCKED` - required checks failed/pending or mergeability blocked.
-- `NEEDS_EVIDENCE` - required evidence missing, unavailable, unknown, stale-required-check, or malformed.
+- `INSUFFICIENT_EVIDENCE` - required evidence missing, unavailable, unknown, stale-required-check, or malformed.
 - `POLICY_VIOLATION` - security/dependency/ownership/branch/stale-head violations.
 
 ## Evidence inputs
@@ -31,3 +31,10 @@ The engine evaluates pre-collected evidence (no network calls in unit tests). Ex
 - Readiness is not merge authorization.
 - Live GitHub collection requires authenticated read-only tooling and is outside unit tests.
 - Ownership conflict detection is strongest when file owners or task manifest evidence is supplied.
+
+
+## Risk scoring
+Deterministic, transparent `LOW|MEDIUM|HIGH|CRITICAL` classification based on sensitive file paths, workflow permissions, infrastructure/auth/dependency changes, security scan failures, missing approvals, ownership conflicts, and CI evidence. No AI-generated confidence score substitutes for required evidence.
+
+## Optional AI advisory
+Disabled by default, offline/mock only, no paid API calls, no external transmission by default. Advisory cannot override deterministic decisions and never approves/merges.

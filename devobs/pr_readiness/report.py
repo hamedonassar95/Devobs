@@ -16,10 +16,12 @@ def render_markdown_report(report: Mapping[str, Any]) -> str:
     r = redact(report)
     pr = r.get("pr", {}) if isinstance(r.get("pr"), dict) else {}
     decision = r.get("readiness_decision", {}) if isinstance(r.get("readiness_decision"), dict) else {}
+    risk = r.get("risk", {}) if isinstance(r.get("risk"), dict) else {}
     lines = [
         "# PR Readiness Report",
         "",
-        f"- **Decision:** `{decision.get('decision', 'NEEDS_EVIDENCE')}`",
+        f"- **Decision:** `{decision.get('decision', 'INSUFFICIENT_EVIDENCE')}`",
+        f"- **Risk:** `{risk.get('level', 'UNKNOWN')}` (deterministic, score={risk.get('score', '')})",
         f"- **Repository:** `{pr.get('repository', '')}`",
         f"- **PR:** `{pr.get('pr_number', '')}`",
         f"- **Base/Head:** `{pr.get('base_branch', '')}` <- `{pr.get('head_branch', '')}`",

@@ -9,11 +9,12 @@
 
 ## PR Readiness Engine (deterministic, fail-closed)
 
-[PR Readiness Engine](docs/architecture/PR_READINESS_ENGINE.md) evaluates pre-collected PR evidence (identity, head SHA, mergeability, required CI checks, security/dependency findings, approvals, ownership conflicts) into `READY_FOR_HUMAN_REVIEW`, `BLOCKED`, `NEEDS_EVIDENCE`, or `POLICY_VIOLATION`. It is read-only, redacts sensitive values, treats PR content as untrusted, and never auto-approves/merges. See [runbook](docs/runbooks/PR_READINESS.md).
+[PR Readiness Engine](docs/architecture/PR_READINESS_ENGINE.md) evaluates pre-collected PR evidence (identity, base/head SHA, mergeability, required CI checks, security/dependency findings, approvals, ownership/conflicts) into `READY_FOR_HUMAN_REVIEW`, `BLOCKED`, `INSUFFICIENT_EVIDENCE`, or `POLICY_VIOLATION`. It is read-only, deterministic, fail-closed, redacts sensitive values, treats PR content as untrusted, and never auto-approves/merges. Risk is transparent deterministic `LOW|MEDIUM|HIGH|CRITICAL`. See [policy](docs/security/PR_READINESS_POLICY.md) and [operations runbook](docs/runbooks/PR_READINESS_OPERATIONS.md).
 
 ```sh
-python -m py_compile devobs/pr_readiness/*.py tests/pr_readiness/*.py
-python -m unittest discover -s tests/pr_readiness -p "test_*.py" -v
+python -m compileall -q devobs
+python -m pytest -q tests/pr_readiness  # or: python -m unittest discover -s tests/pr_readiness -p "test_*.py" -v
+python -m ruff check devobs/pr_readiness tests/pr_readiness
 ```
 
 ## Read-only PR readiness gate

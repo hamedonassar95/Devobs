@@ -9,6 +9,7 @@ from .evidence import EvidenceValidationError, normalize_evidence, redact
 from .models import (
     BLOCKED,
     Finding,
+    INSUFFICIENT_EVIDENCE,
     NEEDS_EVIDENCE,
     POLICY_VIOLATION,
     PRIdentity,
@@ -42,7 +43,7 @@ def evaluate_pr_readiness(raw_evidence: Mapping[str, Any] | Any) -> dict[str, An
     try:
         ev = normalize_evidence(raw_evidence)
     except EvidenceValidationError as exc:
-        decision = ReadinessDecision(NEEDS_EVIDENCE, ("malformed_evidence",), True)
+        decision = ReadinessDecision(INSUFFICIENT_EVIDENCE, ("malformed_evidence",), True)
         report = PRReadinessReport(
             pr=PRIdentity("", None, "", "", "", ""),
             evidence_timestamps={},
@@ -129,6 +130,16 @@ def evaluate_pr_readiness(raw_evidence: Mapping[str, Any] | Any) -> dict[str, An
     if ev.get("merge_state") is None and mergeable is None:
         pass
 
+    # workflow permission / sensitive changes from evidence
+    workflow_perms = ev.get("workflow_permissions") if isinstance(ev.get("workflow_permissions"), dict) else {}
+    if workflow_perms.get("unsafe") is True or workflow_perms.get("write_all") is True:
+        _f(findings, "UNSAFE_WORKFLOW_PERMISSION", "error", "security", "Unsafe workflow permission change detected.", redact(workflow_perms))
+    for cf in ev.get("changed_files", []):
+        cfs = str(cf).replace("\\", "/").lower()
+        if cfs.startswith(".github/workflows/") and ev.get("workflow_permissions", {}).get("reviewed") is not True and not workflow_perms:
+            # no explicit permission review evidence: fail-closed signal for sensitive change
+            pass
+
     # approvals
     reviews = ev["reviews"]
     approved = reviews.get("approved") is True
@@ -190,7 +201,7 @@ def evaluate_pr_readiness(raw_evidence: Mapping[str, Any] | Any) -> dict[str, An
     # Decision
     codes = {f.code for f in findings}
     policy_violation_codes = {
-        "STALE_COMMIT_SHA", "SECURITY_POLICY_VIOLATION", "DEPENDENCY_VIOLATION",
+        "STALE_COMMIT_SHA", "SECURITY_POLICY_VIOLATION", "DEPENDENCY_VIOLATION", "UNSAFE_WORKFLOW_PERMISSION",
         "CONCURRENT_FILE_OWNERSHIP", "CONFLICTING_BRANCH_OWNERSHIP", "UNRESOLVED_DEPENDENCY",
         "BLOCKED_TASK_OWNERSHIP", "STALE_VALIDATION_EVIDENCE", "CONCURRENT_MODIFICATION_HAZARD",
         "INVALID_BRANCH", "MALFORMED_EVIDENCE",
@@ -215,13 +226,14 @@ def evaluate_pr_readiness(raw_evidence: Mapping[str, Any] | Any) -> dict[str, An
         decision = BLOCKED
         next_action = "Fix failing/pending required checks and mergeability blockers, then refresh evidence."
     elif codes & needs_evidence_codes or reasons:
-        decision = NEEDS_EVIDENCE
+        decision = INSUFFICIENT_EVIDENCE
         next_action = "Collect missing or unverified required evidence before requesting human review."
     else:
         decision = READY_FOR_HUMAN_REVIEW
         reasons = ("all_required_evidence_verified",)
         next_action = "Ready for human review only. Do not merge without required human approval."
 
+    risk = _risk_classification(ev, findings)
     report = PRReadinessReport(
         pr=PRIdentity(repo, pr_number, base, head, head_sha, reviewed_sha),
         evidence_timestamps=ev.get("timestamps", {}),
@@ -240,7 +252,7 @@ def evaluate_pr_readiness(raw_evidence: Mapping[str, Any] | Any) -> dict[str, An
             "violations": sorted(set(sec_violations)),
         },
         policy={
-            "status": "pass" if decision in {READY_FOR_HUMAN_REVIEW, BLOCKED, NEEDS_EVIDENCE} and not (codes & policy_violation_codes) else "violation",
+            "status": "pass" if decision in {READY_FOR_HUMAN_REVIEW, BLOCKED, INSUFFICIENT_EVIDENCE} and not (codes & policy_violation_codes) else "violation",
             "required_approvals": required_approvals,
             "approvals_count": approvals_count,
             "dependency_results": ev["dependency_results"],
@@ -250,10 +262,59 @@ def evaluate_pr_readiness(raw_evidence: Mapping[str, Any] | Any) -> dict[str, An
         recommended_next_action=next_action,
         findings=bounded_findings(findings),
         advisory=_advisory_summary(decision, findings),
+        risk=risk,
     )
-    return redact(report.as_dict())
+    out = redact(report.as_dict())
+    out["risk"] = risk
+    out["evaluation_timestamp"] = out.get("generated_at")
+    out["decision"] = out.get("readiness_decision", {}).get("decision")
+    return out
 
 
+def _risk_classification(ev: dict[str, Any], findings: list[Finding]) -> dict[str, Any]:
+    """Deterministic transparent risk classification. No AI confidence score."""
+    score = 0
+    reasons = []
+    changed = [str(p).replace("\\", "/").lower() for p in ev.get("changed_files", [])]
+    codes = {f.code for f in findings}
+    categories = {f.category for f in findings}
+
+    sensitive_prefixes = (".github/workflows/", "terraform/", "infra/", "k8s/", "helm/", "auth", "security", "secrets", ".env", "docker", "deploy")
+    infra_prefixes = ("terraform/", "infra/", "k8s/", "helm/", "docker-compose", ".github/workflows/")
+    auth_prefixes = ("auth", "oidc", "jwt", "rbac", "permission", "security/")
+    for p in changed:
+        if any(x in p for x in sensitive_prefixes):
+            score += 2; reasons.append(f"sensitive_file:{p}")
+        if any(p.startswith(x) or f"/{x}" in p for x in infra_prefixes):
+            score += 3; reasons.append(f"infrastructure:{p}")
+        if any(x in p for x in auth_prefixes):
+            score += 3; reasons.append(f"auth_or_authorization:{p}")
+        if p.endswith("requirements.txt") or p.endswith("package.json") or p.endswith("pyproject.toml") or "lock" in p:
+            score += 1; reasons.append(f"dependency_change:{p}")
+
+    if "WORKFLOW_PERMISSION_CHANGE" in codes or "UNSAFE_WORKFLOW_PERMISSION" in codes:
+        score += 4; reasons.append("workflow_permission_change")
+    if any(c.startswith("SECURITY_") for c in codes):
+        score += 4; reasons.append("security_scan_failure_or_unknown")
+    if "MISSING_REQUIRED_APPROVAL" in codes:
+        score += 2; reasons.append("missing_approval")
+    if "CONCURRENT_FILE_OWNERSHIP" in codes or "CONFLICTING_BRANCH_OWNERSHIP" in codes:
+        score += 3; reasons.append("ownership_conflict")
+    if "FAILED_REQUIRED_CHECK" in codes or "PENDING_REQUIRED_CHECK" in codes:
+        score += 2; reasons.append("ci_not_green")
+    if "MISSING_REQUIRED_CHECK" in codes or "CI_EVIDENCE_UNAVAILABLE" in codes:
+        score += 2; reasons.append("missing_test_or_ci_evidence")
+
+    has_infra = any(r.startswith("infrastructure:") or r.startswith("auth_or_authorization:") for r in reasons)
+    if score >= 10 or "SECURITY_POLICY_VIOLATION" in codes or "UNSAFE_WORKFLOW_PERMISSION" in codes or has_infra:
+        level = "CRITICAL"
+    elif score >= 6:
+        level = "HIGH"
+    elif score >= 3:
+        level = "MEDIUM"
+    else:
+        level = "LOW"
+    return {"level": level, "score": score, "reasons": sorted(set(reasons))[:50], "method": "deterministic-rules-v1"}
 def _advisory_summary(decision: str, findings: list[Finding]) -> dict[str, Any]:
     by_cat: dict[str, int] = {}
     for f in findings:

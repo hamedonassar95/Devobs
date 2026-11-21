@@ -70,7 +70,7 @@ class PROwnershipBoundaryTests(unittest.TestCase):
         ev = base_evidence()
         ev["dependency_results"] = []
         report = evaluate_pr_readiness(ev)
-        self.assertEqual(report["readiness_decision"]["decision"], "NEEDS_EVIDENCE")
+        self.assertEqual(report["readiness_decision"]["decision"], "INSUFFICIENT_EVIDENCE")
 
     def test_stale_validation_evidence(self):
         ev = base_evidence()

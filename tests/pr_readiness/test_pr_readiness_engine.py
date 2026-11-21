@@ -8,6 +8,7 @@ import unittest
 from devobs.pr_readiness.policy import evaluate_pr_readiness
 from devobs.pr_readiness.report import render_json_report, render_markdown_report
 from devobs.pr_readiness.advisory import build_advisory
+from devobs.pr_readiness.models import INSUFFICIENT_EVIDENCE
 
 
 def base_evidence():
@@ -64,7 +65,7 @@ class PRReadinessPolicyTests(unittest.TestCase):
         ev = base_evidence()
         ev["checks"] = [ev["checks"][0]]
         report = evaluate_pr_readiness(ev)
-        self.assertEqual(report["readiness_decision"]["decision"], "NEEDS_EVIDENCE")
+        self.assertEqual(report["readiness_decision"]["decision"], "INSUFFICIENT_EVIDENCE")
         self.assertTrue(any(f["code"] == "MISSING_REQUIRED_CHECK" for f in report["findings"]))
 
     def test_stale_commit_sha(self):
@@ -85,7 +86,7 @@ class PRReadinessPolicyTests(unittest.TestCase):
         ev = base_evidence()
         ev["reviews"] = {"approved": False, "approvals_count": 0, "required_approvals": 1, "human_approval": False}
         report = evaluate_pr_readiness(ev)
-        self.assertEqual(report["readiness_decision"]["decision"], "NEEDS_EVIDENCE")
+        self.assertEqual(report["readiness_decision"]["decision"], "INSUFFICIENT_EVIDENCE")
 
     def test_invalid_branch(self):
         ev = base_evidence()
@@ -96,7 +97,7 @@ class PRReadinessPolicyTests(unittest.TestCase):
 
     def test_malformed_api_response(self):
         report = evaluate_pr_readiness({"pr": "not-an-object"})
-        self.assertEqual(report["readiness_decision"]["decision"], "NEEDS_EVIDENCE")
+        self.assertEqual(report["readiness_decision"]["decision"], "INSUFFICIENT_EVIDENCE")
         self.assertTrue(any(f["code"] == "MALFORMED_EVIDENCE" for f in report["findings"]))
 
     def test_unavailable_github_api(self):

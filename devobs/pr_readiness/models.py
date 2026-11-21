@@ -8,9 +8,16 @@ from typing import Any
 
 READY_FOR_HUMAN_REVIEW = "READY_FOR_HUMAN_REVIEW"
 BLOCKED = "BLOCKED"
-NEEDS_EVIDENCE = "NEEDS_EVIDENCE"
+INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"
+NEEDS_EVIDENCE = INSUFFICIENT_EVIDENCE  # backward-compatible alias
 POLICY_VIOLATION = "POLICY_VIOLATION"
-DECISIONS = (READY_FOR_HUMAN_REVIEW, BLOCKED, NEEDS_EVIDENCE, POLICY_VIOLATION)
+DECISIONS = (READY_FOR_HUMAN_REVIEW, BLOCKED, INSUFFICIENT_EVIDENCE, POLICY_VIOLATION)
+
+RISK_LOW = "LOW"
+RISK_MEDIUM = "MEDIUM"
+RISK_HIGH = "HIGH"
+RISK_CRITICAL = "CRITICAL"
+RISK_LEVELS = (RISK_LOW, RISK_MEDIUM, RISK_HIGH, RISK_CRITICAL)
 
 MAX_CHECKS = 200
 MAX_CHANGED_FILES = 5000
@@ -99,12 +106,14 @@ class PRReadinessReport:
     recommended_next_action: str
     findings: tuple[Finding, ...]
     advisory: dict[str, Any] = field(default_factory=dict)
+    risk: dict[str, Any] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, Any]:
         return {
             "schema_version": 1,
             "engine": "devobs.pr_readiness",
             "generated_at": utc_now_iso(),
+            "evaluation_timestamp": utc_now_iso(),
             "pr": self.pr.as_dict(),
             "evidence_timestamps": dict(sorted(self.evidence_timestamps.items())),
             "ci": self.ci,
@@ -112,6 +121,8 @@ class PRReadinessReport:
             "policy": self.policy,
             "ownership": self.ownership,
             "readiness_decision": self.decision.as_dict(),
+            "decision": self.decision.decision,
+            "risk": self.risk,
             "human_review_required": self.decision.human_review_required,
             "recommended_next_action": self.recommended_next_action,
             "findings": [f.as_dict() for f in self.findings],
