@@ -6,9 +6,12 @@ service, reads credentials or grants a human approval.
 """
 import argparse
 import json
+import os
 import pathlib
 import shutil
+import stat
 import sys
+import tempfile
 
 from check_two_agent_tasks import (
     APPROVAL_VALUE,
@@ -24,6 +27,15 @@ EXIT_OK = 0
 EXIT_BLOCKED = 1
 EXIT_FAILURE = 2
 INSTRUCTION_FILENAMES = {role: f"{role}_instructions.md" for role in WORKER_ROLES}
+
+
+class OutputPreparationError(Exception):
+    """A fail-closed output-destination or write failure."""
+
+    def __init__(self, reason, detail):
+        super().__init__(detail)
+        self.reason = reason
+        self.detail = detail
 
 
 def exit_code(decision):
@@ -166,6 +178,164 @@ def _new_result():
     }
 
 
+def _is_reparse_point(path):
+    """Detect POSIX symlinks and Windows junctions without following them."""
+    try:
+        if path.is_symlink():
+            return True
+    except OSError:
+        pass
+    try:
+        attributes = path.lstat().st_file_attributes
+    except (AttributeError, OSError):
+        return False
+    reparse_point = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)
+    return bool(attributes & reparse_point)
+
+
+def _has_reparse_component(path):
+    """Reject symlinks anywhere in the supplied output path."""
+    path = pathlib.Path(path)
+    current = pathlib.Path(path.anchor) if path.anchor else pathlib.Path(".")
+    parts = path.parts[1:] if path.anchor else path.parts
+    for part in parts:
+        current = current / part
+        if _is_reparse_point(current):
+            return True
+    return False
+
+
+def _prepare_output_directory(folder):
+    """Create the output directory and return only the directories created here."""
+    if _has_reparse_component(folder):
+        raise OutputPreparationError(
+            "symlink_output_destination", "output path contains a symlink"
+        )
+    if folder.exists():
+        if not folder.is_dir():
+            raise OutputPreparationError(
+                "output_path_not_directory", "output path is not a directory"
+            )
+        return []
+
+    missing = []
+    current = folder
+    while not current.exists():
+        missing.append(current)
+        if current.parent == current:
+            break
+        current = current.parent
+    if not current.is_dir():
+        raise OutputPreparationError(
+            "output_path_not_directory", "output parent is not a directory"
+        )
+
+    created = []
+    for directory in reversed(missing):
+        try:
+            directory.mkdir()
+        except FileExistsError:
+            if _is_reparse_point(directory):
+                reason = "symlink_output_destination"
+            elif not directory.is_dir():
+                reason = "output_path_not_directory"
+            else:
+                continue
+            raise OutputPreparationError(
+                reason, "output path changed during preparation"
+            )
+        created.append(directory)
+    return created
+
+
+def _validate_output_target(path):
+    if _has_reparse_component(path):
+        raise OutputPreparationError(
+            "symlink_output_destination", "instruction destination contains a symlink"
+        )
+    if path.exists():
+        raise OutputPreparationError(
+            "output_file_exists", "instruction destination already exists"
+        )
+
+
+def _write_temporary_file(folder, filename, text):
+    descriptor, name = tempfile.mkstemp(
+        prefix=f".{filename}.", suffix=".tmp", dir=folder
+    )
+    temp_path = pathlib.Path(name)
+    try:
+        with os.fdopen(descriptor, "wb") as handle:
+            handle.write(text.encode("utf-8"))
+            handle.flush()
+            os.fsync(handle.fileno())
+    except Exception:
+        temp_path.unlink(missing_ok=True)
+        raise
+    return temp_path
+
+
+def _cleanup_output(created_dirs, temp_paths, final_paths):
+    errors = []
+    for path in list(temp_paths) + list(final_paths):
+        try:
+            path.unlink(missing_ok=True)
+        except OSError as exc:
+            errors.append("unlink:" + type(exc).__name__)
+    for directory in reversed(created_dirs):
+        try:
+            directory.rmdir()
+        except FileNotFoundError:
+            pass
+        except OSError as exc:
+            errors.append("rmdir:" + type(exc).__name__)
+    if errors:
+        raise OutputPreparationError(
+            "output_cleanup_failed", "output cleanup failed: " + ", ".join(errors)
+        )
+
+
+def _write_instruction_files(folder, texts):
+    """Stage both instruction files, then link them into place without overwrite."""
+    created_dirs = []
+    temp_paths = []
+    final_paths = []
+    try:
+        created_dirs = _prepare_output_directory(folder)
+        targets = []
+        for role, text in texts:
+            target = pathlib.Path(folder) / INSTRUCTION_FILENAMES[role]
+            _validate_output_target(target)
+            targets.append((target, text))
+
+        staged = []
+        for target, text in targets:
+            temp_path = _write_temporary_file(folder, target.name, text)
+            temp_paths.append(temp_path)
+            staged.append((temp_path, target))
+
+        for temp_path, target in staged:
+            try:
+                os.link(temp_path, target)
+            except FileExistsError as exc:
+                raise OutputPreparationError(
+                    "output_file_exists", "instruction destination already exists"
+                ) from exc
+            final_paths.append(target)
+            os.unlink(temp_path)
+            temp_paths.remove(temp_path)
+        return [target for target, _ in targets]
+    except OutputPreparationError:
+        _cleanup_output(created_dirs, temp_paths, final_paths)
+        raise
+    except Exception as exc:
+        _cleanup_output(created_dirs, temp_paths, final_paths)
+        raise OutputPreparationError(
+            "output_write_failed",
+            "instruction preparation failed: " + type(exc).__name__,
+        ) from exc
+
+
 def build_preflight(manifest, instructions_dir, which=shutil.which, mode=MODE_DRY_RUN):
     """Return a fail-closed advisory preflight result and prepared instructions."""
     result = _new_result()
@@ -210,15 +380,18 @@ def build_preflight(manifest, instructions_dir, which=shutil.which, mode=MODE_DR
     }
 
     folder = pathlib.Path(instructions_dir)
-    folder.mkdir(parents=True, exist_ok=True)
-    for role in WORKER_ROLES:
-        path = folder / INSTRUCTION_FILENAMES[role]
-        path.write_text(
-            _instructions_text(role, manifest, clis[role]["status"]),
-            encoding="utf-8",
-        )
-        result["instructions"].append(str(path))
+    texts = [
+        (role, _instructions_text(role, manifest, clis[role]["status"]))
+        for role in WORKER_ROLES
+    ]
+    try:
+        paths = _write_instruction_files(folder, texts)
+    except OutputPreparationError as exc:
+        result["rejection_reason"] = exc.reason
+        result["errors"].append(exc.detail)
+        return result
 
+    result["instructions"] = [str(path) for path in paths]
     result["human_approval_actions"] = human_approval_actions(result["instructions"])
     result["decision"] = "PASS"
     result["checks"] = ["contract_validation", "cli_availability", "instruction_preparation"]
