@@ -49,7 +49,7 @@ EXPLANATIONS = {
     "DUPLICATE_EVIDENCE": (
         "Duplicate evidence was submitted; use a unique ID and digest for each artifact."
     ),
-    "SECRET_MATERIAL_DETECTED": (
+    "SECRET_MATERIAL_DETECTED": (  # nosec B105 - finding code, not a credential
         "Secret-like material was detected and redacted; remove it from the source input."
     ),
     "HUMAN_APPROVAL_MISSING": (
