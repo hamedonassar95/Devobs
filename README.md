@@ -11,9 +11,14 @@
 
 [Integration Control Plane](docs/architecture/INTEGRATION_CONTROL_PLANE.md) coordinates multi-agent evidence, ownership/task manifests, CI/security/dependency/approval evidence, and PR readiness into `READY_FOR_HUMAN_REVIEW`, `NEEDS_EVIDENCE`, `BLOCKED`, or `POLICY_VIOLATION`. It is read-only, fail-closed, redacts secrets, treats PR text as untrusted, and never merges/deploys. See [runbook](docs/runbooks/INTEGRATION_CONTROL.md).
 
+### Integration Evidence & Readiness Engine
+[Integration Evidence Engine](docs/architecture/INTEGRATION_EVIDENCE_ENGINE.md) extends the control plane with evidence verification (`VERIFIED|UNVERIFIED|STALE|CONFLICTED|BLOCKED|UNKNOWN`) and readiness reporting (`READY_FOR_HUMAN_REVIEW|BLOCKED|UNKNOWN`). See [runbook](docs/runbooks/INTEGRATION_READINESS.md).
+
 ```sh
-python -m py_compile devobs/integration_control/*.py tests/integration_control/*.py
-python -m unittest discover -s tests/integration_control -p "test_*.py" -v
+python scripts/check_integration_readiness.py --input evidence.json --format json
+python scripts/check_integration_readiness.py --input evidence.json --format markdown
+python -m py_compile devobs/integration_control/*.py scripts/check_integration_readiness.py tests/integration_control/*.py
+python -m pytest -q tests/integration_control
 ```
 
 ## Read-only PR readiness gate

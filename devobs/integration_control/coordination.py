@@ -42,31 +42,34 @@ def evaluate_coordination(normalized: dict, findings: list[Finding]) -> dict:
     manifest = ownership.get("task_manifest")
     manifest_result = None
     if isinstance(manifest, dict):
-        validator = _load_task_validator()
-        if validator is None:
-            findings.append(Finding("OWNERSHIP_VALIDATOR_UNAVAILABLE", "error", "ownership", "Task validator unavailable."))
+        tasks = manifest.get("tasks")
+        if not isinstance(tasks, list) or len(tasks) == 0:
+            findings.append(Finding("TASK_MANIFEST_INCOMPLETE", "error", "ownership", "Task manifest missing task entries; identity/dependency evidence unverified.", {"tasks_count": len(tasks) if isinstance(tasks, list) else None}))
         else:
-            try:
-                manifest_result = validator.evaluate(manifest)
-            except Exception as exc:  # noqa: BLE001
-                findings.append(Finding("INVALID_DEPENDENCY_GRAPH", "error", "ownership", f"Task manifest evaluation failed: {exc.__class__.__name__}"))
-                manifest_result = {"decision": "FAIL", "errors": [exc.__class__.__name__]}
-            decision = manifest_result.get("decision")
-            if decision == "FAIL":
-                errs = manifest_result.get("errors", [])
-                code = "INVALID_DEPENDENCY_GRAPH" if any("dependency" in str(e).lower() or "cycle" in str(e).lower() for e in errs) else "POLICY_VIOLATION"
-                findings.append(Finding(code, "error", "ownership", "Task manifest invalid.", {"errors": redact(errs)}))
-            for conflict in manifest_result.get("conflicts", []) if isinstance(manifest_result, dict) else []:
-                reason = conflict.get("reason")
-                code = "CONCURRENT_FILE_OWNERSHIP" if reason == "concurrent_file_ownership" else "CONFLICTING_BRANCH_OWNERSHIP"
-                findings.append(Finding(code, "error", "ownership", f"Task conflict: {reason}", redact(conflict)))
-            for blocked in manifest_result.get("blocked_tasks", []) if isinstance(manifest_result, dict) else []:
-                reason = blocked.get("reason")
-                code = "UNRESOLVED_DEPENDENCY" if reason == "unresolved_dependency" else "BLOCKED_TASK_OWNERSHIP_CONFLICT" if reason == "task_blocked" else "BLOCKED_TASK_OWNERSHIP_CONFLICT"
-                if reason == "unresolved_dependency":
-                    findings.append(Finding("INVALID_DEPENDENCY_GRAPH", "error", "ownership", "Unresolved dependency in task manifest.", redact(blocked)))
-                else:
-                    findings.append(Finding("BLOCKED_TASK_OWNERSHIP_CONFLICT", "error", "ownership", "Blocked task retains ownership and blocks integration.", redact(blocked)))
+            validator = _load_task_validator()
+            if validator is None:
+                findings.append(Finding("OWNERSHIP_VALIDATOR_UNAVAILABLE", "error", "ownership", "Task validator unavailable."))
+            else:
+                try:
+                    manifest_result = validator.evaluate(manifest)
+                except Exception as exc:  # noqa: BLE001
+                    findings.append(Finding("INVALID_DEPENDENCY_GRAPH", "error", "ownership", f"Task manifest evaluation failed: {exc.__class__.__name__}"))
+                    manifest_result = {"decision": "FAIL", "errors": [exc.__class__.__name__]}
+                decision = manifest_result.get("decision")
+                if decision == "FAIL":
+                    errs = manifest_result.get("errors", [])
+                    code = "INVALID_DEPENDENCY_GRAPH" if any("dependency" in str(e).lower() or "cycle" in str(e).lower() for e in errs) else "POLICY_VIOLATION"
+                    findings.append(Finding(code, "error", "ownership", "Task manifest invalid.", {"errors": redact(errs)}))
+                for conflict in manifest_result.get("conflicts", []) if isinstance(manifest_result, dict) else []:
+                    reason = conflict.get("reason")
+                    code = "CONCURRENT_FILE_OWNERSHIP" if reason == "concurrent_file_ownership" else "CONFLICTING_BRANCH_OWNERSHIP"
+                    findings.append(Finding(code, "error", "ownership", f"Task conflict: {reason}", redact(conflict)))
+                for blocked in manifest_result.get("blocked_tasks", []) if isinstance(manifest_result, dict) else []:
+                    reason = blocked.get("reason")
+                    if reason == "unresolved_dependency":
+                        findings.append(Finding("INVALID_DEPENDENCY_GRAPH", "error", "ownership", "Unresolved dependency in task manifest.", redact(blocked)))
+                    else:
+                        findings.append(Finding("BLOCKED_TASK_OWNERSHIP_CONFLICT", "error", "ownership", "Blocked task retains ownership and blocks integration.", redact(blocked)))
 
     stale_workspace = ownership.get("stale_evidence") is True
     if stale_workspace:
