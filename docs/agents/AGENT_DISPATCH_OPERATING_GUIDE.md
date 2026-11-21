@@ -57,9 +57,35 @@ only the Python 3.12 standard library.
 | `--instructions-dir` | Optional | Output directory for worker instruction files. Defaults to `<manifest directory>/agent_dispatch_instructions`. |
 | `--mode` | Optional | Accepts only `DRY_RUN` (default). Any other value is rejected by the CLI. |
 
-Successful runs write exactly two files and overwrite them on each successful
-run: `CODEX_instructions.md` and `OPENCODE_instructions.md`. Failed or blocked
+Successful runs write exactly two files: `CODEX_instructions.md` and
+`OPENCODE_instructions.md`. Existing output files are never overwritten; move
+or delete old files before rerunning into the same directory. Failed or blocked
 runs write no instruction files.
+
+### Safe output behavior
+
+Both instruction files are first staged as temporary files in the destination
+directory, then linked into place. If staging or linking either file fails, the
+preflight removes both staged files, removes either final file it created, and
+removes any directories it created for the run. The result is `FAIL` (exit 2)
+with `rejection_reason` set to `output_file_exists`,
+`symlink_output_destination`, `output_write_failed`, or `output_cleanup_failed`
+as applicable. A symlink, Windows junction, or other reparse point anywhere in
+the output path is refused without writing through it.
+
+The implementation relies on documented standard-library behavior:
+
+- [`tempfile.mkstemp`](https://docs.python.org/3/library/tempfile.html#tempfile.mkstemp):
+  "There are no race conditions in the file's creation, assuming that the
+  platform properly implements the `os.O_EXCL` flag for `os.open()`."
+- [`os.link`](https://docs.python.org/3/library/os.html#os.link): "Create a hard
+  link pointing to `src` named `dst`." Availability: "Unix, Windows."
+- [`Path.is_symlink`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.is_symlink):
+  "Return `True` if the path points to a symbolic link, even if that symlink is
+  broken."
+- [`stat.FILE_ATTRIBUTE_REPARSE_POINT`](https://docs.python.org/3/library/stat.html#stat.FILE_ATTRIBUTE_REPARSE_POINT)
+  is checked as well, because a Windows junction is not reported by
+  `Path.is_symlink()`.
 
 ## What is checked
 
@@ -70,7 +96,10 @@ runs write no instruction files.
 | Restricted actions (`merge`, `deploy`, `billing`, `production`) or altered approval fields | `check_two_agent_tasks.evaluate` | `FAIL` (exit 2), no instructions |
 | Missing required local CLI for a task in `planned`, `in_progress`, or `evidence_ready` | `shutil.which` | `BLOCKED` (exit 1), no instructions |
 | Unreadable or oversized manifest | Local file read | `FAIL` (exit 2), no instructions |
-| Unexpected file-preparation error | Local write | `FAIL` (exit 2), no instructions |
+| Existing instruction output file | Local destination precheck | `FAIL` (exit 2), existing content unchanged, no new instruction files |
+| Symlink, junction, or reparse point in the output path | Local destination precheck | `FAIL` (exit 2), no write-through |
+| Failure while staging or linking either output file | Local write | `FAIL` (exit 2), both outputs and directories created by the run are removed |
+| Unexpected file-preparation error | Local write | `FAIL` (exit 2), no instruction files |
 
 The result JSON includes:
 
