@@ -11,6 +11,7 @@ This file contains the exact Draft PR title and body to use if `gh` remains unav
 - Base: `main`
 - Head: `feature/open-source-integration-readiness`
 - Base SHA at task start: `4e1dc8f2c9c7a4caf896d7daf681b35be2e22937`
+- Current base after reconciliation: `cfa1e17ee1575da90a0bb4fe30800c6df3b68668` (PR #738)
 - Final head SHA: record from `git rev-parse HEAD` after the final local commit.
 
 ## Body
@@ -25,6 +26,8 @@ A versioned local JSON catalog is loaded by `catalog.py`, normalized under fixed
 
 No clock, random source, socket, subprocess, package installer, cloud SDK, service client, secret, or environment value is used. `evaluation_date` and `scope_sha` are explicit catalog fields, so repeated runs are byte-identical and approvals cannot silently drift across revisions.
 
+Boundary: current main already contains `devobs/integration_control/` from PR #738. That engine evaluates PR readiness and agent-task coordination snapshots. This one evaluates a static OSS integration catalog for exact versions, licenses, declared config keys, dependencies, tools, and security evidence. Neither grants merge or production authority, and this PR does not modify the control plane.
+
 Full design: `docs/architecture/OPEN_SOURCE_INTEGRATIONS.md`.
 OSS evidence for 28 candidates: `docs/architecture/OPEN_SOURCE_INTEGRATIONS_RESEARCH.md`.
 Operator runbook: `docs/runbooks/OPEN_SOURCE_INTEGRATION_READINESS.md`.
@@ -38,9 +41,9 @@ Operator runbook: `docs/runbooks/OPEN_SOURCE_INTEGRATION_READINESS.md`.
 - `docs/architecture/OPEN_SOURCE_INTEGRATIONS_RESEARCH.md`: 28-candidate official-source/license/maintenance/cost review.
 - `docs/runbooks/OPEN_SOURCE_INTEGRATION_READINESS.md`: usage, exit codes, validation commands, stop conditions.
 - `README.md`: user-facing usage pointer and commands.
-- `.github/workflows/ci.yml`: compile `devobs` in the existing Python CI job; no new workflow.
-- `scripts/assess_change.py`: classify `devobs/**/*.py` as Python source so devobs-only changes select `python-tests`.
 - `docs/OPEN_SOURCE_INTEGRATION_READINESS_HANDOFF.md`: this PR body.
+
+No CI workflow, action pin, permission, classifier, deployment path, or `devobs/integration_control` file is changed by this PR; current main already compiles/scans `devobs` and classifies `devobs/**/*.py` as Python source.
 
 ### Verification evidence
 
@@ -51,15 +54,26 @@ python -m compileall -q devobs
 compileall_devobs_exit=0
 
 python -m unittest discover -s tests/integration_readiness -p "test_*.py" -v
-Ran 35 tests in 0.355s
+Ran 35 tests in 0.226s
 OK
 unittest_exit=0
 
-git diff --check
-git_diff_check_exit=0
+python -m unittest tests.test_python_source_coverage tests.test_python_dependency_automation -v
+Ran 9 tests in 0.029s
+OK
+coverage_tests_exit=0
+
+python -m unittest discover -s tests/integration_control -p "test_*.py"
+Ran 23 tests in 0.072s
+OK
+control_tests_exit=0
+
+git diff --check cfa1e17ee1575da90a0bb4fe30800c6df3b68668..HEAD
+full_diff_check_exit=0
 
 python scripts/milestone_ledger.py --summary
 {"gate_statuses": {"ai9-detection-quality": "BLOCKED", "codex-agent-runtime-acceptance": "OPEN", "p01-managed-saas": "BLOCKED"}, "latest_pr": 717, "merged_milestones": 304, "open_gates": 3, "repository": "hamedonassar95/Devobs"}
+milestone_ledger_exit=0
 
 python scripts/check_action_pins.py
 Action pin check passed for 48 workflow and template files.
@@ -110,6 +124,7 @@ The first three are missing local tools. The last three are environment/pre-exis
 - P0, VERIFIED: the shipped catalog records the existing Terraform `1.17.0` pin as `BUSL-1.1`, which this offline policy classifies as restricted. The default report is therefore `POLICY_VIOLATION`; this is an intentionally surfaced policy conflict, not a claim that CI is broken.
 - VERIFIED: Cosign pin drift exists (`cosign-installer v4.1.3`, `cosign-release v3.0.6`, latest `v3.1.4`). The fixture records the binary version actually used and notes the installer/binary distinction; upgrade is deferred to an owner-reviewed change.
 - VERIFIED: existing CI already covers CodeQL, Trivy with CycloneDX SBOM, Gitleaks, Cosign, Conftest/OPA, Terraform validate-only, action pins, Bandit, pip-audit, and Dependabot. No duplicate scanning pipeline was introduced.
+- VERIFIED: current main PR #738 added `devobs/integration_control/` for PR/task coordination snapshots. This PR does not modify it and adds no agent, PR adapter, merge path, or second control plane.
 - VERIFIED: official Dependabot docs state that GitHub Actions alerts are generated only for semantic-version actions, not SHA-pinned actions. This limitation is documented, not silently trusted.
 - Engine controls: recursive redaction reuses the repository helper; secret-like key values are never emitted; command-like config keys are rejected and never executed; paths reject traversal/absolute/drive/null-byte forms; approvals require a human identity, valid date, and matching scope SHA.
 - No secret, token, credential, private key, TLS material, production environment, cloud account, hosted identity provider, Keycloak runtime, container, paid inference, or customer data was accessed.
@@ -150,5 +165,6 @@ The first three are missing local tools. The last three are environment/pre-exis
 - [ ] Verify the existing Gitleaks, Trivy/SBOM, Cosign, Conftest, action-pin, and agent-spec gates remain green.
 - [ ] Review official license links in `OPEN_SOURCE_INTEGRATIONS_RESEARCH.md`; do not treat them as legal advice.
 - [ ] Confirm no secret, token, credential, TLS material, environment value, or production data appears in the diff or reports.
+- [ ] Confirm the scope boundary with `devobs/integration_control/` remains clean: no PR readiness, agent task, or merge-authority logic was copied or modified.
 - [ ] Confirm no new workflow, duplicate scanner, paid service, cloud resource, deploy, merge, or release-gate change was introduced.
 - [ ] Keep this PR as Draft; do not merge or deploy without explicit owner approval for the final reviewed SHA and scope.

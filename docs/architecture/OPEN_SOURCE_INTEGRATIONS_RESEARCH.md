@@ -2,7 +2,7 @@
 
 Status: **advisory, offline, read-only**. This appendix records the candidate review behind `docs/architecture/OPEN_SOURCE_INTEGRATIONS.md`. It did not install tools, call hosted APIs, start containers, change production configuration, approve spend, or authorize a merge. `SELECT` below means “retain under the existing reviewed scope or advance only under a separate owner-approved change”; it is never an approval by itself.
 
-Research revision context: `origin/main` `4e1dc8f2c9c7a4caf896d7daf681b35be2e22937`. The repository gates remain `ai9-detection-quality=BLOCKED`, `p01-managed-saas=BLOCKED`, `codex-agent-runtime-acceptance=OPEN` (VERIFIED: `python scripts/milestone_ledger.py --summary`).
+Research revision context: `origin/main` `4e1dc8f2c9c7a4caf896d7daf681b35be2e22937` at task start; this branch was rebased onto `cfa1e17ee1575da90a0bb4fe30800c6df3b68668` (PR #738) before handoff. PR #738 added the separate `devobs/integration_control/` capability; the candidate decisions below are unchanged and no candidate was added by either change. The repository gates remain `ai9-detection-quality=BLOCKED`, `p01-managed-saas=BLOCKED`, `codex-agent-runtime-acceptance=OPEN` (VERIFIED: `python scripts/milestone_ledger.py --summary`).
 
 ## 1. Decision rules
 

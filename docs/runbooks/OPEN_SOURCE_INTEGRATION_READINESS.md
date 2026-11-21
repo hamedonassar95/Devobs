@@ -14,6 +14,8 @@ A separate branch owns `docs/runbooks/INTEGRATION_READINESS.md`; that path was i
 
 The fixture is a declared inventory, not live discovery. Its `approval` records are synthetic fixture metadata for testing validation logic; they are not real owner approvals and grant no authority.
 
+This check is distinct from the merged [Integration Control Plane](../architecture/INTEGRATION_CONTROL_PLANE.md) in `devobs/integration_control/`. That engine evaluates PR readiness and agent-task coordination snapshots; this one evaluates a static catalog of third-party integration versions, licenses, config key names, dependencies, tools, and security evidence. Neither grants merge or production authority.
+
 ## 2. Run the check
 
 From the repository root:

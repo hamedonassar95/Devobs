@@ -2,7 +2,7 @@
 
 Status: **offline, read-only, advisory**. This engine inventories declared integrations, checks explicit versioned compatibility requirements, and produces reproducible JSON/Markdown readiness reports. It does not install packages, call hosted APIs, start containers, restart services, merge pull requests, deploy, or approve production changes.
 
-Starting revision: `4e1dc8f2c9c7a4caf896d7daf681b35be2e22937` (`origin/main` at task start).
+Starting revision: `4e1dc8f2c9c7a4caf896d7daf681b35be2e22937` (`origin/main` at task start). Rebased and reconciled onto `cfa1e17ee1575da90a0bb4fe30800c6df3b68668` (`origin/main`, PR #738) before handoff.
 
 ## 1. Verified repository baseline and gaps
 
@@ -11,10 +11,11 @@ Starting revision: `4e1dc8f2c9c7a4caf896d7daf681b35be2e22937` (`origin/main` at 
 | Python 3.12/3.15 CI matrix and hash-locked dependencies | VERIFIED | `.github/workflows/ci.yml:60-78`, `requirements-api.lock` |
 | Node 24 console build/test/audit | VERIFIED | `.github/workflows/ci.yml:247-268`, `apps/ai-intelligence-console/package.json` |
 | CodeQL/Trivy/Gitleaks/Bandit/pip-audit/action-pin/agent-spec checks | VERIFIED | `.github/workflows/ci.yml:283-376`, `434-617` |
-| Reusable Python CI compiles `scripts`, `tests`, `tools`; this change adds `devobs` | VERIFIED | `.github/workflows/reusable-python-ci.yml:26-30,127-140`, `.github/workflows/ci.yml:75` |
+| Reusable Python CI compiles `scripts`, `tests`, `tools`, `devobs` and scans `devobs` with Bandit; already present in current main | VERIFIED | `.github/workflows/reusable-python-ci.yml:26-30,127-140`, `.github/workflows/ci.yml:75,345`, `tests/test_python_source_coverage.py:39-40` |
 | Manual integration checklist exists but is not executable | VERIFIED | `docs/integrations/INTEGRATION_ACCEPTANCE_CHECKLIST.md:3-8` |
 | No `devobs/integration_readiness`, `tests/integration_readiness`, or fixture catalog | VERIFIED | target-path scan at base SHA |
 | No single offline catalog joining versions, ownership, config keys, dependencies, security evidence, and approvals | VERIFIED | reconnaissance across existing integration-control, incident, and CI contracts |
+| Current main already contains `devobs/integration_control/` for PR/task coordination snapshots | VERIFIED | `origin/main` `cfa1e17ee1575da90a0bb4fe30800c6df3b68668`, `docs/architecture/INTEGRATION_CONTROL_PLANE.md` |
 | P01, AI-9, and Codex runtime acceptance remain blocked/open | VERIFIED | `STATE.md:6`, `docs/DEVOBS_READINESS_CURRENT.md`, `docs/CODEX_AGENT_OPERATING_MODEL.md:36,55,57` |
 | `docs/runbooks/INTEGRATION_READINESS.md` owned by another active branch | BLOCKED | `feature/integration-evidence-readiness` at `d9268debeb3311b7dc22c6a026a40248288ea372`; not modified here |
 | Live hosted integrations and production telemetry | BLOCKED | `docs/INTEGRATION_WORKFLOW.md:11-21`, `docs/DATA_INTEGRATIONS.md:3-10`, `docs/MONITORING.md:3,33,35,45` |
@@ -44,6 +45,10 @@ local versioned JSON fixture
 
 The engine is a pure function of the supplied catalog. No clock, random source, environment secret, subprocess, socket, package installer, cloud SDK, or service client is used. `evaluation_date` and `scope_sha` are explicit fixture fields, which keeps results reproducible and prevents an approval from drifting across revisions.
 
+### Boundary with the merged Integration Control Plane
+
+PR #738 (`cfa1e17ee1575da90a0bb4fe30800c6df3b68668`) added `devobs/integration_control/`, a separate offline engine for PR readiness, agent-task ownership, branch-change detection, and coordination evidence. This readiness engine does **not** consume PR metadata, run agents, evaluate task manifests, or replace that control plane. Its input is a static catalog of third-party integration metadata: exact versions, SPDX licenses, declared config keys, artifact integrity, tool availability, and security evidence. The control plane answers “may this PR proceed to human review?”; this engine answers “is this declared OSS integration inventory internally consistent and policy-conformant?”. Both remain advisory and require human approval.
+
 ## 3. Components
 
 | Module | Responsibility |
@@ -60,9 +65,9 @@ The engine is a pure function of the supplied catalog. No clock, random source, 
 
 - Reuses `scripts.ci_failure_intelligence.redact_secrets` rather than creating a competing redaction engine.
 - Reuses the repository's `unittest` convention and `collections.abc.Mapping`/dataclass style from `devobs.incidents` and `devobs.incident_intelligence`.
-- Reuses the existing `validate` CI gate and `python-tests` job; no duplicate scanning workflow was added. The Python compile scope was extended to include `devobs`, and `scripts/assess_change.py` now selects `python-tests` for `devobs/**/*.py` changes.
+- Reuses the existing `validate` CI gate and `python-tests` job; no duplicate scanning workflow was added. Current main already compiles/scans `devobs` and classifies `devobs/**/*.py` as Python source; this PR changes neither CI nor the classifier.
 - Reuses existing pinned GitHub Actions in CI; no new action or unpinned tool was introduced.
-- Does not duplicate `devobs.integration_control`, PR readiness gates, CI failure intelligence, or incident intelligence engines.
+- Complements rather than duplicates `devobs.integration_control`: the control plane evaluates PR/task coordination snapshots, while this engine evaluates a static OSS integration catalog. No PR readiness, agent coordination, CI failure intelligence, or incident intelligence logic was copied or modified.
 
 ## 5. Catalog contract (version 1)
 
@@ -103,7 +108,7 @@ Reports include `schema_version`, `report_schema`, `profile`, `scope_sha`, `eval
 - Files under active ownership (`feature/xai-grok-api-adapter`, integration control/orchestration/verification/evidence work, blocked-task ownership guard, incident intelligence) were treated as read-only during discovery.
 - No file in another worktree was read for content or modified. Only git branch/worktree metadata was inspected.
 - The runbook was created at `docs/runbooks/OPEN_SOURCE_INTEGRATION_READINESS.md` because `docs/runbooks/INTEGRATION_READINESS.md` is owned by `feature/integration-evidence-readiness`.
-- `README.md`, `.github/workflows/ci.yml`, and `scripts/assess_change.py` were changed minimally; no unrelated text, action pin, permission, or deployment path was altered.
+- `README.md` was changed minimally to add a pointer and local commands; no CI file, action pin, permission, deployment path, or `devobs/integration_control` file was altered by this PR.
 - No secret, token, credential, production environment, cloud project, hosted provider, Keycloak runtime, or paid inference was accessed.
 
 ## 9. Open-source selection summary
@@ -126,5 +131,5 @@ License classification is a deterministic policy filter, not legal advice or mer
 - The fixture is a declared inventory, not proof that a hosted service is configured, reachable, or secure.
 - License classification is a deterministic policy filter, not legal advice.
 - P01, AI-9, Codex runtime acceptance, live telemetry, and hosted integrations remain blocked or unverified by this work.
-- `scripts/assess_change.py` was extended to classify `devobs/**/*.py` as Python source so devobs-only changes select `python-tests`; this behavior is covered by a behavioral test.
+- `scripts/assess_change.py` already classifies `devobs/**/*.py` as Python source in current main; this behavior is covered by a behavioral test, but the classifier is not modified here.
 - CI execution for this branch is verified only after push; local checks do not prove hosted GitHub Actions results.
