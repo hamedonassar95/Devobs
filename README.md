@@ -95,6 +95,8 @@ bounded repair, and documented all other blockers. See
 [the Graphify consolidation plan](docs/architecture/GRAPHIFY_CONSOLIDATION_PLAN.md).
 No release gate was promoted by this work.
 
+**Multi-agent orchestrator integration audit (2026-11-21):** the advisory planner is not integration-ready; see the [multi-agent integration readiness audit](docs/audits/MULTI_AGENT_INTEGRATION_READINESS.md) for the prioritized architecture, security, delivery, and test findings. No release gate was promoted.
+
 ## CI Failure Intelligence (read-only)
 
 [CI Failure Intelligence](docs/agents/CI_FAILURE_INTELLIGENCE.md) provides deterministic, evidence-based diagnostics for failed GitHub Actions runs. It classifies failures (code/infrastructure/ambiguous), detects repeated signatures, correlates commit evidence, redacts secrets, labels findings `VERIFIED/INFERRED/UNVERIFIED`, and supports optional injectable AI summaries with rule-based fallback. Read-only: no code changes, reruns, merges, or deploys.
