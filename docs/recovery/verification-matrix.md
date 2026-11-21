@@ -115,12 +115,15 @@ The fresh full-suite result is recorded in section 9.
 | Main CI | run `44949929160` | `validate`, `security`, `site-contract`, `postgres-rls`, container build/scan and `terraform-validate` `success`; Python/Node `skipped` by scope | **PASS** for `10f8dd9` only |
 | Main CodeQL | run `44949928328` | `Analyze (actions)`, `Analyze (javascript-typescript)` and `Analyze (python)` all `success` | **PASS** for `10f8dd9` only |
 | REST quota | `GET https://api.github.com/rate_limit` | HTTP `200`, `core.remaining=48`, `core.limit=60`; no authentication used | **VERIFIED** |
-| Pushed branch head | `git push -u origin feature/repository-recovery-finalization`; `git ls-remote --heads origin ...` | `PUSH_EXIT=0`; remote `0b5daedaf56f3c8fb8014d0724ed06f478763a7b` matches local HEAD | **VERIFIED** |
-| Exact-head commit lookup | `GET /repos/hamedonassar95/Devobs/commits/0b5daed...` | HTTP `200`, `sha=0b5daedaf56f3c8fb8014d0724ed06f478763a7b` | **VERIFIED** |
-| Exact-head CI | `GET /repos/hamedonassar95/Devobs/actions/runs?head_sha=0b5daed...` | run `44963206484`, event `push`, status `in_progress`, `conclusion=null` at capture | **IN PROGRESS**; no final pass claim |
-| Exact-head check runs | `GET /repos/hamedonassar95/Devobs/commits/0b5daed.../check-runs` | `security`, `site-contract`, `postgres-rls`, `terraform-validate`, change-impact, container build/smoke/scan and Vercel Preview Comments `success`; Python 3.12/3.15 and `node-tests` `in_progress` | **PARTIAL PASS / IN PROGRESS** |
-| Exact-head CodeQL | public REST run/check lookup | no CodeQL run observed for `0b5daed` at capture | **UNVERIFIED** |
+| First published head (capture) | `git push -u origin feature/repository-recovery-finalization`; `git ls-remote --heads origin ...` | `PUSH_EXIT=0`; remote `0b5daedaf56f3c8fb8014d0724ed06f478763a7b` matched local HEAD | **VERIFIED** |
+| Capture-head commit lookup | `GET /repos/hamedonassar95/Devobs/commits/0b5daed...` | HTTP `200`, `sha=0b5daedaf56f3c8fb8014d0724ed06f478763a7b` | **VERIFIED** |
+| Capture-head CI | `GET /repos/hamedonassar95/Devobs/actions/runs?head_sha=0b5daed...` | run `44963206484`, event `push`, status `in_progress`, `conclusion=null` at capture | **IN PROGRESS**; no final pass claim |
+| Capture-head check runs | `GET /repos/hamedonassar95/Devobs/commits/0b5daed.../check-runs` | `security`, `site-contract`, `postgres-rls`, `terraform-validate`, change-impact, container build/smoke/scan and Vercel Preview Comments `success`; Python 3.12/3.15 and `node-tests` `in_progress` | **PARTIAL PASS / IN PROGRESS** |
+| Later documentation-only head (capture) | `GET /repos/hamedonassar95/Devobs/commits/5718519...`; `GET /actions/runs?head_sha=5718519...`; `GET /commits/5718519.../check-runs` | HTTP `200`; CI run `44963365671` status `pending`, `conclusion=null`; only `Vercel Preview Comments` `success` at capture | **PENDING**; no final pass claim |
+| CodeQL for published heads | public REST run/check lookup | no CodeQL run observed for `0b5daed` or `5718519` at capture | **UNVERIFIED** |
 | Draft PR creation | `gh pr create --draft --base main --head feature/repository-recovery-finalization ... --body-file ...` | `GH_PR_CREATE_BLOCKED: The term 'gh' is not recognized ...`; `PR_CREATE_EXIT=127` | **BLOCKED** |
+
+Subsequent documentation-only pushes can change the branch HEAD without changing source or tests. Determine the exact head at PR creation with `git ls-remote --heads origin feature/repository-recovery-finalization`; the last source/test-changing commit is `ccecef0b8a12075948360a475a26a0dfe4595943`.
 
 Unchanged SKIPPED/BLOCKED inventory: `actionlint`, ShellCheck, Docker/Trivy, Terraform/OpenTofu, Bandit, Gitleaks CLI, Semgrep CLI, `gh`, `kubectl`, Node console jobs, Keycloak runtime, live OIDC/JWKS, tenant isolation, backup restore, provider billing, cloud state and Google Cloud commands.
 
@@ -136,8 +139,8 @@ Representative failing categories in the complete output were `FileNotFoundError
 
 ## 10. Final publication state
 
-- **VERIFIED:** branch `feature/repository-recovery-finalization` was pushed at `0b5daedaf56f3c8fb8014d0724ed06f478763a7b`; `PUSH_EXIT=0` and `git ls-remote --heads origin ...` matched the local HEAD.
+- **VERIFIED:** branch `feature/repository-recovery-finalization` was first pushed at `0b5daedaf56f3c8fb8014d0724ed06f478763a7b` (`PUSH_EXIT=0`, remote head matched local HEAD), then updated with documentation-only commits. The last source/test-changing commit remains `ccecef0b8a12075948360a475a26a0dfe4595943`.
 - **BLOCKED:** Draft PR creation failed because `gh` is absent from this session (`GH_PR_CREATE_BLOCKED`, `PR_CREATE_EXIT=127`). No authenticated PR API call was made. The owner must install/authenticate `gh` or open the Draft PR manually at `https://github.com/hamedonassar95/Devobs/pull/new/feature/repository-recovery-finalization` using the prepared body summarizing evidence and remaining blockers.
 - **VERIFIED:** GitHub's push output also provided the same manual PR URL. No PR exists in the public open-PR list at capture time.
-- **UNVERIFIED:** final conclusion of CI run `44963206484` and any CodeQL run for the exact branch head. Partial check successes are listed in section 8.1; they are not a claim that the run completed successfully.
+- **UNVERIFIED:** final conclusions of CI runs `44963206484` and `44963365671`, and any CodeQL run, for the published heads. Partial check successes are listed in section 8.1; they are not a claim that any run completed successfully.
 - **NOT DONE:** no merge, deployment, ruleset change, cloud action, hosted mutation, PR comment, or gate approval was performed.
