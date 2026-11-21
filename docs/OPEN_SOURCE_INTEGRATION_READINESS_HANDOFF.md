@@ -47,14 +47,14 @@ No CI workflow, action pin, permission, classifier, deployment path, or `devobs/
 
 ### Verification evidence
 
-Local checks performed in the isolated worktree at the final reviewed SHA:
+Local checks performed in the isolated worktree on the reconciled tree; the final handoff commit changes documentation only:
 
 ```text
 python -m compileall -q devobs
 compileall_devobs_exit=0
 
 python -m unittest discover -s tests/integration_readiness -p "test_*.py" -v
-Ran 35 tests in 0.226s
+Ran 35 tests in 0.265s
 OK
 unittest_exit=0
 
