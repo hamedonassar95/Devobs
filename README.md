@@ -7,6 +7,19 @@
 
 [![CI](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml)
 
+## Read-only PR readiness gate
+
+[The PR Readiness Gate](docs/agents/PR_READINESS_GATE.md) is a read-only CLI that combines GitHub
+PR metadata, Actions checks, branch protection, review state, unresolved review requests, and
+mergeability into `VERIFIED_READY`, `BLOCKED`, or `UNVERIFIED`. Missing evidence never counts as
+success, local test output is never treated as GitHub CI, and `VERIFIED_READY` is not human
+approval and does not authorize a merge.
+
+```sh
+python scripts/pr_readiness_gate.py --pr 123 --repo OWNER/REPO
+python -m unittest discover -s tests -p "test_pr_readiness_gate.py" -v
+```
+
 **Read-only Render Free checkpoint refreshed (2026-11-19):** [Free PostgreSQL inventory, fixed 2026-12-05 expiry, and offline fail-closed preflight](docs/P01_RENDER_FREE_RESOURCE_CHECKPOINT_2026-11-15.md). This is not a hosted API test, backup, paid activation or P01 GO; separate owner retention/retirement authorization remains required.
 
 **Retirement planning approved (no deletion, 2026-11-19):** [Owner-gated Render Free PostgreSQL retirement plan](docs/plans/2026-11-19-render-free-postgres-retirement-plan.md). The plan documents dependencies, rollback limits and separate execution approval; it makes no hosted changes and P01 remains NO-GO.
