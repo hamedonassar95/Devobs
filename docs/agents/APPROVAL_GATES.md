@@ -109,15 +109,17 @@ Every `ALLOW` must pass all of these:
    must match, the approval ID must be active, and it must be neither revoked
    nor consumed.
 
-Reasons are stable codes such as `missing_approval`, `approval_expired`,
+Reasons are stable codes such as `missing_approval`, `malformed_approval`,
+`malformed_request`, `dry_run_required`, `approval_expired`,
 `approval_not_yet_valid`, `approval_lifetime_too_long`,
 `approval_action_mismatch`, `unauthorized_action`, `action_not_requested`,
 `restricted_action_requested`, `cross_task_authorization_denied`,
 `approval_agent_mismatch`, `task_not_actionable`, `stale_approval`,
 `approval_revoked`, `approval_replayed`, `approval_not_active`,
 `policy_state_inactive`, `policy_version_mismatch`, `unknown_task`,
-`task_identity_invalid`, `contract_validation_failed`, `validator_unavailable`
-and `missing_required_evidence`.
+`task_identity_invalid`, `contract_validation_failed`, `contract_blocked`,
+`ownership_conflict`, `blocked_task`, `validator_unavailable`,
+`validator_decision_unknown` and `missing_required_evidence`.
 
 ## Structured output and audit
 
