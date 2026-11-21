@@ -76,6 +76,18 @@ python tools/agent_task_status_report.py --manifest /path/to/tasks.json --json-o
 python -m unittest discover -s tests -p "test_agent_task_status_report.py" -v
 ```
 
+An [advisory intelligent orchestration engine](docs/architecture/INTELLIGENT_ORCHESTRATION.md)
+now composes the canonical manifest, local agent-spec policy, capacity evidence,
+and approval binding into a deterministic `DRY_RUN` preview. It validates
+dependencies and ownership, schedules within explicit capacity, supports
+critical-path priority when enabled, classifies failures conservatively, and
+emits sanitized, timestamp-free audit events. It starts no agent and grants no
+approval; runtime/CI integration and authenticated delivery remain BLOCKED.
+
+```sh
+python -m unittest discover -s tests/orchestration -v
+```
+
 ## Root-cause audit and remediation roadmap (2026-11-20)
 
 An evidence-driven audit of `origin/main` `4299a9d` confirmed one P1 root cause:
