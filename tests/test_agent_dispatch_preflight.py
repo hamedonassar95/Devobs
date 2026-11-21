@@ -9,7 +9,7 @@ import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
-from agent_dispatch_preflight import build_preflight, main  # noqa: E402
+from agent_dispatch_preflight import build_preflight, exit_code, main  # noqa: E402
 
 REPO = "hamedonassar95/Devobs"
 SHA = "a" * 40
@@ -51,11 +51,11 @@ def available_cli(name):
     return f"/usr/local/bin/{name}"
 
 
-def fake_cli_path(root):
+def fake_cli_path(root, names=("codex", "opencode")):
     """Create detectable-but-never-executed CLI stubs for deterministic CLI tests."""
     binary_dir = root / "bin"
     binary_dir.mkdir()
-    for name in ("codex", "opencode"):
+    for name in names:
         executable = binary_dir / name
         executable.write_text("stub", encoding="utf-8")
         executable.chmod(0o755)
@@ -83,6 +83,17 @@ class AgentDispatchPreflightTests(unittest.TestCase):
             self.assertEqual(result["validator"]["decision"], "PASS")
             self.assertTrue((instructions_dir / "CODEX_instructions.md").is_file())
             self.assertTrue((instructions_dir / "OPENCODE_instructions.md").is_file())
+            self.assertEqual(
+                sorted(entry.name for entry in instructions_dir.iterdir()),
+                ["CODEX_instructions.md", "OPENCODE_instructions.md"],
+            )
+
+    def test_exit_codes_are_exact_and_unknown_decisions_fail_closed(self):
+        self.assertEqual(exit_code("PASS"), 0)
+        self.assertEqual(exit_code("BLOCKED"), 1)
+        self.assertEqual(exit_code("FAIL"), 2)
+        self.assertEqual(exit_code("UNKNOWN"), 2)
+        self.assertEqual(exit_code(None), 2)
 
     def test_result_names_exact_human_approval_actions(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -167,6 +178,29 @@ class AgentDispatchPreflightTests(unittest.TestCase):
             self.assertEqual(payload["decision"], "FAIL")
             self.assertIn("invalid manifest file", json.dumps(payload))
             self.assertFalse(instructions_dir.exists())
+
+    def test_cli_returns_blocked_exit_code_without_instructions(self):
+        script = str(ROOT / "scripts" / "agent_dispatch_preflight.py")
+        with tempfile.TemporaryDirectory() as folder:
+            root = pathlib.Path(folder)
+            manifest_path = root / "tasks.json"
+            manifest_path.write_text(
+                json.dumps(manifest([task("TASK-001", assigned_agent="OPENCODE")])),
+                encoding="utf-8",
+            )
+            environment = fake_cli_path(root, names=("codex",))
+            environment["PATH"] = str(root / "bin")
+            run = subprocess.run(
+                [sys.executable, script, "--manifest", str(manifest_path)],
+                capture_output=True,
+                text=True,
+                env=environment,
+            )
+            self.assertEqual(run.returncode, 1, run.stderr)
+            payload = json.loads(run.stdout)
+            self.assertEqual(payload["decision"], "BLOCKED")
+            self.assertEqual(payload["missing_clis"], ["OPENCODE"])
+            self.assertFalse((root / "agent_dispatch_instructions").exists())
 
     def test_cli_rejects_any_non_dry_run_mode(self):
         script = str(ROOT / "scripts" / "agent_dispatch_preflight.py")

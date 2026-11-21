@@ -19,8 +19,22 @@ from check_two_agent_tasks import (
 )
 
 MODE_DRY_RUN = "DRY_RUN"
-DECISION_EXIT_CODES = {"PASS": 0, "BLOCKED": 1, "FAIL": 2}
-INSTRUCTION_FILENAMES = {role: f"{role.lower()}_instructions.md" for role in WORKER_ROLES}
+KNOWN_DECISIONS = frozenset(("PASS", "BLOCKED", "FAIL"))
+EXIT_OK = 0
+EXIT_BLOCKED = 1
+EXIT_FAILURE = 2
+INSTRUCTION_FILENAMES = {role: f"{role}_instructions.md" for role in WORKER_ROLES}
+
+
+def exit_code(decision):
+    """Map a validator decision to its exit code; unknown values fail closed."""
+    if decision == "PASS":
+        return EXIT_OK
+    if decision == "BLOCKED":
+        return EXIT_BLOCKED
+    if decision == "FAIL":
+        return EXIT_FAILURE
+    return EXIT_FAILURE
 
 
 def detect_clis(which=shutil.which):
@@ -162,7 +176,7 @@ def build_preflight(manifest, instructions_dir, which=shutil.which, mode=MODE_DR
     validation = evaluate(manifest)
     result["validator"] = validation
     if validation["decision"] != "PASS":
-        result["decision"] = validation["decision"] if validation["decision"] in DECISION_EXIT_CODES else "FAIL"
+        result["decision"] = validation["decision"] if validation["decision"] in KNOWN_DECISIONS else "FAIL"
         result["rejection_reason"], result["rejected_tasks"] = _validator_rejection(validation)
         result["errors"] = list(validation.get("errors", []))
         return result
@@ -235,7 +249,7 @@ def main(argv=None):
         result = _new_result()
         result["errors"].append(f"invalid manifest file: {type(exc).__name__}")
         print(json.dumps(result, sort_keys=True, ensure_ascii=False))
-        return DECISION_EXIT_CODES["FAIL"]
+        return EXIT_FAILURE
 
     instructions_dir = args.instructions_dir or args.manifest.parent / "agent_dispatch_instructions"
     try:
@@ -244,10 +258,10 @@ def main(argv=None):
         result = _new_result()
         result["errors"].append(f"preflight file preparation failed: {type(exc).__name__}")
         print(json.dumps(result, sort_keys=True, ensure_ascii=False))
-        return DECISION_EXIT_CODES["FAIL"]
+        return EXIT_FAILURE
 
     print(json.dumps(result, sort_keys=True, ensure_ascii=False))
-    return DECISION_EXIT_CODES.get(result["decision"], DECISION_EXIT_CODES["FAIL"])
+    return exit_code(result["decision"])
 
 
 if __name__ == "__main__":
