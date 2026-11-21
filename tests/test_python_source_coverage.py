@@ -37,8 +37,8 @@ class PythonSourceCoverageTests(unittest.TestCase):
         self.assertNotEqual(result["risk_level"], "high")
 
     def test_ci_compiles_and_scans_tools_directory(self):
-        self.assertIn("'[\"scripts\", \"tests\", \"tools\"]'", WORKFLOW)
-        self.assertIn("python3 -m bandit -r scripts tools", WORKFLOW)
+        self.assertIn("'[\"scripts\", \"tests\", \"tools\", \"devobs\"]'", WORKFLOW)
+        self.assertIn("python3 -m bandit -r scripts tools devobs", WORKFLOW)
 
 
 if __name__ == "__main__":
