@@ -407,7 +407,7 @@ def harden_report(
                 "coordination": {"status": "BLOCKED", "decision": "NOT_EVALUATED",
                                  "conflicts": [], "blocked_tasks": []},
                 "evidence": {"accepted_ids": [], "rejected": 0},
-                "security": {"secret_redactions": 0, "unsafe_sources": 0},
+                "security": {"secret_redactions": 0, "unsafe_sources": 0},  # nosec B105 - integer counters, not credentials
             },
             "advisory": {
                 "provider": "disabled", "status": "disabled",
