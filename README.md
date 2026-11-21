@@ -63,6 +63,20 @@ python tools/agent_task_status_report.py --manifest /path/to/tasks.json --json-o
 python -m unittest discover -s tests -p "test_agent_task_status_report.py" -v
 ```
 
+An offline [multi-agent work orchestrator](docs/agents/MULTI_AGENT_ORCHESTRATION.md)
+now composes those contracts into a versioned task registry, conflict adapter,
+DRY_RUN planner with injected capacity evidence, and read-only GitHub delivery
+classifier. It reuses the canonical validator and human-approval gate, records
+sanitized redacted events, and exposes no executor, network, Git-write, merge,
+deploy or approval API. Its approval actions remain `pending_human`.
+
+```sh
+python -m unittest discover -s tests -p "test_task_registry.py" -v
+python -m unittest discover -s tests -p "test_conflict_detector.py" -v
+python -m unittest discover -s tests -p "test_delivery_tracker.py" -v
+python -m unittest discover -s tests -p "test_work_orchestrator.py" -v
+```
+
 ## Root-cause audit and remediation roadmap (2026-11-20)
 
 An evidence-driven audit of `origin/main` `4299a9d` confirmed one P1 root cause:
