@@ -354,6 +354,7 @@ python3 -m unittest discover -s tests -p 'test_free_readiness_one_command.py' -v
 - **Cross-project Runner evidence triage (offline):** [تشخيص محدود لأدلة GitHub Actions لمشروعي CineForge وPhone Repair Assistant](docs/integrations/CINEFORGE_RUNNER_TRIAGE.md) — يفصل بين المعلومات المفقودة (`null`) وقيم Runner الفعلية، ويسمح فقط بأسماء المشاريع والوظائف المحددة؛ لا يجلب سجلات خاصة ولا ينفّذ عمليات أو يدّعي سببًا جذريًا.
 - **جاهزية إصدارات المشاريع:** [Portfolio v1 release-readiness tracker](docs/portfolio/PORTFOLIO_V1_READINESS.md) — لقطة موثقة بالأدلة لمستودعات المالك الخمسة؛ تميّز نجاح CI عن النشر والتشغيل الفعلي، ولا تغيّر حالة أي بوابة.
 - **سجل الإنجازات والبوابات:** [Milestone Ledger](docs/MILESTONE_LEDGER.md) — فحص دون شبكة يربط كل إنجاز موثق برقم PR وSHA ودليل CI، ويعرض النواقص دون تغيير حالة جاهزيتها.
+- **Open-Source Integration Readiness:** [دليل الفحص المحلي](docs/runbooks/OPEN_SOURCE_INTEGRATION_READINESS.md) — محرك للقراءة فقط يفحص بيانات تكاملات محلية بإصدارات وتراخيص وملكية وتبعيات، وينتج تقارير JSON/Markdown قابلة للتكرار؛ لا شبكة ولا تثبيت ولا نشر ولا موافقة تلقائية.
 - **تكامل OpenArt الاختياري:** [حوكمة طلبات الصور والفيديو عبر MCP](docs/OPENART_MCP_INTEGRATION.md) — صيغة طلب خاصة آمنة دون شبكة أو كلفة، مع موافقة منفصلة قبل أي توليد.
 - **GitHub MCP للمطورين:** [إعداد اختياري محلي للقراءة فقط](docs/GITHUB_MCP_INTEGRATION.md) — يستعمل الخادم الرسمي من صورة مثبتة؛ لا تُحفظ أسرار في المستودع ولا يعمل تلقائيًا.
 - **Grafana MCP للمطورين:** [إعداد اختياري محلي للقراءة فقط](docs/GRAFANA_MCP_INTEGRATION.md) — يقتصر على لوحات Grafana ومقاييس Prometheus؛ لا يُفعّل في إعداد المستودع.
@@ -415,6 +416,15 @@ python3 -m unittest discover -s tests -v
 node --test tests/incident_guard.test.cjs tests/ai_event_ingest.test.mjs tests/ai_anomaly_detector.test.mjs tests/ai_incident_analysis.test.mjs tests/ai_recommendations.test.mjs tests/ai_trend_forecast.test.mjs tests/ai_feedback_learning.test.mjs tests/ai_dashboard_api.test.mjs
 python3 scripts/check_site.py
 ```
+
+لفحص جاهزية التكاملات محليًا دون شبكة أو تثبيت أو نشر، شغّل:
+
+```sh
+python -m devobs.integration_readiness.cli --input fixtures/integration_readiness/catalog.v1.json --format json
+python -m unittest discover -s tests/integration_readiness -p "test_*.py" -v
+```
+
+التقرير الافتراضي يظهر تعارض ترخيص `BUSL-1.1` لتكامل Terraform كنتيجة `POLICY_VIOLATION`؛ هذا اكتشاف مقصود وليس فشل CI. راجع [دليل تشغيل فحص الجاهزية](docs/runbooks/OPEN_SOURCE_INTEGRATION_READINESS.md) و[خريطة المكوّنات مفتوحة المصدر](docs/architecture/OPEN_SOURCE_INTEGRATIONS.md).
 
 لتجربة استقبال محلي ببيانات اصطناعية، اتبع [دليل AI-1](docs/AI_EVENT_INGESTION.md). لا يقرأ الأمر سجلات GitHub أو الخوادم تلقائيًا.
 
