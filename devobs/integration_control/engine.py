@@ -60,7 +60,10 @@ class IntegrationControlPlane:
                 "coordination": {"status": "SKIPPED", "decision": "NOT_EVALUATED",
                                  "conflicts": [], "blocked_tasks": []},
                 "evidence": {"accepted_ids": [], "rejected": 0},
-                "security": {"secret_redactions": 0, "unsafe_sources": 0},
+                "security": {
+                    "secret_redactions": 0,  # nosec B105 - counter, not a password
+                    "unsafe_sources": 0,
+                },
             },
             "advisory": {
                 "provider": "disabled", "status": "disabled",
