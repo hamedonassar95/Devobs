@@ -81,6 +81,7 @@ class TimelineEvent:
     """A bounded event in the incident timeline."""
 
     timestamp: str
+    incident_id: str
     event: str
     detail: str
 
