@@ -9,10 +9,10 @@
 
 ## Integration Control Plane (deterministic, fail-closed)
 
-[Integration Control Plane](docs/architecture/INTEGRATION_CONTROL_PLANE.md) coordinates multi-agent evidence, ownership/task manifests, CI/security/dependency/approval evidence, and PR readiness into `READY_FOR_HUMAN_REVIEW`, `NEEDS_EVIDENCE`, `BLOCKED`, or `POLICY_VIOLATION`. It is read-only, fail-closed, redacts secrets, treats PR text as untrusted, and never merges/deploys. See [runbook](docs/runbooks/INTEGRATION_CONTROL.md).
+[Integration Control Plane](docs/architecture/INTEGRATION_CONTROL_PLANE.md) coordinates multi-agent evidence, ownership/task manifests, CI/security/dependency/approval evidence, and PR readiness into `READY_FOR_HUMAN_REVIEW`, `NEEDS_EVIDENCE`, `BLOCKED`, or `POLICY_VIOLATION`. It is read-only, fail-closed, redacts secrets, treats PR text as untrusted, and never merges/deploys. An offline state collector bounds and redacts locally supplied evidence before analysis; any injected advisory provider is non-authoritative and cannot override the deterministic decision or human-review gate. See [runbook](docs/runbooks/INTEGRATION_CONTROL.md).
 
 ```sh
-python -m py_compile devobs/integration_control/*.py tests/integration_control/*.py
+python -m compileall -q devobs/integration_control tests/integration_control
 python -m unittest discover -s tests/integration_control -p "test_*.py" -v
 ```
 
