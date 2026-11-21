@@ -42,7 +42,10 @@ and `OPENCODE` as separate worker roles driven by a local JSON manifest. The
 checker validates unique task IDs, status transitions, concurrent file/branch
 ownership, unresolved dependencies and completion evidence. It starts no agent,
 makes no network call and does not grant merge, deploy, billing or production
-approval. Arabic guidance is included in the same document.
+approval. Arabic guidance is included in the same document. AUD-02 is resolved:
+`blocked` tasks report `BLOCKED` (exit `1`) and remain in file/branch ownership
+checks until completion is verified, as recorded in the
+[audit reconciliation note](docs/audits/TWO_AGENT_SECURITY_AUDIT_2026-11-21.md).
 
 ```sh
 python scripts/check_two_agent_tasks.py --help

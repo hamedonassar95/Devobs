@@ -3346,6 +3346,17 @@
       "ci_run_id": 44513170720,
       "verification": "VERIFIED 2026-11-19 (GitHub public metadata): PR #717 merged exact head e040bde88b8340649a59e8ee92d0232b29fd8ad7 at 2026-11-19T11:25:17Z as 7f0a399fcfd3e075a039564a8b5afac0a4e218f4 onto 8e357732ca2396d9bae9d3fdb3aa2e0a3eb9bddf, the verified main at reconciliation time. Exact-head PR CI 44513170720 completed SUCCESS: validate, security, postgres-rls, terraform-validate, site-contract, container build/smoke/scan, change-impact and node-tests succeeded; Python, production-release and controlled-incident-drill were SKIPPED by scope. Only README, the runner-triage doc, the triage script and its node tests changed (+166/-21). Offline node --test at this merge SHA reports 18 of 18 passing.",
       "limitations": "Adds allowlisted phone-repair-assistant-v2 repair-monitor and scorecard kinds with fail-closed evidence handling. It does not authenticate GitHub metadata, prove runner allocation, read private logs, rerun monitors, or authorize environment secrets or Supabase writes. Known gap: the read-only connector omitted runner IDs and executed-step counts, so results stay UNKNOWN. No private project was accessed. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-merged-pr732-aud02-resolution",
+      "area": "AGENT_OPERATIONS",
+      "title": "Keep blocked tasks visible and owning files in two-agent validator (AUD-02)",
+      "pr_number": 732,
+      "pr_head_sha": "4d192aa1c917c4ffe6a1901fd6ea01c3f23319f0",
+      "merge_sha": "37475b0d9f0b4ad43325809e0b4837116f7bbbfb",
+      "ci_run_id": 44863216408,
+      "verification": "VERIFIED 2026-11-21 (GitHub public API): PR #732 merged exact head 4d192aa1c917c4ffe6a1901fd6ea01c3f23319f0 at 2026-11-21T03:54:16Z as 37475b0d9f0b4ad43325809e0b4837116f7bbbfb onto base 2086b51bae0194737a349588197285bbb6c4734f. Exact-head CI 44863216408 SUCCESS (validate, security, postgres-rls, terraform-validate, site-contract, container build/smoke/scan, Python 3.12/3.15, change impact; node/incident drill/production release SKIPPED). Exact-merge CI 44863441002 SUCCESS. Public API files changed docs/agents/TWO_AGENT_COORDINATION.md, scripts/check_two_agent_tasks.py and tests/test_two_agent_tasks.py (+91/-9 total). Local git confirms merge SHA is ancestor of base 4763f1872ec154be2017cbe841fbaafc48ab5263.",
+      "limitations": "Source/API evidence only; no agent runtime, manifest truthfulness, merge or deploy action by this reconciliation. Historical AUD-02 audit describes audited revision 2d385b2b8cf2cce8a20944a72f5165aa17f2186c; PR #732 resolves that finding at the selected base. AUD-01 and AUD-03 through AUD-14 remain separate. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [

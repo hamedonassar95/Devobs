@@ -15,6 +15,20 @@ evidence. The only file added by this audit is this report. No application code,
 CI workflow, agent dispatch file, permission, identity, hosted resource or secret
 was created, read, modified or activated.
 
+**Post-audit resolution (2026-11-21, VERIFIED):** AUD-02 was fixed by
+[PR #732](https://github.com/hamedonassar95/Devobs/pull/732), merged from exact
+head `4d192aa1c917c4ffe6a1901fd6ea01c3f23319f0` as
+`37475b0d9f0b4ad43325809e0b4837116f7bbbfb` at `2026-11-21T03:54:16Z`.
+Exact-head [CI 44863216408](https://github.com/hamedonassar95/Devobs/actions/runs/44863216408)
+and exact-merge [CI 44863441002](https://github.com/hamedonassar95/Devobs/actions/runs/44863441002)
+completed `success`; the exact-head run reports 12 jobs (9 succeeded, 3
+scope-skipped). The fix adds `blocked` to `OWNED_STATUSES`/`RUNNING_STATUSES`,
+reports `task_blocked` with `BLOCKED`/exit `1`, and adds five regression tests.
+This historical report is preserved as the audited-revision record; AUD-02 is
+resolved at selected base `4763f1872ec154be2017cbe841fbaafc48ab5263`, while
+AUD-01 and AUD-03 through AUD-14 remain separate. This reconciliation changes
+no validator behavior.
+
 **Evidence labels:** **VERIFIED** = command output, repository source or public
 API response recorded in this report; **INFERRED** = reasoned from verified
 source with no runtime reproduction; **UNKNOWN** = not established by available
@@ -26,6 +40,8 @@ classification.
 - GitHub REST, get a pull request: <https://docs.github.com/en/rest/pulls/pulls#get-a-pull-request>
 - GitHub REST, list pull-request files: <https://docs.github.com/en/rest/pulls/pulls#list-pull-requests-files>
 - GitHub REST, list check runs for a Git reference: <https://docs.github.com/en/rest/checks/runs#list-check-runs-for-a-git-reference>
+- GitHub REST, list workflow runs for a repository (`head_sha`, `status`, `conclusion`): <https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository>
+- GitHub REST, list jobs for a workflow run (`name`, `status`, `conclusion`): <https://docs.github.com/en/rest/actions/workflow-jobs#list-jobs-for-a-workflow-run>
 - GitHub REST, list issue comments: <https://docs.github.com/en/rest/issues/comments#list-issue-comments>
 - Git reference-name rules (`git check-ref-format`): <https://git-scm.com/docs/git-check-ref-format>
 - Windows file-name/case semantics: <https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file>
@@ -36,8 +52,9 @@ classification.
   `2026-11-21T02:39:25Z`; the changed scope is 5 files, `+826 / −0`. Exact-head
   and exact-merge CI both passed their required checks. This is source/CI
   evidence, not proof that either agent ever ran.
-- **No Critical finding; one High (AUD-02).** The checker is an offline advisory
-  validator: it makes no network call, starts no agent, executes no
+- **No Critical finding; one High (AUD-02), resolved after this audit by PR
+  #732.** The checker is an offline advisory validator: it makes no network
+  call, starts no agent, executes no
   manifest-supplied command and grants no merge/deploy/billing/production
   authority. The High rating describes a bypass of an *advertised* safeguard,
   not code execution or production impact.
@@ -53,10 +70,11 @@ classification.
 - The three release gates are unchanged and were not re-evaluated as passed:
   **P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN**
   (VERIFIED from `python scripts/milestone_ledger.py --summary`).
-- **Next recommended fix:** AUD-02 first (a `blocked` task must report
-  `BLOCKED` and remain in ownership checks), then AUD-01/AUD-12 (self-asserted
-  evidence and history), in a separate owner-reviewed PR with regression tests.
-  This audit did not change those files.
+- **Next recommended fix at the audited revision:** AUD-02 first (a `blocked`
+  task must report `BLOCKED` and remain in ownership checks), then
+  AUD-01/AUD-12 (self-asserted evidence and history), in separate owner-reviewed
+  PRs with regression tests. PR #732 completed the AUD-02 item after this audit;
+  this report itself still did not change those files.
 
 ## 2. Baseline, merge verification and CI evidence
 
@@ -387,9 +405,10 @@ blocking for active tasks; immutable `pending_human` approval fields; rejection
 of `merge`, `deploy`, `billing` and `production` as requested actions; bounded
 input sizes; fail-closed handling of ordinary parse errors and unknown decisions.
 
-**Absent or weakened:** authenticity of completion evidence (AUD-01) and of
-transition history (AUD-12); correct classification and ownership retention for
-`blocked` tasks (AUD-02); enablement enforcement for terminal tasks (AUD-03);
+**Absent or weakened at the audited revision:** authenticity of completion
+evidence (AUD-01) and of transition history (AUD-12); correct classification
+and ownership retention for `blocked` tasks (AUD-02, resolved later by PR #732);
+enablement enforcement for terminal tasks (AUD-03);
 semantic branch normalisation (AUD-04); PR-repo binding and bounded PR numbers
 (AUD-05); case-insensitive path equality (AUD-06); checkout binding (AUD-07);
 shared state/lock/durable ownership (AUD-08); parser crash classification
@@ -440,8 +459,9 @@ disabled extra agent; `Shared/Module.py` vs `shared/module.py`; `feature/../main
 `PASS` evidence with an arbitrary SHA. All probes were data-only; no agent, network call
 or manifest-supplied command was executed.
 
-**Coverage gaps (VERIFIED):** no test for a `blocked`-status decision or blocked-task
-file conflict; a disabled agent on `complete`; case-only path collisions; malformed
+**Coverage gaps (VERIFIED at the audited revision):** no test for a
+`blocked`-status decision or blocked-task file conflict (both added by PR #732);
+a disabled agent on `complete`; case-only path collisions; malformed
 branches; cross-repository/zero/unbounded PR references; fabricated PASS with arbitrary
 SHA; self-asserted `previous_status` rewrites; 5,000-deep JSON; duplicate JSON keys;
 512 KiB/collection bounds; exact key-set rejection; unknown/cross-repository dependency
@@ -452,7 +472,7 @@ failure; section 3 supplies the missing behavioural evidence.
 
 | Priority | Finding | Owner action | Guardrail |
 | --- | --- | --- | --- |
-| P1 | AUD-02 | Report `blocked` tasks, return `BLOCKED`/exit `1`, and keep them in ownership conflict checks; add both regression tests | Separate reviewed PR; no CI or permission changes |
+| RESOLVED | AUD-02 | PR #732 reports `blocked` tasks, returns `BLOCKED`/exit `1`, keeps them in ownership conflict checks, and adds five regression tests | Historical recommendation was a separate reviewed PR; no CI or permission changes |
 | P1 | AUD-01, AUD-12 | Stop describing self-asserted `PASS`/`previous_status` as verified; require structured attestation and operator-bound prior state | Keep checker offline; no agent dispatch or paid inference |
 | P2 | AUD-03, AUD-04, AUD-05 | Enforce enabled owners for all statuses; validate Git ref syntax and normalise keys; bind PR URL and bound PR number | Add negative tests from section 5 |
 | P2 | AUD-13, AUD-14 | Catch recursion/memory errors as `FAIL` JSON; reject duplicate JSON keys | Preserve documented exit-code contract |
