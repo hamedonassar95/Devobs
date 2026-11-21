@@ -1,8 +1,9 @@
 # Recovery verification matrix
 
 **Branch / base (VERIFIED):** `feature/repository-recovery-hardening` at `bf8bf31c289d1ee0a9c930e8dd1fc14a3e59b86f` before this change; `git rev-parse HEAD` and `git ls-remote origin refs/heads/main` agree.
-**Evidence window (VERIFIED):** 2026-11-21, 14:20–14:45 UTC.
-**Rule applied:** a check is `PASS` only with fresh output at the stated revision. `SKIPPED`, `BLOCKED` and `UNVERIFIED` are never reported as pass. A `FAIL` is retained as evidence, not suppressed.
+**Finalization branch / base (VERIFIED):** `feature/repository-recovery-finalization` from current main `10f8dd9b1e884e16cea3ffd847cf20405794cb8b`; see sections 8–9.
+**Evidence window (VERIFIED):** 2026-11-21, 14:20–14:45 UTC for sections 1–7; 2026-11-22 for sections 8–9.
+**Rule applied:** a check is `PASS` only with fresh output at the stated revision. `SKIPPED`, `BLOCKED` and `UNVERIFIED` are never reported as pass. A `FAIL` is retained as evidence, not suppressed. Sections 1–7 are the historical capture for the earlier branch.
 
 ## 1. Local checks at the base revision
 
@@ -62,7 +63,7 @@ The full Python suite was **not** rerun after this change. Its base result remai
 
 | Item | Reason | Status |
 |---|---|---|
-| Hosted Ubuntu CI and CodeQL on this branch | no authenticated PR creation and no push of this branch | BLOCKED |
+| Hosted Ubuntu CI and CodeQL on the earlier branch | no authenticated PR creation and no push of that branch at capture time | BLOCKED |
 | `actionlint` / ShellCheck job | tool not found locally; hosted job not observed for this SHA | SKIPPED |
 | Docker, Trivy, Terraform, OpenTofu, `kubectl`, Bandit, Gitleaks CLI, Semgrep CLI | tool not found locally (`CommandNotFound`) | SKIPPED |
 | Node `node --check` / `node --test` batches | PowerShell execution policy blocked `npm.ps1`; `node_modules` absent | BLOCKED |
@@ -78,9 +79,52 @@ The full Python suite was **not** rerun after this change. Its base result remai
 - The validator patch is **PASS** for its own behavioural suite; it does not make AUD-01/AUD-12 trusted, and those remain OPEN in the defect register.
 - P01/AI-9/Codex gates are **unchanged**: NO-GO / BLOCKED / OPEN respectively.
 
-## 7. Final branch publication state
+## 7. Earlier hardening branch publication state (historical)
 
 - Substantive commits (VERIFIED): `d46d201efff4ed403228cd699ed73a5f6aa40914` (validator fix), `fd246554f1cf00fc0ba4d2885dd1f80643333f93` (recovery docs); later commits in this section are documentation-only. Base `bf8bf31c289d1ee0a9c930e8dd1fc14a3e59b86f`.
 - Push (VERIFIED): `git push -u origin feature/repository-recovery-hardening` → `* [new branch] feature/repository-recovery-hardening -> feature/repository-recovery-hardening`, `PUSH_EXIT=0`. Later `git push origin feature/repository-recovery-hardening` updated the branch; `git ls-remote origin refs/heads/feature/repository-recovery-hardening` matched local HEAD after each push.
 - Draft PR creation: **BLOCKED**. `gh` is not installed or on `PATH` in this session (`GH_NOT_ON_PATH`; no executable in standard install locations). The earlier session also recorded unauthenticated `gh` and an exhausted REST core rate limit. No authenticated PR API call was made. Owner can open the Draft PR at the push-provided URL: `https://github.com/hamedonassar95/Devobs/pull/new/feature/repository-recovery-hardening`.
 - Hosted CI/CodeQL on `fd24655` is UNVERIFIED; no check claim is made for the published head.
+
+## 8. Finalization pass on current main (2026-11-22)
+
+**Base (VERIFIED):** `10f8dd9b1e884e16cea3ffd847cf20405794cb8b` (`git rev-parse origin/main`). The four reviewed hardening commits were cherry-picked onto this base without conflict. The action-checker fix is commit `ccecef0b8a12075948360a475a26a0dfe4595943`.
+
+| Check | Exact command | Final output (VERIFIED) | Result |
+|---|---|---|---|
+| Action version comments | `python -B scripts/check_action_pins.py` | `Action pin check passed for 48 workflow and template files.`; `ACTION_PINS_EXIT=0` | **PASS** |
+| Action-checker tests | `python -B -m unittest tests.test_action_pins -v` | `Ran 8 tests in 1.135s`; `OK`; `ACTION_TESTS_EXIT=0` | **PASS** |
+| Regression proof | restore `HEAD` checker, rerun tests, restore patched checker | pre-fix `FAILED (errors=4)`, `REVERTED_FIX_EXIT=1`; restored `OK`, `RESTORED_FIX_EXIT=0`; `DIFF_CHECK_EXIT=0` | **PASS** |
+| Validator tests | `python -B -m unittest tests.test_two_agent_tasks -q` | `Ran 32 tests in 9.465s`; `OK`; `TWO_AGENT_EXIT=0` | **PASS** |
+| Python compile | `python -m compileall -q scripts tests tools` | no output; `COMPILEALL_EXIT=0` | **PASS** |
+| Agent inventory | `python -B scripts/check_agent_spec.py` | `AGENT_SPEC_EXIT=0` | **PASS** |
+| Ledger validator | `python -B scripts/milestone_ledger.py` | `LEDGER_EXIT=0` | **PASS** command; governance data remains stale |
+| YAML parse | inline `yaml.safe_load` over `.github/workflows/*.yml` | `YAML_PARSE_OK files=43`; `YAML_PARSE_EXIT=0` | **PASS** (local substitute only) |
+| yamllint | `yamllint -f parsable .github/workflows` | many pre-existing `document-start`, `new-lines`, `truthy`, `comments` and `line-length` findings; `YAMLLINT_EXIT=1` | **FAIL** (pre-existing; no YAML file changed here) |
+| Gitleaks coverage | `python -B scripts/verify_gitleaks_coverage.py` | `Gitleaks coverage verification failed: GitHub Actions job summary path is missing`; `GITLEAKS_COVERAGE_EXIT=1` | **BLOCKED** (CI-only input and CLI absent) |
+| Diff hygiene | `git diff --check` | no output; `DIFF_CHECK_EXIT=0` | **PASS** |
+
+The fresh full-suite result is recorded in section 9.
+
+### 8.1 Refreshed hosted evidence
+
+| Check | Source | Final observation (VERIFIED) | Result |
+|---|---|---|---|
+| Open PR count | `GET /repos/hamedonassar95/Devobs/pulls?state=open&per_page=100` | HTTP `200`, empty array | **VERIFIED**: no open PRs |
+| Main SHA | `GET /repos/hamedonassar95/Devobs/commits/10f8dd9...` | HTTP `200`, `sha=10f8dd9b1e884e16cea3ffd847cf20405794cb8b` | **VERIFIED** |
+| Main CI | run `44949929160` | `validate`, `security`, `site-contract`, `postgres-rls`, container build/scan and `terraform-validate` `success`; Python/Node `skipped` by scope | **PASS** for `10f8dd9` only |
+| Main CodeQL | run `44949928328` | `Analyze (actions)`, `Analyze (javascript-typescript)` and `Analyze (python)` all `success` | **PASS** for `10f8dd9` only |
+| REST quota | `GET https://api.github.com/rate_limit` | HTTP `200`, `core.remaining=48`, `core.limit=60`; no authentication used | **VERIFIED** |
+| Exact checks for this branch | GitHub REST | unpublished branch; no run exists | **UNVERIFIED** until push/PR |
+
+Unchanged SKIPPED/BLOCKED inventory: `actionlint`, ShellCheck, Docker/Trivy, Terraform/OpenTofu, Bandit, Gitleaks CLI, Semgrep CLI, `gh`, `kubectl`, Node console jobs, Keycloak runtime, live OIDC/JWKS, tenant isolation, backup restore, provider billing, cloud state and Google Cloud commands.
+
+## 9. Fresh full Python suite on the finalization branch
+
+| Check | Exact command | Final output (VERIFIED) | Result |
+|---|---|---|---|
+| Full Python suite | `python -u -B -m unittest discover -s tests -q` | `Ran 1437 tests in 434.299s`; `FAILED (failures=47, errors=123, skipped=44)`; `FULL_SUITE_EXIT=1` | **FAIL** |
+
+An earlier attempt with a 600-second cap was terminated (`exit 143`) before producing a summary, so it is recorded as **INCOMPLETE**, not as a pass or a failure count. The rerun above used a 1800-second cap and completed.
+
+Representative failing categories in the complete output were `FileNotFoundError: [WinError 2]` for Bash/tool resolution, `secure_open_unavailable` in the AgentDust read-only adapter, `Git unavailable or timed out` in Gitleaks coverage tests, `source directory must resolve inside GITHUB_WORKSPACE` in site-staging tests, and the expected `EXTERNAL_ROUTE_PLAN_BLOCKED` P01 gate. These are the known environment/ownership classes recorded in `defect-register.md` (REC-B01 and the unchanged gates); a separate fresh current-main-only comparison was **not** run, so no claim is made that every failure is unrelated to current main. The targeted suites for the files changed here (`tests.test_two_agent_tasks`, `tests.test_action_pins`) both passed in section 8.
