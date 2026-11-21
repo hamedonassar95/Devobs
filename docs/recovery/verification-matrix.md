@@ -115,7 +115,12 @@ The fresh full-suite result is recorded in section 9.
 | Main CI | run `44949929160` | `validate`, `security`, `site-contract`, `postgres-rls`, container build/scan and `terraform-validate` `success`; Python/Node `skipped` by scope | **PASS** for `10f8dd9` only |
 | Main CodeQL | run `44949928328` | `Analyze (actions)`, `Analyze (javascript-typescript)` and `Analyze (python)` all `success` | **PASS** for `10f8dd9` only |
 | REST quota | `GET https://api.github.com/rate_limit` | HTTP `200`, `core.remaining=48`, `core.limit=60`; no authentication used | **VERIFIED** |
-| Exact checks for this branch | GitHub REST | unpublished branch; no run exists | **UNVERIFIED** until push/PR |
+| Pushed branch head | `git push -u origin feature/repository-recovery-finalization`; `git ls-remote --heads origin ...` | `PUSH_EXIT=0`; remote `0b5daedaf56f3c8fb8014d0724ed06f478763a7b` matches local HEAD | **VERIFIED** |
+| Exact-head commit lookup | `GET /repos/hamedonassar95/Devobs/commits/0b5daed...` | HTTP `200`, `sha=0b5daedaf56f3c8fb8014d0724ed06f478763a7b` | **VERIFIED** |
+| Exact-head CI | `GET /repos/hamedonassar95/Devobs/actions/runs?head_sha=0b5daed...` | run `44963206484`, event `push`, status `in_progress`, `conclusion=null` at capture | **IN PROGRESS**; no final pass claim |
+| Exact-head check runs | `GET /repos/hamedonassar95/Devobs/commits/0b5daed.../check-runs` | `security`, `site-contract`, `postgres-rls`, `terraform-validate`, change-impact, container build/smoke/scan and Vercel Preview Comments `success`; Python 3.12/3.15 and `node-tests` `in_progress` | **PARTIAL PASS / IN PROGRESS** |
+| Exact-head CodeQL | public REST run/check lookup | no CodeQL run observed for `0b5daed` at capture | **UNVERIFIED** |
+| Draft PR creation | `gh pr create --draft --base main --head feature/repository-recovery-finalization ... --body-file ...` | `GH_PR_CREATE_BLOCKED: The term 'gh' is not recognized ...`; `PR_CREATE_EXIT=127` | **BLOCKED** |
 
 Unchanged SKIPPED/BLOCKED inventory: `actionlint`, ShellCheck, Docker/Trivy, Terraform/OpenTofu, Bandit, Gitleaks CLI, Semgrep CLI, `gh`, `kubectl`, Node console jobs, Keycloak runtime, live OIDC/JWKS, tenant isolation, backup restore, provider billing, cloud state and Google Cloud commands.
 
@@ -128,3 +133,11 @@ Unchanged SKIPPED/BLOCKED inventory: `actionlint`, ShellCheck, Docker/Trivy, Ter
 An earlier attempt with a 600-second cap was terminated (`exit 143`) before producing a summary, so it is recorded as **INCOMPLETE**, not as a pass or a failure count. The rerun above used a 1800-second cap and completed.
 
 Representative failing categories in the complete output were `FileNotFoundError: [WinError 2]` for Bash/tool resolution, `secure_open_unavailable` in the AgentDust read-only adapter, `Git unavailable or timed out` in Gitleaks coverage tests, `source directory must resolve inside GITHUB_WORKSPACE` in site-staging tests, and the expected `EXTERNAL_ROUTE_PLAN_BLOCKED` P01 gate. These are the known environment/ownership classes recorded in `defect-register.md` (REC-B01 and the unchanged gates); a separate fresh current-main-only comparison was **not** run, so no claim is made that every failure is unrelated to current main. The targeted suites for the files changed here (`tests.test_two_agent_tasks`, `tests.test_action_pins`) both passed in section 8.
+
+## 10. Final publication state
+
+- **VERIFIED:** branch `feature/repository-recovery-finalization` was pushed at `0b5daedaf56f3c8fb8014d0724ed06f478763a7b`; `PUSH_EXIT=0` and `git ls-remote --heads origin ...` matched the local HEAD.
+- **BLOCKED:** Draft PR creation failed because `gh` is absent from this session (`GH_PR_CREATE_BLOCKED`, `PR_CREATE_EXIT=127`). No authenticated PR API call was made. The owner must install/authenticate `gh` or open the Draft PR manually at `https://github.com/hamedonassar95/Devobs/pull/new/feature/repository-recovery-finalization` using the prepared body summarizing evidence and remaining blockers.
+- **VERIFIED:** GitHub's push output also provided the same manual PR URL. No PR exists in the public open-PR list at capture time.
+- **UNVERIFIED:** final conclusion of CI run `44963206484` and any CodeQL run for the exact branch head. Partial check successes are listed in section 8.1; they are not a claim that the run completed successfully.
+- **NOT DONE:** no merge, deployment, ruleset change, cloud action, hosted mutation, PR comment, or gate approval was performed.
