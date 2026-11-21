@@ -221,6 +221,7 @@ def _normalise_locks(locks, by_id, evaluation):
         evaluation.unverified("invalid_lock_evidence")
         return []
     normalised = []
+    seen_paths = set()
     valid = True
     for entry in locks:
         if not isinstance(entry, dict) or set(entry) != LOCK_KEYS:
@@ -231,7 +232,12 @@ def _normalise_locks(locks, by_id, evaluation):
         if path is None or not isinstance(owner, str) or owner not in by_id:
             valid = False
             continue
-        normalised.append((path.casefold(), owner))
+        key = path.casefold()
+        if key in seen_paths:
+            valid = False
+            continue
+        seen_paths.add(key)
+        normalised.append((key, owner))
     if not valid:
         evaluation.unverified("invalid_lock_evidence")
     evaluation.check("lock_evidence")
@@ -314,11 +320,13 @@ def evaluate_policy(request):
     tasks = _task_list(manifest)
     by_id = _index(tasks)
     agents = manifest.get("agents") if isinstance(manifest, dict) else None
+    agents = agents if isinstance(agents, dict) else {}
     result["summary"]["tasks"] = len(tasks)
     result["summary"]["task_ids"] = sorted(by_id)
     result["summary"]["agents"] = _agent_names(manifest)
 
-    if not isinstance(manifest, dict) or set(manifest) != TOP_LEVEL_KEYS:
+    if (not isinstance(manifest, dict) or set(manifest) != TOP_LEVEL_KEYS
+            or not isinstance(manifest.get("agents"), dict)):
         evaluation.deny("malformed_request")
         return evaluation.finalize()
 

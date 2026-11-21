@@ -245,6 +245,27 @@ class AgentPolicyTests(unittest.TestCase):
         self.assertEqual(result["decision"], "UNVERIFIED")
         self.assertIn("validator_decision_unknown", result["reason_codes"])
 
+    def test_duplicate_lock_paths_are_unverified(self):
+        request = _request()
+        request["locks"] = [
+            {"path": "docs/shared.md", "owner": "TASK-001"},
+            {"path": "DOCS/shared.md", "owner": "TASK-001"},
+        ]
+
+        result = evaluate_policy(request)
+
+        self.assertEqual(result["decision"], "UNVERIFIED")
+        self.assertIn("invalid_lock_evidence", result["reason_codes"])
+
+    def test_malformed_agent_registry_fails_closed_without_traceback(self):
+        request = _request()
+        request["manifest"]["agents"] = "CODEX"
+
+        result = evaluate_policy(request)
+
+        self.assertEqual(result["decision"], "DENY")
+        self.assertIn("malformed_request", result["reason_codes"])
+
     def test_cli_exit_codes_match_allow_deny_and_unverified(self):
         allowed = _request()
         denied = _request()
