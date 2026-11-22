@@ -143,6 +143,19 @@ test('still rejects missing keys, fabricated values and inconsistent runner evid
   ];
   for (const input of cases) assert.throws(() => triageCineForgeCi(input));
 });
+test('classifies a cancelled run separately even after steps executed', () => {
+  const input = payload({
+    run_conclusion: 'cancelled',
+    jobs: [{ ...failed('android'), conclusion: 'cancelled', runner_id: 77, executed_steps: 3 }],
+  });
+  const result = triageCineForgeCi(input);
+  assert.equal(result.observed_classification, 'RUN_CANCELLED');
+  assert.equal(result.underlying_root_cause, 'UNKNOWN');
+  assert.equal(result.recommends_code_change, false);
+  assert.equal(result.automatic_execution, false);
+  assert.match(result.next_read_only_check, /do not classify cancellation as a workflow failure/);
+});
+
 test('recognizes an actual executed failure without assigning a cause', () => {
   const input = payload({ jobs: [{ ...failed('android'), runner_id: 77, executed_steps: 3 }] });
   const result = triageCineForgeCi(input);
