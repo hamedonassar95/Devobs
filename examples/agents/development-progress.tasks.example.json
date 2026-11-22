@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "repositories": [
+    "hamedonassar95/Devobs"
+  ],
+  "agents": {
+    "CODEX": {
+      "enabled": true
+    },
+    "OPENCODE": {
+      "enabled": true
+    }
+  },
+  "approval": {
+    "billing": "pending_human",
+    "deploy": "pending_human",
+    "merge": "pending_human",
+    "production": "pending_human"
+  },
+  "tasks": [
+    {
+      "id": "TASK-LOCAL-PROGRESS-001",
+      "repository": "hamedonassar95/Devobs",
+      "assigned_agent": "OPENCODE",
+      "branch": "feature/opencode-local-progress-readiness",
+      "affected_files": [
+        "examples/agents/development-progress.tasks.example.json",
+        "docs/agents/LOCAL_PROGRESS_QUICKSTART.md",
+        "docs/verification/opencode-local-progress-validation.md"
+      ],
+      "dependencies": [],
+      "status": "planned",
+      "previous_status": "none",
+      "source_sha": null,
+      "verification": {
+        "commands": [],
+        "result": "PENDING",
+        "evidence": ""
+      },
+      "pr_reference": null,
+      "requested_actions": [
+        "documentation",
+        "test"
+      ]
+    }
+  ]
+}
