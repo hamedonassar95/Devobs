@@ -44,7 +44,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         </div>
 
         {/* Zone 2: Navigation links */}
-        <nav className="order-3 lg:order-none w-full lg:w-auto min-w-0 flex items-center gap-4 text-xs font-medium text-slate-300 overflow-x-auto py-2">
+        <nav className="order-3 hidden lg:order-none lg:w-auto lg:min-w-0 lg:flex items-center gap-4 text-xs font-medium text-slate-300 overflow-x-auto py-2">
           <button
             onClick={() => onTabChange('overview')}
             className={`transition-colors whitespace-nowrap shrink-0 hover:text-white ${

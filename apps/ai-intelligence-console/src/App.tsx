@@ -8,6 +8,7 @@ import {
   INITIAL_METRICS_24H,
 } from './data/mockServerData';
 import { DashboardHeader, DashboardTab } from './components/dashboard/DashboardHeader';
+import { MobileSectionMenu } from './components/dashboard/MobileSectionMenu';
 import { DevobsSession } from './components/dashboard/DevobsSession';
 import { ServerOverviewCards } from './components/dashboard/ServerOverviewCards';
 import { LocalAi7Panel } from './components/dashboard/LocalAi7Panel';
@@ -448,7 +449,7 @@ export default function App() {
           بيئة تجريبية (DEMO ONLY): السجلات والأزرار لا تُثبت حالة الخوادم أو تنفيذ نشر أو تراجع فعلي. الإجراءات التشغيلية هنا للمعاينة فقط، ولا تُصدر أوامر إلى البنية التحتية.
         </div>
         {/* Top Context Subheader */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-800">
           <div>
             <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-indigo-400 mb-1">
               <span>مركز التحكم الموحد</span>
@@ -460,7 +461,7 @@ export default function App() {
                 بيانات محلية تجريبية
               </span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-white">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-white break-words">
               {activeTab === 'overview' && 'لوحة قيادة الخوادم والأنظمة'}
               {activeTab === 'github' && 'مركز تطوير وعمليات GitHub (GitHub DevOps & CI/CD Hub)'}
               {activeTab === '3d_room' && 'غرفة الخوادم التفاعلية ثلاثية الأبعاد (Three.js)'}
@@ -483,7 +484,9 @@ export default function App() {
             </h2>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <MobileSectionMenu activeTab={activeTab} onTabChange={setActiveTab} />
+
+          <div className="hidden lg:flex flex-wrap items-center gap-2">
             <button
               onClick={() => setActiveTab('github')}
               className="px-3.5 py-2 text-xs font-bold rounded-xl bg-indigo-600/30 text-indigo-300 hover:bg-indigo-600 hover:text-white border border-indigo-500/50 transition-all flex items-center gap-1.5 shadow-md shadow-indigo-600/20"
