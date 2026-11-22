@@ -104,7 +104,8 @@ of those overlaps.
 A later `git fetch origin` (exit `0`) showed `origin/main` advanced to
 `b90407040e3d2a34627679f2cbca14db46eb70ca` with three new merges:
 #748 `4ddf18a`, #749 `b904070`, #750 `2db6788`. GitHub `compare/main...feature/devobs-production-recovery`
-returned `diverged`, `ahead_by: 2`, `behind_by: 3`, `status: 200`. The changed
+returned `diverged`, initially `ahead_by: 2` and later `ahead_by: 3` after the
+second evidence commit, `behind_by: 3`, `status: 200`. The changed
 files on newer `main` are `STATE.md`, `docs/MILESTONE_LEDGER.json`,
 `tests/test_milestone_ledger.py`, and console UI files — **no overlap** with
 this branch's six changed files (VERIFIED by `git diff --name-only`).

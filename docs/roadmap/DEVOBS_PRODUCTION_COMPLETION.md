@@ -123,7 +123,10 @@ shellcheck argv (actionlint `1.7.12` itself passed 38 authored workflows with
   created. Manual URL is in the runbook.
 - Post-baseline movement (VERIFIED 2026-11-23): `origin/main` advanced to
   `b90407040e3d2a34627679f2cbca14db46eb70ca` (#748/#749/#750); compare reports
-  `ahead_by:2`, `behind_by:3`, with no overlapping files. #750 resolved D5
+  `ahead_by:3`, `behind_by:3`, with no overlapping files. A read-only
+  `git merge-tree --write-tree origin/main HEAD` returned tree
+  `62dd63892c6ae4e08ed3c5444ed791b804ce7550` with exit `0` — no merge conflict
+  (VERIFIED; no ref changed). #750 resolved D5
   upstream (ledger `latest_pr:747`, `305` milestones, gates unchanged). No
   rebase or history rewrite was done; reviewed SHAs remain bound to the fixed
   base.

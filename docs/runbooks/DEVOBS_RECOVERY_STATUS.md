@@ -50,6 +50,8 @@ python -B -m unittest tests.test_milestone_ledger
 python -B scripts/check_action_pins.py
 python scripts/milestone_ledger.py --summary
 git diff --check
+git fetch origin
+git merge-tree --write-tree origin/main HEAD
 ```
 
 Expected final lines on the repaired branch (VERIFIED here):
@@ -59,6 +61,9 @@ Expected final lines on the repaired branch (VERIFIED here):
 - `Action pin check passed for 48 workflow and template files.` → exit `0`
 - ledger summary JSON as in §1 → exit `0`
 - `git diff --check` → no output → exit `0`
+- `git merge-tree --write-tree origin/main HEAD` →
+  `62dd63892c6ae4e08ed3c5444ed791b804ce7550` → exit `0` (clean merge tree,
+  no conflict against `main` `b904070…`; no ref was changed)
 - `python -B -m unittest discover -s tests -v` → `Ran 1480 tests in 495.511s`
   → `FAILED (failures=84, errors=126, skipped=38)` → exit `1`; zero reported
   failures name `two_agent` (VERIFIED). This full-suite exit is recorded, not
