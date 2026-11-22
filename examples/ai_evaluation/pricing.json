@@ -1,0 +1,22 @@
+{
+  "schema_version": "ai-eval-pricing/1.0",
+  "currency": "USD",
+  "entries": {
+    "grok-4.7": {
+      "prompt_usd_per_million": "2.00",
+      "completion_usd_per_million": "0.50",
+      "source_url": "https://docs.x.ai/developers/models",
+      "verified": true
+    },
+    "gpt-4.1": {
+      "prompt_usd_per_million": "2.00",
+      "completion_usd_per_million": "8.00",
+      "source_url": "https://openai.com/api/pricing/",
+      "verified": true
+    },
+    "gemini-2.5-pro": {
+      "verified": false,
+      "note": "Pricing not verified in this offline snapshot; marked UNKNOWN."
+    }
+  }
+}

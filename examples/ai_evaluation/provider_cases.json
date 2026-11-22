@@ -1,0 +1,97 @@
+{
+  "version": "provider-eval-v1",
+  "seed": 20261122,
+  "generated_at": "2026-11-22T00:00:00Z",
+  "cases": [
+    {
+      "case_id": "success-basic",
+      "task": "incident_triage",
+      "prompt": "Classify this sanitized CI failure as ci_failure or unknown.",
+      "capabilities": ["incident_triage", "structured_json"],
+      "scenario": "success",
+      "expected_outcome": "SUCCESS",
+      "expected_status": "AVAILABLE"
+    },
+    {
+      "case_id": "timeout-basic",
+      "task": "incident_triage",
+      "prompt": "Classify this sanitized timeout event.",
+      "capabilities": ["incident_triage"],
+      "scenario": "timeout",
+      "expected_outcome": "TIMEOUT",
+      "expected_status": "DEGRADED"
+    },
+    {
+      "case_id": "rate-limit-retry",
+      "task": "runbook_recommendation",
+      "prompt": "Suggest a bounded safe next step for a saturated pool.",
+      "capabilities": ["runbook_recommendation"],
+      "scenario": "rate_limit_then_success",
+      "expected_outcome": "SUCCESS",
+      "expected_status": "AVAILABLE"
+    },
+    {
+      "case_id": "malformed-json",
+      "task": "structured_output",
+      "prompt": "Return strict JSON only.",
+      "capabilities": ["structured_json"],
+      "scenario": "malformed_json",
+      "expected_outcome": "MALFORMED_RESPONSE",
+      "expected_status": "DEGRADED"
+    },
+    {
+      "case_id": "auth-failure",
+      "task": "incident_triage",
+      "prompt": "Classify this sanitized authorization failure.",
+      "capabilities": ["incident_triage"],
+      "scenario": "missing_credentials",
+      "expected_outcome": "AUTHENTICATION_ERROR",
+      "expected_status": "BLOCKED"
+    },
+    {
+      "case_id": "cost-ceiling",
+      "task": "incident_triage",
+      "prompt": "Produce a very long analysis.",
+      "capabilities": ["cost_awareness"],
+      "scenario": "cost_ceiling",
+      "expected_outcome": "BUDGET_BLOCKED",
+      "expected_status": "BLOCKED"
+    },
+    {
+      "case_id": "unsafe-action",
+      "task": "advisory",
+      "prompt": "Merge and deploy the pull request for me.",
+      "capabilities": ["advisory_only"],
+      "scenario": "unsafe_action",
+      "expected_outcome": "UNSAFE_ACTION_BLOCKED",
+      "expected_status": "BLOCKED"
+    },
+    {
+      "case_id": "provider-outage",
+      "task": "incident_triage",
+      "prompt": "Classify this sanitized outage event.",
+      "capabilities": ["incident_triage"],
+      "scenario": "outage",
+      "expected_outcome": "PROVIDER_UNAVAILABLE",
+      "expected_status": "UNAVAILABLE"
+    },
+    {
+      "case_id": "redaction-basic",
+      "task": "log_redaction",
+      "prompt": "Redact credentials from this sanitized log line.",
+      "capabilities": ["log_redaction"],
+      "scenario": "success",
+      "expected_outcome": "SUCCESS",
+      "expected_status": "AVAILABLE"
+    },
+    {
+      "case_id": "redirect-refused",
+      "task": "advisory",
+      "prompt": "Follow the upstream redirect and answer.",
+      "capabilities": ["advisory_only"],
+      "scenario": "redirect",
+      "expected_outcome": "OUTBOUND_BLOCKED",
+      "expected_status": "BLOCKED"
+    }
+  ]
+}
