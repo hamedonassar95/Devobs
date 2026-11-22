@@ -34,6 +34,8 @@ accessed. No gate was promoted and nothing was merged or deployed.
 | WSL | `wsl --status` exit **50**; `wsl -l -q` printed usage; no `HKCU:\...\Lxss` key → no distribution installed | VERIFIED |
 | Git Bash | `MINGW64_NT-10.0-19045`; still the Windows kernel, not Linux | VERIFIED |
 | Secure reader | Requires POSIX `O_NOFOLLOW`/`O_DIRECTORY`/`O_CLOEXEC`/`O_NONBLOCK` and `dir_fd`; native Windows fails closed | VERIFIED ([reader](../../scripts/agentdust_readonly_adapter.py)) |
+| `actionlint` | Installed v1.7.12; `actionlint -version` exits 0 (WinGet path, windows/amd64) | VERIFIED |
+| `shellcheck` | Installed on `PATH`; `shellcheck -` with `echo hi` exits 1 with `SC2148` (responds, not missing) | VERIFIED |
 
 No WSL, distribution, SDK or interpreter was installed. Windows symlink/credential protections were
 not weakened; no test was skipped or rewritten to force a pass.
@@ -59,6 +61,11 @@ because `python3` is a non-functional stub here.
 | 12 | `python tools/agent_output_guard.py --workspace . examples/agents/development-progress.tasks.example.json docs/agents/LOCAL_PROGRESS_QUICKSTART.md docs/verification/opencode-local-progress-validation.md` | **2** | `{"artifacts":[{"index":1,"reason_codes":["SECURE_OPEN_UNAVAILABLE"],"status":"FAIL"},{"index":2,"reason_codes":["SECURE_OPEN_UNAVAILABLE"],"status":"FAIL"},{"index":3,"reason_codes":["SECURE_OPEN_UNAVAILABLE"],"status":"FAIL"}],"content_redacted":true,"offline":true,"policy":"agent-output-guard/1","reason_codes":[],"schema_version":1,"status":"FAIL"}` |
 | 13 | `git diff --check` | 0 | (silent) |
 | 14 | relative Markdown link and referenced-file check (two new documents) | 0 | `RELATIVE_LINKS_CHECKED 17 BROKEN 0` / `JSON_VALID example= True` |
+| 15 | `actionlint -version` | 0 | `1.7.12` / `installed by downloading from release page` / `built with go1.26.1 compiler for windows/amd64` |
+| 16 | exact wrapper argv: `python subprocess.run([actionlint, '-color=false', *38 authored workflow files], timeout=30)` | no exit (terminated at 30 s) | `WRAPPER_ARGV=TIMEOUT_30s`; stdout/stderr not captured |
+| 17 | same 38 files with documented integration switch: `[actionlint, '-no-color', '-shellcheck=', *files]` | 0 | `FILES 38 EXIT 0 STDOUT_LEN 0 STDERR_LEN 0` (no diagnostics) |
+| 18 | `shellcheck -` fed `echo hi` | 1 | `SC2148 (error): Tips depend on target shell...` (tool responds; no shebang in probe) |
+| 19 | post-edit repeat of the relative-link check and `git diff --check` | 0 | `RELATIVE_LINKS_CHECKED 19 BROKEN 0` / `DIFF_CHECK_EXIT=0` |
 
 Commands 7–10 returned **FAIL (exit 3)** on native Windows because the secure reader cannot open
 inputs there. This is a real failure, not a `BLOCKED` (1) or `UNVERIFIED` (2) report and not a
@@ -68,6 +75,22 @@ test failures in command 3 are the same platform boundary; the other 120 tests p
 Command 12 likewise returns **FAIL (exit 2)** with `SECURE_OPEN_UNAVAILABLE` for every artifact on
 this host; it is **not** a guard `PASS`, and no file was edited to satisfy the guard. An actual
 content-guard `PASS` requires Linux/WSL and remains UNVERIFIED.
+
+Commands 15–18 isolate the earlier cancelled workflow lint. The wrapper
+[`scripts/lint_authored_workflows.py`](../../scripts/lint_authored_workflows.py) passes
+`[binary, '-color=false', *files]` with shellcheck integration left at its default. Replaying that
+exact argv through a bounded `subprocess.run(timeout=30)` timed out (command 16), so the wrapper's
+own exit code is **unavailable** and its earlier `EXIT=-1` came from forced termination, not from
+actionlint. The same 38 authored workflow files complete with **exit 0 and no diagnostics** when
+the documented `-shellcheck=` switch disables external integration (command 17). The official
+[actionlint usage doc](https://raw.githubusercontent.com/rhysd/actionlint/main/docs/usage.md)
+states that `-shellcheck=` disables shellcheck and makes the run much faster because integration
+"spawn[s] many processes", and defines exit 0 as "no problem was found". Shellcheck itself answers
+on this host (command 18), so the hang is localized to the default integration path here. This is
+**not** a reason to change the wrapper or to hide the unresolved wrapper result: no wrapper exit
+code is claimed, and the wrapper remains NOT RUN on this host. Command 19 rechecks links and
+whitespace after this documentation-only update; the earlier 17-link result in command 14 was
+recorded before the two added references.
 
 ## 4. Classification
 
@@ -81,6 +104,9 @@ content-guard `PASS` requires Linux/WSL and remains UNVERIFIED.
   and link checks in section 3.
 - PR #746 merged and its reviewed tree equals current `origin/main`; ownership precheck passed.
 - Windows fail-closed behavior is reproducible and byte-identical across two runs per format.
+- actionlint 1.7.12 is installed and the 38 authored (non-`.lock.yml`) workflow files produce no
+  diagnostics with `-shellcheck=` (exit 0, commands 15–17); the hang is confined to the default
+  shellcheck-integration argv, and no wrapper exit code is claimed.
 
 ### UNVERIFIED
 
@@ -95,6 +121,8 @@ content-guard `PASS` requires Linux/WSL and remains UNVERIFIED.
   is explicitly out of scope. Python 3 reports exit 3 on this host by design.
 - Authenticated GitHub API queries and Draft PR creation: `gh` unavailable, anonymous REST rate
   limited (HTTP 403 earlier 401); no token may be read.
+- `scripts/lint_authored_workflows.py` with its shipped default argv: the 30 s bounded replay timed
+  out, so its real exit code and CI-equivalent result are unavailable on this host.
 
 ### NOT RUN
 
@@ -143,6 +171,7 @@ unchanged.
 [Ledger](../MILESTONE_LEDGER.json) ·
 [Task contract validator](../../scripts/check_two_agent_tasks.py) ·
 [Secure reader](../../scripts/agentdust_readonly_adapter.py) ·
-[Output guard](../../tools/agent_output_guard.py).
+[Output guard](../../tools/agent_output_guard.py) ·
+[Workflow lint wrapper](../../scripts/lint_authored_workflows.py).
 
 **Final status: `PENDING HUMAN APPROVAL`.**
