@@ -27,7 +27,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 }) => {
   return (
     <header className="sticky top-0 z-40 bg-slate-900/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-800 text-slate-100 transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 min-h-16 py-3 lg:py-0 flex flex-wrap lg:flex-nowrap items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 min-h-16 py-3 lg:py-0 min-w-0 flex flex-wrap lg:flex-nowrap items-center justify-between gap-4">
         {/* Zone 1: Brand Wordmark */}
         <div className="flex items-center gap-3 shrink-0">
           <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-base shadow-inner">
@@ -215,7 +215,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         </nav>
 
         {/* Zone 3: 1 primary action + Controls */}
-        <div className="w-full lg:w-auto flex flex-wrap items-center gap-2.5 shrink-0">
+        <div className="w-full lg:w-auto min-w-0 flex flex-wrap items-center gap-2.5">
           {user ? (
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-200">
               {user.photoURL ? (
