@@ -19,6 +19,9 @@ not authentication, human approval or permission to deploy. No provider is activ
 
 [Read the fixed-SHA P01 NO-GO owner decision and acceptance matrix](docs/p01/P01_NO_GO_DECISION_2026-11-19.md) for the reviewed `main` SHA `0f062c03dbefceebf8eaca79bdaf30c2483f99be`. This is source/read-only metadata evidence, **not** a provider hard-cap, hosted test or P01 approval. The existing P01 evidence sample and P01/AI-9/Codex gates are unchanged. A separate owner decision is needed before the existing Free PostgreSQL expiry on 2026-12-05.
 
+## Current readiness audit and recovery plan (2026-11-22)
+
+[Current status audit](docs/audits/DEVOBS_CURRENT_STATUS.md) and [prioritized recovery plan](docs/roadmap/DEVOBS_NEXT_ACTIONS.md) reconcile merged PRs #720, #722, #724–#726, #744 and #745 at `main` `a9e6e1b1626d8efc1960a8eec52bf412e018c0c6`, classify remaining gates, and define one actionable next fix. These are evidence-only reports; no gate was promoted.
 
 [![CI](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/hamedonassar95/Devobs/actions/workflows/ci.yml)
 
