@@ -1,5 +1,9 @@
 # Devobs
 
+## Full platform gap audit (2026-11-22, advisory)
+
+[Full gap audit](docs/audits/DEVOBS_FULL_GAP_AUDIT.md) records an evidence-based review of `origin/main` `10f8dd9`: verified offline controls, missing/partial capabilities, stale components and the priority classification. Companion reports: [security matrix](docs/audits/DEVOBS_SECURITY_GAP_MATRIX.md), [AI/agent readiness](docs/audits/DEVOBS_AI_AGENT_READINESS.md), [SaaS readiness](docs/audits/DEVOBS_SAAS_READINESS.md), [integration matrix](docs/audits/DEVOBS_INTEGRATION_MATRIX.md), [priority roadmap](docs/roadmap/DEVOBS_PRIORITY_REMEDIATION.md) and [machine-readable backlog](docs/roadmap/DEVOBS_IMPLEMENTATION_BACKLOG.json). This is audit and planning only: P01 remains NO-GO/BLOCKED, AI-9 BLOCKED and Codex runtime acceptance OPEN. No production readiness, merge, deploy, spend or provider action is authorized.
+
 ## Human-supervised multi-agent repository workflow
 
 [AI Multi-Agent Repository Workflow](docs/AI_MULTI_AGENT_WORKFLOW.md) documents isolated Codex/OpenCode worktrees, non-overlapping file ownership, Draft PR review, verification evidence, and owner-only merge/deploy decisions. This is a documented operating policy, not an activated agent scheduler or automatic dispatch service.
