@@ -15,7 +15,9 @@ hosted action.
 | Local HEAD before commit | `88556034e24e52e529c276ab6cc753e8fc026c91` | VERIFIED |
 | Commit SHA | a commit cannot contain its own SHA; the exact HEAD SHA and push result are in the final delivery report | VERIFIED at delivery |
 | Toolchain | Python `3.12.10`, git `2.56.1.windows.1`, Windows | VERIFIED |
-| Ledger summary | `latest_pr:717`, `304` milestones, `3` open gates, gates unchanged | VERIFIED |
+| Ledger summary on fixed base | `latest_pr:717`, `304` milestones, `3` open gates, gates unchanged | VERIFIED |
+| `origin/main` after later fetch | `b90407040e3d2a34627679f2cbca14db46eb70ca` (#748/#749/#750); branch `ahead_by:2`, `behind_by:3`, no overlapping files | VERIFIED 2026-11-23 |
+| Ledger on newer `main` | #750 reconciled to `latest_pr:747`, `305` milestones, gates unchanged | VERIFIED 2026-11-23 |
 | P01 / AI-9 / Codex gates | `BLOCKED` / `BLOCKED` / `OPEN` (normalized BLOCKED) | VERIFIED + ASSUMED normalization |
 
 ## 2. Exactly one repair on this branch
@@ -110,7 +112,7 @@ CI run in this evidence set (UNVERIFIED).
 |---|---|---|
 | Commit on isolated branch | COMPLETE — one bounded commit; exact SHA in final delivery report (a commit cannot record its own SHA) | `git rev-parse HEAD` in the delivery report |
 | Push to `origin/feature/devobs-production-recovery` | see final delivery report for exit code | `git push -u origin ...` |
-| Draft PR to `main` | BLOCKED — anonymous REST `401 Requires authentication`, `gh` absent | manual URL below |
+| Draft PR to `main` | BLOCKED — anonymous REST `401 Requires authentication`, `gh` absent; `GET /pulls?head=…&state=all` returned `[]` | manual URL below |
 | Merge / deploy | NOT PERFORMED | owner approval required |
 
 Manual Draft PR URL if authenticated creation remains blocked:

@@ -99,6 +99,28 @@ of those overlaps.
 - `gh` CLI is unavailable; Draft PR creation by authenticated CLI is BLOCKED.
 - Current-base hosted CI run: UNVERIFIED. No hosted rerun was authorized.
 
+### Post-baseline movement (VERIFIED 2026-11-23)
+
+A later `git fetch origin` (exit `0`) showed `origin/main` advanced to
+`b90407040e3d2a34627679f2cbca14db46eb70ca` with three new merges:
+#748 `4ddf18a`, #749 `b904070`, #750 `2db6788`. GitHub `compare/main...feature/devobs-production-recovery`
+returned `diverged`, `ahead_by: 2`, `behind_by: 3`, `status: 200`. The changed
+files on newer `main` are `STATE.md`, `docs/MILESTONE_LEDGER.json`,
+`tests/test_milestone_ledger.py`, and console UI files — **no overlap** with
+this branch's six changed files (VERIFIED by `git diff --name-only`).
+
+Consequence for D5: the governance drift was CONFIRMED at the fixed base
+(`latest_pr:717`), but PR #750 subsequently reconciled it on `main`. The
+ledger at newer `main` validates to
+`{"latest_pr":747,"merged_milestones":305,"open_gates":3}` with gate statuses
+unchanged (VERIFIED via `python scripts/milestone_ledger.py --file <exported
+main ledger> --summary`, exit `0`). D5 is therefore **resolved upstream**, not
+by this branch, and remains unmodified here.
+
+No history rewrite or rebase was performed: the reviewed SHAs and evidence in
+this audit stay bound to the fixed base. The manual Draft PR should use
+`main` (`b904070…`) as base; no conflicting file is expected.
+
 ## 3. Capability inventory
 
 Statuses are normalized as: IMPLEMENTED_AND_VERIFIED (local evidence + tests
@@ -145,7 +167,7 @@ All items below are CONFIRMED against the fixed base. Only one was repaired.
 | D2 | Two-agent completion evidence trusts self-asserted `PASS` and `previous_status`; no command output or source SHA binding. | `scripts/check_two_agent_tasks.py:218-245` (pre-repair numbering). | Deferred: requires contract redesign and owner review; larger than one bounded repair. |
 | D3 | `complete`/`blocked` tasks skip enabled-agent validation. | `scripts/check_two_agent_tasks.py:278-288`. | Deferred: behavioral policy change, not a one-line fail-closed fix. |
 | D4 | `PR_RE` is not bound to the task repository; weak ref validation remains after D1. | `scripts/check_two_agent_tasks.py:53-55,243-245`. | Deferred: needs a separate compatibility decision for existing manifests. |
-| D5 | Governance drift: ledger #717 / readiness doc #641 vs merge #747. | `docs/MILESTONE_LEDGER.json`, `STATE.md`, `docs/DEVOBS_READINESS_CURRENT.md`. | Deferred/BLOCKED: updating milestones needs exact per-PR CI evidence and owner-reviewed SHA scope; REST quota exhausted. Ledger validators currently pass (86 tests). |
+| D5 | Governance drift: ledger #717 / readiness doc #641 vs merge #747 at the fixed base. | `docs/MILESTONE_LEDGER.json`, `STATE.md`, `docs/DEVOBS_READINESS_CURRENT.md`. | Deferred here (needs owner-reviewed exact CI evidence; was REST-quota blocked). **Resolved upstream by #750** on newer `main` (ledger `latest_pr:747`, `305` milestones, gates unchanged) — VERIFIED 2026-11-23; not changed on this branch. |
 | D6 | Stale console Bun lock (`react-example`, older ranges). | `apps/ai-intelligence-console/bun.lock:6-32`, `package.json:2-40`. | Deferred: dependency regeneration is a separate supply-chain change; no network/dependency install authorized here. |
 
 Resolved historical finding, not an open defect: AUD-02 blocked-task ownership

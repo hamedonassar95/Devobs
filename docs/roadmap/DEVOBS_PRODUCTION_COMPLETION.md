@@ -118,7 +118,15 @@ shellcheck argv (actionlint `1.7.12` itself passed 38 authored workflows with
   PR-auth findings; no production code changes in it.
 - Draft PR to `main`: BLOCKED. `gh` is absent; after quota reset, anonymous
   `POST /pulls` returned `401 Requires authentication` while `GET /rate_limit`
-  showed `remaining: 60`. No token was read. Manual URL is in the runbook.
+  showed `remaining: 60`. No token was read. A read-only
+  `GET /pulls?head=…&state=all` returned an empty array, confirming no PR was
+  created. Manual URL is in the runbook.
+- Post-baseline movement (VERIFIED 2026-11-23): `origin/main` advanced to
+  `b90407040e3d2a34627679f2cbca14db46eb70ca` (#748/#749/#750); compare reports
+  `ahead_by:2`, `behind_by:3`, with no overlapping files. #750 resolved D5
+  upstream (ledger `latest_pr:747`, `305` milestones, gates unchanged). No
+  rebase or history rewrite was done; reviewed SHAs remain bound to the fixed
+  base.
 - No merge, deploy, gate promotion or hosted change was requested or performed.
 
 ## What remains owner-gated (unchanged)
