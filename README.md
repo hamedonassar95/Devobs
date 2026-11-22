@@ -103,6 +103,26 @@ python -m devobs.ai_quality_gate --input examples/ai_quality_gate/snapshot.json
 python -m unittest discover -s tests/ai_quality_gate -p "test_*.py" -v
 ```
 
+## AI Provider Evaluation (offline harness)
+
+[AI Provider Evaluation](docs/ai/AI_PROVIDER_EVALUATION.md) is a deterministic,
+offline-first harness for comparing advisory AI providers on quality proxies,
+reliability, safety and estimated cost. It uses seeded in-memory mocks for
+success, timeout, retry-after-rate-limit, malformed response, authentication
+failure, cost ceiling, unsafe requested action, provider outage and redirect
+refusal. No network call, credential, paid inference or live provider request
+is possible; unverified prices are reported as `UNKNOWN`, never zero.
+
+```sh
+python -m devobs.ai_evaluation.cli \
+  --fixtures examples/ai_evaluation/provider_cases.json \
+  --pricing examples/ai_evaluation/pricing.json
+python -m unittest discover -s tests/ai_evaluation -p "test_*.py" -v
+```
+
+This harness is advisory only. It does not change P01 (NO-GO), AI-9 (BLOCKED)
+or Codex runtime acceptance (OPEN), and it does not authorize a provider switch.
+
 ## Root-cause audit and remediation roadmap (2026-11-20)
 
 An evidence-driven audit of `origin/main` `4299a9d` confirmed one P1 root cause:
