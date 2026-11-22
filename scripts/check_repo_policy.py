@@ -206,6 +206,17 @@ def audit_repository(
         if rule_type not in rules:
             findings.append(f"Ruleset `{ruleset_name}` is missing the {label}.")
 
+    pull_request_rule = rules.get("pull_request")
+    pull_request_parameters = (
+        pull_request_rule.get("parameters") if isinstance(pull_request_rule, dict) else None
+    )
+    if isinstance(pull_request_parameters, dict):
+        review_count = pull_request_parameters.get("required_approving_review_count")
+        if not isinstance(review_count, int) or isinstance(review_count, bool) or review_count < 1:
+            findings.append(
+                f"Ruleset `{ruleset_name}` must require at least one approving review."
+            )
+
     status_rule = rules.get("required_status_checks")
     status_parameters = status_rule.get("parameters") if status_rule else None
     statuses = (

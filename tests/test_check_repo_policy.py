@@ -42,7 +42,7 @@ def api_fixtures() -> dict[str, object]:
                         "required_status_checks": [{"context": "validate"}],
                     },
                 },
-                {"type": "pull_request", "parameters": {"required_approving_review_count": 0}},
+                {"type": "pull_request", "parameters": {"required_approving_review_count": 1}},
                 {
                     "type": "code_scanning",
                     "parameters": {
@@ -92,6 +92,18 @@ class RepositoryPolicyAuditTests(unittest.TestCase):
 
         self.assertTrue(any("is not active" in finding for finding in findings))
         self.assertTrue(any("bypass actors" in finding for finding in findings))
+
+    def test_reports_zero_required_approving_reviews(self) -> None:
+        fixtures = api_fixtures()
+        ruleset = fixtures["repos/hamedonassar95/Devobs/rulesets/24507159"]
+        assert isinstance(ruleset, dict)
+        rules = ruleset["rules"]
+        assert isinstance(rules, list)
+        pull_request = next(rule for rule in rules if rule["type"] == "pull_request")
+        pull_request["parameters"]["required_approving_review_count"] = 0
+        _, findings = audit_repository("hamedonassar95/Devobs", api_get=fixtures.__getitem__)
+
+        self.assertTrue(any("at least one approving review" in finding for finding in findings))
 
     def test_accepts_null_bypass_actors_as_no_configured_bypass(self) -> None:
         fixtures = api_fixtures()
@@ -232,15 +244,16 @@ class RepositoryPolicyAuditTests(unittest.TestCase):
         self.assertNotIn("test-token-never-print", str(raised.exception))
 
     def test_actions_summary_includes_named_drift_findings(self) -> None:
-        with tempfile.NamedTemporaryFile(mode="r+", encoding="utf-8") as summary_file:
-            with mock.patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": summary_file.name}):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            summary_path = os.path.join(temp_dir, "summary.md")
+            with mock.patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": summary_path}):
                 write_step_summary(
                     "drift detected",
                     "hamedonassar95/Devobs (default branch main)",
                     ["The validate check is missing."],
                 )
-            summary_file.seek(0)
-            summary = summary_file.read()
+            with open(summary_path, "r", encoding="utf-8") as summary_file:
+                summary = summary_file.read()
 
         self.assertIn("Status: **drift detected**", summary)
         self.assertIn("The validate check is missing.", summary)
