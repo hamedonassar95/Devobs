@@ -74,6 +74,9 @@ export function triageProjectCi(input) {
   if (input.run_status !== 'completed') {
     code = 'RUN_NOT_COMPLETE';
     nextCheck = 'Read the GitHub run status before drawing a conclusion; do not rerun automatically.';
+  } else if (input.run_conclusion === 'cancelled') {
+    code = 'RUN_CANCELLED';
+    nextCheck = 'Confirm whether the run was intentionally cancelled; do not classify cancellation as a workflow failure or retry automatically.';
   } else if (input.run_conclusion === 'success') {
     code = 'SUCCESS_CLAIM_UNVERIFIED';
     nextCheck = 'Independently verify successful jobs and exact commit in GitHub.';
