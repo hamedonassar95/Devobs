@@ -1,0 +1,274 @@
+{
+  "schema_version": 1,
+  "title": "Devobs prioritized implementation backlog",
+  "source_audit": "docs/audits/DEVOBS_FULL_GAP_AUDIT.md",
+  "audited_sha": "10f8dd9b1e884e16cea3ffd847cf20405794cb8b",
+  "generated_at": "2026-11-22",
+  "advisory_only": true,
+  "constraints": [
+    "No task may merge, deploy, spend, activate paid inference or modify main.",
+    "One task per feature branch and isolated worktree; Draft PR only.",
+    "Keep CI, CodeQL, Trivy, PostgreSQL RLS and Phase 8 human approval gates intact.",
+    "No secrets, tokens, private logs or hosted environment values in code or reports.",
+    "Do not duplicate merged work (devobs/ai_quality_gate, devobs/integration_control) or the unmerged provider evaluation branch."
+  ],
+  "tasks": [
+    {
+      "id": "P0-DB-EXPIRY-DECISION",
+      "objective": "Obtain and record the owner's preserve-or-retire decision for the expiring Render Free PostgreSQL database without performing any provider action.",
+      "priority": "P0",
+      "dependencies": ["Owner decision naming exact resource ID, action and UTC window before 2026-12-05T10:33:24Z."],
+      "proposed_feature_branch": "feature/render-free-db-decision-evidence",
+      "candidate_files": [
+        "docs/plans/2026-11-19-render-free-postgres-retirement-plan.md",
+        "docs/p01/render-free-expiry-snapshot.json",
+        "docs/audits/DEVOBS_FULL_GAP_AUDIT.md"
+      ],
+      "implementation_approach": "Add an appendix with the signed decision, exact resource ID dpg-dbm5msu1egvs73be46og-a, chosen action, UTC window and evidence links. No dashboard, API or Blueprint change; do not re-import render.yaml.",
+      "verification_commands": [
+        "python scripts/check_render_free_expiry.py --json",
+        "python -m unittest discover -s tests -p 'test_render_free_expiry.py' -v"
+      ],
+      "acceptance_criteria": [
+        "Decision appendix is owner-signed and scoped to one action and date.",
+        "Offline expiry guard still exits 1 until the decision is executed under separate approval.",
+        "No provider API call, data export or deletion recorded."
+      ],
+      "risk_and_rollback": "Irreversible data loss if misread as execute permission; rollback by reverting the appendix on the feature branch. Keep the database unchanged.",
+      "draft_pr_instructions": "Draft PR to main, label advisory, include the guard output and state explicitly that no provider action was taken; no merge."
+    },
+    {
+      "id": "P0-SPEND-CAP-EVIDENCE",
+      "objective": "Produce enforceable combined USD spend-cap evidence and add token/usage accounting fields to advisory provider results without enabling paid calls.",
+      "priority": "P0",
+      "dependencies": ["Owner finance decision and provider-side configuration access."],
+      "proposed_feature_branch": "feature/spend-cap-and-usage-accounting",
+      "candidate_files": [
+        "docs/P01_RENDER_BUDGET_ENVELOPE.md",
+        "agent-spec.yaml",
+        "scripts/devobs_intelligence/openai_error_diagnosis.py",
+        "scripts/devobs_intelligence/gemini_error_diagnosis.py",
+        "tests/test_openai_error_diagnosis_provider.py",
+        "tests/test_gemini_error_diagnosis_provider.py"
+      ],
+      "implementation_approach": "Capture provider usage fields where available as ESTIMATED/UNKNOWN, add a bounded local ledger, and document that a boolean approval flag is not a dollar cap. Keep DEVOBS_AI_BUDGET_APPROVED false.",
+      "verification_commands": [
+        "python scripts/check_agent_spec.py",
+        "python -m unittest discover -s tests -p 'test_openai_error_diagnosis_provider.py' -v",
+        "python -m unittest discover -s tests -p 'test_gemini_error_diagnosis_provider.py' -v"
+      ],
+      "acceptance_criteria": [
+        "No live provider call occurs in tests.",
+        "Cost status is never reported as verified without evidence.",
+        "P01 SPEND control remains BLOCKED until provider-side cap evidence is recorded."
+      ],
+      "risk_and_rollback": "Misinterpreting estimates as bills; revert feature commits. No spend authorization is created by this task.",
+      "draft_pr_instructions": "Draft PR with before/after schema excerpt and exact test outputs; no merge."
+    },
+    {
+      "id": "P0-AI9-EVIDENCE-COLLECTION",
+      "objective": "Collect the seven AI-9 acceptance controls with exact SHA, reviewer and HTTPS evidence links while keeping the gate BLOCKED until independently reviewed.",
+      "priority": "P0",
+      "dependencies": ["Independent evaluation corpus owner and reviewer assignment."],
+      "proposed_feature_branch": "feature/ai9-control-evidence",
+      "candidate_files": [
+        "docs/ai9/evidence.json",
+        "docs/AI9_V3_INDEPENDENT_EVAL_GATE.md",
+        "scripts/check_ai9_evidence.py",
+        "tests/test_ai9_evidence.py"
+      ],
+      "implementation_approach": "Append evidence objects only after verification; never auto-promote. Preserve fail-closed freshness and HTTPS checks.",
+      "verification_commands": [
+        "python -m unittest discover -s tests -p 'test_ai9_evidence.py' -v",
+        "node --test tests/ai9_*.test.mjs"
+      ],
+      "acceptance_criteria": [
+        "Each control has source_sha, reviewer, observed_at and evidence_url or stays UNVERIFIED.",
+        "check_ai9_evidence.py never returns GO without signed evidence.",
+        "Gate remains BLOCKED in the ledger until owner review."
+      ],
+      "risk_and_rollback": "False GO claim; revert evidence edits. No detector activation.",
+      "draft_pr_instructions": "Draft PR with sanitized evidence list and explicit NO-GO statement; no merge."
+    },
+    {
+      "id": "P1-HOSTED-OIDC-RLS-TEST",
+      "objective": "Add a documented, owner-approved procedure and offline harness for hosted negative-tenant and OIDC acceptance without performing it in CI by default.",
+      "priority": "P1",
+      "dependencies": ["Owner staging approval and redacted evidence channel."],
+      "proposed_feature_branch": "feature/hosted-identity-rls-acceptance",
+      "candidate_files": [
+        "scripts/devobs_intelligence/oidc_tokens.py",
+        "scripts/devobs_intelligence/postgres_store.py",
+        "deploy/postgres/001_tenant_rls.sql",
+        "tests/test_intelligence_api_security.py",
+        "tests/test_postgres_rls_integration.py",
+        "docs/POSTGRES_RLS_STAGING.md"
+      ],
+      "implementation_approach": "Add an opt-in, explicitly authorized test path with fail-closed defaults; no credentials in source; redact all evidence.",
+      "verification_commands": [
+        "python -m unittest tests.test_intelligence_api_security -v",
+        "python -m unittest discover -s tests -p 'test_intelligence_oidc_*.py' -v"
+      ],
+      "acceptance_criteria": [
+        "Default CI path performs no hosted call.",
+        "Negative-tenant denial is proven only with redacted exact-SHA evidence.",
+        "P01 OIDC/RLS controls remain BLOCKED until owner review."
+      ],
+      "risk_and_rollback": "Credential exposure or false acceptance; revert path; never log tokens.",
+      "draft_pr_instructions": "Draft PR with offline test output and procedure; no merge, no hosted run in CI."
+    },
+    {
+      "id": "P1-CI-REVIEW-COUNT-WHEEL-HASH",
+      "objective": "Fix the V-01 review-count weakness and implement runtime wheel-hash verification (F04) without weakening existing gates.",
+      "priority": "P1",
+      "dependencies": ["Owner review of security review findings V-01 and F04."],
+      "proposed_feature_branch": "feature/security-gate-remediation",
+      "candidate_files": [
+        "scripts/check_repo_policy.py",
+        "scripts/repair_knowledge_handoff.py",
+        "requirements-api.lock",
+        "tests/test_repo_policy.py",
+        "docs/security/DEVOBS_SECURITY_REVIEW_2026-11-16.md"
+      ],
+      "implementation_approach": "Fail closed when required approvals are absent; verify wheel hashes explicitly rather than relying on version strings; keep permissions minimal and actions pinned.",
+      "verification_commands": [
+        "python scripts/check_action_pins.py",
+        "python -m unittest discover -s tests -p 'test_repo_policy*.py' -v",
+        "python -m unittest discover -s tests -p 'test_action_pins.py' -v"
+      ],
+      "acceptance_criteria": [
+        "Writer-only merge path is rejected in the policy checker.",
+        "Wrong wheel with correct version is rejected.",
+        "Existing action pin and agent spec checks stay green."
+      ],
+      "risk_and_rollback": "False negatives block CI; revert commits; never disable the underlying check.",
+      "draft_pr_instructions": "Draft PR with adversarial test cases and before/after outputs; no merge."
+    },
+    {
+      "id": "P1-MULTIAGENT-MEDIUM-FINDINGS",
+      "objective": "Re-test remaining medium multi-agent audit findings at the audited SHA and add regressions; AUD-02 is already fixed in 37475b0 (#732).",
+      "priority": "P1",
+      "dependencies": ["Review of docs/audits/TWO_AGENT_SECURITY_AUDIT_2026-11-21.md findings AUD-01/03/04/05/12."],
+      "proposed_feature_branch": "feature/multi-agent-audit-regressions",
+      "candidate_files": [
+        "scripts/check_two_agent_tasks.py",
+        "scripts/agent_dispatch_preflight.py",
+        "tests/test_two_agent_tasks.py",
+        "docs/agents/TWO_AGENT_COORDINATION.md"
+      ],
+      "implementation_approach": "Add adversarial fixtures for self-asserted evidence, disabled-agent ownership, branch/PR validation; keep blocked tasks blocking ownership.",
+      "verification_commands": [
+        "python -m unittest discover -s tests -p 'test_two_agent_tasks.py' -v",
+        "python scripts/check_agent_spec.py"
+      ],
+      "acceptance_criteria": [
+        "Each reproduced finding has a failing-then-passing regression test.",
+        "AUD-02 fix commit 37475b0 is confirmed as ancestor of the PR head.",
+        "No agent runtime is started by tests."
+      ],
+      "risk_and_rollback": "Over-tightening blocks valid work; revert specific regression and document exception.",
+      "draft_pr_instructions": "Draft PR with the adversarial test list and exact outputs; no merge."
+    },
+    {
+      "id": "P1-PROVIDER-EVAL-HARNESS-DECISION",
+      "objective": "Decide whether to merge the already-built offline provider evaluation harness from feature/ai-provider-evaluation-finalization rather than rebuilding it.",
+      "priority": "P1",
+      "dependencies": ["Owner review of that branch's 5 commits ending at 7dff0c0; zero open PRs at audit time."],
+      "proposed_feature_branch": "feature/ai-provider-evaluation-finalization",
+      "candidate_files": [
+        "devobs/ai_evaluation/",
+        "tests/ai_evaluation/",
+        "examples/ai_evaluation/",
+        "docs/ai/AI_PROVIDER_EVALUATION.md"
+      ],
+      "implementation_approach": "No code change in this audit. If approved, open a Draft PR from the existing branch, preserve its 16 tests and UNKNOWN pricing rule.",
+      "verification_commands": [
+        "python -m unittest discover -s tests/ai_evaluation -p 'test_*.py' -v",
+        "python -m devobs.ai_evaluation.cli --fixtures examples/ai_evaluation/provider_cases.json --pricing examples/ai_evaluation/pricing.json"
+      ],
+      "acceptance_criteria": [
+        "No duplicate harness is created on main.",
+        "Harness remains offline and never calls a paid API.",
+        "Owner decision recorded in the PR description."
+      ],
+      "risk_and_rollback": "Duplicate ownership conflict; close the Draft PR and keep main untouched.",
+      "draft_pr_instructions": "Draft PR only after owner decision; no merge."
+    },
+    {
+      "id": "P2-BILLING-TENANT-LIFECYCLE-DESIGN",
+      "objective": "Produce an owner-reviewable billing, metering, quota, retention and tenant-lifecycle design without implementing external transactions.",
+      "priority": "P2",
+      "dependencies": ["Legal/tax review and processor selection decision."],
+      "proposed_feature_branch": "feature/saas-commercial-design",
+      "candidate_files": [
+        "docs/PRODUCT_SAAS_READINESS.md",
+        "docs/ENTERPRISE_OPERATIONS.md",
+        "docs/strategy/"
+      ],
+      "implementation_approach": "Document processor, webhook signature validation, idempotency, plan quotas, reconciliation, refunds, export/delete and retention; no credentials or live processor calls.",
+      "verification_commands": [
+        "python scripts/milestone_ledger.py --summary",
+        "python -m unittest tests.test_milestone_ledger -q"
+      ],
+      "acceptance_criteria": [
+        "Design distinguishes DOCUMENTED from IMPLEMENTED for every control.",
+        "No customer signup is enabled by this task.",
+        "Commercial gate remains BLOCKED."
+      ],
+      "risk_and_rollback": "None to production; revert docs if rejected.",
+      "draft_pr_instructions": "Draft PR with design and legal-question list; no merge."
+    },
+    {
+      "id": "P2-OBSERVABILITY-SLO-DESIGN",
+      "objective": "Define owner-approved SLOs/error budgets and application-level alert rules for a future hosted service while keeping the local monitoring stack offline.",
+      "priority": "P2",
+      "dependencies": ["Owner SLO targets and decision on external receiver."],
+      "proposed_feature_branch": "feature/slo-and-app-alerts-design",
+      "candidate_files": [
+        "monitoring/prometheus/alert_rules.yml",
+        "monitoring/grafana/dashboards/devobs-overview.json",
+        "monitoring/README.md",
+        "docs/runbooks/"
+      ],
+      "implementation_approach": "Add offline fixture-driven alert tests and documented SLO definitions; no hosted metrics endpoint or external receiver in this task.",
+      "verification_commands": [
+        "node --test tests/otlp_error_rate_adapter.test.mjs",
+        "node --test tests/grafana_webhook_adapter.test.mjs"
+      ],
+      "acceptance_criteria": [
+        "Alerts remain loopback-only by default.",
+        "No secret-bearing mount is opened or printed.",
+        "SLO claims remain UNVERIFIED until hosted metrics exist."
+      ],
+      "risk_and_rollback": "None to production; revert manifest changes if rejected.",
+      "draft_pr_instructions": "Draft PR with sanitized dashboard snapshot; no merge."
+    },
+    {
+      "id": "P2-UX-LTR-APPROVAL-VIEW",
+      "objective": "Add an English LTR toggle and a read-only advisory approval-state view to the console, with per-panel synthetic/live labels and no remote action capability.",
+      "priority": "P2",
+      "dependencies": ["Owner i18n decision and data-source flag agreement."],
+      "proposed_feature_branch": "feature/console-bilingual-approval-view",
+      "candidate_files": [
+        "apps/ai-intelligence-console/index.html",
+        "apps/ai-intelligence-console/src/App.tsx",
+        "apps/ai-intelligence-console/src/components/DashboardHeader.tsx",
+        "apps/ai-intelligence-console/src/utils/demoActionPreview.ts",
+        "apps/ai-intelligence-console/tests/"
+      ],
+      "implementation_approach": "Toggle document lang/dir, add translated strings for existing views, source a SYNTHETIC/LIVE badge from the same flag that selects mock data; approval view is display-only.",
+      "verification_commands": [
+        "cd apps/ai-intelligence-console && npm test",
+        "cd apps/ai-intelligence-console && npm run lint",
+        "cd apps/ai-intelligence-console && npm run build"
+      ],
+      "acceptance_criteria": [
+        "Both RTL and LTR render in tests with correct document direction.",
+        "No approval action can be triggered from the UI.",
+        "Demo-only banner remains visible in both modes."
+      ],
+      "risk_and_rollback": "False live-data impression; revert UI commits; keep DEMO ONLY banner.",
+      "draft_pr_instructions": "Draft PR with screenshots of both modes and test output; no merge."
+    }
+  ]
+}
