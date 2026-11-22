@@ -19,6 +19,7 @@ accessed. No gate was promoted and nothing was merged or deployed.
 | PR #746 state | [PR page](https://github.com/hamedonassar95/Devobs/pull/746) shows **Merged** into `main`, head branch `feature/development-progress-dashboard`, 33 checks passed, merged as commit `66cc062` | VERIFIED (public page) |
 | Reviewed head | `refs/pull/746/head` = `aa61b9877eb52b08cd2d83d83dab6a508b341398`, unchanged; `git diff --name-status aa61b98..origin/main` is empty, so the reviewed tree is present on `main` | VERIFIED |
 | Branch decision | Merged → start from latest `origin/main`, target `main` (not `feature/development-progress-dashboard`); dependency on #746 recorded here | VERIFIED |
+| Main movement during task | `origin/main` later advanced from `66cc062` to `88556034e24e52e529c276ab6cc753e8fc026c91` (PR #747), changing only `scripts/integrations/cineforge_ci_runner_triage.mjs` and `tests/cineforge_ci_runner_triage.test.mjs`. No overlap with this branch's three files; merge base stays `66cc062`. No rebase or force-push was performed | VERIFIED |
 | Authenticated GitHub API | `GET /pulls/746` and open-PR list returned HTTP 403 rate limit; `gh` unavailable; live mergeability/review state beyond the public page is UNKNOWN | BLOCKED |
 | Local state preserved | No `reset --hard`, no `git clean`; existing worktrees and branches were left in place | VERIFIED |
 | Ownership precheck | The three target paths do not exist on `origin/main` and are not present on any local branch | VERIFIED |
