@@ -57,15 +57,21 @@ Expected final lines on the repaired branch (VERIFIED here):
 - `Action pin check passed for 48 workflow and template files.` → exit `0`
 - ledger summary JSON as in §1 → exit `0`
 - `git diff --check` → no output → exit `0`
+- `python -B -m unittest discover -s tests -v` → `Ran 1480 tests in 495.511s`
+  → `FAILED (failures=84, errors=126, skipped=38)` → exit `1`; zero reported
+  failures name `two_agent` (VERIFIED). This full-suite exit is recorded, not
+  hidden.
 
 Do not substitute local output for GitHub CI. There is no current-base hosted
 CI run in this evidence set (UNVERIFIED).
 
 ## 4. Checks that could not run / did not pass
 
-- BLOCKED: authenticated Draft PR creation (`gh` unavailable; REST needs a
-  token that must not be read). Anonymous core quota exhausted; no workaround
-  attempted.
+- BLOCKED: Draft PR creation is definitively unavailable here. `gh` is
+  absent (`GH_UNAVAILABLE`). After the anonymous quota reset, `POST
+  /repos/hamedonassar95/Devobs/pulls` with `draft: true` returned HTTP `401
+  Requires authentication` while `GET /rate_limit` showed `remaining: 60`.
+  No token was read or used; the manual URL in §6 is the only path.
 - BLOCKED: branch-protection current state, exact Actions run IDs per PR,
   reviews beyond the read-only snapshot, hosted CI rerun.
 - BLOCKED: Keycloak runtime. The disposable exception is not active until this
@@ -76,10 +82,15 @@ CI run in this evidence set (UNVERIFIED).
   inference, release approval.
 - UNVERIFIED: Linux/WSL run, real Graphify wheel/CLI provenance, console Bun
   lock regeneration.
-- Known Windows-only failures from an older full-suite run (47 failures,
-  123 errors, 44 skipped out of 1197 tests): `platform_no_follow_unsupported`,
-  `SECURE_OPEN_UNAVAILABLE`, actionlint wrapper timeout with default shellcheck
-  argv. Not re-run at this SHA; not claimed as current.
+- Current full-suite failures are local-environment dominated (VERIFIED log
+  scan): 123 symlink/non-regular-file guard lines, 108 Windows-path lines,
+  58 `SECURE_OPEN_UNAVAILABLE` lines, 6 `GITHUB_WORKSPACE` staging lines. A
+  same-SHA baseline comparison run was interrupted by harness restarts before
+  its summary; it is UNVERIFIED and no regression-parity claim is made.
+- Older audited full-suite evidence (different SHA): 47 failures, 123 errors,
+  44 skipped out of 1197 tests, including `platform_no_follow_unsupported`
+  (not reproduced in the current run) and the actionlint wrapper timeout with
+  default shellcheck argv. Historical only.
 
 ## 5. Safety invariants observed
 
@@ -99,7 +110,7 @@ CI run in this evidence set (UNVERIFIED).
 |---|---|---|
 | Commit on isolated branch | COMPLETE — one bounded commit; exact SHA in final delivery report (a commit cannot record its own SHA) | `git rev-parse HEAD` in the delivery report |
 | Push to `origin/feature/devobs-production-recovery` | see final delivery report for exit code | `git push -u origin ...` |
-| Draft PR to `main` | see final delivery report (manual URL if auth blocked) | URL or auth error category |
+| Draft PR to `main` | BLOCKED — anonymous REST `401 Requires authentication`, `gh` absent | manual URL below |
 | Merge / deploy | NOT PERFORMED | owner approval required |
 
 Manual Draft PR URL if authenticated creation remains blocked:

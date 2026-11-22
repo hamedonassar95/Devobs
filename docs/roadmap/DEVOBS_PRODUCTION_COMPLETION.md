@@ -80,13 +80,28 @@ Exact commands and final lines (Python `3.12.10`, git `2.56.1.windows.1`):
 
 Baseline failures and regressions: the seven pre-fix subtest failures are the
 documented repro and are resolved; no new failure was introduced in the two
-focused modules. Prior full-suite run at an older audited SHA reported
-`Ran 1197 tests`, `FAILED (failures=47, errors=123, skipped=44)` — Windows-
-environment dominated and **not** re-run against this base; it is not claimed
-as a current result. Known Windows-only blockers from that evidence:
-`platform_no_follow_unsupported`, `SECURE_OPEN_UNAVAILABLE`, and the actionlint
-wrapper timeout with its default shellcheck argv (actionlint `1.7.12` itself
-passed 38 authored workflows with `-shellcheck=`).
+focused modules.
+
+Full suite was subsequently run **on this repaired SHA**:
+`python -B -m unittest discover -s tests -v` → `Ran 1480 tests in 495.511s`
+→ `FAILED (failures=84, errors=126, skipped=38)` → exit `1` (VERIFIED).
+A scan of that log found **zero** `FAIL:`/`ERROR:` entries naming
+`two_agent`, so the repaired module is not implicated (VERIFIED). Failure
+categories are local-environment dominated: 123 lines mentioning symlink or
+non-regular-file guards, 108 Windows-path lines, 58 `SECURE_OPEN_UNAVAILABLE`
+lines and 6 `GITHUB_WORKSPACE` staging-guard lines (VERIFIED by log scan).
+A baseline full-suite run in a detached worktree at `88556034e24e52e529c276ab6cc753e8fc026c91`
+was started but interrupted by two harness restarts before its summary line;
+it is **UNVERIFIED** and is not used to claim regression parity. The temporary
+worktree was removed (exit `0`).
+
+Older audited evidence at a different SHA reported `Ran 1197 tests`,
+`FAILED (failures=47, errors=123, skipped=44)`; it is historical, not current.
+Known Windows-only blockers from that evidence include
+`platform_no_follow_unsupported` (not reproduced in the current run),
+`SECURE_OPEN_UNAVAILABLE`, and the actionlint wrapper timeout with its default
+shellcheck argv (actionlint `1.7.12` itself passed 38 authored workflows with
+`-shellcheck=`).
 
 ## Phase 6 — Required documentation (COMPLETE)
 
@@ -95,13 +110,16 @@ passed 38 authored workflows with `-shellcheck=`).
 - `docs/runbooks/DEVOBS_RECOVERY_STATUS.md` (new)
 - `README.md` (short pointer added; existing evidence preserved)
 
-## Phase 7 — Delivery (IN PROGRESS at time of this record)
+## Phase 7 — Delivery (COMPLETE except owner-gated Draft PR)
 
-- Commit on the isolated branch and push to origin: see the runbook for the
-  final SHA once executed.
-- Draft PR to `main`: to be attempted; `gh` is unavailable and authenticated
-  REST requires a token that must not be read. If blocked, the manual URL is
-  reported instead. No merge or deploy is requested.
+- One repair commit `4567125d79e88077cb2fbe940a66aae201dd45b8` was created and
+  pushed to `origin/feature/devobs-production-recovery` (exit `0`; remote SHA
+  matches local). A second, evidence-only commit records the full-suite and
+  PR-auth findings; no production code changes in it.
+- Draft PR to `main`: BLOCKED. `gh` is absent; after quota reset, anonymous
+  `POST /pulls` returned `401 Requires authentication` while `GET /rate_limit`
+  showed `remaining: 60`. No token was read. Manual URL is in the runbook.
+- No merge, deploy, gate promotion or hosted change was requested or performed.
 
 ## What remains owner-gated (unchanged)
 
