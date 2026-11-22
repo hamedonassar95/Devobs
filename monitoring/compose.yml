@@ -107,6 +107,20 @@ services:
     networks:
       - monitoring
 
+  # Opt-in free/open-source uptime monitor. It stays on the default bridge
+  # network so it can check external URLs; its only published port is loopback.
+  uptime-kuma:
+    image: louislam/uptime-kuma:2.5.12@sha256:8e4b6bef96417ec98a35dc103c99cc64fc229a01e584e56d95d9004d2003c02a
+    profiles:
+      - uptime
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3001:3001"
+    volumes:
+      - uptime-kuma-data:/app/data
+    security_opt:
+      - no-new-privileges:true
+
 networks:
   monitoring:
     internal: true
@@ -123,3 +137,4 @@ secrets:
 volumes:
   prometheus-data:
   alertmanager-data:
+  uptime-kuma-data:

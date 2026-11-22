@@ -78,7 +78,9 @@ assumed free.
 5. Add OTLP export to a Grafana Cloud free stack (owner-created, secret in
    provider UI only).
 6. Add Sentry DSN through the provider UI; never commit it.
-7. Self-host Uptime Kuma locally for status evidence.
+7. Self-host Uptime Kuma locally for status evidence — **local opt-in
+   profile added** in `monitoring/compose.yml` (`--profile uptime`,
+   `127.0.0.1:3001`, digest-pinned, persistent volume; not started).
 8. Enable Renovate or Dependabot for pinned actions/dependencies.
 
 **P2 — optional, only with a separate scope decision**
@@ -89,10 +91,12 @@ assumed free.
 ## 6. What this pass did and did not do
 
 - DID: verify official free-tier limits, map gaps to free/open-source options,
-  record phases and acceptance evidence, preserve all existing gates.
+  record phases and acceptance evidence, preserve all existing gates; add an
+  offline, opt-in Uptime Kuma profile with digest pinning and a contract test
+  that enforces loopback-only ports and pinned images for the whole stack.
 - DID NOT: create accounts, tokens, DSNs, webhooks, workflows, scheduled jobs,
-  paid resources, cloud resources or deployments; change P01/AI-9/Codex gates;
-  merge to `main`.
+  paid resources, cloud resources or deployments; start Uptime Kuma or any
+  container; change P01/AI-9/Codex gates; merge to `main`.
 - Next executable step without credentials: owner creates the Draft PR from
   `feature/devobs-production-recovery`, lets hosted CI run, and records the
   exact SHA. Then the reviewed repair can be merged under the repo's human gate.

@@ -72,6 +72,9 @@ Expected final lines on the repaired branch (VERIFIED here):
   failures name `two_agent` (VERIFIED). This full-suite exit is recorded, not
   hidden.
 - `python scripts/check_agent_spec.py` → `Validated 7 agent specs, retry/production policy, direct-provider gates, Vertex failover, and all 5 gh-aw source/lock budget gates.` → exit `0`
+- `python -B -m unittest tests.test_monitoring_compose -v` → `Ran 5 tests` /
+  `OK` → exit `0`; enforces loopback-only ports, digest-pinned images, no
+  host/privileged mode, and the opt-in Uptime Kuma profile.
 - `python scripts/stage_site.py …` + `python scripts/check_site.py` →
   `Page contract and HTTP smoke checks passed.` → exit `0` (VERIFIED)
 - `python -B -m unittest discover -s tests -p "test_postgres_rls_integration.py" -v`
@@ -104,7 +107,9 @@ CI run in this evidence set (UNVERIFIED).
   inference, release approval.
 - UNVERIFIED: Linux/WSL run, real Graphify wheel/CLI provenance, console Bun
   lock regeneration.
-- BLOCKED (missing local tools/environment, not defects): Gitleaks
+- BLOCKED (missing local tools/environment, not defects): Docker is absent, so
+  `docker compose config` and the opt-in Uptime Kuma container were not run;
+  Compose YAML was parsed offline and the contract test passed. Gitleaks
   `8.24.3` and `GITHUB_STEP_SUMMARY`/`GITHUB_EVENT_PATH` are absent, so
   `scripts/verify_gitleaks_coverage.py` cannot run; `bandit` and `pip-audit`
   are not installed; `npm` is blocked by the Windows PowerShell execution
