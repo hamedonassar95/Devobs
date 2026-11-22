@@ -144,10 +144,11 @@ commands and final output lines):
 | Existing AI evaluation fixtures | `python -m unittest discover -s tests -p "test_ai_eval_fixture_guard.py" -v` | PASS |
 | Existing intelligence evaluation tests | `python -m unittest ... test_intelligence_evaluation*.py` | PASS |
 | Merged quality-gate regression | `python -m unittest discover -s tests/ai_quality_gate -p "test_*.py" -v` | PASS |
-| Full `tests/` discovery | `python -m unittest discover -s tests -p "test_*.py"` | PASS |
-| Compile all Python paths | `python -m compileall -q devobs/ai_evaluation tests/ai_evaluation` | PASS |
-| JSON fixture/schema validation | CLI run + `json.load` of both example files | PASS |
-| Workflow validation | `python scripts/lint_authored_workflows.py` | PASS (no workflow was changed) |
+| Full `tests/` discovery | `python -m unittest discover -s tests -p "test_*.py"` | NOT COMPLETED — terminated at 300s (exit 143); pre-existing large-suite runtime, not a failure of the new tests |
+| Compile all Python paths | `python -m compileall -q devobs/ai_evaluation tests/ai_evaluation` | PASS (exit 0) |
+| JSON fixture/schema validation | CLI run + `json.load` of both example files | PASS (`JSON fixtures: OK`) |
+| Production static network/exec scan | source scan of `devobs/ai_evaluation/*.py` | PASS (no network/process/dynamic-exec patterns) |
+| Workflow validation | No workflow file changed | NOT APPLICABLE to this diff (`actionlint` present but slow; repo lint script needs an explicit binary path) |
 | Lint (`ruff`) / type check (`mypy`) / Bandit / gitleaks | Tool modules and binaries unavailable | NOT RUN — reported, not claimed as passing |
 | Live provider / paid API call | Not authorized | BLOCKED by design |
-| Draft PR creation | `gh` unavailable; fallback attempted | See final report |
+| Draft PR creation | `gh` unavailable; unauthenticated GitHub API returns 401; token reading forbidden by AGENTS.md | BLOCKED — manual creation required |
