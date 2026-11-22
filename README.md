@@ -79,6 +79,7 @@ of returning a false `PASS`. No gate, hosted service or deployment changed.
 - [Production gap analysis and defect prioritization](docs/audits/DEVOBS_PRODUCTION_GAP_ANALYSIS.md)
 - [Phase completion record](docs/roadmap/DEVOBS_PRODUCTION_COMPLETION.md)
 - [Recovery status and verification runbook](docs/runbooks/DEVOBS_RECOVERY_STATUS.md)
+- [Free-resource and open-source integration plan](docs/roadmap/DEVOBS_FREE_RESOURCE_INTEGRATION_PLAN.md) (plan only; nothing activated)
 
 Local verification on Python 3.12.10: two-agent tests `27/27 OK`, ledger tests
 `86/86 OK`, action pins `48 files OK`, `git diff --check` clean. Hosted CI,
