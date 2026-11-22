@@ -59,6 +59,14 @@ def _text(value, limit=200):
     return isinstance(value, str) and 0 < len(value) <= limit
 
 
+def _valid_branch(value):
+    """Require a bounded branch name without traversal or empty segments."""
+    if not _text(value, 200) or not BRANCH_RE.fullmatch(value):
+        return False
+    return all(segment not in ("", ".", "..")
+               for segment in value.split("/", 1)[1].split("/"))
+
+
 def _normal_path(value):
     """Return a safe repository-relative path, or None when it is not one."""
     if not _text(value, 500):
@@ -189,7 +197,7 @@ def evaluate(manifest):
             errors.append("invalid assigned_agent")
         elif agent not in agents:
             errors.append("assigned_agent is not registered")
-        if not _text(task["branch"], 200) or not BRANCH_RE.fullmatch(task["branch"]):
+        if not _valid_branch(task["branch"]):
             errors.append("invalid task branch")
         paths = task["affected_files"]
         if not isinstance(paths, list) or not 1 <= len(paths) <= 100:

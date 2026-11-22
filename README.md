@@ -68,6 +68,24 @@ python -m unittest discover -s tests -p "test_two_agent_tasks.py" -v
 `PASS` (0), `BLOCKED` (1) and `FAIL` (2) are advisory; P01 stays NO-GO, AI-9 stays
 BLOCKED and Codex runtime acceptance stays OPEN.
 
+## Production-readiness recovery snapshot (2026-11-22, isolated branch)
+
+An isolated reconciliation of `origin/main` at
+`88556034e24e52e529c276ab6cc753e8fc026c91` (PR #747) recorded the requested PR
+merges, classified the remaining gaps, and applied exactly one bounded repair:
+the two-agent checker now rejects branch traversal and empty segments instead
+of returning a false `PASS`. No gate, hosted service or deployment changed.
+
+- [Production gap analysis and defect prioritization](docs/audits/DEVOBS_PRODUCTION_GAP_ANALYSIS.md)
+- [Phase completion record](docs/roadmap/DEVOBS_PRODUCTION_COMPLETION.md)
+- [Recovery status and verification runbook](docs/runbooks/DEVOBS_RECOVERY_STATUS.md)
+
+Local verification on Python 3.12.10: two-agent tests `27/27 OK`, ledger tests
+`86/86 OK`, action pins `48 files OK`, `git diff --check` clean. Hosted CI,
+branch protection, live OIDC/RLS, restore/alert/SLO evidence and the Keycloak
+runtime exception remain UNVERIFIED or BLOCKED. Nothing here is a release GO;
+**PENDING HUMAN APPROVAL**.
+
 A local [agent dispatch preflight guide](docs/agents/AGENT_DISPATCH_OPERATING_GUIDE.md)
 now builds on that validator. It reuses the same contract, detects whether the
 `codex` and `opencode` CLIs are present without invoking them, writes separate

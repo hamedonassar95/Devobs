@@ -77,6 +77,14 @@ class TwoAgentManifestTests(unittest.TestCase):
         self.assertEqual(result["blocked_tasks"], [])
         self.assertEqual(result["conflicts"], [])
 
+    def test_branch_traversal_and_empty_segments_fail_closed(self):
+        for branch in ("feature/../main", "feature//x", "feature/x/..",
+                       "feature/x/", "fix/./y", "docs/../main", "chore//x"):
+            with self.subTest(branch=branch):
+                result = evaluate(manifest([task("TASK-001", branch=branch)]))
+                self.assertEqual(result["decision"], "FAIL")
+                self.assertIn("invalid task branch", result["errors"])
+
     def test_duplicate_task_ids_fail_closed(self):
         result = evaluate(manifest([task("TASK-001"), task("TASK-001")]))
         self.assertEqual(result["decision"], "FAIL")
