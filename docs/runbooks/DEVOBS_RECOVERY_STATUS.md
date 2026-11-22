@@ -49,6 +49,9 @@ python -B -m unittest tests.test_two_agent_tasks -v
 python -B -m unittest tests.test_milestone_ledger
 python -B scripts/check_action_pins.py
 python scripts/milestone_ledger.py --summary
+python scripts/check_agent_spec.py
+python scripts/stage_site.py --source-dir . --output-dir <temp-site> --source-sha <HEAD>
+python scripts/check_site.py   # with SITE_ROOT=<temp-site>
 git diff --check
 git fetch origin
 git merge-tree --write-tree origin/main HEAD
@@ -68,6 +71,18 @@ Expected final lines on the repaired branch (VERIFIED here):
   → `FAILED (failures=84, errors=126, skipped=38)` → exit `1`; zero reported
   failures name `two_agent` (VERIFIED). This full-suite exit is recorded, not
   hidden.
+- `python scripts/check_agent_spec.py` → `Validated 7 agent specs, retry/production policy, direct-provider gates, Vertex failover, and all 5 gh-aw source/lock budget gates.` → exit `0`
+- `python scripts/stage_site.py …` + `python scripts/check_site.py` →
+  `Page contract and HTTP smoke checks passed.` → exit `0` (VERIFIED)
+- `python -B -m unittest discover -s tests -p "test_postgres_rls_integration.py" -v`
+  → `Ran 36 tests` / `OK (skipped=36)` → exit `0`; all skipped because the
+  disposable PostgreSQL service is absent (environment, not a pass of RLS).
+- `python scripts/validate_ai_eval_fixtures.py` → exit `1`
+  (`dataset_digest_mismatch`), classified **environment-only**: the Git blob
+  SHA256 is `9282f62cd6cac306975ede8b8abcebf9504bf963dbad14126dae81afacb91b8e`,
+  exactly the policy value; the worktree copy has CRLF because
+  `core.autocrlf=true`. Not a code defect; re-run on Linux/CI or with LF
+  checkout before treating it as a failure.
 
 Do not substitute local output for GitHub CI. There is no current-base hosted
 CI run in this evidence set (UNVERIFIED).
@@ -89,6 +104,11 @@ CI run in this evidence set (UNVERIFIED).
   inference, release approval.
 - UNVERIFIED: Linux/WSL run, real Graphify wheel/CLI provenance, console Bun
   lock regeneration.
+- BLOCKED (missing local tools/environment, not defects): Gitleaks
+  `8.24.3` and `GITHUB_STEP_SUMMARY`/`GITHUB_EVENT_PATH` are absent, so
+  `scripts/verify_gitleaks_coverage.py` cannot run; `bandit` and `pip-audit`
+  are not installed; `npm` is blocked by the Windows PowerShell execution
+  policy (`npm.ps1`), while `node v26.13.1` is available.
 - Current full-suite failures are local-environment dominated (VERIFIED log
   scan): 123 symlink/non-regular-file guard lines, 108 Windows-path lines,
   58 `SECURE_OPEN_UNAVAILABLE` lines, 6 `GITHUB_WORKSPACE` staging lines. A
