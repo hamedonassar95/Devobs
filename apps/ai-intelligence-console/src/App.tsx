@@ -428,7 +428,7 @@ export default function App() {
 
   return (
     <Suspense fallback={<div role="status" className="p-6 text-center text-slate-300">جارٍ تحميل القسم…</div>}>
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col antialiased selection:bg-indigo-600 selection:text-white">
+    <div className="min-h-screen overflow-x-clip bg-slate-950 text-slate-100 flex flex-col antialiased selection:bg-indigo-600 selection:text-white">
       {/* Header */}
       <DashboardHeader
         isDarkMode={isDarkMode}
