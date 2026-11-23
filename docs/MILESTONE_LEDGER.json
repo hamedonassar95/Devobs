@@ -3357,6 +3357,17 @@
       "ci_run_id": 45031444252,
       "verification": "VERIFIED 2026-11-22 (GitHub/local): PR #747 merged exact head 762353cceb808054c1e6b748e880003d7f7fc34e at 2026-11-22T14:14:29Z as 88556034e24e52e529c276ab6cc753e8fc026c91 onto 66cc062cfea96eda025c643e1929d450c0f0f528. Exact-head CI 45031444252 succeeded, including Python 3.12/3.15, node-tests, validate, security, postgres-rls, terraform-validate, site-contract and container build/smoke/scan. CodeQL run 45031461332 succeeded. Local CineForge tests 19/19, OTLP 5/5, CloudEvents 11/11; site and action-pin checks passed.",
       "limitations": "PR #747 fixes the reviewed cancellation classification and adds a regression case; the offline classifier still does not authenticate GitHub provenance or establish root cause. Main push run 45031746391 was cancelled before Deploy to GitHub Pages; no production deployment completed in that run. PR #632 is closed unmerged. No secret, infrastructure or provider setting changed. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-firebase-phase2-access-inventory-pr767",
+      "area": "DOCUMENTATION",
+      "title": "docs(firebase): Phase 2 access-control inventory",
+      "pr_number": 767,
+      "pr_head_sha": "9e919eceaab8c51b4759f71e4fd347b9db571056",
+      "merge_sha": "0c70d85c830835ad464d841803e3855f28622e24",
+      "ci_run_id": 45238000845,
+      "verification": "VERIFIED 2026-11-23 (GitHub): PR #767 merged exact head 9e919eceaab8c51b4759f71e4fd347b9db571056 as 0c70d85c830835ad464d841803e3855f28622e24 at 2026-11-23T18:36:44Z. Exact-head CI 45238000845 and CodeQL run 45237987280 succeeded; Vercel succeeded. Exact-main CI 45240244073 succeeded; CodeQL analyses run 45240242836 succeeded. Main SHA is 0c70d85c830835ad464d841803e3855f28622e24.",
+      "limitations": "Phase 2 is a source-only inventory; effective hosted Firestore rules, data, feature-flag values, API-key restrictions and App Check remain UNVERIFIED. No live Firebase access or Firebase-rule deployment occurred. The existing post-merge main CI run 45240244073 included its production site publish step; this Phase 2 record did not dispatch that workflow. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [

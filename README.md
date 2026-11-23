@@ -629,3 +629,10 @@ python3 scripts/integrations/graphify_portfolio.py --json
 python3 -m unittest discover -s tests -p 'test_graphify_portfolio.py' -v
 ```
 - [Disposable Keycloak public OAuth client](docs/P01_KEYCLOAK_OIDC_PROFILE.md#disposable-local-public-oauth-client): one offline-validated Authorization Code + PKCE S256 client configuration with exact loopback redirects and an opt-in `devobs.read` scope. Live runtime remains NOT_TESTED and requires the reconciliation PR to be merged plus separate per-run owner approval. The exception does not authorize credential or token creation, hosted identity, production changes, paid AI inference, or deployment; P01 remains NO-GO and AI-9 remains BLOCKED.
+
+## Firebase security — Phase 3 emulator authorization tests
+
+[Offline Firestore Emulator authorization tests](docs/security/FIREBASE_PHASE3_EMULATOR_TESTS.md)
+exercise anonymous denial, synthetic tenant and owner isolation, and an explicitly
+experimental owner policy. The suite runs only against a demo project on localhost;
+the production Firestore rules remain deny-all.
