@@ -1,3 +1,11 @@
+## Verified merged PR #767; Firebase Phase 2 source inventory only (2026-11-23)
+
+- **VERIFIED (GitHub):** [PR #767](https://github.com/hamedonassar95/Devobs/pull/767) merged exact head 9e919eceaab8c51b4759f71e4fd347b9db571056 as main SHA 0c70d85c830835ad464d841803e3855f28622e24 at 2026-11-23T18:36:44Z.
+- **VERIFIED (exact-head CI/security):** PR CI [45238000845](https://github.com/hamedonassar95/Devobs/actions/runs/45238000845) and CodeQL run 45237987280 succeeded. Post-merge main CI [45240244073](https://github.com/hamedonassar95/Devobs/actions/runs/45240244073) succeeded; CodeQL analyses run 45240242836 succeeded.
+- **LIMIT:** The existing post-merge main workflow 45240244073 also completed its production site publish step. This Phase 3 task did not dispatch that workflow or deploy anything; no Firebase rules were published.
+- **VERIFIED (local-source scope):** PR #767 added the Arabic Firebase Phase 2 access inventory and README link only. It compared canonical deny-all source rules with permissive legacy reference rules, mapped client operations and ownership gaps, and proposed offline Emulator tests as the next task.
+- **LIMITS:** This is not evidence of deployed rules, live data, runtime feature-flag values, API-key restrictions or App Check. No live Firebase database/rules, credentials, IAM, billing or hosting were read or changed. P01 remains **BLOCKED / NO-GO**, AI-9 **BLOCKED**, and Codex runtime **OPEN**.
+
 ## Verified merged PR #747; deployment step cancelled by explicit no-deploy boundary (2026-11-22)
 
 - **VERIFIED (GitHub):** [PR #747](https://github.com/hamedonassar95/Devobs/pull/747) merged exact head `762353cceb808054c1e6b748e880003d7f7fc34e` as merge commit `88556034e24e52e529c276ab6cc753e8fc026c91` at 2026-11-22T14:14:29Z, onto `66cc062cfea96eda025c643e1929d450c0f0f528`. The merge was performed by repository owner `hamedonassar95`; this session did not merge it.
