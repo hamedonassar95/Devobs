@@ -11,6 +11,10 @@ integration roadmap. This does not enable cloud resources, AI usage or deploymen
 maps the client operations, authentication boundaries, tenant and ownership gaps,
 and the next offline emulator authorization-test task. It does not enable Firebase.
 
+[Firebase Phase 5 hosted-rules audit](docs/security/FIREBASE_PHASE5_HOSTED_RULES_AUDIT.md)
+records the read-only access blocker and separates verified repository evidence
+from unknown hosted rules; no Firebase documents or hosted rules were read or changed.
+
 Run from repository root: python3 scripts/check_firebase_rules_baseline.py
 and python3 -m unittest discover -s tests -p 'test_firebase_rules_baseline.py' -v.
 
