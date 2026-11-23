@@ -7,6 +7,10 @@ documents the difference between the canonical deny-all prototype and older
 permissive Firestore rules, the offline test commands, and a beginner-friendly
 integration roadmap. This does not enable cloud resources, AI usage or deployments.
 
+[Firebase Phase 2 access-control inventory](docs/security/FIREBASE_PHASE2_ACCESS_INVENTORY.md)
+maps the client operations, authentication boundaries, tenant and ownership gaps,
+and the next offline emulator authorization-test task. It does not enable Firebase.
+
 Run from repository root: python3 scripts/check_firebase_rules_baseline.py
 and python3 -m unittest discover -s tests -p 'test_firebase_rules_baseline.py' -v.
 
