@@ -8,12 +8,29 @@ PAGES_WORKFLOW = Path(".github/workflows/deploy-pages.yml").read_text(encoding="
 
 
 class CIReleaseGateContractTests(unittest.TestCase):
-    def test_pages_release_survives_skipped_optional_checks_but_requires_validation(self):
+    def test_pages_release_survives_skipped_optional_checks_but_requires_manual_confirmation_and_validation(self):
         expected = (
-            "if: ${{ !cancelled() && github.event_name == 'push' && "
-            "github.ref == 'refs/heads/main' && needs.validate.result == 'success' }}"
+            "if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && "
+            "github.ref == 'refs/heads/main' && inputs.confirm_release == true && "
+            "inputs.controlled_incident_failure != true && needs.validate.result == 'success' }}"
         )
         self.assertIn(expected, WORKFLOW)
+        self.assertIn("release_confirmation: ${{ inputs.confirm_release }}", WORKFLOW)
+
+    def test_pages_release_has_no_push_to_main_trigger(self):
+        release = WORKFLOW.split("  production-release:\n", 1)[1].split("\n  controlled-incident-drill:", 1)[0]
+        dispatch_inputs = WORKFLOW.split("  workflow_dispatch:\n", 1)[1].split("  workflow_call:", 1)[0]
+        release_input = dispatch_inputs.split("      confirm_release:\n", 1)[1].split(
+            "\n      controlled_incident_failure:", 1
+        )[0]
+        pages_eligible = PAGES_WORKFLOW.split("  eligible:\n", 1)[1].split("\n  deploy:", 1)[0]
+
+        self.assertIn("github.event_name == 'workflow_dispatch'", release)
+        self.assertNotIn("github.event_name == 'push'", release)
+        self.assertIn("default: false", release_input)
+        self.assertIn("github.event_name == 'workflow_dispatch'", pages_eligible)
+        self.assertIn("inputs.release_confirmation == true", pages_eligible)
+        self.assertNotIn("github.event_name == 'push'", pages_eligible)
 
     def test_pages_reruns_select_one_attempt_specific_artifact(self):
         deploy = PAGES_WORKFLOW.split("  deploy:\n", 1)[1].split("\n  verify:", 1)[0]

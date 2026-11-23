@@ -7,6 +7,10 @@ on:
         description: Immutable commit SHA already validated by the parent CI run
         required: true
         type: string
+      release_confirmation:
+        description: Explicit confirmation that the validated main revision may be published
+        required: true
+        type: boolean
     outputs:
       page_url:
         description: URL returned by the Pages deployment, empty when this run was stale
@@ -21,7 +25,7 @@ concurrency:
 
 jobs:
   eligible:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.release_confirmation == true }}
     runs-on: ubuntu-24.04
     timeout-minutes: 2
     outputs:

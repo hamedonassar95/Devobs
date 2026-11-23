@@ -113,15 +113,11 @@ class VercelStageTestWorkflowTests(unittest.TestCase):
             "python3 scripts/stage_site.py --source-dir candidate --output-dir _site",
         )
 
-    def test_root_vercel_config_disables_only_the_phase_four_feature_branch(self):
+    def test_root_vercel_config_disables_automatic_git_deployments_for_every_branch(self):
         self.assertTrue((ROOT / "deploy" / "vercel-staging.json").is_file())
         config = json.loads((ROOT / "vercel.json").read_text(encoding="utf-8"))
         self.assertEqual(config["$schema"], "https://openapi.vercel.sh/vercel.json")
-        self.assertEqual(
-            config["git"]["deploymentEnabled"],
-            {"feature/firebase-demo-write-isolation": False},
-        )
-        self.assertNotIn("main", config["git"]["deploymentEnabled"])
+        self.assertIs(config["git"]["deploymentEnabled"], False)
 
 
 if __name__ == "__main__":
