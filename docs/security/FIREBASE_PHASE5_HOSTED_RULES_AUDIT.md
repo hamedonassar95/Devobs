@@ -85,7 +85,7 @@
 | `python3 scripts/check_action_pins.py` | **PASS**, exit 0 | `Action pin check passed for 48 workflow and template files.` |
 | `git diff --check` | **PASS**, exit 0 | بعد تجهيز الملفين؛ لا أخطاء مسافات أو whitespace. |
 | CI وCodeQL على أساس main `2e47bd4…` | **PASS** للفحوص المطلوبة؛ **FAIL** لفحص Dependabot | `validate` وPython/Node وCodeQL JS/Python/Actions نجحت. [Main CI](https://github.com/hamedonassar95/Devobs/actions/runs/45278226350)، [CodeQL](https://github.com/hamedonassar95/Devobs/actions/runs/45278225413)، [Dependabot الفاشل](https://github.com/hamedonassar95/Devobs/actions/runs/45278361046). |
-| CI وCodeQL على رأس PR النهائي | بانتظار الرفع وإنشاء PR | تُضاف نتيجة SHA النهائي قبل التسليم؛ لا دمج. |
+| CI وCodeQL على رأس PR #773 `79057408fb9c4eb4d0a266dc09f623e1b7cbfff9` | **PASS** للفحوص المطلوبة | [CI في PR](https://github.com/hamedonassar95/Devobs/actions/runs/45281950020): `validate` نجح؛ [CodeQL](https://github.com/hamedonassar95/Devobs/actions/runs/45281942114) نجح في Python وJavaScript/TypeScript وActions. [تشغيل الدفع على SHA نفسه](https://github.com/hamedonassar95/Devobs/actions/runs/45281856054) نجح، بما في ذلك Python 3.12/3.15 وNode؛ `production-release` تخطاه التشغيل. PR #773 بقي Draft؛ حالة الدمج كانت `CLEAN` عند الفحص. |
 | Firebase Rules REST API v1 / أسماء قواعد المشروع | **BLOCKED** | لم ينفذ أي طلب مستضاف؛ لا توجد هوية مصرح بها في الجلسة. |
 
 ## الخطوة التالية الوحيدة
