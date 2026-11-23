@@ -22,7 +22,7 @@
     "express-rate-limit": "^8.7.5",
     "firebase": "^13.4.0",
     "keycloak-js": "26.2.5",
-    "lucide-react": "^1.72.0",
+    "lucide-react": "^1.77.0",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
     "three": "^0.187.0",
