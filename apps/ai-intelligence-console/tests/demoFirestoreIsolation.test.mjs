@@ -7,12 +7,22 @@ import { fileURLToPath } from 'node:url';
 const APP_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const FIREBASE_FLAGS = [false, true];
 const contexts = new Map();
+const FIRESTORE_SPY_SOURCE = `
+const calls = globalThis.__devobsDemoFirestorePersistenceCalls;
+const record = (method) => calls.push({ method });
+export const subscribeToServers = (...args) => { record('subscribeToServers'); return () => {}; };
+export const subscribeToIncidents = (...args) => { record('subscribeToIncidents'); return () => {}; };
+export const subscribeToDeployments = (...args) => { record('subscribeToDeployments'); return () => {}; };
+export const saveServerToFirestore = async (...args) => { record('saveServerToFirestore'); };
+export const deleteServerFromFirestore = async (...args) => { record('deleteServerFromFirestore'); };
+export const saveIncidentToFirestore = async (...args) => { record('saveIncidentToFirestore'); };
+export const saveDeploymentToFirestore = async (...args) => { record('saveDeploymentToFirestore'); };
+`;
 
 async function loadAppWithFirebaseFlag(enabled) {
   const facadeImports = [];
   const persistenceCalls = [];
-  const spyKey = `__devobsDemoFirestoreSpy_${enabled ? 'enabled' : 'disabled'}`;
-  globalThis[spyKey] = persistenceCalls;
+  globalThis.__devobsDemoFirestorePersistenceCalls = persistenceCalls;
 
   const firestoreSpyModule = '\0devobs-demo-firestore-spy';
   const sessionStubModule = '\0devobs-demo-session-stub';
@@ -38,17 +48,7 @@ async function loadAppWithFirebaseFlag(enabled) {
         return 'export const DevobsSession = () => null;';
       }
       if (id === firestoreSpyModule) {
-        const spy = `globalThis[${JSON.stringify(spyKey)}].push`;
-        return [
-          `const record = (method) => ${spy}({ method });`,
-          "export const subscribeToServers = (...args) => { record('subscribeToServers'); return () => {}; };",
-          "export const subscribeToIncidents = (...args) => { record('subscribeToIncidents'); return () => {}; };",
-          "export const subscribeToDeployments = (...args) => { record('subscribeToDeployments'); return () => {}; };",
-          "export const saveServerToFirestore = async (...args) => { record('saveServerToFirestore'); };",
-          "export const deleteServerFromFirestore = async (...args) => { record('deleteServerFromFirestore'); };",
-          "export const saveIncidentToFirestore = async (...args) => { record('saveIncidentToFirestore'); };",
-          "export const saveDeploymentToFirestore = async (...args) => { record('saveDeploymentToFirestore'); };",
-        ].join('\n');
+        return FIRESTORE_SPY_SOURCE;
       }
       return null;
     },
@@ -78,10 +78,10 @@ async function loadAppWithFirebaseFlag(enabled) {
       'function',
       'App must expose the action factory used by its demo UI',
     );
-    return { appModule, facadeImports, persistenceCalls, server, spyKey };
+    return { appModule, facadeImports, persistenceCalls, server };
   } catch (error) {
     await server.close();
-    delete globalThis[spyKey];
+    delete globalThis.__devobsDemoFirestorePersistenceCalls;
     throw error;
   }
 }
@@ -93,12 +93,8 @@ before(async () => {
 });
 
 after(async () => {
-  await Promise.all(
-    [...contexts.values()].map(async ({ server, spyKey }) => {
-      await server.close();
-      delete globalThis[spyKey];
-    }),
-  );
+  await Promise.all([...contexts.values()].map(({ server }) => server.close()));
+  delete globalThis.__devobsDemoFirestorePersistenceCalls;
 });
 
 function makeFixture(context) {
