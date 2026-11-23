@@ -3368,6 +3368,17 @@
       "ci_run_id": 45238000845,
       "verification": "VERIFIED 2026-11-23 (GitHub): PR #767 merged exact head 9e919eceaab8c51b4759f71e4fd347b9db571056 as 0c70d85c830835ad464d841803e3855f28622e24 at 2026-11-23T18:36:44Z. Exact-head CI 45238000845 and CodeQL run 45237987280 succeeded; Vercel succeeded. Exact-main CI 45240244073 succeeded; CodeQL analyses run 45240242836 succeeded. Main SHA is 0c70d85c830835ad464d841803e3855f28622e24.",
       "limitations": "Phase 2 is a source-only inventory; effective hosted Firestore rules, data, feature-flag values, API-key restrictions and App Check remain UNVERIFIED. No live Firebase access or Firebase-rule deployment occurred. The existing post-merge main CI run 45240244073 included its production site publish step; this Phase 2 record did not dispatch that workflow. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-firebase-phase3-emulator-tests-pr768",
+      "area": "PLATFORM",
+      "title": "test(firebase): add local Firestore authorization suite",
+      "pr_number": 768,
+      "pr_head_sha": "c64276a1d3c9ed412b0f6257870c7c429e0ab055",
+      "merge_sha": "e0440f9ee2d1a944da328ac88341d650db8d4110",
+      "ci_run_id": 45247758146,
+      "verification": "VERIFIED 2026-11-23 (GitHub): PR #768 merged exact head c64276a1d3c9ed412b0f6257870c7c429e0ab055 as e0440f9ee2d1a944da328ac88341d650db8d4110 at 2026-11-23T19:28:56Z. Exact-head CI 45247758146 and CodeQL run 45247747810 succeeded. On the merge SHA, the active main ruleset's required validate check in CI 45249392948 and CodeQL run 45249391931 both succeeded; Python, Node, security, postgres-rls, Terraform, site-contract and container checks also succeeded.",
+      "limitations": "Overall post-merge main CI 45249392948 concluded failure only at the non-required production-release / Publish production site job; do not claim this main workflow was fully successful. Dependabot Updates run 45249445403 failed. The Dependabot alerts API returned 403, so the reported minimatch/uuid blocker is recorded as UNVERIFIED; no dependency was changed. PR #768's emulator policy is an experimental local fixture only and does not authorize production rules or prove hosted Firebase behavior. No live Firebase access or rule publication occurred. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
