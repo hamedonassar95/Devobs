@@ -17,6 +17,8 @@ not authentication, human approval or permission to deploy. No provider is activ
 
 ## P01 readiness: verified NO-GO evidence (2026-11-19)
 
+**2026-11-23 read-only provider update:** [Current Render and Supabase checkpoint](docs/p01/P01_PROVIDER_CHECKPOINT_2026-11-23.md) confirms an unsuccessful hosted staging deploy, an INACTIVE Devobs Supabase project, and the Render Free PostgreSQL expiry on 2026-12-05. No production GO or retention action is authorized.
+
 [Read the fixed-SHA P01 NO-GO owner decision and acceptance matrix](docs/p01/P01_NO_GO_DECISION_2026-11-19.md) for the reviewed `main` SHA `0f062c03dbefceebf8eaca79bdaf30c2483f99be`. This is source/read-only metadata evidence, **not** a provider hard-cap, hosted test or P01 approval. The existing P01 evidence sample and P01/AI-9/Codex gates are unchanged. A separate owner decision is needed before the existing Free PostgreSQL expiry on 2026-12-05.
 
 
