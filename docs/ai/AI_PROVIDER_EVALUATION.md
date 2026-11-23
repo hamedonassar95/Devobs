@@ -192,6 +192,7 @@ commands and final output lines):
 | Diff hygiene | `git diff --check` | PASS (exit 0) |
 | Workflow validation | `actionlint` / `scripts/lint_authored_workflows.py` | NOT RUN locally — actionlint binary unavailable (`WinError 2`) and repo lint script failed; CI installs a pinned actionlint 1.7.12 + ShellCheck 0.11.0 in the `security` job |
 | Full `tests/` discovery | `python -m unittest discover -s tests -p "test_*.py"` | NOT COMPLETED — terminated at 300s (exit 143); pre-existing large-suite runtime, not a failure of the new tests |
-| Lint (`ruff`) / type check (`mypy`) / Bandit / gitleaks | Tool modules and binaries unavailable | NOT RUN — reported, not claimed as passing |
+| Bandit (exact CI command) | `python -m bandit -r scripts tools devobs -x scripts/check_site.py` | PASS locally with pinned Bandit 1.9.4 — exit 0, 0 issues, after removing two `assert`s and renaming a decision enum member that triggered a B105 false positive |
+| Lint (`ruff`) / type check (`mypy`) / gitleaks | Tool modules and binaries unavailable | NOT RUN — reported, not claimed as passing |
 | Live provider / paid API call | Not authorized | BLOCKED by design |
 | Draft PR creation | `gh` unavailable; token reading forbidden by AGENTS.md | Attempted via unauthenticated GitHub API; see final report for exact result |

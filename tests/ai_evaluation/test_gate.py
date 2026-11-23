@@ -63,7 +63,7 @@ def _with_result(report, case_id: str, **changes):
 class GatePassTests(unittest.TestCase):
     def test_shipped_fixtures_pass(self) -> None:
         result = evaluate_gate(_report())
-        self.assertIs(result.decision, GateDecision.PASS)
+        self.assertIs(result.decision, GateDecision.PASSED)
         self.assertTrue(result.passed)
         self.assertEqual(result.exit_code, 0)
         self.assertEqual(result.failures, ())

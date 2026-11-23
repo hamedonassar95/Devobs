@@ -71,10 +71,12 @@ class PricingCatalog:
         if entry is None or not entry.verified:
             return CostEstimate(None, Confidence.UNKNOWN, "UNKNOWN",
                                 "" if entry is None else entry.source_url)
-        assert entry.prompt_usd_per_million is not None
-        assert entry.completion_usd_per_million is not None
-        total = (Decimal(prompt_tokens) * entry.prompt_usd_per_million
-                 + Decimal(completion_tokens) * entry.completion_usd_per_million) / Decimal(1_000_000)
+        prompt_rate = entry.prompt_usd_per_million
+        completion_rate = entry.completion_usd_per_million
+        if prompt_rate is None or completion_rate is None:
+            raise EvaluationError("unverified_pricing_rate")
+        total = (Decimal(prompt_tokens) * prompt_rate
+                 + Decimal(completion_tokens) * completion_rate) / Decimal(1_000_000)
         return CostEstimate(total, Confidence.ESTIMATED, entry.source_url, entry.source_url)
 
     def digest(self) -> str:
