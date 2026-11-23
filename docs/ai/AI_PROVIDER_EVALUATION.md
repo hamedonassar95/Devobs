@@ -176,8 +176,8 @@ document in the same reviewed commit.
 
 ## Verification matrix
 
-Filled with fresh local evidence on 2026-11-23 (see final report for exact
-commands and final output lines):
+Filled with fresh local and GitHub Actions evidence on 2026-11-23 (see final
+report for exact commands and final output lines):
 
 | Check | Command family | Result |
 | --- | --- | --- |
@@ -190,9 +190,11 @@ commands and final output lines):
 | Existing pinned dataset validator | `python scripts/validate_ai_eval_fixtures.py` | PASS for the committed blob (SHA-256 matches policy); the local Windows worktree run reports `dataset_digest_mismatch` only because `core.autocrlf=true` rewrites LF to CRLF. The Linux CI checkout is unaffected. |
 | Production static network/exec scan | source scan of `devobs/ai_evaluation/*.py` | PASS (no network/process/dynamic-exec patterns) |
 | Diff hygiene | `git diff --check` | PASS (exit 0) |
-| Workflow validation | `actionlint` / `scripts/lint_authored_workflows.py` | NOT RUN locally — actionlint binary unavailable (`WinError 2`) and repo lint script failed; CI installs a pinned actionlint 1.7.12 + ShellCheck 0.11.0 in the `security` job |
+| Workflow validation | `actionlint` / `scripts/lint_authored_workflows.py` | NOT RUN locally — actionlint binary unavailable (`WinError 2`); the CI actionlint/ShellCheck steps are `pull_request`-only, so they remain pending until the Draft PR exists |
 | Full `tests/` discovery | `python -m unittest discover -s tests -p "test_*.py"` | NOT COMPLETED — terminated at 300s (exit 143); pre-existing large-suite runtime, not a failure of the new tests |
 | Bandit (exact CI command) | `python -m bandit -r scripts tools devobs -x scripts/check_site.py` | PASS locally with pinned Bandit 1.9.4 — exit 0, 0 issues, after removing two `assert`s and renaming a decision enum member that triggered a B105 false positive |
-| Lint (`ruff`) / type check (`mypy`) / gitleaks | Tool modules and binaries unavailable | NOT RUN — reported, not claimed as passing |
+| Lint (`ruff`) / type check (`mypy`) / gitleaks | Tool modules and binaries unavailable (gitleaks CI step is PR-only) | NOT RUN — reported, not claimed as passing |
+| CI `security` job (new gate step + Bandit) | GitHub check run on pushed SHA `ebeefa0a223c45ee09dd677aeddfe8a6ed4c324e` | VERIFIED — `completed success` ([run 45170104857](https://github.com/hamedonassar95/Devobs/actions/runs/45170104857)); the earlier run on `2674462` failed only at Bandit and was fixed |
+| CI `validate` job | Same check-run set | VERIFIED — `completed success`; Python 3.12 and 3.15 validation, site-contract, container build/scan, terraform and Postgres RLS also `success` |
 | Live provider / paid API call | Not authorized | BLOCKED by design |
-| Draft PR creation | `gh` unavailable; token reading forbidden by AGENTS.md | Attempted via unauthenticated GitHub API; see final report for exact result |
+| Draft PR creation | `gh` unavailable; token reading forbidden by AGENTS.md | BLOCKED — unauthenticated GitHub API returned `401 Unauthorized`; owner must run the documented `gh pr create --draft` command |
