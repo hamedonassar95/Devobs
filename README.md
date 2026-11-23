@@ -130,6 +130,11 @@ and reliability, requires a pinned fingerprint and a composite score of at least
 step of the existing CI `security` job. Any fixture/pricing change must update
 the fingerprint pin in the same reviewed commit.
 
+Security tests build their credential-like sentinels at runtime and inject them
+in memory, so no secret-looking literal is committed or written to a temporary
+fixture. CLI regression tests assert that the sentinel is absent from stdout,
+stderr and the structured report, which still contains `[REDACTED]`.
+
 This harness and its gate are advisory only. They do not change P01 (NO-GO),
 AI-9 (BLOCKED) or Codex runtime acceptance (OPEN), and they do not authorize a
 provider switch, merge, deployment or spend.

@@ -143,6 +143,17 @@ one-line summary. That step has no live call path and reads no credential.
   live response. The CLI returns status `INVALID` with a fixed reason on any
   invalid input and never echoes file content.
 
+### Synthetic secret handling in tests
+
+Credential-like sentinels used by the security tests are assembled at runtime
+from non-secret fragments (`"xai-" + letter * 24`). No secret-looking literal is
+committed to a test or fixture, and the CLI tests inject the runtime value in
+memory instead of writing it to a temporary JSON file. Regression assertions
+check that the sentinel is absent from stdout, stderr and the structured report,
+and that the report still contains `[REDACTED]`. Gitleaks and CodeQL remain
+enabled; this change removes the unsafe test-data handling rather than adding a
+scanner exclusion.
+
 ## Usage
 
 ```sh
@@ -193,7 +204,10 @@ report for exact commands and final output lines):
 | Workflow validation | `actionlint` / `scripts/lint_authored_workflows.py` | NOT RUN locally — actionlint binary unavailable (`WinError 2`); the CI actionlint/ShellCheck steps are `pull_request`-only, so they remain pending until the Draft PR exists |
 | Full `tests/` discovery | `python -m unittest discover -s tests -p "test_*.py"` | NOT COMPLETED — terminated at 300s (exit 143); pre-existing large-suite runtime, not a failure of the new tests |
 | Bandit (exact CI command) | `python -m bandit -r scripts tools devobs -x scripts/check_site.py` | PASS locally with pinned Bandit 1.9.4 — exit 0, 0 issues, after removing two `assert`s and renaming a decision enum member that triggered a B105 false positive |
-| Lint (`ruff`) / type check (`mypy`) / gitleaks | Tool modules and binaries unavailable (gitleaks CI step is PR-only) | NOT RUN — reported, not claimed as passing |
+| Lint (`ruff`) / type check (`mypy`) / gitleaks | Tool modules and binaries unavailable (gitleaks CI step is PR-only) | Earlier run: NOT RUN — reported, not claimed as passing; pinned local Gitleaks is now covered below |
+| Pinned Gitleaks (repair PR range) | Gitleaks 8.24.3, `--redact`, range `233def2e..HEAD` | PASS — exit 0, 0 findings |
+| Pinned Gitleaks (original PR #762 history) | Same pinned binary, range `51c26d9..233def2e` | BLOCKED — 2 historical findings in older commits; history rewrite/squash is required before #762 can pass |
+| CodeQL owner-referenced #28/#29 | Check-run annotations on `233def2e` | VERIFIED — `Clear-text storage of sensitive information` at `tests/ai_evaluation/test_cli.py:64,90`; both flagged file writes removed; updated alert state pending CI |
 | CI `security` job (new gate step + Bandit) | GitHub check run on pushed SHA `ebeefa0a223c45ee09dd677aeddfe8a6ed4c324e` | VERIFIED — `completed success` ([run 45170104857](https://github.com/hamedonassar95/Devobs/actions/runs/45170104857)); the earlier run on `2674462` failed only at Bandit and was fixed |
 | CI `validate` job | Same check-run set | VERIFIED — `completed success`; Python 3.12 and 3.15 validation, site-contract, container build/scan, terraform and Postgres RLS also `success` |
 | Live provider / paid API call | Not authorized | BLOCKED by design |
