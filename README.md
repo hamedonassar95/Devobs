@@ -569,6 +569,8 @@ unset GRAFANA_ADMIN_PASSWORD
 
 لا يحتاج نشر Pages الحالي إلى أسرار نشر؛ صلاحيات النشر وإثبات الهوية تُدار عبر GitHub Actions وOIDC. راجع [دليل المعاينة والنشر والرجوع](docs/DEPLOYMENT.md) و[دليل CI](docs/CI.md) للتفاصيل.
 
+تعطّل [إعدادات Vercel Git لهذا الفرع](vercel.json) النشر التلقائي الناتج عن commits على `feature/firebase-demo-write-isolation` فقط. توضح [وثائق Vercel الرسمية](https://vercel.com/docs/project-configuration/git-configuration) أن `git.deploymentEnabled` يقبل قواعد حسب اسم الفرع وأن الفروع غير المذكورة تبقى مفعّلة؛ لذلك لا يعطّل هذا الإعداد النشر على `main`. هذه قاعدة لأحداث Git فقط، ولا تمنع تشغيل Vercel CLI أو API أو Deploy Hook يدويًا. سير عمل `Vercel staging test` الموجود يتطلب تشغيلًا يدويًا عبر `workflow_dispatch` ومقيّدًا إلى `main`؛ لا يُشغّل تلقائيًا عند دفع هذا الفرع أو فتح PR.
+
 ## التشغيل والتوثيق
 
 - [CI documentation](docs/CI.md)

@@ -22,15 +22,6 @@ import { exportServersToCSV, exportIncidentsToCSV, exportDeploymentsToCSV } from
 import { createRecordId } from './utils/ids';
 import { previewDemoAction } from './utils/demoActionPreview';
 import { initAuth, googleSignIn } from './services/googleAuthFacade';
-import {
-  subscribeToServers,
-  saveServerToFirestore,
-  deleteServerFromFirestore,
-  subscribeToIncidents,
-  saveIncidentToFirestore,
-  subscribeToDeployments,
-  saveDeploymentToFirestore,
-} from './services/firebaseFirestoreFacade';
 const GoogleDriveTab = lazy(() =>
   import('./components/drive/GoogleDriveTab').then((m) => ({ default: m.GoogleDriveTab }))
 );
@@ -99,6 +90,165 @@ import {
   Calendar as CalendarIcon,
   FolderGit2,
 } from 'lucide-react';
+
+type DemoDashboardActionsOptions = {
+  servers: Server[];
+  incidents: Incident[];
+  setServers: React.Dispatch<React.SetStateAction<Server[]>>;
+  setIncidents: React.Dispatch<React.SetStateAction<Incident[]>>;
+  setDeployments: React.Dispatch<React.SetStateAction<Deployment[]>>;
+  addToast: (message: string, type?: 'success' | 'info' | 'warning' | 'error') => void;
+  createId?: (prefix: string) => string;
+  now?: () => string;
+  random?: () => number;
+};
+
+/**
+ * Build local-only actions for the synthetic dashboard. There is deliberately no
+ * Firestore persistence dependency here; future persistence needs its own reviewed
+ * authorization contract and must not be wired into this demo action factory.
+ */
+export function createDemoDashboardActions({
+  servers,
+  incidents,
+  setServers,
+  setIncidents,
+  setDeployments,
+  addToast,
+  createId = createRecordId,
+  now = () => new Date().toISOString(),
+  random = Math.random,
+}: DemoDashboardActionsOptions) {
+  const formattedTimestamp = () => now().replace('T', ' ').slice(0, 19);
+
+  const handleToggleMaintenance = (serverId: string) => {
+    const server = servers.find((item) => item.id === serverId);
+    if (!server) return;
+
+    const nextStatus = server.status === 'maintenance' ? 'healthy' : 'maintenance';
+    setServers((previous) =>
+      previous.map((item) => (item.id === serverId ? { ...item, status: nextStatus } : item)),
+    );
+    addToast(
+      `🧪 تغيّرت حالة ${server.name} في بيانات العرض فقط إلى [${nextStatus === 'maintenance' ? 'الصيانة' : 'العمل الطبيعي'}].`,
+      'info',
+    );
+  };
+
+  const handleDeleteServer = (serverId: string) => {
+    const server = servers.find((item) => item.id === serverId);
+    if (!server) return;
+
+    setServers((previous) => previous.filter((item) => item.id !== serverId));
+    addToast(`🧪 تمت إزالة ${server.name} من قائمة العرض التجريبية فقط؛ لم يُحذف خادم حقيقي.`, 'info');
+  };
+
+  const handleAddServer = (newServerData: Omit<Server, 'id' | 'uptimeDays' | 'lastPing'>) => {
+    const newServer: Server = {
+      ...newServerData,
+      id: createId('srv'),
+      uptimeDays: 0,
+      lastPing: 'منذ ثانية',
+    };
+    setServers((previous) => [newServer, ...previous]);
+    addToast(`🧪 أُضيف [${newServer.name}] إلى بيانات العرض التجريبية فقط، دون إنشاء خادم حقيقي.`, 'info');
+  };
+
+  const handleResolveIncident = (incidentId: string) => {
+    const incident = incidents.find((item) => item.id === incidentId);
+    if (!incident) return;
+
+    const resolvedIncident: Incident = {
+      ...incident,
+      resolved: true,
+      resolvedAt: formattedTimestamp(),
+    };
+    setIncidents((previous) =>
+      previous.map((item) => (item.id === incidentId ? resolvedIncident : item)),
+    );
+    addToast(`🧪 تم تغيير حالة [${incident.code}] في سجل العرض التجريبي فقط.`, 'info');
+  };
+
+  const handleSimulateIncident = (scenario?: {
+    code: string;
+    severity: IncidentSeverity;
+    message: string;
+    stack: string;
+    serverId?: string;
+  }) => {
+    if (servers.length === 0) return;
+    const pickedServer = scenario?.serverId
+      ? servers.find((server) => server.id === scenario.serverId) || servers[0]
+      : servers[Math.floor(random() * servers.length)];
+
+    const mockErrors = [
+      {
+        code: 'ERR_HIGH_CPU_SPIKE',
+        severity: 'warning' as const,
+        message: `ارتفاع حاد في استهلاك المعالج تجاوز 92% على ${pickedServer.name} بسبب معالجة دفعات متزامنة.`,
+        stack: `PID 14088 node [worker-thread] consuming 94% CPU.\nGarbage collector frequency tripled in the last 60 seconds.`,
+      },
+      {
+        code: 'ERR_HTTP_502_BAD_GATEWAY',
+        severity: 'critical' as const,
+        message: `توقف مفاجئ في استجابة خدمة البروكسي الداخلية على الخادم ${pickedServer.name}.`,
+        stack: `connect() failed (111: Connection refused) while connecting to upstream.\nworker process 3108 exited on signal 11 (SIGSEGV).`,
+      },
+      {
+        code: 'WARN_DISK_SPACE_THRESHOLD',
+        severity: 'warning' as const,
+        message: `المساحة المتبقية على قرص /var/log أقل من 12% على ${pickedServer.name}.`,
+        stack: `Filesystem /dev/nvme0n1p1 mounted on /var/log capacity at 88.4%.\nLogrotate schedule queue pending.`,
+      },
+    ];
+
+    const picked = scenario || mockErrors[Math.floor(random() * mockErrors.length)];
+    const newIncident: Incident = {
+      id: createId('inc'),
+      serverId: pickedServer.id,
+      serverName: pickedServer.name,
+      severity: picked.severity,
+      code: picked.code,
+      message: picked.message,
+      stackTrace: picked.stack,
+      timestamp: formattedTimestamp(),
+      resolved: false,
+    };
+
+    setIncidents((previous) => [newIncident, ...previous]);
+    setServers((previous) =>
+      previous.map((server) =>
+        server.id === pickedServer.id
+          ? {
+              ...server,
+              status: picked.severity === 'critical' ? 'critical' : 'warning',
+              cpu: picked.severity === 'critical' ? 96 : 86,
+            }
+          : server,
+      ),
+    );
+    addToast(`🧪 [Demo]: أُضيفت حادثة محاكاة [${picked.code}] إلى قائمة العرض فقط؛ لم يُحقن عطل حقيقي.`, 'warning');
+  };
+
+  const handleAddNewDeployment = (newDeploymentData: Omit<Deployment, 'id' | 'timestamp'>) => {
+    const newDeployment: Deployment = {
+      ...newDeploymentData,
+      id: createId('dep'),
+      timestamp: formattedTimestamp(),
+    };
+    setDeployments((previous) => [newDeployment, ...previous]);
+    addToast('🧪 أُضيف سجل نشر تجريبي فقط؛ لم يتم نشر تطبيق حقيقي.', 'info');
+  };
+
+  return {
+    handleToggleMaintenance,
+    handleDeleteServer,
+    handleAddServer,
+    handleResolveIncident,
+    handleSimulateIncident,
+    handleAddNewDeployment,
+  };
+}
 
 export default function App() {
   // Theme state (Dark mode default for High-End Dark Tech)
@@ -192,26 +342,7 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // Initialize optional Firestore subscriptions. Never seed synthetic demo data.
-  useEffect(() => {
-    const unsubServers = subscribeToServers((remoteServers) => {
-      setServers(remoteServers);
-    });
-
-    const unsubIncidents = subscribeToIncidents((remoteIncidents) => {
-      setIncidents(remoteIncidents);
-    });
-
-    const unsubDeployments = subscribeToDeployments((remoteDeployments) => {
-      setDeployments(remoteDeployments);
-    });
-
-    return () => {
-      unsubServers();
-      unsubIncidents();
-      unsubDeployments();
-    };
-  }, []);
+  // Demo records stay in React state/localStorage; never connect them to Firestore.
 
   // Sync theme
   useEffect(() => {
@@ -250,139 +381,28 @@ export default function App() {
     }
   };
 
-  // Server Actions
+  // Demo actions operate only on this component's synthetic/local state.
+  const {
+    handleToggleMaintenance,
+    handleDeleteServer,
+    handleAddServer,
+    handleResolveIncident,
+    handleSimulateIncident,
+    handleAddNewDeployment,
+  } = createDemoDashboardActions({
+    servers,
+    incidents,
+    setServers,
+    setIncidents,
+    setDeployments,
+    addToast,
+  });
+
+  // Server preview action
   const handleRestartServer = (serverId: string) => {
     // No real service operation is available from this prototype UI.
     if (!servers.some((server) => server.id === serverId)) return;
     addToast(previewDemoAction('restart').message, 'info');
-  };
-
-  const handleToggleMaintenance = (serverId: string) => {
-    let updatedServer: Server | null = null;
-    setServers((prev) =>
-      prev.map((s) => {
-        if (s.id === serverId) {
-          const nextStatus = s.status === 'maintenance' ? 'healthy' : 'maintenance';
-          updatedServer = { ...s, status: nextStatus };
-          addToast(`🧪 تغيّرت حالة ${s.name} في بيانات العرض فقط إلى [${nextStatus === 'maintenance' ? 'الصيانة' : 'العمل الطبيعي'}].`, 'info');
-          return updatedServer;
-        }
-        return s;
-      })
-    );
-
-    if (updatedServer) {
-      saveServerToFirestore(updatedServer);
-    }
-  };
-
-  const handleDeleteServer = (serverId: string) => {
-    const srv = servers.find((s) => s.id === serverId);
-    setServers((prev) => prev.filter((s) => s.id !== serverId));
-    deleteServerFromFirestore(serverId);
-    if (srv) addToast(`🧪 تمت إزالة ${srv.name} من قائمة العرض التجريبية فقط؛ لم يُحذف خادم حقيقي.`, 'info');
-  };
-
-  const handleAddServer = (newServerData: Omit<Server, 'id' | 'uptimeDays' | 'lastPing'>) => {
-    const newServer: Server = {
-      ...newServerData,
-      id: createRecordId('srv'),
-      uptimeDays: 0,
-      lastPing: 'منذ ثانية',
-    };
-    setServers((prev) => [newServer, ...prev]);
-    saveServerToFirestore(newServer);
-    addToast(`🧪 أُضيف [${newServer.name}] إلى بيانات العرض التجريبية فقط، دون إنشاء خادم حقيقي.`, 'info');
-  };
-
-  // Incident Actions
-  const handleResolveIncident = (incidentId: string) => {
-    let resolvedItem: Incident | null = null;
-    setIncidents((prev) =>
-      prev.map((inc) => {
-        if (inc.id === incidentId) {
-          resolvedItem = {
-            ...inc,
-            resolved: true,
-            resolvedAt: new Date().toISOString().replace('T', ' ').slice(0, 19),
-          };
-          addToast(`🧪 تم تغيير حالة [${inc.code}] في سجل العرض التجريبي فقط.`, 'info');
-          return resolvedItem;
-        }
-        return inc;
-      })
-    );
-
-    if (resolvedItem) {
-      saveIncidentToFirestore(resolvedItem);
-    }
-  };
-
-  const handleSimulateIncident = (scenario?: { code: string; severity: IncidentSeverity; message: string; stack: string; serverId?: string }) => {
-    if (servers.length === 0) return;
-    const pickedServer = scenario?.serverId
-      ? servers.find((s) => s.id === scenario.serverId) || servers[0]
-      : servers[Math.floor(Math.random() * servers.length)];
-
-    const mockErrors = [
-      {
-        code: 'ERR_HIGH_CPU_SPIKE',
-        severity: 'warning' as const,
-        message: `ارتفاع حاد في استهلاك المعالج تجاوز 92% على ${pickedServer.name} بسبب معالجة دفعات متزامنة.`,
-        stack: `PID 14088 node [worker-thread] consuming 94% CPU.\nGarbage collector frequency tripled in the last 60 seconds.`,
-      },
-      {
-        code: 'ERR_HTTP_502_BAD_GATEWAY',
-        severity: 'critical' as const,
-        message: `توقف مفاجئ في استجابة خدمة البروكسي الداخلية على الخادم ${pickedServer.name}.`,
-        stack: `connect() failed (111: Connection refused) while connecting to upstream.\nworker process 3108 exited on signal 11 (SIGSEGV).`,
-      },
-      {
-        code: 'WARN_DISK_SPACE_THRESHOLD',
-        severity: 'warning' as const,
-        message: `المساحة المتبقية على قرص /var/log أقل من 12% على ${pickedServer.name}.`,
-        stack: `Filesystem /dev/nvme0n1p1 mounted on /var/log capacity at 88.4%.\nLogrotate schedule queue pending.`,
-      },
-    ];
-
-    const picked = scenario || mockErrors[Math.floor(Math.random() * mockErrors.length)];
-
-    const newIncident: Incident = {
-      id: createRecordId('inc'),
-      serverId: pickedServer.id,
-      serverName: pickedServer.name,
-      severity: picked.severity,
-      code: picked.code,
-      message: picked.message,
-      stackTrace: picked.stack,
-      timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
-      resolved: false,
-    };
-
-    setIncidents((prev) => [newIncident, ...prev]);
-    saveIncidentToFirestore(newIncident);
-
-    // Update server status accordingly
-    let affectedServer: Server | null = null;
-    setServers((prev) =>
-      prev.map((s) => {
-        if (s.id === pickedServer.id) {
-          affectedServer = {
-            ...s,
-            status: picked.severity === 'critical' ? 'critical' : 'warning',
-            cpu: picked.severity === 'critical' ? 96 : 86,
-          };
-          return affectedServer;
-        }
-        return s;
-      })
-    );
-
-    if (affectedServer) {
-      saveServerToFirestore(affectedServer);
-    }
-
-    addToast(`🧪 [Demo]: أُضيفت حادثة محاكاة [${picked.code}] إلى قائمة العرض فقط؛ لم يُحقن عطل حقيقي.`, 'warning');
   };
 
   // Deployment Actions
@@ -394,17 +414,6 @@ export default function App() {
   const handleRollback = (deploymentId: string) => {
     if (!deployments.some((deployment) => deployment.id === deploymentId)) return;
     addToast(previewDemoAction('rollback').message, 'info');
-  };
-
-  const handleAddNewDeployment = (newDepData: Omit<Deployment, 'id' | 'timestamp'>) => {
-    const newDep: Deployment = {
-      ...newDepData,
-      id: createRecordId('dep'),
-      timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
-    };
-    setDeployments((prev) => [newDep, ...prev]);
-    saveDeploymentToFirestore(newDep);
-    addToast('🧪 أُضيف سجل نشر تجريبي فقط؛ لم يتم نشر تطبيق حقيقي.', 'info');
   };
 
   // Reset Data to defaults
