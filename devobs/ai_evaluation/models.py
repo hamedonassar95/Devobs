@@ -363,6 +363,143 @@ class ProviderResponse:
 
 
 @dataclass(frozen=True)
+class ProviderRequest:
+    """A bounded advisory prompt with no tool, action or execution field."""
+
+    case_id: str
+    prompt: str
+    required_capabilities: frozenset[Capability]
+    scenario: str = "success"
+    request_id: str = "ai-eval-request"
+    expected_markers: tuple[str, ...] = ()
+    forbidden_markers: tuple[str, ...] = ()
+    max_output_tokens: int = 512
+
+    def __post_init__(self) -> None:
+        _validate_id(self.case_id, "case_id")
+        _validate_id(self.request_id, "request_id")
+        _validate_text(self.prompt, "prompt", maximum=MAX_PROMPT_BYTES)
+        _capabilities(self.required_capabilities, "required_capabilities")
+        if type(self.scenario) is not str or not re.fullmatch(r"[a-z_]{1,40}", self.scenario):
+            raise EvaluationError("invalid_scenario")
+        if type(self.max_output_tokens) is not int or not 1 <= self.max_output_tokens <= 8192:
+            raise EvaluationError("invalid_max_output_tokens")
+        for name in ("expected_markers", "forbidden_markers"):
+            value = getattr(self, name)
+            if type(value) is not tuple or not all(
+                type(item) is str and 1 <= len(item) <= 256 for item in value
+            ):
+                raise EvaluationError("invalid_" + name)
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "case_id": self.case_id,
+            "prompt": redact_sensitive(self.prompt)[0],
+            "required_capabilities": sorted(
+                item.value for item in self.required_capabilities),
+            "scenario": self.scenario,
+            "request_id": self.request_id,
+            "expected_markers": list(self.expected_markers),
+            "forbidden_markers": list(self.forbidden_markers),
+            "max_output_tokens": self.max_output_tokens,
+        }
+
+
+@dataclass(frozen=True)
+class ScoreBreakdown:
+    """Deterministic quality/reliability summary behind a gate decision."""
+
+    quality: Decimal
+    reliability: Decimal
+    composite: Decimal
+    confidence: Confidence
+    rationale: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        for name in ("quality", "reliability", "composite"):
+            _validate_decimal(getattr(self, name), name,
+                              minimum=Decimal("0"), maximum=Decimal("1"))
+        if not isinstance(self.confidence, Confidence):
+            raise EvaluationError("invalid_confidence")
+        if type(self.rationale) is not tuple or not all(
+            type(item) is str and len(item) <= 512 for item in self.rationale
+        ):
+            raise EvaluationError("invalid_rationale")
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "quality": str(self.quality),
+            "reliability": str(self.reliability),
+            "composite": str(self.composite),
+            "confidence": self.confidence.value,
+            "rationale": list(self.rationale),
+        }
+
+
+@dataclass(frozen=True)
+class Evidence:
+    """A short, redacted claim with an explicit confidence and source."""
+
+    claim: str
+    confidence: Confidence
+    source: str
+
+    def __post_init__(self) -> None:
+        _validate_text(self.claim, "claim", maximum=512)
+        if not isinstance(self.confidence, Confidence):
+            raise EvaluationError("invalid_confidence")
+        _validate_text(self.source, "source", maximum=512)
+
+    def to_dict(self) -> dict[str, str]:
+        return {
+            "claim": redact_sensitive(self.claim)[0],
+            "confidence": self.confidence.value,
+            "source": self.source,
+        }
+
+
+@dataclass(frozen=True)
+class RoutingDecision:
+    """Advisory provider selection for one task; never authorizes a live call."""
+
+    task: str
+    required_capabilities: frozenset[Capability]
+    selected_provider: str | None
+    candidate_providers: tuple[str, ...]
+    status: ProviderStatus
+    confidence: Confidence
+    rationale: str
+
+    def __post_init__(self) -> None:
+        _validate_id(self.task, "task")
+        _capabilities(self.required_capabilities, "required_capabilities")
+        if self.selected_provider is not None:
+            _validate_id(self.selected_provider, "selected_provider")
+        if type(self.candidate_providers) is not tuple or not all(
+            type(item) is str and 1 <= len(item) <= MAX_ID_CHARS
+            for item in self.candidate_providers
+        ):
+            raise EvaluationError("invalid_candidate_providers")
+        if not isinstance(self.status, ProviderStatus):
+            raise EvaluationError("invalid_status")
+        if not isinstance(self.confidence, Confidence):
+            raise EvaluationError("invalid_confidence")
+        _validate_text(self.rationale, "rationale", maximum=1024)
+
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "task": self.task,
+            "required_capabilities": sorted(
+                item.value for item in self.required_capabilities),
+            "selected_provider": self.selected_provider,
+            "candidate_providers": list(self.candidate_providers),
+            "status": self.status.value,
+            "confidence": self.confidence.value,
+            "rationale": redact_sensitive(self.rationale)[0],
+        }
+
+
+@dataclass(frozen=True)
 class FixtureCase:
     """A deterministic offline scenario definition."""
 
@@ -373,9 +510,18 @@ class FixtureCase:
     scenario: str
     expected_outcome: InvocationOutcome = InvocationOutcome.SUCCESS
     expected_status: ProviderStatus = ProviderStatus.AVAILABLE
+    expected_markers: tuple[str, ...] = ()
+    forbidden_markers: tuple[str, ...] = ()
+    notes: str = ""
 
     @classmethod
     def from_mapping(cls, mapping: Mapping[str, Any]) -> "FixtureCase":
+        markers: dict[str, tuple[str, ...]] = {}
+        for name in ("expected_markers", "forbidden_markers"):
+            value = mapping.get(name, ())
+            if type(value) not in (list, tuple):
+                raise EvaluationError("invalid_" + name)
+            markers[name] = tuple(value)
         return cls(
             case_id=mapping["case_id"],
             task=mapping["task"],
@@ -386,6 +532,9 @@ class FixtureCase:
                 "expected_outcome", "SUCCESS")),
             expected_status=ProviderStatus(mapping.get(
                 "expected_status", "AVAILABLE")),
+            expected_markers=markers["expected_markers"],
+            forbidden_markers=markers["forbidden_markers"],
+            notes=str(mapping.get("notes", "")),
         )
 
     def __post_init__(self) -> None:
@@ -395,6 +544,27 @@ class FixtureCase:
         _capabilities(self.capabilities, "capabilities")
         if type(self.scenario) is not str or not re.fullmatch(r"[a-z_]{1,40}", self.scenario):
             raise EvaluationError("invalid_scenario")
+        for name in ("expected_markers", "forbidden_markers"):
+            value = getattr(self, name)
+            if type(value) is not tuple or not all(
+                type(item) is str and 1 <= len(item) <= 256 for item in value
+            ):
+                raise EvaluationError("invalid_" + name)
+        if type(self.notes) is not str or len(self.notes) > 512 or "\x00" in self.notes:
+            raise EvaluationError("invalid_notes")
+
+    def to_request(self, request_id_prefix: str = "ai-eval") -> ProviderRequest:
+        """Build the bounded request contract for this fixture case."""
+        return ProviderRequest(
+            case_id=self.case_id,
+            prompt=self.prompt,
+            required_capabilities=self.capabilities,
+            scenario=self.scenario,
+            request_id=_validate_id(
+                request_id_prefix + "-" + self.case_id, "request_id"),
+            expected_markers=self.expected_markers,
+            forbidden_markers=self.forbidden_markers,
+        )
 
 
 @dataclass(frozen=True)
@@ -457,6 +627,34 @@ class EvaluationReport:
     offline: bool = True
     live_calls: int = 0
     limitations: tuple[str, ...] = ()
+    configs: tuple[ProviderConfig, ...] = ()
+    routing: tuple[RoutingDecision, ...] = ()
+    evidence: tuple[Evidence, ...] = ()
+    base_sha: str = "unknown"
+    head_sha: str = "unknown"
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.offline, bool):
+            raise EvaluationError("invalid_offline_flag")
+        if type(self.live_calls) is not int or self.live_calls < 0:
+            raise EvaluationError("invalid_live_calls")
+        typed_fields = {
+            "configs": ProviderConfig,
+            "routing": RoutingDecision,
+            "evidence": Evidence,
+        }
+        for name, expected in typed_fields.items():
+            value = getattr(self, name)
+            if type(value) is not tuple or not all(
+                isinstance(item, expected) for item in value
+            ):
+                raise EvaluationError("invalid_" + name)
+        for name in ("base_sha", "head_sha"):
+            value = getattr(self, name)
+            if value != "unknown" and (
+                type(value) is not str or not re.fullmatch(r"[0-9a-f]{40}", value)
+            ):
+                raise EvaluationError("invalid_" + name)
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -469,16 +667,21 @@ class EvaluationReport:
                 "seed": self.fixture.seed,
                 "generated_at": self.fixture.generated_at,
             },
+            "configs": [config.to_dict() for config in self.configs],
             "cases": [c.to_dict() for c in self.cases],
             "comparison": self.comparison,
+            "routing": [decision.to_dict() for decision in self.routing],
+            "evidence": [item.to_dict() for item in self.evidence],
+            "base_sha": self.base_sha,
+            "head_sha": self.head_sha,
             "limitations": [redact_sensitive(x)[0] for x in self.limitations],
         }
 
 
 __all__ = [
     "Capability", "CaseResult", "Confidence", "ErrorCategory", "EvaluationError",
-    "EvaluationReport", "FixtureCase", "FixtureSet", "InvocationOutcome",
-    "LiveModeAuthorization", "PricingEntry", "ProviderConfig", "ProviderResponse",
-    "ProviderStatus", "SafetyPolicyResult", "assert_live_mode_allowed",
-    "parse_decimal", "redact_sensitive",
+    "EvaluationReport", "Evidence", "FixtureCase", "FixtureSet", "InvocationOutcome",
+    "LiveModeAuthorization", "PricingEntry", "ProviderConfig", "ProviderRequest",
+    "ProviderResponse", "ProviderStatus", "RoutingDecision", "SafetyPolicyResult",
+    "ScoreBreakdown", "assert_live_mode_allowed", "parse_decimal", "redact_sensitive",
 ]

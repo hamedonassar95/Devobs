@@ -11,12 +11,14 @@ from .mocks import OfflineProviderMock
 from .models import (
     Capability,
     CaseResult,
+    Confidence,
     ErrorCategory,
     EvaluationReport,
     FixtureSet,
     InvocationOutcome,
     ProviderConfig,
     ProviderResponse,
+    RoutingDecision,
     SafetyPolicyResult,
 )
 from .pricing import PricingCatalog
@@ -109,6 +111,8 @@ class EvaluationEngine:
             fingerprint=fingerprint,
             offline=True,
             live_calls=0,
+            configs=tuple(configs),
+            routing=self._routing(cases, configs),
             limitations=(
                 "Offline fixtures only; no live provider call or credential was used.",
                 "Latency and token counts are seeded fixture values, not measurements.",
@@ -152,6 +156,31 @@ class EvaluationEngine:
                 reliability_score=Decimal("0"),
             )
         return _replace(response, **values)
+
+    @staticmethod
+    def _routing(
+        cases: Sequence[CaseResult], configs: Sequence[ProviderConfig]
+    ) -> tuple[RoutingDecision, ...]:
+        candidates = tuple(config.name for config in configs)
+        decisions: list[RoutingDecision] = []
+        seen_tasks: set[str] = set()
+        for case in cases:
+            if case.task in seen_tasks:
+                continue
+            seen_tasks.add(case.task)
+            decisions.append(RoutingDecision(
+                task=case.task,
+                required_capabilities=case.capabilities,
+                selected_provider=case.result.provider_id,
+                candidate_providers=candidates,
+                status=case.result.status,
+                confidence=Confidence.TESTED,
+                rationale=(
+                    "Offline fixture routing: first configured provider whose "
+                    "capabilities cover the case. Advisory only."
+                ),
+            ))
+        return tuple(decisions)
 
     @staticmethod
     def _comparison(
