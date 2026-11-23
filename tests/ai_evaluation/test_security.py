@@ -15,6 +15,17 @@ from devobs.ai_evaluation.models import (
 )
 from devobs.ai_evaluation.mocks import OfflineProviderMock
 
+CONFIG_SENTINEL = "SYNTHETIC_NEVER_STORE_ME"
+
+
+def _synthetic_token(letter: str) -> str:
+    """Build a scanner-recognisable test token at runtime, never as a literal.
+
+    The fragments are not a credential. The assembled value still exercises the
+    production redaction patterns without committing a secret-looking literal.
+    """
+    return "xai-" + letter * 24
+
 
 class SecurityContractTests(unittest.TestCase):
     def test_provider_config_forbids_endpoint_overrides(self) -> None:
@@ -34,7 +45,7 @@ class SecurityContractTests(unittest.TestCase):
                 "name": "fixture-primary",
                 "model": "grok-4.7",
                 "capabilities": ["advisory_only"],
-                "api_key": "xai-THIS_SHOULD_NEVER_BE_STORED_1234567890",
+                "api_key": CONFIG_SENTINEL,
             })
         config = ProviderConfig.from_mapping({
             "name": "fixture-primary",
@@ -43,7 +54,7 @@ class SecurityContractTests(unittest.TestCase):
         })
         rendered = config.redacted_dict()
         self.assertNotIn("api_key", rendered)
-        self.assertNotIn("THIS_SHOULD_NEVER_BE_STORED", str(rendered))
+        self.assertNotIn(CONFIG_SENTINEL, str(rendered))
 
     def test_live_mode_is_impossible_without_explicit_authorization(self) -> None:
         config = build_default_configs()[0]
@@ -61,13 +72,15 @@ class SecurityContractTests(unittest.TestCase):
             ))
 
     def test_redaction_is_deterministic_and_idempotent(self) -> None:
-        sample = "key=xai-abcdefghijklmnop1234 owner=someone@example.invalid"
+        token = _synthetic_token("C")
+        sample = "key=" + token + " owner=someone@example.invalid"
         once, count = redact_sensitive(sample)
         twice, second = redact_sensitive(once)
         self.assertEqual(once, twice)
         self.assertGreater(count, 0)
         self.assertEqual(second, 0)
-        self.assertNotIn("xai-abcdefghijklmnop1234", once)
+        self.assertNotIn(token, once)
+        self.assertNotIn(token, twice)
 
     def test_mock_can_only_produce_mock_outcomes(self) -> None:
         mock = OfflineProviderMock(seed=7)
