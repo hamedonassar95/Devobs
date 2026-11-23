@@ -150,7 +150,10 @@ class SharedStagingTests(unittest.TestCase):
         deploy_job = release.split("  deploy:\n", 1)[1].split("\n  verify:", 1)[0]
 
         artifact_name = "validated-site-main-${{ github.run_id }}"
-        self.assertIn("if: github.event_name == 'push' && github.ref == 'refs/heads/main'", site_job)
+        self.assertIn(
+            "if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.confirm_release == true && inputs.controlled_incident_failure != true }}",
+            site_job,
+        )
         self.assertIn(f"name: {artifact_name}", site_job)
         self.assertIn("path: _site/", site_job)
         self.assertIn("if-no-files-found: error", site_job)
@@ -162,7 +165,16 @@ class SharedStagingTests(unittest.TestCase):
         self.assertIn("path: _site", deploy_job)
         self.assertIn("actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333", deploy_job)
         self.assertNotIn("python3 scripts/stage_site.py", deploy_job)
-        self.assertIn("needs.validate.result == 'success'", ci.split("  production-release:\n", 1)[1])
+        release_job = ci.split("  production-release:\n", 1)[1].split("\n  controlled-incident-drill:", 1)[0]
+        self.assertIn("needs.validate.result == 'success'", release_job)
+        self.assertIn("inputs.confirm_release == true", release_job)
+        self.assertIn("release_confirmation: ${{ inputs.confirm_release }}", release_job)
+        self.assertNotIn("github.event_name == 'push'", release_job)
+
+        pages_gate = release.split("  eligible:\n", 1)[1].split("\n  deploy:", 1)[0]
+        self.assertIn("github.event_name == 'workflow_dispatch'", pages_gate)
+        self.assertIn("github.ref == 'refs/heads/main'", pages_gate)
+        self.assertIn("inputs.release_confirmation == true", pages_gate)
 
         normal_deploy = release.split("  deploy:\n", 1)[1].split("\n  verify:", 1)[0]
         rollback_deploy = release.split("  rollback-deploy:\n", 1)[1]
@@ -170,6 +182,43 @@ class SharedStagingTests(unittest.TestCase):
         self.assertIn("python3 scripts/stage_site.py", rollback_deploy)
         self.assertIn("SITE_ROOT=_site python3 scripts/check_site.py", normal_deploy)
         self.assertIn("SITE_ROOT=_site python3 scripts/check_site.py", rollback_deploy)
+
+    def test_production_pages_release_is_never_automatic_on_push_to_main(self):
+        ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+        pages = (ROOT / ".github/workflows/deploy-pages.yml").read_text(encoding="utf-8")
+        one_click = (ROOT / ".github/workflows/one-click-deploy.yml").read_text(encoding="utf-8")
+        rollback = (ROOT / ".github/workflows/rollback-pages.yml").read_text(encoding="utf-8")
+
+        self.assertIn("\non:\n  push:\n  pull_request:", ci)
+        dispatch = ci.split("  workflow_dispatch:\n", 1)[1].split("  workflow_call:", 1)[0]
+        release_input = dispatch.split("      confirm_release:\n", 1)[1].split(
+            "\n      controlled_incident_failure:", 1
+        )[0]
+        self.assertIn("default: false", release_input)
+        self.assertIn("type: boolean", release_input)
+
+        production_release = ci.split("  production-release:\n", 1)[1].split("\n  controlled-incident-drill:", 1)[0]
+        self.assertIn("github.event_name == 'workflow_dispatch'", production_release)
+        self.assertIn("github.ref == 'refs/heads/main'", production_release)
+        self.assertIn("inputs.confirm_release == true", production_release)
+        self.assertIn("needs.validate.result == 'success'", production_release)
+        self.assertNotIn("github.event_name == 'push'", production_release)
+
+        eligible = pages.split("  eligible:\n", 1)[1].split("\n  deploy:", 1)[0]
+        self.assertIn("github.event_name == 'workflow_dispatch'", eligible)
+        self.assertIn("inputs.release_confirmation == true", eligible)
+        self.assertNotIn("github.event_name == 'push'", eligible)
+        call_inputs = pages.split("  workflow_call:\n", 1)[1].split("    outputs:", 1)[0]
+        self.assertIn("release_confirmation:", call_inputs)
+
+        self.assertIn("  workflow_dispatch:", one_click)
+        self.assertIn("default: false", one_click.split("      confirm_deploy:", 1)[1].split("\n\npermissions:", 1)[0])
+        self.assertIn("github.ref == 'refs/heads/main' && inputs.confirm_deploy == true", one_click)
+        self.assertNotIn("\n  push:", one_click)
+
+        self.assertIn("  workflow_dispatch:", rollback)
+        self.assertIn('if [[ "$CONFIRMATION" != "ROLLBACK" ]]', rollback)
+        self.assertNotIn("\n  push:", rollback)
 
     def test_main_artifact_reference_survives_partial_and_full_reruns(self):
         staged = self.run_stage(self.source)

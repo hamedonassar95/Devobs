@@ -5,6 +5,11 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
+      confirm_release:
+        description: "Confirm that the validated main revision may be published to GitHub Pages production"
+        required: false
+        default: false
+        type: boolean
       controlled_incident_failure:
         description: "Intentionally fail after all checks to exercise main-branch Incident Response; this creates an incident and may dispatch the AI investigator."
         required: false
@@ -472,7 +477,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - name: Upload validated staged site for main Pages release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.confirm_release == true && inputs.controlled_incident_failure != true }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: validated-site-main-${{ github.run_id }}
@@ -796,10 +801,9 @@ jobs:
 
   # One parent run owns the normal CI -> publish -> production verification path.
   production-release:
-    # validate intentionally succeeds when optional language checks are skipped.
-    # Use an explicit status function so GitHub's implicit success() does not
-    # skip this release after any such optional job is skipped.
-    if: ${{ !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.validate.result == 'success' }}
+    # Production publication is manual, main-only, and disabled unless the
+    # explicit confirmation is true. A controlled incident drill is exclusive.
+    if: ${{ !cancelled() && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.confirm_release == true && inputs.controlled_incident_failure != true && needs.validate.result == 'success' }}
     needs: validate
     permissions:
       contents: read
@@ -808,6 +812,7 @@ jobs:
     uses: ./.github/workflows/deploy-pages.yml
     with:
       source_sha: ${{ github.sha }}
+      release_confirmation: ${{ inputs.confirm_release }}
 
   controlled-incident-drill:
     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.controlled_incident_failure == true

@@ -3379,6 +3379,17 @@
       "ci_run_id": 45247758146,
       "verification": "VERIFIED 2026-11-23 (GitHub): PR #768 merged exact head c64276a1d3c9ed412b0f6257870c7c429e0ab055 as e0440f9ee2d1a944da328ac88341d650db8d4110 at 2026-11-23T19:28:56Z. Exact-head CI 45247758146 and CodeQL run 45247747810 succeeded. On the merge SHA, the active main ruleset's required validate check in CI 45249392948 and CodeQL run 45249391931 both succeeded; Python, Node, security, postgres-rls, Terraform, site-contract and container checks also succeeded.",
       "limitations": "Overall post-merge main CI 45249392948 concluded failure only at the non-required production-release / Publish production site job; do not claim this main workflow was fully successful. Dependabot Updates run 45249445403 failed. The Dependabot alerts API returned 403, so the reported minimatch/uuid blocker is recorded as UNVERIFIED; no dependency was changed. PR #768's emulator policy is an experimental local fixture only and does not authorize production rules or prove hosted Firebase behavior. No live Firebase access or rule publication occurred. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-firebase-demo-isolation-pr770",
+      "area": "CI_SECURITY",
+      "title": "fix(firebase): isolate demo writes and block branch Vercel deploys",
+      "pr_number": 770,
+      "pr_head_sha": "8876757f34589bdacbde815d59865f4cfbc6b11d",
+      "merge_sha": "432cda3fc0fef928e25ace35fc7fed3f6913908a",
+      "ci_run_id": 45266721789,
+      "verification": "VERIFIED 2026-11-23 (GitHub/Vercel read-only): PR #770 merged exact head 8876757f34589bdacbde815d59865f4cfbc6b11d as 432cda3fc0fef928e25ace35fc7fed3f6913908a at 2026-11-23T21:22:05Z. Exact-head CI 45266721789 and CodeQL run 45266710203 succeeded. Post-merge main CI 45268928550 failed only at production-release / Publish production site; validate and all listed validation jobs succeeded, and CodeQL run 45268928252 succeeded. Read-only Vercel deployment history showed READY production deployment dpl_CcGiPypRjnryS8g2Qonkioyyx35M for main SHA 432cda3fc0fef928e25ace35fc7fed3f6913908a.",
+      "limitations": "This merged change disabled Vercel Git auto-deployment only for feature/firebase-demo-write-isolation; it did not prevent main deployment. The GitHub Pages production-release remained automatic on push to main and its publish job failed in run 45268928550; successful publication is not claimed. This record makes no claim that the Vercel project-level Git setting, deploy hooks, or GitHub Environment reviewers were changed. No live settings were modified. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [

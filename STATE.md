@@ -1,3 +1,10 @@
+## Verified merged PR #770; automatic release hold follow-up required (2026-11-23)
+
+- **VERIFIED (GitHub):** [PR #770](https://github.com/hamedonassar95/Devobs/pull/770) merged exact head `8876757f34589bdacbde815d59865f4cfbc6b11d` as main SHA `432cda3fc0fef928e25ace35fc7fed3f6913908a` at 2026-11-23T21:22:05Z. Exact-head [CI 45266721789](https://github.com/hamedonassar95/Devobs/actions/runs/45266721789) and CodeQL run 45266710203 succeeded.
+- **VERIFIED (post-merge):** Main CI [45268928550](https://github.com/hamedonassar95/Devobs/actions/runs/45268928550) passed `validate` and all validation jobs but failed at `production-release / Publish production site`; the Pages deployment is not claimed successful. CodeQL run 45268928252 succeeded. Read-only Vercel history showed READY production deployment `dpl_CcGiPypRjnryS8g2Qonkioyyx35M` for the exact main SHA.
+- **LIMIT:** PR #770 disabled Vercel Git deployment only for its feature branch; Vercel still created a production deployment for `main`. GitHub Pages release still ran automatically on main push. This is the baseline for the current release-hold change; no provider settings were altered during verification.
+- **RECONCILIATION:** ledger now records 308 merged milestones through PR #770. P01 remains **BLOCKED / NO-GO**, AI-9 **BLOCKED**, Codex runtime **OPEN**. This release-hold PR remains a draft; owner review is required before merge.
+
 ## Verified merged PR #768; local Firestore Emulator authorization fixture (2026-11-23)
 
 - **VERIFIED (GitHub):** [PR #768](https://github.com/hamedonassar95/Devobs/pull/768) merged exact head `c64276a1d3c9ed412b0f6257870c7c429e0ab055` as main SHA `e0440f9ee2d1a944da328ac88341d650db8d4110` at 2026-11-23T19:28:56Z. Exact-head [CI run 45247758146](https://github.com/hamedonassar95/Devobs/actions/runs/45247758146) and CodeQL run 45247747810 succeeded.

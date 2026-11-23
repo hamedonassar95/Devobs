@@ -28,7 +28,7 @@ concurrency:
 
 jobs:
   validate:
-    if: ${{ inputs.confirm_deploy == true }}
+    if: ${{ github.ref == 'refs/heads/main' && inputs.confirm_deploy == true }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:

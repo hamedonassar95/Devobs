@@ -562,14 +562,17 @@ unset GRAFANA_ADMIN_PASSWORD
 1. في إعدادات المستودع افتح **Settings → Pages** واختر **GitHub Actions** كمصدر للنشر.
 2. ادفع التغيير إلى فرع، وافتح Pull Request إلى `main`.
 3. انتظر نجاح فحص `validate` وراجع المعاينة القابلة للتنزيل في ملخص CI.
-4. بعد مراجعة ودمج Pull Request، ينشر سير العمل الصفحة من `main` بعد نجاح CI.
-5. راجع رابط النشر ونتيجة فحص الصحة في GitHub Actions.
+4. بعد الدمج، لا ينشر `push` إلى `main` تلقائيًا. يراجع المالك SHA وآثار النشر، ثم يشغّل **CI** يدويًا من `main` ويختار `confirm_release=true`؛ القيمة الافتراضية `false`، والنشر مشروط بنجاح `validate` وArtifact الموقع في التشغيل نفسه.
+5. راجع إعداد مراجعي بيئة `github-pages` منفصلًا؛ فاسم البيئة لا يضمن وجود مراجعين. لا تدمج PR يغير ضوابط الإصدار قبل مراجعة المالك لآثار النشر.
+6. راجع رابط النشر ونتيجة فحص الصحة في GitHub Actions.
 
 فحص صحة النشر يقرأ `deployment.json` ويطابق SHA الكامل للمصدر. عند عطل نقل مؤقت يعيد المحاولة 3 مرات كحد أقصى فقط (مهلة اتصال 5 ثوانٍ ومهلة إجمالية 20 ثانية لكل محاولة، بتأخير ثانية ثم ثانيتين)، ولا يعيد المحاولة عند أخطاء HTTP أو عند عدم تطابق SHA أو عند بيان غير صالح، ولا يعطّل التحقق من TLS أبدًا. الحدود والمخاطر المتبقية موثقة في [دليل CI](docs/CI.md).
 
 لا يحتاج نشر Pages الحالي إلى أسرار نشر؛ صلاحيات النشر وإثبات الهوية تُدار عبر GitHub Actions وOIDC. راجع [دليل المعاينة والنشر والرجوع](docs/DEPLOYMENT.md) و[دليل CI](docs/CI.md) للتفاصيل.
 
-تعطّل [إعدادات Vercel Git لهذا الفرع](vercel.json) النشر التلقائي الناتج عن commits على `feature/firebase-demo-write-isolation` فقط. توضح [وثائق Vercel الرسمية](https://vercel.com/docs/project-configuration/git-configuration) أن `git.deploymentEnabled` يقبل قواعد حسب اسم الفرع وأن الفروع غير المذكورة تبقى مفعّلة؛ لذلك لا يعطّل هذا الإعداد النشر على `main`. هذه قاعدة لأحداث Git فقط، ولا تمنع تشغيل Vercel CLI أو API أو Deploy Hook يدويًا. سير عمل `Vercel staging test` الموجود يتطلب تشغيلًا يدويًا عبر `workflow_dispatch` ومقيّدًا إلى `main`؛ لا يُشغّل تلقائيًا عند دفع هذا الفرع أو فتح PR.
+تعطّل [إعدادات Vercel Git](vercel.json) النشر التلقائي الناتج عن commits على جميع الفروع عبر `git.deploymentEnabled: false` وفق [وثائق Vercel الرسمية](https://vercel.com/docs/project-configuration/git-configuration). هذه قاعدة لأحداث Git فقط، ولا تمنع CLI أو API أو Deploy Hooks أو تكاملًا خارجيًا؛ يجب على المالك مراجعة هذه المسارات من إعدادات Vercel. سير عمل `Vercel staging test` يدوي ومقيّد إلى `main`، وينشر Preview إلى مشروع staging فقط.
+
+تفاصيل البوابات، المراجعة البشرية، النشر اليدوي والرجوع في [دليل المعاينة والنشر والرجوع](docs/DEPLOYMENT.md).
 
 ## التشغيل والتوثيق
 
