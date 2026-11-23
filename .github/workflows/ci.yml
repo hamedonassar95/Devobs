@@ -326,6 +326,35 @@ jobs:
           printf 'AI quality gate: DRY_RUN PASS; advisory only; no authority granted.\n' >> "$GITHUB_STEP_SUMMARY"
       - name: Validate pinned synthetic AI evaluation dataset
         run: python3 scripts/validate_ai_eval_fixtures.py
+      - name: Evaluate offline AI provider evaluation harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          result="$RUNNER_TEMP/ai_provider_gate.json"
+          python3 -m devobs.ai_evaluation.cli \
+            --fixtures examples/ai_evaluation/provider_cases.json \
+            --pricing examples/ai_evaluation/pricing.json \
+            --gate > "$result"
+          python3 - "$result" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding="utf-8") as handle:
+              payload = json.load(handle)
+          checks = {
+              "schema_version": payload["schema_version"] == "ai-eval-gate/1.0",
+              "decision": payload["decision"] == "PASS",
+              "exit_code": payload["exit_code"] == 0,
+              "offline": payload["offline"] is True,
+              "live_calls": payload["live_calls"] == 0,
+              "failures": payload["failures"] == [],
+          }
+          failed = [name for name, ok in checks.items() if not ok]
+          if failed:
+              raise SystemExit("AI provider gate invariant failed: " + ", ".join(failed))
+          print("AI provider gate: offline PASS; no live call; advisory only.")
+          PY
+          printf 'AI provider gate: offline PASS; advisory only; no live call.\n' >> "$GITHUB_STEP_SUMMARY"
       - name: Set up Python with dependency cache
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
