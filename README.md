@@ -1,5 +1,15 @@
 # Devobs
 
+## Firebase security and learning — Phase 1
+
+[Firebase offline safety baseline and phased integration plan](docs/security/FIREBASE_PHASE1_BASELINE.md)
+documents the difference between the canonical deny-all prototype and older
+permissive Firestore rules, the offline test commands, and a beginner-friendly
+integration roadmap. This does not enable cloud resources, AI usage or deployments.
+
+Run from repository root: python3 scripts/check_firebase_rules_baseline.py
+and python3 -m unittest discover -s tests -p 'test_firebase_rules_baseline.py' -v.
+
 ## Human-supervised multi-agent repository workflow
 
 [AI Multi-Agent Repository Workflow](docs/AI_MULTI_AGENT_WORKFLOW.md) documents isolated Codex/OpenCode worktrees, non-overlapping file ownership, Draft PR review, verification evidence, and owner-only merge/deploy decisions. This is a documented operating policy, not an activated agent scheduler or automatic dispatch service.
