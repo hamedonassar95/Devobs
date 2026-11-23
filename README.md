@@ -117,11 +117,22 @@ is possible; unverified prices are reported as `UNKNOWN`, never zero.
 python -m devobs.ai_evaluation.cli \
   --fixtures examples/ai_evaluation/provider_cases.json \
   --pricing examples/ai_evaluation/pricing.json
+python -m devobs.ai_evaluation.cli \
+  --fixtures examples/ai_evaluation/provider_cases.json \
+  --pricing examples/ai_evaluation/pricing.json --gate
 python -m unittest discover -s tests/ai_evaluation -p "test_*.py" -v
 ```
 
-This harness is advisory only. It does not change P01 (NO-GO), AI-9 (BLOCKED)
-or Codex runtime acceptance (OPEN), and it does not authorize a provider switch.
+`--gate` is a deterministic, offline quality gate over the pinned fixtures: it
+checks outcome/status expectations, offline authority, cost truthfulness, safety
+and reliability, requires a pinned fingerprint and a composite score of at least
+`0.90`, and exits `0` (`PASS`), `1` (`BLOCKED`) or `2` (`INVALID`). It runs as one
+step of the existing CI `security` job. Any fixture/pricing change must update
+the fingerprint pin in the same reviewed commit.
+
+This harness and its gate are advisory only. They do not change P01 (NO-GO),
+AI-9 (BLOCKED) or Codex runtime acceptance (OPEN), and they do not authorize a
+provider switch, merge, deployment or spend.
 
 ## Root-cause audit and remediation roadmap (2026-11-20)
 
