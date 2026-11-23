@@ -50,7 +50,11 @@ def main() -> int:
         status, reason = assess_rules(source)
 
     print(json.dumps({"status": status, "reason": reason, "scope": "LOCAL_SOURCE_ONLY"}, sort_keys=True))
-    return {"PASS": 0, "FAIL": 1, "BLOCKED": 2}[status]
+    if status == "PASS":
+        return 0
+    if status == "FAIL":
+        return 1
+    return 2
 
 
 if __name__ == "__main__":
