@@ -34,6 +34,20 @@ def fixture():
 
 
 class FreeStagingHealthTests(unittest.TestCase):
+    def test_committed_provider_snapshot_remains_no_go(self):
+        source = Path(__file__).resolve().parents[1] / "docs/p01/free-staging-inventory.json"
+        record = check.load_snapshot(source)
+        self.assertEqual(record["observed_on"], "2026-11-23")
+        self.assertEqual(record["render"]["canonical_main_commit"],
+                         "4771071dd4cde67fec175d2b671e54a170a11ab0")
+        result = check.assess_snapshot(
+            record, datetime(2026, 11, 23, 14, 0, tzinfo=timezone.utc))
+        self.assertIn("RENDER_LATEST_DEPLOY_NOT_LIVE", result["blockers"])
+        self.assertIn("RENDER_DATABASE_EXPIRY_REVIEW", result["blockers"])
+        self.assertIn("DEVOBS_SUPABASE_NOT_ACTIVE", result["blockers"])
+        self.assertFalse(result["production_ready"])
+        self.assertFalse(result["automatic_merge_authorized"])
+
     def test_current_provider_observations_block_go(self):
         r = check.assess_snapshot(fixture(), NOW)
         self.assertEqual(r["status"], "REVIEW_REQUIRED")
