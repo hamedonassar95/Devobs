@@ -87,6 +87,8 @@ An optional **I have read this** checkbox records only temporary in-page acknowl
 
 Before display, the console validates the complete snapshot shape, bounded integer totals, all seven fixed stage IDs, the visible recommendation count, known causes and evidence markers, and the required review-only flags. Any mismatch is shown as an unavailable local snapshot; no partial or malformed advisory is rendered.
 
+After a snapshot is validated, **تنزيل تقرير المراجعة** creates a local Markdown file with aggregate counts and the bounded recommendation fields only. It excludes raw events and untrusted text; its timestamp is the export time, not the snapshot capture time. Downloading is not approval, persistence, external transmission, or execution.
+
 The server endpoint is **disabled by default**. It refuses public/non-loopback binds and unexpected Host/Origin headers, rejects redirects and malformed/oversized JSON, imposes a short timeout, and returns a fixed failure message instead of invented results when unavailable. Do **not** expose either local server via a tunnel, proxy, external hostname, hosting platform or a shared-network interface. There is no hosted identity or tenant authorization in this local integration. Changing `HOST` away from `127.0.0.1` disables the bridge even with the flag enabled.
 
 Focused verification:
@@ -97,7 +99,7 @@ npm run lint
 npm run build
 ```
 
-`tests/localAi7Bridge.test.mjs` includes an integration check against the actual existing AI-7 `buildDashboardSnapshot` contract, verifies that the normalized bridge output passes the browser parser, and rejects unsafe data, redirects and oversized responses. `tests/localAi7Snapshot.test.mjs` checks the browser-side fail-closed parser using synthetic snapshots. Both use local fixtures without connecting to any external service. The controls in [P01](../../docs/P01_ACTIVATION_READINESS.md) remain **NO-GO** and no AI-9 acceptance or commercial service is claimed.
+`tests/localAi7Bridge.test.mjs` includes an integration check against the actual existing AI-7 `buildDashboardSnapshot` contract, verifies that the normalized bridge output passes the browser parser, and rejects unsafe data, redirects and oversized responses. `tests/localAi7Snapshot.test.mjs` checks the browser-side fail-closed parser; `tests/localAi7ReviewReport.test.mjs` checks the local report output and its limits. All use local fixtures without connecting to any external service. The controls in [P01](../../docs/P01_ACTIVATION_READINESS.md) remain **NO-GO** and no AI-9 acceptance or commercial service is claimed.
 
 ## Run the local prototype
 

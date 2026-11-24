@@ -1,23 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Activity, RefreshCw, ShieldCheck } from 'lucide-react';
+import { Activity, Download, RefreshCw, ShieldCheck } from 'lucide-react';
 import { parseLocalAi7Snapshot, type LocalAi7Recommendation, type LocalAi7Snapshot } from '../../utils/localAi7Snapshot';
-
-const CAUSES: Readonly<Record<string, string>> = {
-  timeout: 'مهلة عملية أو اعتماد',
-  connection: 'اتصال مرفوض أو مقطوع',
-  dns: 'حل اسم المضيف',
-  permission: 'صلاحية مورد',
-  dependency: 'حل وحدة أو اعتماد',
-  memory: 'حد الذاكرة',
-};
-const READ_ONLY_GUIDANCE: Readonly<Record<string, string>> = {
-  timeout: 'راجع توقيت أول خطوة متعثرة وحدود المهلة المسجلة، دون تعديل التشغيل.',
-  connection: 'قارن وقت الخطأ بحالة الخدمة وسجل الاتصال المصرح به، دون طلب تشغيل جديد.',
-  dns: 'راجع اسم الوجهة من الإعدادات المصرح بها دون إظهار أسرار أو تغيير DNS.',
-  permission: 'راجع هوية العملية وصلاحيات المورد قراءةً فقط دون توسيعها.',
-  dependency: 'قارن ملف القفل ومسار الاستيراد في SHA المتأثر دون إعادة النشر.',
-  memory: 'قارن قياسات الذاكرة وحجم المدخلات قبل اقتراح أي تغيير للموارد.',
-};
+import { buildLocalAi7ReviewReport } from '../../utils/localAi7ReviewReport';
+import { LOCAL_AI7_CAUSES, LOCAL_AI7_READ_ONLY_GUIDANCE } from '../../utils/localAi7Catalog';
+import { downloadTextFile } from '../../utils/dashboardUtils';
 
 /** No implicit polling or network calls: refresh requires a direct click. */
 export function LocalAi7Panel() {
@@ -62,6 +48,18 @@ export function LocalAi7Panel() {
     }
   };
 
+  const exportReviewReport = () => {
+    if (!snapshot) return;
+    const exportedAt = new Date().toISOString();
+    const report = buildLocalAi7ReviewReport(snapshot, exportedAt);
+    if (!report) {
+      setMessage('تعذر إنشاء التقرير: لقطة AI-7 غير مطابقة للعقد المحلي.');
+      return;
+    }
+    downloadTextFile(`ai7-local-review-${exportedAt.slice(0, 10)}.md`, report, 'text/markdown;charset=utf-8;');
+    setMessage('تم تنزيل تقرير مراجعة محلي محدود؛ لم يُرسل أو يُعتمد أو يُنفذ أي إجراء.');
+  };
+
   return (
     <section aria-label="ملخص AI-7 المحلي" className="rounded-2xl border border-indigo-800/70 bg-slate-900 p-5 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -104,9 +102,16 @@ export function LocalAi7Panel() {
             ))}
           </div>
           <div className="space-y-3">
-            <h4 className="font-bold text-indigo-200">
-              توصيات AI-4 الاستشارية ({snapshot.recommendations.length} معروضة من أصل {snapshot.summary.recommendation_count})
-            </h4>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h4 className="font-bold text-indigo-200">
+                توصيات AI-4 الاستشارية ({snapshot.recommendations.length} معروضة من أصل {snapshot.summary.recommendation_count})
+              </h4>
+              <button type="button" onClick={exportReviewReport}
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-600 bg-slate-950 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800">
+                <Download className="h-4 w-4" />
+                تنزيل تقرير المراجعة
+              </button>
+            </div>
             {snapshot.recommendations.length === 0 && (
               <p className="text-xs text-slate-400">لا توجد توصيات معروفة في اللقطة الحالية. هذا لا يثبت خلو النظام من الأعطال.</p>
             )}
@@ -114,7 +119,7 @@ export function LocalAi7Panel() {
               <article key={item.review_order} className="rounded-xl border border-slate-700 bg-slate-950 p-4 space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h5 className="font-bold text-white">
-                    {item.review_order}. {CAUSES[item.cause_id]}
+                    {item.review_order}. {LOCAL_AI7_CAUSES[item.cause_id]}
                   </h5>
                   <span className="rounded-md border border-amber-800 bg-amber-950/40 px-2 py-1 text-xs text-amber-200">
                     POSSIBLE — إشارة {item.heuristic_signal === 'medium' ? 'متوسطة' : 'منخفضة'} غير معايرة
@@ -124,7 +129,7 @@ export function LocalAi7Panel() {
                   علامات الدليل: {item.evidence_markers.join(' · ')} · الأحداث المرتبطة: {item.event_count}
                 </p>
                 <p className="text-xs text-slate-300">
-                  فحص للقراءة فقط: {READ_ONLY_GUIDANCE[item.cause_id]}
+                  فحص للقراءة فقط: {LOCAL_AI7_READ_ONLY_GUIDANCE[item.cause_id]}
                 </p>
                 <label className="flex items-start gap-2 text-xs text-slate-300">
                   <input type="checkbox" checked={reviewedOrders.includes(item.review_order)}
