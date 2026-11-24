@@ -21,8 +21,8 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.data = copy.deepcopy(self.record)
 
     def assert_current_summary(self, summary):
-        self.assertEqual(summary["merged_milestones"], 309)
-        self.assertEqual(summary["latest_pr"], 774)
+        self.assertEqual(summary["merged_milestones"], 310)
+        self.assertEqual(summary["latest_pr"], 775)
 
     def test_current_merged_evidence_and_gates_validate(self):
         result = validate(self.data)
@@ -2987,6 +2987,21 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("P01 BLOCKED / NO-GO", entry["limitations"])
         self.assertIn("AI-9 BLOCKED", entry["limitations"])
         self.assertIn("Codex runtime OPEN", entry["limitations"])
+        summary = validate(self.data)
+        self.assert_current_summary(summary)
+        self.assertEqual(summary["gate_statuses"]["p01-managed-saas"], "BLOCKED")
+        self.assertEqual(summary["gate_statuses"]["ai9-detection-quality"], "BLOCKED")
+        self.assertEqual(summary["gate_statuses"]["codex-agent-runtime-acceptance"], "OPEN")
+
+    def test_pr775_merge_records_expiry_decision_and_preserves_gates(self):
+        records = {entry["pr_number"]: entry for entry in self.data["milestones"]}
+        entry = records[775]
+        self.assertEqual(entry["pr_head_sha"], "e12915ea1f053b4c240c11170eb201e4db45d3d5")
+        self.assertEqual(entry["merge_sha"], "7f23f5635fecdbdc342dfaada259e4cc0c2adc3f")
+        self.assertEqual(entry["ci_run_id"], 45355683819)
+        self.assertIn("Exact-head PR CI 45306060923 SUCCESS", entry["verification"])
+        self.assertIn("main CI 45355683819 SUCCESS", entry["verification"])
+        self.assertIn("no preservation or retirement path is authorized", entry["limitations"].lower())
         summary = validate(self.data)
         self.assert_current_summary(summary)
         self.assertEqual(summary["gate_statuses"]["p01-managed-saas"], "BLOCKED")

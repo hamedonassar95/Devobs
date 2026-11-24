@@ -59,6 +59,8 @@ python -m unittest discover -s tests -p "test_pr_readiness_gate.py" -v
 
 **Retirement planning approved (no deletion, 2026-11-19):** [Owner-gated Render Free PostgreSQL retirement plan](docs/plans/2026-11-19-render-free-postgres-retirement-plan.md). The plan documents dependencies, rollback limits and separate execution approval; it makes no hosted changes and P01 remains NO-GO.
 
+**Expiry decision pending (2026-11-24):** [Render Free database decision matrix](docs/p01/RENDER_FREE_DB_EXPIRY_DECISION_2026-11-24.md). No preservation or retirement path is authorized; the 2026-12-05 deadline is not an instruction to delete or upgrade.
+
 ## Offline Graphify repository intelligence (local, opt-in)
 
 A pinned, offline Graphify CLI can build one local graph index per authorized
