@@ -8,9 +8,20 @@ function isCanonicalUtcTimestamp(value: string): boolean {
 }
 
 /** Build a bounded, local review file from the validated AI-7 contract only. */
-export function buildLocalAi7ReviewReport(value: unknown, exportedAt: string): string | null {
+export function buildLocalAi7ReviewReport(
+  value: unknown,
+  exportedAt: string,
+  reviewedOrders: unknown = [],
+): string | null {
   const snapshot = parseLocalAi7Snapshot(value);
   if (!snapshot || typeof exportedAt !== 'string' || !isCanonicalUtcTimestamp(exportedAt)) return null;
+  if (!Array.isArray(reviewedOrders)) return null;
+  const visibleOrders = new Set(snapshot.recommendations.map(item => item.review_order));
+  const acknowledgedOrders = new Set<number>();
+  for (const order of reviewedOrders) {
+    if (!Number.isSafeInteger(order) || !visibleOrders.has(order) || acknowledgedOrders.has(order)) return null;
+    acknowledgedOrders.add(order);
+  }
 
   const lines = [
     '# تقرير مراجعة محلي — AI-7',
@@ -43,6 +54,7 @@ export function buildLocalAi7ReviewReport(value: unknown, exportedAt: string): s
         `- عدد الأحداث المرتبطة: ${item.event_count}`,
         `- علامات الدليل المعروفة: ${item.evidence_markers.join('، ')}`,
         `- فحص قراءة فقط: ${LOCAL_AI7_READ_ONLY_GUIDANCE[item.cause_id]}`,
+        `- إقرار الاطلاع المحلي عند التصدير: ${acknowledgedOrders.has(item.review_order) ? 'محدد في الواجهة' : 'غير محدد في الواجهة'}`,
         '- يتطلب أي تغيير اعتمادًا بشريًا منفصلًا.',
         '- التنفيذ التلقائي: معطل.',
       );
@@ -54,6 +66,7 @@ export function buildLocalAi7ReviewReport(value: unknown, exportedAt: string): s
     '## حدود الاستخدام',
     '',
     '- هذه النتائج استشارية ولا تثبت السبب الجذري أو جودة تشغيلية معايرة.',
+    '- حالة مربعات الاطلاع تعكس الواجهة وقت التصدير فقط؛ لا تسجل هوية المراجع ولا تعد موافقة أو اعتمادًا أو تفويضًا.',
     '- التصدير لا ينشئ موافقة أو تذكرة، ولا يتصل بخدمة خارجية، ولا ينفذ إجراءً.',
     '- تحقق من الأدلة الحالية يدويًا قبل اتخاذ أي قرار.',
     '',

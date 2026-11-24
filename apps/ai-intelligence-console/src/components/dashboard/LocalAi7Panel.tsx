@@ -51,7 +51,7 @@ export function LocalAi7Panel() {
   const exportReviewReport = () => {
     if (!snapshot) return;
     const exportedAt = new Date().toISOString();
-    const report = buildLocalAi7ReviewReport(snapshot, exportedAt);
+    const report = buildLocalAi7ReviewReport(snapshot, exportedAt, reviewedOrders);
     if (!report) {
       setMessage('تعذر إنشاء التقرير: لقطة AI-7 غير مطابقة للعقد المحلي.');
       return;
@@ -112,6 +112,9 @@ export function LocalAi7Panel() {
                 تنزيل تقرير المراجعة
               </button>
             </div>
+            <p role="status" aria-live="polite" className="text-xs text-slate-400">
+              إقرار الاطلاع المحلي: {reviewedOrders.length} من {snapshot.recommendations.length}. هذا لا يمثل موافقة أو اعتمادًا.
+            </p>
             {snapshot.recommendations.length === 0 && (
               <p className="text-xs text-slate-400">لا توجد توصيات معروفة في اللقطة الحالية. هذا لا يثبت خلو النظام من الأعطال.</p>
             )}

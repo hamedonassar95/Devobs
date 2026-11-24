@@ -62,6 +62,24 @@ test('report limits detailed recommendations to the validated visible prefix', (
   assert.equal((report.match(/^### /gm) ?? []).length, 5);
 });
 
+test('report includes only the current local read acknowledgements and denies approval meaning', () => {
+  const base = snapshot({
+    summary: { event_count: 24, log_cluster_count: 2, recommendation_count: 2, anomaly_candidate_count: 2 },
+    recommendations: [
+      snapshot().recommendations[0],
+      { ...snapshot().recommendations[0], review_order: 2, cause_id: 'dns', evidence_markers: ['ENOTFOUND'] },
+    ],
+  });
+  const report = buildLocalAi7ReviewReport(base, EXPORTED_AT, [1]);
+
+  assert.ok(report);
+  assert.deepEqual(report.split('\n').filter(line => line.startsWith('- إقرار الاطلاع المحلي عند التصدير: ')), [
+    '- إقرار الاطلاع المحلي عند التصدير: محدد في الواجهة',
+    '- إقرار الاطلاع المحلي عند التصدير: غير محدد في الواجهة',
+  ]);
+  assert.match(report, /لا تسجل هوية المراجع ولا تعد موافقة أو اعتمادًا أو تفويضًا/);
+});
+
 test('empty recommendation set is reported without claiming the system is healthy', () => {
   const base = snapshot();
   const report = buildLocalAi7ReviewReport({
@@ -81,4 +99,10 @@ test('invalid snapshots and non-canonical timestamps cannot produce a report', (
   }] }, EXPORTED_AT), null);
   assert.equal(buildLocalAi7ReviewReport(snapshot(), 'yesterday'), null);
   assert.equal(buildLocalAi7ReviewReport(snapshot(), '2026-02-30T12:00:00.000Z'), null);
+});
+
+test('invalid local acknowledgements cannot produce a report', () => {
+  for (const invalid of [[2], [1, 1], ['1'], {}, null]) {
+    assert.equal(buildLocalAi7ReviewReport(snapshot(), EXPORTED_AT, invalid), null);
+  }
 });
