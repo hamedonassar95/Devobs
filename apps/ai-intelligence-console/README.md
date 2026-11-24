@@ -18,9 +18,19 @@ This is the preserved React/TypeScript prototype from the former `DevObs-ai-Inte
 
 ## Repository & Database Map (read-only)
 
-The GitHub Hub includes a **Repository & Database Map** subtab rendered from the canonical [`repository_database_map.json`](../../docs/architecture/repository_database_map.json) at build time. It shows the inventory date, repository links, recorded source statuses, and the known Firebase, Render PostgreSQL, and SaaS PostgreSQL relationships. **Not real-time**: the panel makes no GitHub, Firebase, Render, Supabase, or database requests. A `VERIFIED` source record does not mean a live connection was verified; each connectivity status is shown separately from the source status.
+The GitHub Hub includes a **Repository & Database Map** subtab rendered from the canonical [`repository_database_map.json`](../../docs/architecture/repository_database_map.json) at build time. It shows the inventory date, repository links, recorded source statuses, and the known Firebase, Render PostgreSQL, and SaaS PostgreSQL relationships. The topology stays a **Not real-time** checked-in snapshot; a `VERIFIED` source record does not mean live connectivity was verified. The panel makes no Firebase, Render, Supabase, or database requests.
 
 The panel validates the inventory schema and expected records before rendering. If the map is missing or invalid, it displays an error instead of partial topology data. Firebase remains disabled by default and canonical Firestore rules remain deny-all. No credentials, connection strings, or application records are displayed.
+
+### Optional public GitHub CI status (read-only)
+
+Each of the four inventory repositories has a **Check GitHub CI** button. Nothing polls or calls GitHub on page load. Clicking a button asks the local server to check the fixed `main` branch and `.github/workflows/ci.yml` using anonymous, read-only REST `GET` requests. Only `hamedonassar95/Devobs`, `hamedonassar95/ops`, `hamedonassar95/DevObs-ai-Intelligence-`, and `hamedonassar95/devobs-saas` are allowlisted. The server constructs fixed GitHub API URLs; no PAT, OAuth, arbitrary URL, repository-dispatch, logs, artifacts, or private repository access is used.
+
+The endpoint is `GET /api/github/public-ci-status?repository=<allowlisted-owner/repo>` and is **disabled by default**. A local operator must separately choose the server-only setting `DEVOBS_PUBLIC_GITHUB_STATUS_ENABLED=true`; it is not a `VITE_` setting and this change does not enable it. It also works only when the console binds to `127.0.0.1`. Requests have a five-second timeout and 64 KiB response limit, reject redirects and unexpected schemas, and cache results in process memory for up to 30 seconds. Rate limiting is reported explicitly; there is no retry or stale-success fallback. Missing, mismatched, disabled, malformed, unavailable, or rate-limited data is **UNVERIFIED**. A successful observation shows the branch, exact commit SHA, CI conclusion and observation timestamp; a cached result retains its original timestamp. These public CI observations are separate from the dated topology snapshot and do not prove deployment, live health or database connectivity.
+
+Only entries whose public visibility was verified on 2026-11-24 are queried. Other allowlisted inventory entries remain visible, but their button returns **UNVERIFIED** without requesting repository or workflow data. Reassess visibility in a separate review before adding any entry to the verified-public allowlist.
+
+The implementation follows the official [branch endpoint](https://docs.github.com/en/rest/branches/branches#get-a-branch), [workflow-runs endpoint](https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-workflow), [API versioning](https://docs.github.com/en/rest/about-the-rest-api/api-versions), and [unauthenticated rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api).
 
 ## Withdrawn dependency advisory (picomatch)
 
