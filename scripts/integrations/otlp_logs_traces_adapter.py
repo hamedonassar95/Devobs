@@ -34,7 +34,7 @@ _ERROR_CODES = frozenset({
     "invalid_otlp_resource", "invalid_otlp_scope", "invalid_otlp_record",
     "invalid_otlp_attributes", "invalid_timestamp", "invalid_signal_batch",
     "invalid_signal_fields", "invalid_signal_timestamp", "invalid_signal_duration",
-    "stale_signal", "duplicate_signal",
+    "stale_signal", "duplicate_signal", "scope_denied", "invalid_trust_boundary",
 })
 
 
@@ -291,6 +291,49 @@ def convert_text(
     except SafeSignalError as error:
         code = str(error)
         _reject(code if code in _ERROR_CODES else "invalid_signal_batch")
+
+
+class ScopedOtlpConverter:
+    """Bind safe OTLP conversion to an injected verified identity and tenant gate.
+
+    The verifier and membership/snapshot configuration are operator-owned.
+    This is an offline composition seam, not an HTTP authentication service.
+    """
+
+    def __init__(self, token_verifier: Any, memberships: list[Any] | tuple[Any, ...],
+                 snapshots: list[Any] | tuple[Any, ...]):
+        from devobs_intelligence.oidc_tokens import AuthenticatedPrincipal
+        from devobs_intelligence.tenant_scope import OfflineTenantGate
+
+        verify = getattr(token_verifier, "verify", None)
+        if not callable(verify):
+            raise ValueError("invalid_trust_boundary")
+
+        def resolve_subject(token: str) -> str | None:
+            principal = verify(token)
+            if (type(principal) is not AuthenticatedPrincipal
+                    or type(principal.scopes) is not frozenset
+                    or "devobs.read" not in principal.scopes):
+                return None
+            return principal.subject
+
+        self._gate = OfflineTenantGate(resolve_subject, memberships, snapshots)
+
+    def convert(self, raw: str, *, access_token: str, tenant: str, project: str,
+                now_utc: datetime) -> tuple[Any, ...]:
+        from devobs_intelligence.tenant_scope import AccessDenied
+
+        try:
+            scope = self._gate.read_status(access_token, tenant, project)
+        except AccessDenied:
+            _reject("scope_denied")
+        if (not _exact(scope, {"ci_state", "source_sha"})
+                or type(scope["source_sha"]) is not str):
+            _reject("invalid_trust_boundary")
+        return convert_text(
+            raw, tenant=tenant, project=project,
+            source_sha=scope["source_sha"], now_utc=now_utc,
+        )
 
 
 def _read_bounded_input(path: str) -> str:

@@ -27,6 +27,12 @@
 
 `tenant` و`project` و`source-sha` يدخلها المشغل يدويًا. لا يصادق المحول عليها ولا يثبت مصدر الملف أو مالكه؛ البصمة ليست توقيعًا. استخدم بيانات اصطناعية محلية إلى أن توجد هوية/ملكية موثوقة وعقد تدفق معتمد. المخرجات JSONL محدودة من SafeSignal، ولا تحتوي جسم السجل أو خصائصه الخام. لا يحفظ البرنامج الناتج ولا يرسله إلى AI-1 تلقائيًا.
 
+### ربط نطاق الطلب بمكونات الهوية الموجودة
+
+يوفر `ScopedOtlpConverter` وصلة **داخل العملية فقط** لمن يستضيفها محليًا: يأخذ مدققًا يطبق واجهة `verify(token)` ويعيد `AuthenticatedPrincipal`، ثم يستخدم `OfflineTenantGate` الحالي لفحص صلاحية `devobs.read` وعضوية المستأجر والمشروع. يُشتق `source_sha` من `ProjectSnapshot` المصرح به بدل تمريره من الطلب. مواصفة [RFC 9068](https://www.rfc-editor.org/rfc/rfc9068.html) تتطلب من مدقق access token التحقق من التوقيع وissuer وaudience والانتهاء؛ استخدم مدقق `AccessTokenVerifier` الموجود بإعداد JWKS عام مثبت من مصدر مشغل موثوق، ولا تجلب JWKS من عنوان يقدمه الطلب.
+
+هذا اختبار/وصلة مصدرية فقط: لا ينشئ OIDC أو endpoint، وعضويات ولقطات `OfflineTenantGate` تبقى إعدادًا محليًا داخل الذاكرة. مدقق حقيقي غير مضبوط أو لقطة غير موثوقة يبطلان افتراض الثقة. وحتى مع نجاح التحقق، هوية مقدم الطلب لا تثبت أصالة ملف OTLP أو أن خدمة بعينها أنشأته؛ لا يوجد تحقق من توقيع artifact أو workload provenance ولا حداثة مستقلة للّقطة. اختبارات الوصلة تستخدم verifier اصطناعيًا بلا مفاتيح أو رموز صالحة؛ فحص التوقيع قائم في اختبارات `AccessTokenVerifier` الموجودة، ولا تتصل هذه الوصلة بمزود هوية حي.
+
 ## التشغيل المحلي
 
 يتطلب Python الموجود في المشروع فقط؛ لا حزم جديدة ولا خدمات أو مفاتيح.
@@ -44,7 +50,8 @@ python3 scripts/integrations/otlp_logs_traces_adapter.py \
 
 ```sh
 python3 -m unittest tests.test_otlp_logs_traces_adapter -v
-python3 -m compileall -q scripts/integrations/otlp_logs_traces_adapter.py tests/test_otlp_logs_traces_adapter.py
+python3 -m unittest tests.test_otlp_authenticated_scope -v
+python3 -m compileall -q scripts/integrations/otlp_logs_traces_adapter.py tests/test_otlp_logs_traces_adapter.py tests/test_otlp_authenticated_scope.py
 ```
 
 ## ما لا يفعله وما الخطوة التالية

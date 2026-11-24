@@ -390,7 +390,7 @@ python3 -m unittest discover -s tests -p 'test_free_readiness_one_command.py' -v
 
 هذا المستودع `Devobs` هو المصدر الأساسي للمشروعين. مراحل الذكاء التشغيلي المحلية AI-1 إلى AI-7 ولوحة AI-7 مدمجة هنا بالفعل؛ نضيف فقط ما يسد فجوة واضحة بدل نسخ مكونات مكررة. المحركات الحالية محلية وحتمية/إحصائية ولا تستدعي نموذجًا لغويًا.
 
-أضفنا محولًا محليًا محدودًا لـ[سجلات وعمليات OpenTelemetry OTLP/JSON](docs/integrations/OTLP_LOGS_TRACES_OFFLINE_ADAPTER.md) إلى عقد SafeSignal الموجود. يقرأ ملفًا/‏stdin فقط، ويرفض أجسام السجلات وخصائص spans غير المسموحة؛ لا يشغّل Collector أو endpoint ولا يكتب إلى AI-1. هذا تكامل مصدر مفتوح تجريبي ولا يفتح P02/T18 أو AI-9 أو P01.
+أضفنا محولًا محليًا محدودًا لـ[سجلات وعمليات OpenTelemetry OTLP/JSON](docs/integrations/OTLP_LOGS_TRACES_OFFLINE_ADAPTER.md) إلى عقد SafeSignal الموجود. يقرأ ملفًا/‏stdin فقط، ويرفض أجسام السجلات وخصائص spans غير المسموحة. يوفر أيضًا وصلة محلية اختيارية مع مدقق OIDC وحد المستأجر الموجود لاشتقاق نطاق وSHA من لقطة مصرح بها؛ لا يشغّل endpoint أو Collector ولا يكتب إلى AI-1، ولا يثبت أصالة ملف telemetry. لا يفتح P02/T18 أو AI-9 أو P01.
 
 ### تطبيق DevOps AI Intelligence المحفوظ
 
