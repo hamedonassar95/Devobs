@@ -3434,6 +3434,17 @@
       "ci_run_id": 45368184135,
       "verification": "VERIFIED 2026-11-24 (GitHub): PR #777 merged exact head fcb877667895d0c6c5e3da938255c00e9386cd61 as main SHA a2404c1de3e613f9724a5e361e96c9464626e49e. Exact-head PR CI 45368184135 SUCCESS and push CI 45368175202 SUCCESS; post-merge main CI 45373480304 SUCCESS. CodeQL checks on the PR head passed. Production release and incident drill were skipped by policy gates.",
       "limitations": "Opt-in public GitHub CI reader and manual UI only; server flag DEVOBS_PUBLIC_GITHUB_STATUS_ENABLED is disabled by default. Loopback-restricted and allowlisted; live hosted integration activation and end-to-end acceptance remain UNVERIFIED. No PAT, provider credentials, database access, Firebase activation, migration, deployment or runtime configuration change. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-ops-devobs-integration-pr780",
+      "area": "DOCUMENTATION",
+      "title": "docs: record ops integration boundaries",
+      "pr_number": 780,
+      "pr_head_sha": "cfe63d17a7df8fd85e6483363c2610e138e5a455",
+      "merge_sha": "7d0a5e16964be7d2a331ee3cd563b50a64125a7a",
+      "ci_run_id": 45396892901,
+      "verification": "VERIFIED 2026-11-24 (GitHub): PR #780 merged exact head cfe63d17a7df8fd85e6483363c2610e138e5a455 as main SHA 7d0a5e16964be7d2a331ee3cd563b50a64125a7a. Exact-head PR CI 45396892901 and push CI 45396878372 SUCCESS; exact-head CodeQL 45396887125 SUCCESS. Post-merge main CI 45397660809 and CodeQL 45397660098 SUCCESS. Production release and controlled incident drill remained skipped by policy.",
+      "limitations": "Documentation and inventory-link regression test only; no runtime integration or UI code copied. Existing Devobs GitHub CI reader remains read-only, opt-in and loopback-restricted. Ops dispatch run 45378593746 failed before its send step, which was skipped; the source-repository mismatch is verified while the exact failure-log cause remains UNVERIFIED. No PAT, secret, live database, Firebase, provider setting, paid service, deployment or external write was accessed or changed. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
