@@ -21,8 +21,8 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.data = copy.deepcopy(self.record)
 
     def assert_current_summary(self, summary):
-        self.assertEqual(summary["merged_milestones"], 310)
-        self.assertEqual(summary["latest_pr"], 775)
+        self.assertEqual(summary["merged_milestones"], 312)
+        self.assertEqual(summary["latest_pr"], 777)
 
     def test_current_merged_evidence_and_gates_validate(self):
         result = validate(self.data)
@@ -3002,6 +3002,39 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("Exact-head PR CI 45306060923 SUCCESS", entry["verification"])
         self.assertIn("main CI 45355683819 SUCCESS", entry["verification"])
         self.assertIn("no preservation or retirement path is authorized", entry["limitations"].lower())
+        summary = validate(self.data)
+        self.assert_current_summary(summary)
+        self.assertEqual(summary["gate_statuses"]["p01-managed-saas"], "BLOCKED")
+        self.assertEqual(summary["gate_statuses"]["ai9-detection-quality"], "BLOCKED")
+        self.assertEqual(summary["gate_statuses"]["codex-agent-runtime-acceptance"], "OPEN")
+
+
+    def test_pr776_merge_records_owner_gated_expiry_without_activation(self):
+        entries = {record["pr_number"]: record for record in self.data["milestones"]}
+        entry = entries[776]
+        self.assertEqual(entry["id"], "verified-render-free-expiry-decision-pr776")
+        self.assertEqual(entry["pr_head_sha"], "67ef4d983edc986f63eab9c3488df1e4e6dcacab")
+        self.assertEqual(entry["merge_sha"], "10ec8e11e2ba434e658dce0e9207aab61921026d")
+        self.assertEqual(entry["ci_run_id"], 45358445508)
+        self.assertIn("post-merge main CI 45359331965 SUCCESS", entry["verification"])
+        self.assertIn("No preservation, retirement, upgrade", entry["limitations"])
+        self.assertIn("Issue #713 remains open", entry["limitations"])
+        summary = validate(self.data)
+        self.assert_current_summary(summary)
+        self.assertEqual(summary["gate_statuses"]["p01-managed-saas"], "BLOCKED")
+        self.assertEqual(summary["gate_statuses"]["ai9-detection-quality"], "BLOCKED")
+        self.assertEqual(summary["gate_statuses"]["codex-agent-runtime-acceptance"], "OPEN")
+
+    def test_pr777_merge_records_read_only_ci_and_unverified_runtime(self):
+        entries = {record["pr_number"]: record for record in self.data["milestones"]}
+        entry = entries[777]
+        self.assertEqual(entry["id"], "verified-readonly-cross-repo-ci-pr777")
+        self.assertEqual(entry["pr_head_sha"], "fcb877667895d0c6c5e3da938255c00e9386cd61")
+        self.assertEqual(entry["merge_sha"], "a2404c1de3e613f9724a5e361e96c9464626e49e")
+        self.assertEqual(entry["ci_run_id"], 45368184135)
+        self.assertIn("post-merge main CI 45373480304 SUCCESS", entry["verification"])
+        self.assertIn("disabled by default", entry["limitations"])
+        self.assertIn("end-to-end acceptance remain UNVERIFIED", entry["limitations"])
         summary = validate(self.data)
         self.assert_current_summary(summary)
         self.assertEqual(summary["gate_statuses"]["p01-managed-saas"], "BLOCKED")
