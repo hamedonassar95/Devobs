@@ -52,6 +52,7 @@ class VercelStageTestWorkflowTests(unittest.TestCase):
         self.assertEqual(len(jobs), 1)
         job = next(iter(jobs.values()))
         self.assertEqual(job["environment"]["name"], "vercel-staging")
+        self.assertEqual(job["if"], "github.ref == 'refs/heads/main'")
 
     def test_source_ref_is_validated_as_a_full_sha(self):
         steps = next(iter(self.workflow["jobs"].values()))["steps"]
@@ -112,9 +113,11 @@ class VercelStageTestWorkflowTests(unittest.TestCase):
             "python3 scripts/stage_site.py --source-dir candidate --output-dir _site",
         )
 
-    def test_root_vercel_config_is_not_required(self):
+    def test_root_vercel_config_disables_automatic_git_deployments_for_every_branch(self):
         self.assertTrue((ROOT / "deploy" / "vercel-staging.json").is_file())
-        self.assertFalse((ROOT / "vercel.json").exists())
+        config = json.loads((ROOT / "vercel.json").read_text(encoding="utf-8"))
+        self.assertEqual(config["$schema"], "https://openapi.vercel.sh/vercel.json")
+        self.assertIs(config["git"]["deploymentEnabled"], False)
 
 
 if __name__ == "__main__":

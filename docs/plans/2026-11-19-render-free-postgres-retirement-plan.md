@@ -18,6 +18,13 @@
 - **VERIFIED published provider policy:** [Render Free](https://render.com/docs/free) documents 30-day expiry, loss of free access after expiry, a 14-day upgrade-only grace period, eventual provider deletion, and no Free backups. [Render Postgres backups](https://render.com/docs/postgresql-backups) confirms no provider-managed Free recovery. [Delete Postgres API reference](https://api-docs.render.com/reference/delete-postgres) calls deletion irreversible. **No destructive API or dashboard action is authorized here.**
 - Follow [`AGENTS.md`](../../AGENTS.md): never push directly to `main`, weaken CI/security, use/inspect secrets, contact production, incur costs, or merge/deploy without separate exact-SHA-and-scope owner approval. No Cloud or GitLab synchronization. Leave **P01 BLOCKED/NO-GO, AI-9 BLOCKED, Codex runtime OPEN**.
 
+## Expiry decision refresh — 2026-11-24 (no action authorized)
+
+- **VERIFIED (GitHub):** this decision review uses `main` SHA `7f23f5635fecdbdc342dfaada259e4cc0c2adc3f`, merged from PR #775 head `e12915ea1f053b4c240c11170eb201e4db45d3d5`. Exact-head CI `45306060923`, merge-SHA CI `45355683819`, and merge-SHA Push on main `45355682459` succeeded.
+- **VERIFIED (fresh, read-only Render metadata):** on 2026-11-24 the exact database remained Free/available, PostgreSQL 17 in Frankfurt, with the same provider expiry; the associated web service remained present on `main`, auto-deploy off and not suspended. These records do not establish a database connection or identify active consumers.
+- The exact deadline is `2026-12-05T10:33:24.202776Z` (`2026-12-05 13:33:24.202776 Asia/Amman`, UTC+03:00). Issue [#713](https://github.com/hamedonassar95/Devobs/issues/713) still records planning approval only; this review does not authorize preservation, retirement or accepting expiry.
+- Use the current [expiry decision matrix](../p01/RENDER_FREE_DB_EXPIRY_DECISION_2026-11-24.md) for the preserve / retire / remain-blocked choices, unresolved consumers, backup and retention evidence, cost uncertainty, and required exact-scope owner approval. The offline expiry guard is a human-review gate, not operational readiness.
+
 ---
 
 ## Acceptance matrix — decision before execution

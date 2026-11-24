@@ -1,5 +1,23 @@
 # Devobs
 
+## Firebase security and learning — Phase 1
+
+[Firebase offline safety baseline and phased integration plan](docs/security/FIREBASE_PHASE1_BASELINE.md)
+documents the difference between the canonical deny-all prototype and older
+permissive Firestore rules, the offline test commands, and a beginner-friendly
+integration roadmap. This does not enable cloud resources, AI usage or deployments.
+
+[Firebase Phase 2 access-control inventory](docs/security/FIREBASE_PHASE2_ACCESS_INVENTORY.md)
+maps the client operations, authentication boundaries, tenant and ownership gaps,
+and the next offline emulator authorization-test task. It does not enable Firebase.
+
+[Firebase Phase 5 hosted-rules audit](docs/security/FIREBASE_PHASE5_HOSTED_RULES_AUDIT.md)
+records the read-only access blocker and separates verified repository evidence
+from unknown hosted rules; no Firebase documents or hosted rules were read or changed.
+
+Run from repository root: python3 scripts/check_firebase_rules_baseline.py
+and python3 -m unittest discover -s tests -p 'test_firebase_rules_baseline.py' -v.
+
 ## Human-supervised multi-agent repository workflow
 
 [AI Multi-Agent Repository Workflow](docs/AI_MULTI_AGENT_WORKFLOW.md) documents isolated Codex/OpenCode worktrees, non-overlapping file ownership, Draft PR review, verification evidence, and owner-only merge/deploy decisions. This is a documented operating policy, not an activated agent scheduler or automatic dispatch service.
@@ -16,6 +34,8 @@ accepts only read-only `DRY_RUN` policy fixtures; PASS is design validation,
 not authentication, human approval or permission to deploy. No provider is activated.
 
 ## P01 readiness: verified NO-GO evidence (2026-11-19)
+
+**2026-11-23 read-only provider update:** [Current Render and Supabase checkpoint](docs/p01/P01_PROVIDER_CHECKPOINT_2026-11-23.md) confirms an unsuccessful hosted staging deploy, an INACTIVE Devobs Supabase project, and the Render Free PostgreSQL expiry on 2026-12-05. No production GO or retention action is authorized.
 
 [Read the fixed-SHA P01 NO-GO owner decision and acceptance matrix](docs/p01/P01_NO_GO_DECISION_2026-11-19.md) for the reviewed `main` SHA `0f062c03dbefceebf8eaca79bdaf30c2483f99be`. This is source/read-only metadata evidence, **not** a provider hard-cap, hosted test or P01 approval. The existing P01 evidence sample and P01/AI-9/Codex gates are unchanged. A separate owner decision is needed before the existing Free PostgreSQL expiry on 2026-12-05.
 
@@ -38,6 +58,8 @@ python -m unittest discover -s tests -p "test_pr_readiness_gate.py" -v
 **Read-only Render Free checkpoint refreshed (2026-11-19):** [Free PostgreSQL inventory, fixed 2026-12-05 expiry, and offline fail-closed preflight](docs/P01_RENDER_FREE_RESOURCE_CHECKPOINT_2026-11-15.md). This is not a hosted API test, backup, paid activation or P01 GO; separate owner retention/retirement authorization remains required.
 
 **Retirement planning approved (no deletion, 2026-11-19):** [Owner-gated Render Free PostgreSQL retirement plan](docs/plans/2026-11-19-render-free-postgres-retirement-plan.md). The plan documents dependencies, rollback limits and separate execution approval; it makes no hosted changes and P01 remains NO-GO.
+
+**Expiry decision pending (2026-11-24):** [Render Free database decision matrix](docs/p01/RENDER_FREE_DB_EXPIRY_DECISION_2026-11-24.md). No preservation or retirement path is authorized; the 2026-12-05 deadline is not an instruction to delete or upgrade.
 
 ## Offline Graphify repository intelligence (local, opt-in)
 
@@ -372,6 +394,8 @@ python3 -m unittest discover -s tests -p 'test_free_readiness_one_command.py' -v
 
 نُقلت واجهة React/TypeScript من مستودع `DevObs-ai-Intelligence-` إلى [`apps/ai-intelligence-console/`](apps/ai-intelligence-console/)، مع الاحتفاظ بتاريخ المصدر ورخصة MIT. تضم لوحة الخوادم والحوادث والنشر، واجهة GitHub، مساحة Google Workspace، Gemini، وعرض غرفة الخوادم ثلاثي الأبعاد. هي نموذج أولي منفصل عن محركات AI-1 إلى AI-7 الموجودة في الجذر؛ سجلاتها تجريبية ولا تتحكم بخوادم أو عمليات نشر حقيقية. Firebase وGoogle وGemini متوقفة افتراضيًا، وقواعد Firestore تمنع الوصول، والتطبيق غير مشمول بنشر GitHub Pages. راجع [حالة التطبيق وتشغيله محليًا](apps/ai-intelligence-console/README.md).
 
+للاطلاع على علاقة مستودعات `ops` وAI Intelligence و`devobs-saas` ومصادر قواعد بياناتها وحدود الدمج الآمن، راجع [خط أساس توحيد المستودعات وقواعد البيانات](docs/architecture/REPOSITORY_DATABASE_CONSOLIDATION.md) و[الخريطة الآلية](docs/architecture/repository_database_map.json). الخريطة تميّز روابط المصدر عن الاتصالات الحية، ولا تفعّل Firebase أو تدمج قواعد بيانات.
+
 لتمييز الموجود والمتحقق من التجريبي والمحجوب قبل أي إضافة، راجع [مواءمة أبحاث Devobs AI لعام 2026](docs/strategy/DEVOBS_AI_RESEARCH_ALIGNMENT_2026.md)، و[مراجعة منظومة DevOps والذكاء الاصطناعي](docs/AI_DEVOPS_ECOSYSTEM_REVIEW_2026-11-11.md)، و[خارطة التنفيذ المرحلية](docs/strategy/DEVOBS_AI_ROADMAP_2026.md). هذه المستندات تخطط للعمل ولا تفتح AI-9 أو P01 أو تجيز نشرًا.
 
 لتسجيل متطلبات أي تقييم مستقل مستقبلي لحوادث AI-9 الطبيعية، راجع [بروتوكول التسجيل المسبق](docs/AI9_REAL_INCIDENT_PREREGISTRATION.md). هذا تصميم فقط؛ لا توجد مجموعة مؤهلة معتمدة، ولا يفتح البوابة أو يجيز التقييم.
@@ -546,12 +570,17 @@ unset GRAFANA_ADMIN_PASSWORD
 1. في إعدادات المستودع افتح **Settings → Pages** واختر **GitHub Actions** كمصدر للنشر.
 2. ادفع التغيير إلى فرع، وافتح Pull Request إلى `main`.
 3. انتظر نجاح فحص `validate` وراجع المعاينة القابلة للتنزيل في ملخص CI.
-4. بعد مراجعة ودمج Pull Request، ينشر سير العمل الصفحة من `main` بعد نجاح CI.
-5. راجع رابط النشر ونتيجة فحص الصحة في GitHub Actions.
+4. بعد الدمج، لا ينشر `push` إلى `main` تلقائيًا. يراجع المالك SHA وآثار النشر، ثم يشغّل **CI** يدويًا من `main` ويختار `confirm_release=true`؛ القيمة الافتراضية `false`، والنشر مشروط بنجاح `validate` وArtifact الموقع في التشغيل نفسه.
+5. راجع إعداد مراجعي بيئة `github-pages` منفصلًا؛ فاسم البيئة لا يضمن وجود مراجعين. لا تدمج PR يغير ضوابط الإصدار قبل مراجعة المالك لآثار النشر.
+6. راجع رابط النشر ونتيجة فحص الصحة في GitHub Actions.
 
 فحص صحة النشر يقرأ `deployment.json` ويطابق SHA الكامل للمصدر. عند عطل نقل مؤقت يعيد المحاولة 3 مرات كحد أقصى فقط (مهلة اتصال 5 ثوانٍ ومهلة إجمالية 20 ثانية لكل محاولة، بتأخير ثانية ثم ثانيتين)، ولا يعيد المحاولة عند أخطاء HTTP أو عند عدم تطابق SHA أو عند بيان غير صالح، ولا يعطّل التحقق من TLS أبدًا. الحدود والمخاطر المتبقية موثقة في [دليل CI](docs/CI.md).
 
 لا يحتاج نشر Pages الحالي إلى أسرار نشر؛ صلاحيات النشر وإثبات الهوية تُدار عبر GitHub Actions وOIDC. راجع [دليل المعاينة والنشر والرجوع](docs/DEPLOYMENT.md) و[دليل CI](docs/CI.md) للتفاصيل.
+
+تعطّل [إعدادات Vercel Git](vercel.json) النشر التلقائي الناتج عن commits على جميع الفروع عبر `git.deploymentEnabled: false` وفق [وثائق Vercel الرسمية](https://vercel.com/docs/project-configuration/git-configuration). هذه قاعدة لأحداث Git فقط، ولا تمنع CLI أو API أو Deploy Hooks أو تكاملًا خارجيًا؛ يجب على المالك مراجعة هذه المسارات من إعدادات Vercel. سير عمل `Vercel staging test` يدوي ومقيّد إلى `main`، وينشر Preview إلى مشروع staging فقط.
+
+تفاصيل البوابات، المراجعة البشرية، النشر اليدوي والرجوع في [دليل المعاينة والنشر والرجوع](docs/DEPLOYMENT.md).
 
 ## التشغيل والتوثيق
 
@@ -613,3 +642,10 @@ python3 scripts/integrations/graphify_portfolio.py --json
 python3 -m unittest discover -s tests -p 'test_graphify_portfolio.py' -v
 ```
 - [Disposable Keycloak public OAuth client](docs/P01_KEYCLOAK_OIDC_PROFILE.md#disposable-local-public-oauth-client): one offline-validated Authorization Code + PKCE S256 client configuration with exact loopback redirects and an opt-in `devobs.read` scope. Live runtime remains NOT_TESTED and requires the reconciliation PR to be merged plus separate per-run owner approval. The exception does not authorize credential or token creation, hosted identity, production changes, paid AI inference, or deployment; P01 remains NO-GO and AI-9 remains BLOCKED.
+
+## Firebase security — Phase 3 emulator authorization tests
+
+[Offline Firestore Emulator authorization tests](docs/security/FIREBASE_PHASE3_EMULATOR_TESTS.md)
+exercise anonymous denial, synthetic tenant and owner isolation, and an explicitly
+experimental owner policy. The suite runs only against a demo project on localhost;
+the production Firestore rules remain deny-all.

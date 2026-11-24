@@ -1,0 +1,252 @@
+{
+  "map_format": "devobs.repository-database-map",
+  "schema_version": 1,
+  "generated_at": "2026-11-24",
+  "canonical_repository": "hamedonassar95/Devobs",
+  "baseline": {
+    "branch": "feature/ops-ai-database-consolidation-map",
+    "base_sha": "cb73695864fdbeb467b37f23ac9146da65768e63",
+    "source_repositories_are_read_only": true,
+    "live_database_access_performed": false
+  },
+  "status_values": ["VERIFIED", "UNVERIFIED", "BLOCKED", "PLANNED"],
+  "repositories": [
+    {
+      "id": "devobs",
+      "name": "hamedonassar95/Devobs",
+      "url": "https://github.com/hamedonassar95/Devobs",
+      "ref": "cb73695864fdbeb467b37f23ac9146da65768e63",
+      "identity_status": "VERIFIED",
+      "description": "Canonical repository; current main keeps Firebase integration disabled by default and Firestore rules deny all access."
+    },
+    {
+      "id": "ops",
+      "name": "hamedonassar95/ops",
+      "url": "https://github.com/hamedonassar95/ops",
+      "ref": "57360d6a6c706d7433ac776a27c82dedd493e31a",
+      "identity_status": "VERIFIED",
+      "description": "Related source tree with substantial content overlap; GitHub does not identify it as a fork and no common Git ancestor was found."
+    },
+    {
+      "id": "ai_intelligence_source",
+      "name": "hamedonassar95/DevObs-ai-Intelligence-",
+      "url": "https://github.com/hamedonassar95/DevObs-ai-Intelligence-",
+      "ref": "61e4297545c60ebcda77a4c1a1f793c7e9a20347",
+      "identity_status": "VERIFIED",
+      "description": "Original AI Intelligence source snapshot recorded by the canonical console import."
+    },
+    {
+      "id": "devobs_saas",
+      "name": "hamedonassar95/devobs-saas",
+      "url": "https://github.com/hamedonassar95/devobs-saas",
+      "ref": "a0889dce0785cbe96cd78233ecadbe4163df805a",
+      "identity_status": "VERIFIED",
+      "description": "Separate Next.js, Prisma and PostgreSQL SaaS service with tenant-aware application authorization. Its physical database is not proven to be the Render staging database."
+    }
+  ],
+  "components": [
+    {
+      "id": "devobs_console",
+      "repository_id": "devobs",
+      "path": "apps/ai-intelligence-console",
+      "status": "VERIFIED",
+      "firebase_enabled_by_default": false,
+      "firestore_rules": "deny-all",
+      "evidence": ["apps/ai-intelligence-console/src/services/firebaseApp.ts", "apps/ai-intelligence-console/firestore.rules", "apps/ai-intelligence-console/README.md"]
+    },
+    {
+      "id": "ops_dashboard",
+      "repository_id": "ops",
+      "path": "src",
+      "status": "VERIFIED",
+      "firebase_legacy_rules": "unconditional-public-read-and-unscoped-authenticated-write",
+      "safe_to_import_as_is": false,
+      "evidence": ["firestore.rules", "server.ts", "src/components/github/GitHubTab.tsx", "scripts/repository_dispatch.mjs"]
+    },
+    {
+      "id": "saas_app",
+      "repository_id": "devobs_saas",
+      "path": "src",
+      "status": "VERIFIED",
+      "architecture": ["Next.js", "Prisma", "PostgreSQL"],
+      "tenant_authorization": "tenant-aware application checks and PostgreSQL row-level security",
+      "evidence": ["package.json", "prisma/schema.prisma", "src/lib/tenant/access.ts", "src/lib/tenant/access.test.ts"]
+    }
+  ],
+  "database_resources": [
+    {
+      "id": "legacy_firebase_source",
+      "kind": "Firestore source configuration",
+      "status": "VERIFIED",
+      "evidence_classification": "VERIFIED SOURCE LINK",
+      "source_files": [
+        "ops@57360d6a6c706d7433ac776a27c82dedd493e31a:firebase-applet-config.json",
+        "DevObs-ai-Intelligence-@61e4297545c60ebcda77a4c1a1f793c7e9a20347:firebase-applet-config.json"
+      ],
+      "project_id": "my-apps-hamedo",
+      "firestore_database_id": "ai-studio-promptpal-f1b3ebe9-9826-4fca-9a67-b5376e8669b3",
+      "live_access_status": "UNVERIFIED",
+      "notes": "Identifiers are present in legacy source configuration. They do not prove project ownership, current existence, deployed rules, connectivity, or permission to access live data."
+    },
+    {
+      "id": "canonical_firestore_policy",
+      "kind": "Firestore rules in canonical source",
+      "status": "VERIFIED",
+      "project_id": "my-apps-hamedo",
+      "rules_policy": "deny-all",
+      "runtime_enabled_by_default": false,
+      "notes": "Source-only evidence; no rules were published and no live database was queried."
+    },
+    {
+      "id": "render_ai_staging_service",
+      "kind": "Render web service",
+      "status": "VERIFIED",
+      "resource_name": "devobs-ai-staging",
+      "plan": "Free",
+      "evidence": "docs/p01/P01_PROVIDER_CHECKPOINT_2026-11-23.md",
+      "last_recorded_deploy_state": "update_failed",
+      "auto_deploy": false,
+      "notes": "Recorded in the dated provider checkpoint; not re-queried during this task."
+    },
+    {
+      "id": "render_ai_staging_postgres",
+      "kind": "PostgreSQL database",
+      "status": "VERIFIED",
+      "provider_resource_name": "devobs-ai-staging-db",
+      "logical_database_name": "devobs_ai_staging",
+      "engine": "PostgreSQL 17",
+      "plan": "Free",
+      "free_expiry": "2026-12-05",
+      "evidence": ["docs/p01/P01_PROVIDER_CHECKPOINT_2026-11-23.md", "task-provided verified resource baseline"],
+      "live_records_read": false
+    },
+    {
+      "id": "saas_postgres",
+      "kind": "PostgreSQL used by devobs-saas source",
+      "status": "UNVERIFIED",
+      "engine": "PostgreSQL (Prisma datasource declaration)",
+      "physical_provider": "UNVERIFIED",
+      "relationship_to_render_ai_staging_postgres": "UNVERIFIED",
+      "notes": "Source declares DATABASE_URL and DIRECT_URL; values and live targets were not read."
+    },
+    {
+      "id": "saas_neon_candidate",
+      "kind": "Potential SaaS hosting database",
+      "status": "PLANNED",
+      "provider": "Neon",
+      "notes": "A source-repository deployment plan names Neon Free as a candidate; no resource was provisioned or connected."
+    },
+    {
+      "id": "phone_repair_supabase",
+      "kind": "Separate Phone Repair Assistant data service",
+      "status": "UNVERIFIED",
+      "provider": "Supabase (reported project family; exact project not inspected)",
+      "attachment_to_devobs": "BLOCKED",
+      "notes": "Kept isolated. This task did not inspect that repository or query any Supabase project."
+    }
+  ],
+  "relationships": [
+    {
+      "from": "ops",
+      "to": "ai_intelligence_source",
+      "type": "content_similarity",
+      "status": "VERIFIED",
+      "evidence": "67 identical shared blobs, five changed shared paths, 37 ops-only paths and one AI-source-only path at the recorded refs."
+    },
+    {
+      "from": "ops",
+      "to": "ai_intelligence_source",
+      "type": "git_fork_or_ancestry",
+      "status": "UNVERIFIED",
+      "evidence": "GitHub API reported no fork parent/source; local histories had different roots and no merge-base. Direction of copying/provenance is not established."
+    },
+    {
+      "from": "ai_intelligence_source",
+      "to": "devobs_console",
+      "type": "imported_source_snapshot",
+      "status": "VERIFIED",
+      "evidence": "Merged PR #565 and apps/ai-intelligence-console/CONSOLIDATION.md record the imported source SHA."
+    },
+    {
+      "from": "legacy_firebase_source",
+      "to": "canonical_firestore_policy",
+      "type": "same_source_identifiers_but_no_live_link_verified",
+      "status": "UNVERIFIED",
+      "evidence": "Legacy configuration identifiers match; active deployment, current database association and runtime access were not checked."
+    },
+    {
+      "from": "render_ai_staging_service",
+      "to": "render_ai_staging_postgres",
+      "type": "application_database_attachment",
+      "status": "UNVERIFIED",
+      "evidence": "Resource metadata exists in a checkpoint, but a successful connection or application binding is not established."
+    },
+    {
+      "from": "devobs_saas",
+      "to": "saas_postgres",
+      "type": "declared_application_database",
+      "status": "VERIFIED",
+      "evidence": "Prisma schema declares PostgreSQL and application code consumes Prisma; the live physical host remains unverified."
+    },
+    {
+      "from": "phone_repair_supabase",
+      "to": "devobs",
+      "type": "data_attachment",
+      "status": "BLOCKED",
+      "evidence": "Explicit scope boundary; no project inspection or authorization for attachment."
+    }
+  ],
+  "comparisons": {
+    "ops_vs_ai_source": {
+      "status": "VERIFIED",
+      "identical_shared_blobs": 67,
+      "changed_shared_paths": 5,
+      "ops_only_paths": 37,
+      "ai_source_only_paths": 1,
+      "changed_shared_paths_list": ["README.md", "scripts/repository_dispatch.mjs", "server.ts", "src/components/github/GitHubTab.tsx", "tests/repository_dispatch.test.mjs"],
+      "ops_only_summary": "36 .agents files and docs/graphify-local.md",
+      "ai_source_only_path": "package-lock.json"
+    },
+    "ai_source_vs_imported_console": {
+      "status": "VERIFIED",
+      "identical_shared_blobs": 39,
+      "changed_shared_paths": 30,
+      "ai_source_only_paths": 4,
+      "console_only_paths": 29,
+      "notes": "The imported console has since diverged; source identity is the recorded PR #565 snapshot, not a claim of current tree equivalence."
+    },
+    "ops_vs_imported_console": {
+      "status": "VERIFIED",
+      "identical_shared_blobs": 37,
+      "changed_shared_paths": 31,
+      "ops_only_paths": 41,
+      "console_only_paths": 30
+    }
+  },
+  "safe_import_candidates": [
+    {
+      "candidate": "Review selected ops-only local documentation/skills for non-duplicative process guidance",
+      "status": "PLANNED",
+      "condition": "Compare with canonical AGENTS.md and existing Devobs operating docs; import only manually approved, non-secret, non-deployment guidance."
+    },
+    {
+      "candidate": "Review self-contained visual dashboard changes from the five shared changed paths",
+      "status": "PLANNED",
+      "condition": "No change is currently approved for import. Remove PAT entry, push, force-push, dispatch and other side-effect paths; run UI and security review before any later PR."
+    }
+  ],
+  "migration_plan": [
+    {"order": 1, "step": "Reconcile safe ops source differences", "status": "PLANNED"},
+    {"order": 2, "step": "Validate authentication and tenant ownership", "status": "PLANNED"},
+    {"order": 3, "step": "Inspect database schemas and backups using approved read-only evidence", "status": "PLANNED"},
+    {"order": 4, "step": "Build a guarded integration adapter with explicit provider and fail-closed behavior", "status": "PLANNED"},
+    {"order": 5, "step": "Test isolation and authorization with synthetic data", "status": "PLANNED"},
+    {"order": 6, "step": "Request human approval before any activation or migration", "status": "PLANNED"}
+  ],
+  "prohibitions": [
+    "No live database records or secrets were read.",
+    "No legacy Firestore rules, deployment workflows, PAT UI, GitHub push or dispatch functionality may be imported into canonical Devobs as-is.",
+    "No Firebase activation, rules publication, database merge, migration, cloud infrastructure change or production deployment is authorized.",
+    "Unrelated Supabase projects and Phone Repair Assistant data remain isolated."
+  ]
+}

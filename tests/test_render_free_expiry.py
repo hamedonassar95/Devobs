@@ -27,14 +27,14 @@ def snapshot(**changes):
 
 
 class RenderFreeExpiryTests(unittest.TestCase):
-    def test_2026_11_19_account_snapshot_blocks_production(self):
+    def test_2026_11_23_account_snapshot_blocks_production(self):
         """A fresh available Free DB is still REVIEW_REQUIRED, never P01 GO."""
         record = load_snapshot(ROOT / "docs/p01/render-free-expiry-snapshot.json")
-        self.assertEqual(record["observed_on"], "2026-11-19")
+        self.assertEqual(record["observed_on"], "2026-11-23")
         self.assertEqual(record["plan"], "free")
         self.assertEqual(record["status"], "available")
         self.assertEqual(record["expires_at"], "2026-12-05T10:33:24.202776Z")
-        at_review = dt.datetime(2026, 11, 19, 9, 30, tzinfo=dt.timezone.utc)
+        at_review = dt.datetime(2026, 11, 23, 14, 0, tzinfo=dt.timezone.utc)
         decision = assess_expiry(record, at_review)
         self.assertEqual(decision["status"], "REVIEW_REQUIRED")
         self.assertEqual(decision["exit_code"], 1)
@@ -42,7 +42,7 @@ class RenderFreeExpiryTests(unittest.TestCase):
         self.assertFalse(decision["paid_activation_authorized"])
         self.assertFalse(decision["provider_access_performed"])
         # Offline evidence must not be treated as eternally fresh.
-        stale = assess_expiry(record, dt.datetime(2026, 11, 27, 12, tzinfo=dt.timezone.utc))
+        stale = assess_expiry(record, dt.datetime(2026, 12, 1, 12, tzinfo=dt.timezone.utc))
         self.assertEqual(stale["status"], "STALE_INVENTORY")
         self.assertEqual(stale["exit_code"], 1)
 

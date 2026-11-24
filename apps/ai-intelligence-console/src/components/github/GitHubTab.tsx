@@ -25,8 +25,10 @@ import {
   Radio,
   Download,
   Key,
+  Database,
 } from 'lucide-react';
 import { Server, Incident, Deployment } from '../../types/serverDashboard';
+import { RepositoryDatabaseMapPanel } from './RepositoryDatabaseMapPanel';
 
 interface GitHubTabProps {
   servers: Server[];
@@ -105,7 +107,7 @@ export const GitHubTab: React.FC<GitHubTabProps> = ({ servers, incidents, deploy
   const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
 
   // Sub-tabs in GitHub Hub
-  const [activeSubTab, setActiveSubTab] = useState<'workflows' | 'push_wizard' | 'commits' | 'prs' | 'issues' | 'releases' | 'webhooks'>('push_wizard');
+  const [activeSubTab, setActiveSubTab] = useState<'workflows' | 'push_wizard' | 'commits' | 'prs' | 'issues' | 'releases' | 'webhooks' | 'repository_database_map'>('push_wizard');
 
   // Workflows state
   const [workflows, setWorkflows] = useState<WorkflowRun[]>([
@@ -551,6 +553,20 @@ ${incident.stackTrace || 'No stack trace provided'}
             <Radio className="w-3.5 h-3.5" />
             <span>محاكي Webhooks</span>
           </button>
+
+          <button
+            type="button"
+            aria-pressed={activeSubTab === 'repository_database_map'}
+            onClick={() => setActiveSubTab('repository_database_map')}
+            className={`px-3 py-1.5 rounded-xl flex items-center gap-1.5 transition-colors whitespace-nowrap ${
+              activeSubTab === 'repository_database_map'
+                ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30'
+                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
+            }`}
+          >
+            <Database aria-hidden="true" className="h-3.5 w-3.5" />
+            <span>Repository &amp; Database Map</span>
+          </button>
         </div>
       </div>
 
@@ -715,6 +731,8 @@ ${incident.stackTrace || 'No stack trace provided'}
           </div>
         </div>
       )}
+
+      {activeSubTab === 'repository_database_map' && <RepositoryDatabaseMapPanel />}
 
       {/* SUB-TAB 2: Workflows & Actions CI/CD */}
       {activeSubTab === 'workflows' && (

@@ -16,6 +16,22 @@ This is the preserved React/TypeScript prototype from the former `DevObs-ai-Inte
 - `GEMINI_API_KEY` does not activate the closed prototype routes. The server constructs no Gemini client; legacy handlers remain reference code behind the closed route guard. Re-enabling inference requires reviewed identity, tenant authorization, data policy and cost controls, not a key or budget boolean alone.
 - No live Gemini request is part of CI or this prototype's release checks. The new real-server tests explicitly forbid provider network traffic.
 
+## Repository & Database Map (read-only)
+
+The GitHub Hub includes a **Repository & Database Map** subtab rendered from the canonical [`repository_database_map.json`](../../docs/architecture/repository_database_map.json) at build time. It shows the inventory date, repository links, recorded source statuses, and the known Firebase, Render PostgreSQL, and SaaS PostgreSQL relationships. The topology stays a **Not real-time** checked-in snapshot; a `VERIFIED` source record does not mean live connectivity was verified. The panel makes no Firebase, Render, Supabase, or database requests.
+
+The panel validates the inventory schema and expected records before rendering. If the map is missing or invalid, it displays an error instead of partial topology data. Firebase remains disabled by default and canonical Firestore rules remain deny-all. No credentials, connection strings, or application records are displayed.
+
+### Optional public GitHub CI status (read-only)
+
+Each of the four inventory repositories has a **Check GitHub CI** button. Nothing polls or calls GitHub on page load. Clicking a button asks the local server to check the fixed `main` branch and `.github/workflows/ci.yml` using anonymous, read-only REST `GET` requests. Only `hamedonassar95/Devobs`, `hamedonassar95/ops`, `hamedonassar95/DevObs-ai-Intelligence-`, and `hamedonassar95/devobs-saas` are allowlisted. The server constructs fixed GitHub API URLs; no PAT, OAuth, arbitrary URL, repository-dispatch, logs, artifacts, or private repository access is used.
+
+The endpoint is `GET /api/github/public-ci-status?repository=<allowlisted-owner/repo>` and is **disabled by default**. A local operator must separately choose the server-only setting `DEVOBS_PUBLIC_GITHUB_STATUS_ENABLED=true`; it is not a `VITE_` setting and this change does not enable it. It also works only when the console binds to `127.0.0.1`. Requests have a five-second timeout and 64 KiB response limit, reject redirects and unexpected schemas, and cache results in process memory for up to 30 seconds. Rate limiting is reported explicitly; there is no retry or stale-success fallback. Missing, mismatched, disabled, malformed, unavailable, or rate-limited data is **UNVERIFIED**. A successful observation shows the branch, exact commit SHA, CI conclusion and observation timestamp; a cached result retains its original timestamp. These public CI observations are separate from the dated topology snapshot and do not prove deployment, live health or database connectivity.
+
+Only entries whose public visibility was verified on 2026-11-24 are queried. Other allowlisted inventory entries remain visible, but their button returns **UNVERIFIED** without requesting repository or workflow data. Reassess visibility in a separate review before adding any entry to the verified-public allowlist.
+
+The implementation follows the official [branch endpoint](https://docs.github.com/en/rest/branches/branches#get-a-branch), [workflow-runs endpoint](https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-workflow), [API versioning](https://docs.github.com/en/rest/about-the-rest-api/api-versions), and [unauthenticated rate limits](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api).
+
 ## Withdrawn dependency advisory (picomatch)
 
 The `picomatch` ReDoS report `GHSA-fc5q-39xc-vjpf` / `CVE-2026-112366` was **withdrawn upstream on 2026-11-18T15:38:56Z**; it was published 2026-10-19 and affected `<= 4.0.7` with no patched version. Our tree resolves `picomatch@4.0.7` once, through `vite@8.3.8` and `vite → tinyglobby → fdir`.
@@ -32,7 +48,7 @@ On this Windows machine the audit must be run as `npm.cmd` — PowerShell's exec
 
 The **Restart**, **Redeploy**, and **Rollback** controls are now explicit **preview-only** actions. Clicking them displays a non-executing demo message: it does **not** mark a server healthy, change deployment status, fabricate a successful restart/rollback incident, call a cloud API, or trigger a CI deployment. The console shows an always-visible Arabic `DEMO ONLY` banner on every tab, not just Overview.
 
-The separate server and incident editing forms remain **local prototype records** (or optional disabled-by-default Firebase data functions), not infrastructure commands. Their confirmation toasts say so; adding a deployment record is not an actual deploy. No new authorization, provider or inference capability was added. The existing protected, manual diagnostics proxy remains separate and disabled unless independently configured; this change neither enables nor invokes it.
+Server, incident and deployment actions change only the dashboard's React state and browser `localStorage`; they do not read from or write to Firestore. `App.tsx` intentionally does not import the Firestore facade or subscribe to Firestore, so creating, editing, resolving, simulating, or removing demo records remains local even when `VITE_FIREBASE_ENABLED=true`. Firebase Authentication is a separate existing path and was not changed by this boundary. The Firestore facade and service remain available for future work, but no demo action calls them. Any future real persistence needs a separately reviewed identity, tenant-ownership and authorization contract, plus its own non-demo flow and tests. Adding a deployment record is not an actual deploy. No new authorization, provider or inference capability was added. The existing protected, manual diagnostics proxy remains separate and disabled unless independently configured; this change neither enables nor invokes it.
 
 Run the focused no-network regression check with the existing console tooling:
 
