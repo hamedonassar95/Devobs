@@ -21,8 +21,8 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.data = copy.deepcopy(self.record)
 
     def assert_current_summary(self, summary):
-        self.assertEqual(summary["merged_milestones"], 312)
-        self.assertEqual(summary["latest_pr"], 777)
+        self.assertEqual(summary["merged_milestones"], 313)
+        self.assertEqual(summary["latest_pr"], 780)
 
     def test_current_merged_evidence_and_gates_validate(self):
         result = validate(self.data)
@@ -3035,6 +3035,22 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("post-merge main CI 45373480304 SUCCESS", entry["verification"])
         self.assertIn("disabled by default", entry["limitations"])
         self.assertIn("end-to-end acceptance remain UNVERIFIED", entry["limitations"])
+        summary = validate(self.data)
+        self.assert_current_summary(summary)
+        self.assertEqual(summary["gate_statuses"]["p01-managed-saas"], "BLOCKED")
+        self.assertEqual(summary["gate_statuses"]["ai9-detection-quality"], "BLOCKED")
+        self.assertEqual(summary["gate_statuses"]["codex-agent-runtime-acceptance"], "OPEN")
+
+    def test_pr780_merge_records_ops_integration_review_and_successful_main_ci(self):
+        entries = {record["pr_number"]: record for record in self.data["milestones"]}
+        entry = entries[780]
+        self.assertEqual(entry["id"], "verified-ops-devobs-integration-pr780")
+        self.assertEqual(entry["pr_head_sha"], "cfe63d17a7df8fd85e6483363c2610e138e5a455")
+        self.assertEqual(entry["merge_sha"], "7d0a5e16964be7d2a331ee3cd563b50a64125a7a")
+        self.assertEqual(entry["ci_run_id"], 45396892901)
+        self.assertIn("Post-merge main CI 45397660809 and CodeQL 45397660098 SUCCESS", entry["verification"])
+        self.assertIn("which was skipped", entry["limitations"])
+        self.assertIn("P01 BLOCKED / NO-GO", entry["limitations"])
         summary = validate(self.data)
         self.assert_current_summary(summary)
         self.assertEqual(summary["gate_statuses"]["p01-managed-saas"], "BLOCKED")
