@@ -113,6 +113,17 @@ python tools/agent_task_status_report.py --manifest /path/to/tasks.json --json-o
 python -m unittest discover -s tests -p "test_agent_task_status_report.py" -v
 ```
 
+The reusable OpenCode command `/devobs-handoff` is defined in
+`.opencode/commands/devobs-handoff.md`. Run it with no argument to prepare a
+handoff from verified local evidence, or pass a local task-manifest path as
+data. It runs the existing manifest tools in order and preserves their
+`PASS`/`BLOCKED`/`FAIL` exit codes; it does not start agents, edit tracked
+files or post to GitHub.
+
+```text
+/devobs-handoff C:\dev\tasks\codex-opencode.json
+```
+
 A local [AI quality and agent coordination gate](docs/ai-quality-gate.md) now
 composes those deterministic controls into one `DRY_RUN`, read-only JSON
 decision with audit events and advisory remediation notes. It detects
