@@ -1,17 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Activity, RefreshCw, ShieldCheck } from 'lucide-react';
-
-type Stage = { id: string; status: string; count: number };
-type Recommendation = {
-  review_order: number;
-  cause_id: string;
-  classification: 'POSSIBLE';
-  heuristic_signal: 'low' | 'medium';
-  event_count: number;
-  evidence_markers: string[];
-  requires_human_approval: true;
-  automatic_execution: false;
-};
+import { parseLocalAi7Snapshot, type LocalAi7Recommendation, type LocalAi7Snapshot } from '../../utils/localAi7Snapshot';
 
 const CAUSES: Readonly<Record<string, string>> = {
   timeout: 'مهلة عملية أو اعتماد',
@@ -30,23 +19,9 @@ const READ_ONLY_GUIDANCE: Readonly<Record<string, string>> = {
   memory: 'قارن قياسات الذاكرة وحجم المدخلات قبل اقتراح أي تغيير للموارد.',
 };
 
-type Snapshot = {
-  source: 'local_ai7_snapshot';
-  mode: 'local_advisory_only';
-  read_only: true;
-  summary: {
-    event_count: number;
-    log_cluster_count: number;
-    recommendation_count: number;
-    anomaly_candidate_count: number;
-  };
-  stages: Stage[];
-  recommendations: Recommendation[];
-};
-
 /** No implicit polling or network calls: refresh requires a direct click. */
 export function LocalAi7Panel() {
-  const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
+  const [snapshot, setSnapshot] = useState<LocalAi7Snapshot | null>(null);
   const [message, setMessage] = useState('لم يُطلب اتصال بالمحرك المحلي بعد.');
   const [loading, setLoading] = useState(false);
   const [reviewedOrders, setReviewedOrders] = useState<number[]>([]);
@@ -69,14 +44,8 @@ export function LocalAi7Panel() {
       });
       if (!response.ok) throw new Error('local_snapshot_not_available');
       const data: unknown = await response.json();
-      if (!data || typeof data !== 'object') throw new Error('invalid_snapshot');
-      const checked = data as Snapshot;
-      if (checked.source !== 'local_ai7_snapshot' || checked.read_only !== true
-          || checked.mode !== 'local_advisory_only' || !Array.isArray(checked.stages)
-          || checked.stages.length !== 7 || !checked.summary
-          || !Array.isArray(checked.recommendations)) {
-        throw new Error('invalid_snapshot');
-      }
+      const checked = parseLocalAi7Snapshot(data);
+      if (!checked) throw new Error('invalid_snapshot');
       if (!controller.signal.aborted) {
         setSnapshot(checked);
         setMessage('لقطة محلية محمّلة للقراءة فقط. ليست مراقبة حية أو جاهزية إنتاج.');
@@ -141,7 +110,7 @@ export function LocalAi7Panel() {
             {snapshot.recommendations.length === 0 && (
               <p className="text-xs text-slate-400">لا توجد توصيات معروفة في اللقطة الحالية. هذا لا يثبت خلو النظام من الأعطال.</p>
             )}
-            {snapshot.recommendations.map(item => (
+            {snapshot.recommendations.map((item: LocalAi7Recommendation) => (
               <article key={item.review_order} className="rounded-xl border border-slate-700 bg-slate-950 p-4 space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h5 className="font-bold text-white">

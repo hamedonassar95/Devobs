@@ -85,6 +85,8 @@ Open `http://127.0.0.1:3000` on the **same machine**, navigate to Overview and p
 
 An optional **I have read this** checkbox records only temporary in-page acknowledgement. It does **not** persist an approval, create a ticket, issue an API call, grant credentials, change a service, authorize production or replace a scoped human change approval. The checkboxes reset on every manual refresh. The full AI-7 recommendation count can exceed the five displayed cards; the UI explicitly shows both counts.
 
+Before display, the console validates the complete snapshot shape, bounded integer totals, all seven fixed stage IDs, the visible recommendation count, known causes and evidence markers, and the required review-only flags. Any mismatch is shown as an unavailable local snapshot; no partial or malformed advisory is rendered.
+
 The server endpoint is **disabled by default**. It refuses public/non-loopback binds and unexpected Host/Origin headers, rejects redirects and malformed/oversized JSON, imposes a short timeout, and returns a fixed failure message instead of invented results when unavailable. Do **not** expose either local server via a tunnel, proxy, external hostname, hosting platform or a shared-network interface. There is no hosted identity or tenant authorization in this local integration. Changing `HOST` away from `127.0.0.1` disables the bridge even with the flag enabled.
 
 Focused verification:
@@ -95,7 +97,7 @@ npm run lint
 npm run build
 ```
 
-`tests/localAi7Bridge.test.mjs` includes an integration check against the actual existing AI-7 `buildDashboardSnapshot` contract and negative cases for a disabled bridge, foreign origins/hosts, malformed data, redirects and oversized responses. It uses an in-process fake fetch rather than connecting to any external service. The controls in [P01](../../docs/P01_ACTIVATION_READINESS.md) remain **NO-GO** and no AI-9 acceptance or commercial service is claimed.
+`tests/localAi7Bridge.test.mjs` includes an integration check against the actual existing AI-7 `buildDashboardSnapshot` contract and negative cases for a disabled bridge, foreign origins/hosts, malformed data, redirects and oversized responses. `tests/localAi7Snapshot.test.mjs` checks the browser-side fail-closed parser using synthetic snapshots. Both use local fixtures without connecting to any external service. The controls in [P01](../../docs/P01_ACTIVATION_READINESS.md) remain **NO-GO** and no AI-9 acceptance or commercial service is claimed.
 
 ## Run the local prototype
 
