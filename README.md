@@ -390,6 +390,8 @@ python3 -m unittest discover -s tests -p 'test_free_readiness_one_command.py' -v
 
 هذا المستودع `Devobs` هو المصدر الأساسي للمشروعين. مراحل الذكاء التشغيلي المحلية AI-1 إلى AI-7 ولوحة AI-7 مدمجة هنا بالفعل؛ نضيف فقط ما يسد فجوة واضحة بدل نسخ مكونات مكررة. المحركات الحالية محلية وحتمية/إحصائية ولا تستدعي نموذجًا لغويًا.
 
+أضفنا محولًا محليًا محدودًا لسجلات [OpenTelemetry OTLP/JSON](docs/integrations/OTLP_LOGS_OFFLINE_ADAPTER.md) إلى عقد SafeSignal الموجود. يقرأ ملفًا/‏stdin فقط، ويرفض أجسام السجلات والخصائص غير المسموحة؛ لا يشغّل Collector أو endpoint ولا يكتب إلى AI-1. هذا تكامل مصدر مفتوح تجريبي ولا يفتح P02/T18 أو AI-9 أو P01.
+
 ### تطبيق DevOps AI Intelligence المحفوظ
 
 نُقلت واجهة React/TypeScript من مستودع `DevObs-ai-Intelligence-` إلى [`apps/ai-intelligence-console/`](apps/ai-intelligence-console/)، مع الاحتفاظ بتاريخ المصدر ورخصة MIT. تضم لوحة الخوادم والحوادث والنشر، واجهة GitHub، مساحة Google Workspace، Gemini، وعرض غرفة الخوادم ثلاثي الأبعاد. هي نموذج أولي منفصل عن محركات AI-1 إلى AI-7 الموجودة في الجذر؛ سجلاتها تجريبية ولا تتحكم بخوادم أو عمليات نشر حقيقية. Firebase وGoogle وGemini متوقفة افتراضيًا، وقواعد Firestore تمنع الوصول، والتطبيق غير مشمول بنشر GitHub Pages. راجع [حالة التطبيق وتشغيله محليًا](apps/ai-intelligence-console/README.md).

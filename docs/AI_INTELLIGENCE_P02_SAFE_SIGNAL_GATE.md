@@ -1,6 +1,6 @@
 # DevObs P02/T18 — privacy-first, metadata-only log/trace gate
 
-**Scope:** Offline contract only, related to [P02 issue #222](https://github.com/hamedonassar95/Devobs/issues/222). This is **not** an OpenTelemetry Collector, real OTLP receiver, complete redaction engine, or production-grade privacy assessment. P02/T18 remains **BLOCKED** until hosted collectors, end-to-end checks, and data policies are independently verified.
+**Scope:** Offline contract only, related to [P02 issue #222](https://github.com/hamedonassar95/Devobs/issues/222). The repository now has a local file/stdin adapter for a narrow OTLP/JSON Logs subset; this is **not** an OpenTelemetry Collector, network receiver, complete redaction engine, or production-grade privacy assessment. P02/T18 remains **BLOCKED** until hosted collectors, end-to-end checks, and data policies are independently verified.
 
 ## Why this design
 
@@ -18,8 +18,11 @@ OpenTelemetry warns that logs, attributes, and traces may contain credentials or
 
 ## Tests and stage gate
 
+The optional [OTLP Logs offline adapter](integrations/OTLP_LOGS_OFFLINE_ADAPTER.md) accepts only a closed subset of OTLP/JSON and emits this SafeSignal contract. It rejects bodies, severity/free-text fields, trace IDs and unreviewed attributes. It does not write to AI-1 or enable a Collector. Its caller-supplied tenant/project/SHA are not authenticated by the adapter.
+
 ```bash
 python3 -m unittest discover -s tests -p 'test_intelligence_safe_signal_adapter.py' -v
+python3 -m unittest tests.test_otlp_logs_adapter -v
 python3 -m compileall -q scripts/devobs_intelligence tests/test_intelligence_safe_signal_adapter.py
 ```
 
