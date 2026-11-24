@@ -6,6 +6,7 @@ import express from 'express';
 import { createLocalAi7Handler } from '../localAi7Bridge.ts';
 import { normalizeEvent } from '../../../scripts/ai_intelligence/event_ingest.mjs';
 import { buildDashboardSnapshot } from '../../../scripts/ai_intelligence/dashboard_server.mjs';
+import { parseLocalAi7Snapshot } from '../src/utils/localAi7Snapshot.ts';
 
 const payload = () => ({
   schema_version: 1, status: 'local_snapshot',
@@ -122,6 +123,10 @@ test('the actual AI-7 engine aggregate contract is accepted without forwarding r
   const { request } = await fixture(t, { fetchImpl: async () => Response.json(realSnapshot) });
   const response = await request();
   assert.equal(response.status, 200);
+  const uiSnapshot = parseLocalAi7Snapshot(response.data);
+  assert.ok(uiSnapshot, 'the normalized AI-7 bridge response must satisfy the UI contract');
+  assert.equal(uiSnapshot.recommendations[0].cause_id, 'timeout');
+  assert.equal(uiSnapshot.recommendations[0].automatic_execution, false);
   assert.equal(response.data.summary.event_count, 1);
   assert.equal(response.data.stages.length, 7);
   assert.equal(response.data.summary.recommendation_count, 1);

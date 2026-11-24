@@ -97,7 +97,7 @@ npm run lint
 npm run build
 ```
 
-`tests/localAi7Bridge.test.mjs` includes an integration check against the actual existing AI-7 `buildDashboardSnapshot` contract and negative cases for a disabled bridge, foreign origins/hosts, malformed data, redirects and oversized responses. `tests/localAi7Snapshot.test.mjs` checks the browser-side fail-closed parser using synthetic snapshots. Both use local fixtures without connecting to any external service. The controls in [P01](../../docs/P01_ACTIVATION_READINESS.md) remain **NO-GO** and no AI-9 acceptance or commercial service is claimed.
+`tests/localAi7Bridge.test.mjs` includes an integration check against the actual existing AI-7 `buildDashboardSnapshot` contract, verifies that the normalized bridge output passes the browser parser, and rejects unsafe data, redirects and oversized responses. `tests/localAi7Snapshot.test.mjs` checks the browser-side fail-closed parser using synthetic snapshots. Both use local fixtures without connecting to any external service. The controls in [P01](../../docs/P01_ACTIVATION_READINESS.md) remain **NO-GO** and no AI-9 acceptance or commercial service is claimed.
 
 ## Run the local prototype
 
