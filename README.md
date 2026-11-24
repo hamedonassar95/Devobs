@@ -396,6 +396,8 @@ python3 -m unittest discover -s tests -p 'test_free_readiness_one_command.py' -v
 
 للاطلاع على علاقة مستودعات `ops` وAI Intelligence و`devobs-saas` ومصادر قواعد بياناتها وحدود الدمج الآمن، راجع [خط أساس توحيد المستودعات وقواعد البيانات](docs/architecture/REPOSITORY_DATABASE_CONSOLIDATION.md) و[الخريطة الآلية](docs/architecture/repository_database_map.json). الخريطة تميّز روابط المصدر عن الاتصالات الحية، ولا تفعّل Firebase أو تدمج قواعد بيانات.
 
+للحالة الأحدث لربط `ops` وفحص CI، وما نُقل بالفعل وما يجب إبقاؤه خارج Devobs، راجع [مراجعة ربط ops مع Devobs بتاريخ 2026-11-24](docs/architecture/OPS_DEVOBS_INTEGRATION_REVIEW_2026-11-24.md). الربط الحالي قراءة فقط واختياري، ولا يثبت اتصالًا حيًا بخدمات أو قواعد بيانات.
+
 لتمييز الموجود والمتحقق من التجريبي والمحجوب قبل أي إضافة، راجع [مواءمة أبحاث Devobs AI لعام 2026](docs/strategy/DEVOBS_AI_RESEARCH_ALIGNMENT_2026.md)، و[مراجعة منظومة DevOps والذكاء الاصطناعي](docs/AI_DEVOPS_ECOSYSTEM_REVIEW_2026-11-11.md)، و[خارطة التنفيذ المرحلية](docs/strategy/DEVOBS_AI_ROADMAP_2026.md). هذه المستندات تخطط للعمل ولا تفتح AI-9 أو P01 أو تجيز نشرًا.
 
 لتسجيل متطلبات أي تقييم مستقل مستقبلي لحوادث AI-9 الطبيعية، راجع [بروتوكول التسجيل المسبق](docs/AI9_REAL_INCIDENT_PREREGISTRATION.md). هذا تصميم فقط؛ لا توجد مجموعة مؤهلة معتمدة، ولا يفتح البوابة أو يجيز التقييم.
