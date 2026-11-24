@@ -294,20 +294,48 @@ def convert_text(
 
 
 class ScopedOtlpConverter:
-    """Bind safe OTLP conversion to an injected verified identity and tenant gate.
+    """Bind safe OTLP conversion to identity, tenant and signed service scope.
 
-    The verifier and membership/snapshot configuration are operator-owned.
-    This is an offline composition seam, not an HTTP authentication service.
+    The verifier, membership/snapshot configuration, topology envelopes and
+    trusted topology keys are operator-owned. This is an offline composition
+    seam, not an HTTP authentication service or telemetry sender attestation.
     """
 
     def __init__(self, token_verifier: Any, memberships: list[Any] | tuple[Any, ...],
-                 snapshots: list[Any] | tuple[Any, ...]):
+                 snapshots: list[Any] | tuple[Any, ...],
+                 topology_attestations: dict[tuple[str, str], dict],
+                 topology_trusted_public_keys: Any):
         from devobs_intelligence.oidc_tokens import AuthenticatedPrincipal
         from devobs_intelligence.tenant_scope import OfflineTenantGate
+        from devobs_intelligence.topology_attestation import RotatingTopologyKeyring
 
         verify = getattr(token_verifier, "verify", None)
-        if not callable(verify):
+        if (not callable(verify) or type(topology_attestations) is not dict
+                or not 1 <= len(topology_attestations) <= 100
+                or type(topology_trusted_public_keys) not in (
+                    dict, RotatingTopologyKeyring,
+                ) or (type(topology_trusted_public_keys) is dict
+                      and not 1 <= len(topology_trusted_public_keys) <= 100)):
             raise ValueError("invalid_trust_boundary")
+
+        # Snapshot the JSON envelopes at construction so callers cannot mutate
+        # the trusted configuration after the authorization boundary is built.
+        copied_attestations: dict[tuple[str, str], dict] = {}
+        try:
+            for scope, envelope in topology_attestations.items():
+                if (type(scope) is not tuple or len(scope) != 2
+                        or any(type(part) is not str for part in scope)
+                        or type(envelope) is not dict):
+                    raise ValueError
+                encoded = json.dumps(
+                    envelope, sort_keys=True, separators=(",", ":"),
+                    ensure_ascii=False, allow_nan=False,
+                ).encode("utf-8", errors="strict")
+                if len(encoded) > 256 * 1024:
+                    raise ValueError
+                copied_attestations[scope] = json.loads(encoded)
+        except (TypeError, ValueError, UnicodeError, RecursionError):
+            raise ValueError("invalid_trust_boundary") from None
 
         def resolve_subject(token: str) -> str | None:
             principal = verify(token)
@@ -318,10 +346,21 @@ class ScopedOtlpConverter:
             return principal.subject
 
         self._gate = OfflineTenantGate(resolve_subject, memberships, snapshots)
+        self._topology_attestations = copied_attestations
+        self._topology_trusted_public_keys = (
+            dict(topology_trusted_public_keys)
+            if type(topology_trusted_public_keys) is dict
+            else topology_trusted_public_keys
+        )
 
     def convert(self, raw: str, *, access_token: str, tenant: str, project: str,
                 now_utc: datetime) -> tuple[Any, ...]:
         from devobs_intelligence.tenant_scope import AccessDenied
+        from devobs_intelligence.topology_attestation import (
+            VerifiedTopologyAttestation,
+            verify_topology_attestation,
+        )
+        from devobs_intelligence.context import ServiceTopologySnapshot
 
         try:
             scope = self._gate.read_status(access_token, tenant, project)
@@ -330,10 +369,34 @@ class ScopedOtlpConverter:
         if (not _exact(scope, {"ci_state", "source_sha"})
                 or type(scope["source_sha"]) is not str):
             _reject("invalid_trust_boundary")
-        return convert_text(
+
+        envelope = self._topology_attestations.get((tenant, project))
+        if envelope is None:
+            _reject("service_topology_unverified")
+        try:
+            verified = verify_topology_attestation(
+                envelope,
+                self._topology_trusted_public_keys,
+                expected_tenant=tenant,
+                expected_project=project,
+                expected_source_sha=scope["source_sha"],
+                now=now_utc,
+                max_age_seconds=900,
+            )
+        except Exception:
+            _reject("service_topology_unverified")
+        if (type(verified) is not VerifiedTopologyAttestation
+                or type(verified.snapshot) is not ServiceTopologySnapshot
+                or verified.snapshot.source_sha != scope["source_sha"]):
+            _reject("service_topology_unverified")
+
+        signals = convert_text(
             raw, tenant=tenant, project=project,
             source_sha=scope["source_sha"], now_utc=now_utc,
         )
+        if any(signal.service not in verified.snapshot.services for signal in signals):
+            _reject("service_scope_denied")
+        return signals
 
 
 def _read_bounded_input(path: str) -> str:

@@ -29,9 +29,9 @@
 
 ### ربط نطاق الطلب بمكونات الهوية الموجودة
 
-يوفر `ScopedOtlpConverter` وصلة **داخل العملية فقط** لمن يستضيفها محليًا: يأخذ مدققًا يطبق واجهة `verify(token)` ويعيد `AuthenticatedPrincipal`، ثم يستخدم `OfflineTenantGate` الحالي لفحص صلاحية `devobs.read` وعضوية المستأجر والمشروع. يُشتق `source_sha` من `ProjectSnapshot` المصرح به بدل تمريره من الطلب. مواصفة [RFC 9068](https://www.rfc-editor.org/rfc/rfc9068.html) تتطلب من مدقق access token التحقق من التوقيع وissuer وaudience والانتهاء؛ استخدم مدقق `AccessTokenVerifier` الموجود بإعداد JWKS عام مثبت من مصدر مشغل موثوق، ولا تجلب JWKS من عنوان يقدمه الطلب.
+يوفر `ScopedOtlpConverter` وصلة **داخل العملية فقط** لمن يستضيفها محليًا: يأخذ مدققًا يطبق واجهة `verify(token)` ويعيد `AuthenticatedPrincipal`، ثم يستخدم `OfflineTenantGate` الحالي لفحص صلاحية `devobs.read` وعضوية المستأجر والمشروع. يُشتق `source_sha` من `ProjectSnapshot` المصرح به بدل تمريره من الطلب. كما يتطلب سجل topology موقّعًا لكل نطاق tenant/project، ويمرره إلى `verify_topology_attestation` الموجود في Devobs مع SHA المشروع والوقت الحالي؛ لا تُقبل أسماء الخدمات التي لا تظهر في اللقطة الموقعة. هذا يعيد استخدام تحقق Ed25519 الحالي ولا ينشئ نوع توقيع أو مفاتيح جديدة. مواصفة [RFC 9068](https://www.rfc-editor.org/rfc/rfc9068.html) تتطلب من مدقق access token التحقق من التوقيع وissuer وaudience والانتهاء؛ استخدم مدقق `AccessTokenVerifier` الموجود بإعداد JWKS عام مثبت من مصدر مشغل موثوق، ولا تجلب JWKS من عنوان يقدمه الطلب.
 
-هذا اختبار/وصلة مصدرية فقط: لا ينشئ OIDC أو endpoint، وعضويات ولقطات `OfflineTenantGate` تبقى إعدادًا محليًا داخل الذاكرة. مدقق حقيقي غير مضبوط أو لقطة غير موثوقة يبطلان افتراض الثقة. وحتى مع نجاح التحقق، هوية مقدم الطلب لا تثبت أصالة ملف OTLP أو أن خدمة بعينها أنشأته؛ لا يوجد تحقق من توقيع artifact أو workload provenance ولا حداثة مستقلة للّقطة. اختبارات الوصلة تستخدم verifier اصطناعيًا بلا مفاتيح أو رموز صالحة؛ فحص التوقيع قائم في اختبارات `AccessTokenVerifier` الموجودة، ولا تتصل هذه الوصلة بمزود هوية حي.
+هذا اختبار/وصلة مصدرية فقط: لا ينشئ OIDC أو endpoint، وعضويات ولقطات `OfflineTenantGate` ومظاريف topology تبقى إعدادًا محليًا داخل الذاكرة. مدقق حقيقي غير مضبوط أو مفتاح topology غير موثوق يبطلان افتراض الثقة. يعرّف معيار OpenTelemetry الرسمي `service.name` بوصفه الاسم المنطقي للخدمة، لا هوية مصادَقًا عليها؛ لذلك ربطه بلقطة topology يمنع إسناد الإشارة إلى اسم غير مدرج، لكنه **لا يثبت أن مرسل OTLP هو تلك الخدمة** ولا يمنع مستخدمًا مصرحًا له من رفع بيانات مصطنعة باسم خدمة مدرجة. لا يوجد تحقق من توقيع ملف OTLP أو workload provenance. اختبارات الوصلة تستخدم verifier اصطناعيًا ومزود topology وهميًا بلا مفاتيح خاصة أو رموز صالحة؛ فحص التوقيع يبقى مسؤولية `verify_topology_attestation` واختباراته الحالية، ولا تتصل هذه الوصلة بمزود هوية حي.
 
 ## التشغيل المحلي
 
@@ -65,6 +65,7 @@ python3 -m compileall -q scripts/integrations/otlp_logs_traces_adapter.py tests/
 - [OpenTelemetry Protocol Specification 1.11.1](https://opentelemetry.io/docs/specs/otlp/) — استقرار دعم traces وlogs، JSON protobuf، وتمثيل timestamps ومعرفات التتبع.
 - [OpenTelemetry Traces Data Model](https://opentelemetry.io/docs/specs/otel/trace/data-model/) — حقول span والمدة والحالة.
 - [OpenTelemetry Logs Data Model](https://opentelemetry.io/docs/specs/otel/logs/data-model/) — دلالة الوقت الأصلي ووقت الرصد، وكون `Body` يقبل قيمًا حرة، وتوصية اختيار `Timestamp` ثم `ObservedTimestamp` عند الحاجة إلى وقت واحد.
+- [OpenTelemetry Service Resource Semantic Conventions](https://opentelemetry.io/docs/specs/semconv/resource/service/) — تعريف `service.name` بوصفه الاسم المنطقي للخدمة.
 - [OpenTelemetry Handling Sensitive Data](https://opentelemetry.io/docs/security/handling-sensitive-data/) — تقليل البيانات ومسؤولية مراجعة الحقول الحساسة.
 - [OpenTelemetry Collector Configuration Best Practices](https://opentelemetry.io/docs/security/config-best-practices/) — حدود هذا التغيير: لا Collector ولا endpoint ولا صلاحية شبكة.
 - [W3C Trace Context](https://www.w3.org/TR/trace-context/) — رفض معرفات التتبع ومعرفات الآباء ذات القيمة الصفرية.
