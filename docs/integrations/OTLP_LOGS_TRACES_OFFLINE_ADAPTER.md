@@ -1,12 +1,12 @@
-# محول سجلات OTLP محلي لـDevobs
+# محول سجلات وعمليات OTLP محلي لـDevobs
 
-**الحالة: محول ملفات محلي اختياري؛ ليس مستقبل OTLP أو تكاملًا حيًا أو دليل جاهزية إنتاج.** يحوّل جزءًا محدودًا من OTLP/JSON Logs إلى عقد SafeSignal الموجود في Devobs. لا يفتح منفذ شبكة، ولا يبدأ Collector، ولا يتصل بمزود، ولا يكتب إلى مخزن AI-1 أو Firebase أو قاعدة بيانات.
+**الحالة: محول ملفات محلي اختياري؛ ليس مستقبل OTLP أو تكاملًا حيًا أو دليل جاهزية إنتاج.** يحوّل جزءًا محدودًا من OTLP/JSON Logs وTraces إلى عقد SafeSignal الموجود في Devobs. لا يفتح منفذ شبكة، ولا يبدأ Collector، ولا يتصل بمزود، ولا يكتب إلى مخزن AI-1 أو Firebase أو قاعدة بيانات.
 
 ## لماذا هذا النطاق
 
-تصف مواصفة OpenTelemetry OTLP 1.11.1 دعم إشارات السجلات بأنه مستقر. وتحدد سجلات OTLP حقولًا متعددة؛ منها `Body` و`Attributes` و`TraceId` و`SpanId`. قد يحتوي الجسم والخصائص على نص حر أو بيانات شخصية وأسرار، لذلك لا يعتبر هذا المحول كاملًا أو آمنًا تلقائيًا لكل سجل OTLP. [مواصفة OTLP 1.11.1](https://opentelemetry.io/docs/specs/otlp/) و[نموذج بيانات السجلات](https://opentelemetry.io/docs/specs/otel/logs/data-model/) يوضحان شكل الإشارة، بينما تحذر [إرشادات OpenTelemetry للبيانات الحساسة](https://opentelemetry.io/docs/security/handling-sensitive-data/) من أن الأداة لا تعرف حساسية بيانات المؤسسة نيابة عنها.
+تصف مواصفة OpenTelemetry OTLP 1.11.1 إشارات traces وlogs بأنها مستقرة. وتحتوي بياناتهما حقولًا قد تكون حرة أو حساسة، لذلك لا يعتبر هذا المحول كاملًا أو آمنًا تلقائيًا لكل بيانات OTLP. [مواصفة OTLP](https://opentelemetry.io/docs/specs/otlp/)، [نموذج traces](https://opentelemetry.io/docs/specs/otel/trace/data-model/) و[نموذج logs](https://opentelemetry.io/docs/specs/otel/logs/data-model/) تشرح بنية البيانات؛ ويحدد [W3C Trace Context](https://www.w3.org/TR/trace-context/) رفض معرفات التتبع ذات القيم الصفرية. وتحذر [إرشادات OpenTelemetry للبيانات الحساسة](https://opentelemetry.io/docs/security/handling-sensitive-data/) من أن الأداة لا تعرف حساسية بيانات المؤسسة نيابة عنها.
 
-المحول يعالج **ملف JSON محليًا أو stdin فقط**، ويرفض كامل الدفعة إذا وجد حقلًا أو قيمة خارج العقد الضيق. لا يشغّل التصفية على Collector حي ولا يدّعي تنقيح بيانات اعتباطية.
+المحول يعالج **ملف JSON محليًا أو stdin فقط**، ويرفض كامل الدفعة إذا وجد حقلًا أو قيمة خارج العقد الضيق. يقبل كل ملف سجلات أو traces فقط؛ لا يشغّل التصفية على Collector حي ولا يدّعي تنقيح بيانات اعتباطية.
 
 ## العقد المقبول
 
@@ -15,8 +15,15 @@
 - يقبل المحول `scope` فارغًا فقط، ومجموعة `logRecords` غير فارغة.
 - لكل سجل `attributes` بالضبط: `devobs.operation` و`devobs.status` بقيمتي `stringValue`. هذان الحقلان **مفردات Devobs خاصة** وليسا اصطلاحين دلاليين رسميين من OpenTelemetry.
 - يقبل `timeUnixNano` أو `observedTimeUnixNano`؛ يفضّل وقت الحدث عند كونه غير صفري، وإلا يستخدم وقت الرصد، وفق توصية نموذج السجلات عند تحويل سجل ذي حقل وقت واحد. يقبل تمثيل رقم 64 بت كسلسلة عشرية أو عدد JSON صحيح؛ ويرفض الأعداد العشرية والقيم خارج النطاق.
-- يرفض `body` و`severity*` و`traceId` و`spanId` و`eventName` والخصائص الإضافية و`schemaUrl` وأي حقول غير معلنة. لا يقرأ أيًا منها لإنتاج المخرجات.
+- يرفض `body` و`severity*` و`eventName` وخصائص السجلات الإضافية و`schemaUrl` وأي حقول غير معلنة. لا يقرأها لإنتاج المخرجات.
 - يمرر القيم المطبّعة إلى `from_trusted_safe_signals`؛ لذلك تُطبق مفردات العملية/الحالة، هوية الخدمة، SHA المصدر، حدود الوقت والتكرار الموجودة أصلًا.
+
+### Traces
+
+- يقبل جذر `resourceSpans` فقط، مع مورد `service.name` ومجموعة `scopeSpans` ذات `scope` فارغ.
+- يقبل span بالحقول المطلوبة `traceId` و`spanId` و`name` و`startTimeUnixNano` و`endTimeUnixNano`، وبحد أقصى `parentSpanId` و`kind` و`status` الاختيارية. يتحقق من أن معرفات trace/span سداسية عشرية وغير صفرية، ثم يهملها؛ لا تظهر في المخرجات.
+- لا يقبل `attributes` أو `events` أو `links` أو حقولًا نصية حرة. يقبل حالة رقمية فقط: `Unset` تصبح `unknown`، و`Ok` تصبح `ok`، و`Error` تصبح `error`. لا يقبل رسالة الحالة.
+- يحسب المدة من وقتي البداية والنهاية، ثم يطبق حد SafeSignal البالغ 10 دقائق. يعرض وقت نهاية span كوقت الرصد.
 
 `tenant` و`project` و`source-sha` يدخلها المشغل يدويًا. لا يصادق المحول عليها ولا يثبت مصدر الملف أو مالكه؛ البصمة ليست توقيعًا. استخدم بيانات اصطناعية محلية إلى أن توجد هوية/ملكية موثوقة وعقد تدفق معتمد. المخرجات JSONL محدودة من SafeSignal، ولا تحتوي جسم السجل أو خصائصه الخام. لا يحفظ البرنامج الناتج ولا يرسله إلى AI-1 تلقائيًا.
 
@@ -25,8 +32,8 @@
 يتطلب Python الموجود في المشروع فقط؛ لا حزم جديدة ولا خدمات أو مفاتيح.
 
 ```sh
-python3 scripts/integrations/otlp_logs_adapter.py \
-  --input ./synthetic-otlp-logs.json \
+python3 scripts/integrations/otlp_logs_traces_adapter.py \
+  --input ./synthetic-otlp.json \
   --tenant demo --project local \
   --source-sha <40-or-64-character-hex-sha>
 ```
@@ -36,8 +43,8 @@ python3 scripts/integrations/otlp_logs_adapter.py \
 الاختبارات الاصطناعية:
 
 ```sh
-python3 -m unittest tests.test_otlp_logs_adapter -v
-python3 -m compileall -q scripts/integrations/otlp_logs_adapter.py tests/test_otlp_logs_adapter.py
+python3 -m unittest tests.test_otlp_logs_traces_adapter -v
+python3 -m compileall -q scripts/integrations/otlp_logs_traces_adapter.py tests/test_otlp_logs_traces_adapter.py
 ```
 
 ## ما لا يفعله وما الخطوة التالية
@@ -48,7 +55,9 @@ python3 -m compileall -q scripts/integrations/otlp_logs_adapter.py tests/test_ot
 
 ## مصادر رسمية
 
-- [OpenTelemetry Protocol Specification 1.11.1](https://opentelemetry.io/docs/specs/otlp/) — استقرار دعم logs، JSON protobuf، تمثيل timestamps ذات 64 بت، وشكل OTLP/HTTP.
+- [OpenTelemetry Protocol Specification 1.11.1](https://opentelemetry.io/docs/specs/otlp/) — استقرار دعم traces وlogs، JSON protobuf، وتمثيل timestamps ومعرفات التتبع.
+- [OpenTelemetry Traces Data Model](https://opentelemetry.io/docs/specs/otel/trace/data-model/) — حقول span والمدة والحالة.
 - [OpenTelemetry Logs Data Model](https://opentelemetry.io/docs/specs/otel/logs/data-model/) — دلالة الوقت الأصلي ووقت الرصد، وكون `Body` يقبل قيمًا حرة، وتوصية اختيار `Timestamp` ثم `ObservedTimestamp` عند الحاجة إلى وقت واحد.
 - [OpenTelemetry Handling Sensitive Data](https://opentelemetry.io/docs/security/handling-sensitive-data/) — تقليل البيانات ومسؤولية مراجعة الحقول الحساسة.
 - [OpenTelemetry Collector Configuration Best Practices](https://opentelemetry.io/docs/security/config-best-practices/) — حدود هذا التغيير: لا Collector ولا endpoint ولا صلاحية شبكة.
+- [W3C Trace Context](https://www.w3.org/TR/trace-context/) — رفض معرفات التتبع ومعرفات الآباء ذات القيمة الصفرية.

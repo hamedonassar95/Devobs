@@ -18,11 +18,11 @@ OpenTelemetry warns that logs, attributes, and traces may contain credentials or
 
 ## Tests and stage gate
 
-The optional [OTLP Logs offline adapter](integrations/OTLP_LOGS_OFFLINE_ADAPTER.md) accepts only a closed subset of OTLP/JSON and emits this SafeSignal contract. It rejects bodies, severity/free-text fields, trace IDs and unreviewed attributes. It does not write to AI-1 or enable a Collector. Its caller-supplied tenant/project/SHA are not authenticated by the adapter.
+The optional [OTLP Logs and Traces offline adapter](integrations/OTLP_LOGS_TRACES_OFFLINE_ADAPTER.md) accepts only a closed subset of OTLP/JSON and emits this SafeSignal contract. It rejects log bodies, span attributes/events/links, severity and free-text status messages; trace and span identifiers are validated but never preserved in output. It does not write to AI-1 or enable a Collector. Its caller-supplied tenant/project/SHA are not authenticated by the adapter.
 
 ```bash
 python3 -m unittest discover -s tests -p 'test_intelligence_safe_signal_adapter.py' -v
-python3 -m unittest tests.test_otlp_logs_adapter -v
+python3 -m unittest tests.test_otlp_logs_traces_adapter -v
 python3 -m compileall -q scripts/devobs_intelligence tests/test_intelligence_safe_signal_adapter.py
 ```
 

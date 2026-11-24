@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Offline OTLP/JSON log subset to Devobs' metadata-only SafeSignal contract.
+"""Offline OTLP/JSON logs/traces subset to Devobs' SafeSignal contract.
 
 This is a local file/stdin converter, not a network receiver or redaction tool.
 """
@@ -27,6 +27,7 @@ MAX_INPUT_BYTES = 1_048_576
 MAX_RECORDS = 32
 UINT64_MAX = (1 << 64) - 1
 _DECIMAL = re.compile(r"(?:0|[1-9][0-9]{0,19})\Z")
+_HEX = re.compile(r"[0-9a-fA-F]+\Z")
 _ERROR_CODES = frozenset({
     "invalid_arguments", "input_required", "input_unavailable", "input_too_large",
     "invalid_utf8", "invalid_json", "duplicate_json_key", "invalid_otlp_structure",
@@ -37,7 +38,7 @@ _ERROR_CODES = frozenset({
 })
 
 
-class OtlpLogsAdapterError(ValueError):
+class OtlpAdapterError(ValueError):
     """Fixed diagnostic code; never includes submitted field values."""
 
     def __init__(self, code: str):
@@ -46,7 +47,7 @@ class OtlpLogsAdapterError(ValueError):
 
 
 def _reject(code: str) -> None:
-    raise OtlpLogsAdapterError(code)
+    raise OtlpAdapterError(code)
 
 
 def _is_object(value: Any) -> bool:
@@ -82,6 +83,14 @@ def _uint64(value: Any) -> int:
     if parsed > UINT64_MAX:
         _reject("invalid_timestamp")
     return parsed
+
+
+def _trace_identifier(value: Any, length: int, *, allow_empty: bool = False) -> bool:
+    if allow_empty and value == "":
+        return True
+    return (type(value) is str and len(value) == length
+            and _HEX.fullmatch(value) is not None
+            and any(character != "0" for character in value))
 
 
 def _attribute_map(value: Any, expected: set[str], error_code: str) -> dict[str, str]:
@@ -165,6 +174,78 @@ def _extract_signals(document: Any) -> list[dict[str, Any]]:
     return signals
 
 
+def _extract_trace_signals(document: Any) -> list[dict[str, Any]]:
+    if not _exact(document, {"resourceSpans"}) or type(document["resourceSpans"]) is not list:
+        _reject("invalid_otlp_structure")
+    resource_spans = document["resourceSpans"]
+    if not 1 <= len(resource_spans) <= MAX_RECORDS:
+        _reject("invalid_otlp_structure")
+
+    signals: list[dict[str, Any]] = []
+    required_span_fields = {
+        "traceId", "spanId", "name", "startTimeUnixNano", "endTimeUnixNano",
+    }
+    optional_span_fields = {"parentSpanId", "kind", "status"}
+    for resource_span in resource_spans:
+        if not _exact(resource_span, {"resource", "scopeSpans"}):
+            _reject("invalid_otlp_structure")
+        resource = resource_span["resource"]
+        if not _exact(resource, {"attributes"}):
+            _reject("invalid_otlp_resource")
+        resource_attributes = _attribute_map(
+            resource["attributes"], {"service.name"}, "invalid_otlp_resource"
+        )
+        scopes = resource_span["scopeSpans"]
+        if type(scopes) is not list or not 1 <= len(scopes) <= MAX_RECORDS:
+            _reject("invalid_otlp_scope")
+        for scope in scopes:
+            if not _exact(scope, {"scope", "spans"}) or not _exact(scope["scope"], set()):
+                _reject("invalid_otlp_scope")
+            spans = scope["spans"]
+            if type(spans) is not list or not spans:
+                _reject("invalid_otlp_record")
+            for span in spans:
+                if (not _is_object(span)
+                        or not required_span_fields.issubset(span)
+                        or not set(span).issubset(required_span_fields | optional_span_fields)):
+                    _reject("invalid_otlp_record")
+                if (not _trace_identifier(span["traceId"], 32)
+                        or not _trace_identifier(span["spanId"], 16)):
+                    _reject("invalid_otlp_record")
+                if "parentSpanId" in span and not _trace_identifier(
+                    span["parentSpanId"], 16, allow_empty=True
+                ):
+                    _reject("invalid_otlp_record")
+                if "kind" in span and (
+                    type(span["kind"]) is not int or not 0 <= span["kind"] <= 5
+                ):
+                    _reject("invalid_otlp_record")
+
+                status = span.get("status", {})
+                if not _exact(status, set()) and not _exact(status, {"code"}):
+                    _reject("invalid_otlp_record")
+                status_code = status.get("code", 0)
+                status_map = {0: "unknown", 1: "ok", 2: "error"}
+                if type(status_code) is not int or status_code not in status_map:
+                    _reject("invalid_otlp_record")
+
+                start = _uint64(span["startTimeUnixNano"])
+                end = _uint64(span["endTimeUnixNano"])
+                if end < start:
+                    _reject("invalid_timestamp")
+                signals.append({
+                    "kind": "trace",
+                    "resource": {"service.name": resource_attributes["service.name"]},
+                    "operation": span["name"],
+                    "status": status_map[status_code],
+                    "time_unix_nano": end,
+                    "duration_ms": (end - start) // 1_000_000,
+                })
+                if len(signals) > MAX_RECORDS:
+                    _reject("invalid_signal_batch")
+    return signals
+
+
 def convert_text(
     raw: str,
     *,
@@ -188,12 +269,17 @@ def convert_text(
             object_pairs_hook=_pairs_without_duplicates,
             parse_constant=_invalid_json_constant,
         )
-    except OtlpLogsAdapterError:
+    except OtlpAdapterError:
         raise
     except (json.JSONDecodeError, RecursionError, TypeError, ValueError):
         _reject("invalid_json")
 
-    safe_records = _extract_signals(document)
+    if _exact(document, {"resourceLogs"}):
+        safe_records = _extract_signals(document)
+    elif _exact(document, {"resourceSpans"}):
+        safe_records = _extract_trace_signals(document)
+    else:
+        _reject("invalid_otlp_structure")
     try:
         return from_trusted_safe_signals(
             safe_records,
@@ -227,7 +313,7 @@ def _read_bounded_input(path: str) -> str:
             with os.fdopen(descriptor, "rb", closefd=True) as stream:
                 descriptor = -1
                 data = stream.read(MAX_INPUT_BYTES + 1)
-        except OtlpLogsAdapterError:
+        except OtlpAdapterError:
             raise
         except OSError:
             _reject("input_unavailable")
@@ -245,7 +331,7 @@ def _read_bounded_input(path: str) -> str:
 def _arguments(argv: list[str]) -> dict[str, str] | None:
     if argv == ["--help"]:
         sys.stdout.write(
-            "Usage: python3 scripts/integrations/otlp_logs_adapter.py "
+            "Usage: python3 scripts/integrations/otlp_logs_traces_adapter.py "
             "--input <file|-> --tenant <id> --project <id> --source-sha <sha>\n"
         )
         return None
@@ -281,12 +367,12 @@ def main(argv: list[str] | None = None) -> int:
         )
         sys.stdout.write(output)
         return 0
-    except OtlpLogsAdapterError as error:
+    except OtlpAdapterError as error:
         code = error.code if error.code in _ERROR_CODES else "internal_error"
-        sys.stderr.write(f"otlp-logs-adapter: {code}\n")
+        sys.stderr.write(f"otlp-adapter: {code}\n")
         return 2
     except Exception:
-        sys.stderr.write("otlp-logs-adapter: internal_error\n")
+        sys.stderr.write("otlp-adapter: internal_error\n")
         return 2
 
 
