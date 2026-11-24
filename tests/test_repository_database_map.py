@@ -117,11 +117,13 @@ class RepositoryDatabaseMapTests(unittest.TestCase):
         documents = (
             ROOT / "README.md",
             ROOT / "docs/architecture/REPOSITORY_DATABASE_CONSOLIDATION.md",
+            ROOT / "docs/architecture/OPS_DEVOBS_INTEGRATION_REVIEW_2026-11-24.md",
             ROOT / "apps/ai-intelligence-console/CONSOLIDATION.md",
         )
         expected = {
             "docs/architecture/REPOSITORY_DATABASE_CONSOLIDATION.md",
             "docs/architecture/repository_database_map.json",
+            "docs/architecture/OPS_DEVOBS_INTEGRATION_REVIEW_2026-11-24.md",
         }
         readme = documents[0].read_text(encoding="utf-8")
         self.assertTrue(all(f"]({target})" in readme for target in expected))
