@@ -16,6 +16,12 @@ This is the preserved React/TypeScript prototype from the former `DevObs-ai-Inte
 - `GEMINI_API_KEY` does not activate the closed prototype routes. The server constructs no Gemini client; legacy handlers remain reference code behind the closed route guard. Re-enabling inference requires reviewed identity, tenant authorization, data policy and cost controls, not a key or budget boolean alone.
 - No live Gemini request is part of CI or this prototype's release checks. The new real-server tests explicitly forbid provider network traffic.
 
+## Repository & Database Map (read-only)
+
+The GitHub Hub includes a **Repository & Database Map** subtab rendered from the canonical [`repository_database_map.json`](../../docs/architecture/repository_database_map.json) at build time. It shows the inventory date, repository links, recorded source statuses, and the known Firebase, Render PostgreSQL, and SaaS PostgreSQL relationships. **Not real-time**: the panel makes no GitHub, Firebase, Render, Supabase, or database requests. A `VERIFIED` source record does not mean a live connection was verified; each connectivity status is shown separately from the source status.
+
+The panel validates the inventory schema and expected records before rendering. If the map is missing or invalid, it displays an error instead of partial topology data. Firebase remains disabled by default and canonical Firestore rules remain deny-all. No credentials, connection strings, or application records are displayed.
+
 ## Withdrawn dependency advisory (picomatch)
 
 The `picomatch` ReDoS report `GHSA-fc5q-39xc-vjpf` / `CVE-2026-112366` was **withdrawn upstream on 2026-11-18T15:38:56Z**; it was published 2026-10-19 and affected `<= 4.0.7` with no patched version. Our tree resolves `picomatch@4.0.7` once, through `vite@8.3.8` and `vite → tinyglobby → fdir`.
