@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { createSpaFallbackHandler } from './spaFallback.ts';
 import { createDiagnosticsHandler } from './diagnosticsProxy.ts';
 import { createLocalAi7Handler } from './localAi7Bridge.ts';
+import { createPublicGithubStatusHandler } from './publicGithubStatus.ts';
 import { prototypeAiGuard } from './prototypeAiGuard.ts';
 
 dotenv.config();
@@ -47,6 +48,13 @@ app.use(prototypeAiGuard);
 // Never accept a user-supplied upstream URL or enable on a public listener.
 app.get('/api/local-ai7/summary', createLocalAi7Handler({
   enabled: process.env.DEVOBS_AI7_LOCAL_READONLY_ENABLED === 'true',
+  bindHost: host,
+  consolePort: port,
+}));
+
+// User-triggered public GitHub metadata only; disabled unless the server flag is explicit.
+app.all('/api/github/public-ci-status', createPublicGithubStatusHandler({
+  enabled: process.env.DEVOBS_PUBLIC_GITHUB_STATUS_ENABLED === 'true',
   bindHost: host,
   consolePort: port,
 }));

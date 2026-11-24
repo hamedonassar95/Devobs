@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { AlertTriangle, Database, ExternalLink, Info } from 'lucide-react';
 import inventorySource from '../../../../../docs/architecture/repository_database_map.json?raw';
 
@@ -19,6 +20,24 @@ type Inventory = {
   database_resources: Resource[];
   relationships: Relationship[];
 };
+type GithubObservation = {
+  repository: string | null;
+  status: 'OBSERVED' | 'PENDING' | 'UNVERIFIED';
+  branch: string | null;
+  commitSha: string | null;
+  ciConclusion: string | null;
+  runStatus: string | null;
+  observedAt: string | null;
+  cached: boolean;
+  reason: string | null;
+};
+type GithubCheckState = { loading: boolean; result: GithubObservation | null };
+const CI_CONCLUSIONS = new Set(['success', 'failure', 'cancelled', 'timed_out', 'neutral',
+  'skipped', 'action_required', 'stale', 'startup_failure', 'pending']);
+const CI_RUN_STATUSES = new Set(['completed', 'in_progress', 'queued', 'waiting', 'pending', 'requested']);
+const CI_REASONS = new Set(['disabled', 'non_loopback_bind', 'request_denied', 'no_runs',
+  'no_matching_ci_run', 'rate_limited', 'timeout', 'upstream_unavailable',
+  'invalid_response', 'method_not_allowed', 'repository_not_allowed', 'public_visibility_unverified']);
 
 const REQUIRED_REPOS = [
   ['devobs', 'hamedonassar95/Devobs'],
@@ -161,6 +180,7 @@ function connection(data: Inventory, resource: Resource): [string, Status] | nul
 }
 
 export function RepositoryDatabaseMapPanel({ inventory = canonicalInventory }: { inventory?: unknown }) {
+  const [githubChecks, setGithubChecks] = useState<Record<string, GithubCheckState>>({});
   const data = validateRepositoryDatabaseInventory(inventory);
   if (!data) return (
     <section role="alert" aria-labelledby="repository-database-map-error" className="rounded-2xl border border-rose-700 bg-rose-950/60 p-5 text-rose-100">
@@ -169,13 +189,35 @@ export function RepositoryDatabaseMapPanel({ inventory = canonicalInventory }: {
     </section>
   );
 
+  const checkGithubCi = async (repo: Repo) => {
+    setGithubChecks(previous => ({ ...previous, [repo.id]: { loading: true, result: null } }));
+    try {
+      const query = new URLSearchParams({ repository: repo.name });
+      const response = await fetch(`/api/github/public-ci-status?${query.toString()}`, {
+        method: 'GET', credentials: 'omit', cache: 'no-store', redirect: 'error',
+        referrerPolicy: 'no-referrer', signal: AbortSignal.timeout(7_000),
+        headers: { Accept: 'application/json' },
+      });
+      const raw: unknown = await response.json();
+      const result = validateGithubObservation(raw, repo.name);
+      if (!result || (!response.ok && result.status !== 'UNVERIFIED')) throw new Error('invalid_status');
+      setGithubChecks(previous => ({ ...previous, [repo.id]: { loading: false, result } }));
+    } catch {
+      setGithubChecks(previous => ({ ...previous, [repo.id]: {
+        loading: false,
+        result: { repository: repo.name, status: 'UNVERIFIED', branch: null, commitSha: null,
+          ciConclusion: null, runStatus: null, observedAt: null, cached: false, reason: 'upstream_unavailable' },
+      } }));
+    }
+  };
+
   return (
     <section id="github-repository-database-map" aria-labelledby="repository-database-map-title" className="min-w-0 space-y-5">
       <header className="rounded-2xl border border-slate-700 bg-slate-900 p-4 sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <h2 id="repository-database-map-title" className="flex items-center gap-2 text-base font-bold text-white sm:text-lg"><Database aria-hidden="true" className="h-5 w-5 shrink-0 text-cyan-300" />Repository &amp; Database Map</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">Verified source evidence is not verified live connectivity. This panel reads the repository inventory only; it makes no database or provider requests.</p>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">Verified source evidence is not verified live connectivity. The dated topology is a checked-in snapshot and makes no database or provider requests; public GitHub CI is a separate point-in-time check only after you press a button.</p>
           </div>
           <span role="note" className="inline-flex w-fit shrink-0 items-center gap-2 rounded-lg border border-amber-700 bg-amber-950/70 px-3 py-2 text-xs font-semibold text-amber-100"><Info aria-hidden="true" className="h-4 w-4 shrink-0" />Not real-time · {data.generated_at}</span>
         </div>
@@ -188,6 +230,16 @@ export function RepositoryDatabaseMapPanel({ inventory = canonicalInventory }: {
             <div className="flex min-w-0 items-start justify-between gap-2"><h4 className="min-w-0 break-words text-sm font-semibold text-white">{repo.name}</h4><Badge status={repo.identity_status} /></div>
             <a href={repo.url} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex min-w-0 items-center gap-1.5 break-all text-xs text-cyan-300 underline decoration-cyan-700 underline-offset-2 hover:text-cyan-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300">Open repository <ExternalLink aria-hidden="true" className="h-3.5 w-3.5 shrink-0" /></a>
             <p className="mt-2 text-[11px] text-slate-400">Source snapshot</p><code className="block break-all text-[10px] leading-5 text-slate-300">{repo.ref}</code>
+            <div className="mt-3 border-t border-slate-700 pt-3">
+              <button type="button" onClick={() => void checkGithubCi(repo)} disabled={githubChecks[repo.id]?.loading}
+                className="rounded-lg border border-cyan-700 bg-cyan-950/70 px-3 py-2 text-xs font-semibold text-cyan-100 hover:bg-cyan-900 disabled:cursor-wait disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-300">
+                {githubChecks[repo.id]?.loading ? 'Checking GitHub CI…' : 'Check GitHub CI'}
+              </button>
+              <div role="status" aria-live="polite" className="mt-2 space-y-1 break-words text-[11px] text-slate-300">
+                {githubChecks[repo.id]?.result ? <GithubStatusDetails result={githubChecks[repo.id].result!} /> :
+                  <p>UNVERIFIED · Not checked in this session.</p>}
+              </div>
+            </div>
           </article>)}
         </div>
       </section>
@@ -218,4 +270,51 @@ export function RepositoryDatabaseMapPanel({ inventory = canonicalInventory }: {
       <p role="note" className="rounded-xl border border-slate-700 bg-slate-950 p-4 text-xs leading-5 text-slate-300">Firebase remains disabled by default in the console, and canonical Firestore rules remain deny-all. Legacy rule text and live database contents are not loaded into this panel.</p>
     </section>
   );
+}
+
+function validateGithubObservation(value: unknown, repository: string): GithubObservation | null {
+  if (!isRecord(value) || value.repository !== repository ||
+      !['OBSERVED', 'PENDING', 'UNVERIFIED'].includes(String(value.status)) ||
+      ![null, 'main'].includes(value.branch as null | string) ||
+      !(value.commitSha === null || (typeof value.commitSha === 'string' && /^[a-f0-9]{40}$/.test(value.commitSha))) ||
+      !(value.ciConclusion === null || (typeof value.ciConclusion === 'string' && CI_CONCLUSIONS.has(value.ciConclusion))) ||
+      !(value.runStatus === null || (typeof value.runStatus === 'string' && CI_RUN_STATUSES.has(value.runStatus))) ||
+      !(value.observedAt === null || (typeof value.observedAt === 'string' && Number.isFinite(Date.parse(value.observedAt)) &&
+        new Date(value.observedAt).toISOString() === value.observedAt)) ||
+      typeof value.cached !== 'boolean' ||
+      !(value.reason === null || (typeof value.reason === 'string' && CI_REASONS.has(value.reason)))) return null;
+  const result = value as unknown as GithubObservation;
+  const complete = result.branch === 'main' && result.commitSha !== null && result.observedAt !== null;
+  if (result.status === 'OBSERVED' && (!complete || result.runStatus !== 'completed' ||
+      result.ciConclusion === null || result.ciConclusion === 'pending' || result.reason !== null)) return null;
+  if (result.status === 'PENDING' && (!complete || !['in_progress', 'queued', 'waiting', 'pending', 'requested'].includes(result.runStatus ?? '') ||
+      result.ciConclusion !== 'pending' || result.reason !== null)) return null;
+  if (result.status === 'UNVERIFIED' && (result.ciConclusion !== null || result.reason === null)) return null;
+  return result;
+}
+
+function GithubStatusDetails({ result }: { result: GithubObservation }) {
+  const reasons: Record<string, string> = {
+    disabled: 'Server integration is disabled.',
+    non_loopback_bind: 'Read-only status is limited to the local console.',
+    request_denied: 'Local request was rejected.',
+    no_runs: 'No matching CI run was found.',
+    no_matching_ci_run: 'The latest run does not match the observed branch commit.',
+    rate_limited: 'GitHub anonymous rate limit reached; try again later.',
+    timeout: 'GitHub request timed out.',
+    upstream_unavailable: 'GitHub status is unavailable.',
+    invalid_response: 'GitHub response could not be verified.',
+    method_not_allowed: 'Only a GET status request is allowed.',
+    repository_not_allowed: 'Repository is not allowlisted.',
+    public_visibility_unverified: 'Public visibility is not verified; no GitHub status request was made.',
+  };
+  const conclusion = result.status === 'PENDING' ? 'pending' : result.ciConclusion;
+  return <>
+    <p><strong>Status:</strong> {result.status === 'UNVERIFIED' ? 'UNVERIFIED' : `CI ${conclusion}`}</p>
+    {result.branch && <p><strong>Observed branch:</strong> {result.branch}</p>}
+    {result.commitSha && <p className="break-all"><strong>Branch commit:</strong> {result.commitSha}</p>}
+    {result.status !== 'UNVERIFIED' && <p><strong>Run state:</strong> {result.runStatus}</p>}
+    {result.observedAt && <p><strong>GitHub observation:</strong> <time dateTime={result.observedAt}>{result.observedAt}</time>{result.cached ? ' · cached observation' : ' · fresh request'}</p>}
+    {result.reason && <p>{reasons[result.reason] ?? 'Status not verified.'}</p>}
+  </>;
 }

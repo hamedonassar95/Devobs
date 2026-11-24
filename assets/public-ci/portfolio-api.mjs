@@ -98,37 +98,48 @@ async function boundedJson(response) {
   catch { throw new PublicPortfolioError('invalid_response'); }
 }
 
+export async function inspectPublicTarget(target, fetcher = globalThis.fetch) {
+  ensure(record(target) && PUBLIC_TARGETS.some(x => x.repo === target.repo && x.branch === target.branch));
+  const base = API + target.repo + '/';
+  const urls = [base + 'branches/' + target.branch,
+    base + 'actions/workflows/ci.yml/runs?branch=' + target.branch + '&event=push&per_page=1'];
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5_000);
+  try {
+    const payloads = [];
+    for (const url of urls) {
+      const response = await fetcher(url, {
+        method: 'GET', credentials: 'omit', redirect: 'error',
+        referrerPolicy: 'no-referrer', cache: 'no-store',
+        headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' },
+        signal: controller.signal,
+      });
+      if (response?.status === 403 && response.headers.get('x-ratelimit-remaining') === '0')
+        throw new PublicPortfolioError('rate_limited');
+      if (response?.status === 429) throw new PublicPortfolioError('rate_limited');
+      if (response?.status === 404) throw new PublicPortfolioError('not_available');
+      if (response?.status !== 200) throw new PublicPortfolioError('unavailable');
+      ensure(response.redirected === false && response.url === url);
+      payloads.push(await boundedJson(response));
+    }
+    return normalizePublicRun(target, ...payloads);
+  } catch (error) {
+    if (error instanceof PublicPortfolioError) throw error;
+    throw new PublicPortfolioError(controller.signal.aborted ? 'timeout' : 'unavailable');
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function inspectPublicPortfolio(fetcher = globalThis.fetch) {
   const results = [];
   for (const target of PUBLIC_TARGETS) {
-    const base = API + target.repo + '/';
-    const urls = [base + 'branches/' + target.branch,
-      base + 'actions/workflows/ci.yml/runs?branch=' + target.branch + '&event=push&per_page=1'];
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 5_000);
     try {
-      const payloads = [];
-      for (const url of urls) {
-        const response = await fetcher(url, {
-          method: 'GET', credentials: 'omit', redirect: 'error',
-          referrerPolicy: 'no-referrer', cache: 'no-store',
-          headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' },
-          signal: controller.signal,
-        });
-        if (response?.status === 403 && response.headers.get('x-ratelimit-remaining') === '0')
-          throw new PublicPortfolioError('rate_limited');
-        if (response?.status === 429) throw new PublicPortfolioError('rate_limited');
-        if (response?.status === 404) throw new PublicPortfolioError('not_available');
-        ensure(response?.status === 200 && response.redirected === false && response.url === url);
-        payloads.push(await boundedJson(response));
-      }
-      results.push(normalizePublicRun(target, ...payloads));
+      results.push(await inspectPublicTarget(target, fetcher));
     } catch (error) {
       // Do not echo input, provider error bodies, URLs, tokens or response text.
       const code = error instanceof PublicPortfolioError ? error.code : 'unavailable';
       results.push({ repository: target.repo, branch: target.branch, status: 'unverified', error: code });
-    } finally {
-      clearTimeout(timer);
     }
   }
   return {
