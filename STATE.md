@@ -1,3 +1,10 @@
+## Verified merged PR #774; repository/database source map baseline (2026-11-24)
+
+- **VERIFIED (GitHub):** [PR #774](https://github.com/hamedonassar95/Devobs/pull/774) merged exact head `0834b848ffe446102752d3f6e115833bff1b4f84` as main SHA `02637335a48f2b5fb6dee479c18409fb1482531d` at 2026-11-24T01:03:39Z. Exact-head [CI run 45301165309](https://github.com/hamedonassar95/Devobs/actions/runs/45301165309) and post-merge main [CI run 45302118437](https://github.com/hamedonassar95/Devobs/actions/runs/45302118437) succeeded.
+- **VERIFIED (scope):** PR #774 records source-tree comparisons for `ops`, the original AI Intelligence repository, the imported console, and `devobs-saas`. Legacy Firebase identifiers are source links only; Render service/database attachment and the SaaS physical database host remain **UNVERIFIED**. No live records or secrets were read.
+- **LIMITS:** PR #774 changed repository documentation and an offline inventory test. It did not merge databases, activate Firebase, change infrastructure, or deploy. Its post-merge `production-release` and `controlled-incident-drill` jobs were skipped by guarded conditions.
+- **RECONCILIATION:** The milestone ledger records **309** merged milestones through PR #774, with `latest_pr: 774`. P01 remains **BLOCKED / NO-GO**, AI-9 **BLOCKED**, and Codex runtime **OPEN**.
+
 ## Verified merged PR #770; automatic release hold follow-up required (2026-11-23)
 
 - **VERIFIED (GitHub):** [PR #770](https://github.com/hamedonassar95/Devobs/pull/770) merged exact head `8876757f34589bdacbde815d59865f4cfbc6b11d` as main SHA `432cda3fc0fef928e25ace35fc7fed3f6913908a` at 2026-11-23T21:22:05Z. Exact-head [CI 45266721789](https://github.com/hamedonassar95/Devobs/actions/runs/45266721789) and CodeQL run 45266710203 succeeded.

@@ -3390,6 +3390,17 @@
       "ci_run_id": 45266721789,
       "verification": "VERIFIED 2026-11-23 (GitHub/Vercel read-only): PR #770 merged exact head 8876757f34589bdacbde815d59865f4cfbc6b11d as 432cda3fc0fef928e25ace35fc7fed3f6913908a at 2026-11-23T21:22:05Z. Exact-head CI 45266721789 and CodeQL run 45266710203 succeeded. Post-merge main CI 45268928550 failed only at production-release / Publish production site; validate and all listed validation jobs succeeded, and CodeQL run 45268928252 succeeded. Read-only Vercel deployment history showed READY production deployment dpl_CcGiPypRjnryS8g2Qonkioyyx35M for main SHA 432cda3fc0fef928e25ace35fc7fed3f6913908a.",
       "limitations": "This merged change disabled Vercel Git auto-deployment only for feature/firebase-demo-write-isolation; it did not prevent main deployment. The GitHub Pages production-release remained automatic on push to main and its publish job failed in run 45268928550; successful publication is not claimed. This record makes no claim that the Vercel project-level Git setting, deploy hooks, or GitHub Environment reviewers were changed. No live settings were modified. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-readonly-repository-database-map-pr774",
+      "area": "PLATFORM",
+      "title": "docs: map repository and database consolidation boundaries",
+      "pr_number": 774,
+      "pr_head_sha": "0834b848ffe446102752d3f6e115833bff1b4f84",
+      "merge_sha": "02637335a48f2b5fb6dee479c18409fb1482531d",
+      "ci_run_id": 45301165309,
+      "verification": "VERIFIED 2026-11-24 (GitHub): PR #774 merged exact head 0834b848ffe446102752d3f6e115833bff1b4f84 as main SHA 02637335a48f2b5fb6dee479c18409fb1482531d at 2026-11-24T01:03:39Z. Exact-head PR CI 45301165309 SUCCESS; post-merge main CI 45302118437 SUCCESS. The post-merge production-release and controlled-incident-drill jobs were skipped by their guarded conditions.",
+      "limitations": "Repository/database source inventory and offline map validation only. Firebase identifiers are source evidence, not proof of live access; Render service-to-database and SaaS physical-host links remain UNVERIFIED. No live records or secrets were read, and no database, Firebase, cloud setting, migration or deployment was changed. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
