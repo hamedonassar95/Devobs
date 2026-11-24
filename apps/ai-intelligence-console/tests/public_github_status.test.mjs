@@ -140,9 +140,9 @@ test('empty runs, stale runs, and incomplete results are UNVERIFIED', async () =
 
 test('HTTP errors and rate limits become UNVERIFIED without exposing upstream bodies', async () => {
   const result = await invoke(handler(async url => response('PRIVATE_SENTINEL', url, { status: 500 })));
-  assert.equal(result.statusCode, 503);
+  assert.equal(result.statusCode, 502);
   assert.equal(result.body.status, 'UNVERIFIED');
-  assert.equal(result.body.reason, 'upstream_unavailable');
+  assert.equal(result.body.reason, 'invalid_response');
   assert.doesNotMatch(JSON.stringify(result.body), /PRIVATE_SENTINEL/);
   for (const options of [
     { status: 429 }, { status: 403, headers: { 'X-RateLimit-Remaining': '0' } },

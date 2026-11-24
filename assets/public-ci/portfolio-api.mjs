@@ -118,8 +118,7 @@ export async function inspectPublicTarget(target, fetcher = globalThis.fetch) {
         throw new PublicPortfolioError('rate_limited');
       if (response?.status === 429) throw new PublicPortfolioError('rate_limited');
       if (response?.status === 404) throw new PublicPortfolioError('not_available');
-      if (response?.status !== 200) throw new PublicPortfolioError('unavailable');
-      ensure(response.redirected === false && response.url === url);
+      ensure(response?.status === 200 && response.redirected === false && response.url === url);
       payloads.push(await boundedJson(response));
     }
     return normalizePublicRun(target, ...payloads);
