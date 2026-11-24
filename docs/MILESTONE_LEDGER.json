@@ -3412,6 +3412,28 @@
       "ci_run_id": 45355683819,
       "verification": "VERIFIED 2026-11-24 (GitHub): PR #775 merged exact head e12915ea1f053b4c240c11170eb201e4db45d3d5 as 7f23f5635fecdbdc342dfaada259e4cc0c2adc3f. Exact-head PR CI 45306060923 SUCCESS; merge-SHA main CI 45355683819 SUCCESS and Push on main 45355682459 SUCCESS.",
       "limitations": "Documentation-only expiry decision using sanitized read-only Render metadata. The Free PostgreSQL resource was available on 2026-11-24 and reports expiry 2026-12-05T10:33:24.202776Z; metadata is not a database connection, consumer audit, backup, or recovery proof. Issue #713 authorizes planning only. No preservation or retirement path is authorized; no export, migration, upgrade, deletion, suspension, replacement, configuration change or deployment occurred. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-render-free-expiry-decision-pr776",
+      "area": "DOCUMENTATION",
+      "title": "docs: prepare owner-gated Render Free expiry decision",
+      "pr_number": 776,
+      "pr_head_sha": "67ef4d983edc986f63eab9c3488df1e4e6dcacab",
+      "merge_sha": "10ec8e11e2ba434e658dce0e9207aab61921026d",
+      "ci_run_id": 45358445508,
+      "verification": "VERIFIED 2026-11-24 (GitHub): PR #776 merged exact head 67ef4d983edc986f63eab9c3488df1e4e6dcacab as main SHA 10ec8e11e2ba434e658dce0e9207aab61921026d. Exact-head PR CI 45358445508 SUCCESS; post-merge main CI 45359331965 SUCCESS. Production release and incident drill remained gated. The PR added a documentation-only owner decision matrix and amended the existing retirement plan.",
+      "limitations": "No preservation, retirement, upgrade or acceptance of expiry was authorized. Render Free PostgreSQL expires 2026-12-05T10:33:24.202776Z; live consumers, retained data and recovery remain UNVERIFIED. No records or secrets were read, and no database export, migration, deletion, new billing, environment change, cloud action or deployment was performed. Issue #713 remains open. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-readonly-cross-repo-ci-pr777",
+      "area": "PLATFORM",
+      "title": "feat: add opt-in read-only GitHub CI status to repository map",
+      "pr_number": 777,
+      "pr_head_sha": "fcb877667895d0c6c5e3da938255c00e9386cd61",
+      "merge_sha": "a2404c1de3e613f9724a5e361e96c9464626e49e",
+      "ci_run_id": 45368184135,
+      "verification": "VERIFIED 2026-11-24 (GitHub): PR #777 merged exact head fcb877667895d0c6c5e3da938255c00e9386cd61 as main SHA a2404c1de3e613f9724a5e361e96c9464626e49e. Exact-head PR CI 45368184135 SUCCESS and push CI 45368175202 SUCCESS; post-merge main CI 45373480304 SUCCESS. CodeQL checks on the PR head passed. Production release and incident drill were skipped by policy gates.",
+      "limitations": "Opt-in public GitHub CI reader and manual UI only; server flag DEVOBS_PUBLIC_GITHUB_STATUS_ENABLED is disabled by default. Loopback-restricted and allowlisted; live hosted integration activation and end-to-end acceptance remain UNVERIFIED. No PAT, provider credentials, database access, Firebase activation, migration, deployment or runtime configuration change. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
