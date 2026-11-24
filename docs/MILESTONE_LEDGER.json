@@ -3401,6 +3401,17 @@
       "ci_run_id": 45301165309,
       "verification": "VERIFIED 2026-11-24 (GitHub): PR #774 merged exact head 0834b848ffe446102752d3f6e115833bff1b4f84 as main SHA 02637335a48f2b5fb6dee479c18409fb1482531d at 2026-11-24T01:03:39Z. Exact-head PR CI 45301165309 SUCCESS; post-merge main CI 45302118437 SUCCESS. The post-merge production-release and controlled-incident-drill jobs were skipped by their guarded conditions.",
       "limitations": "Repository/database source inventory and offline map validation only. Firebase identifiers are source evidence, not proof of live access; Render service-to-database and SaaS physical-host links remain UNVERIFIED. No live records or secrets were read, and no database, Firebase, cloud setting, migration or deployment was changed. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-render-free-db-expiry-decision-pr775",
+      "area": "DOCUMENTATION",
+      "title": "docs: prepare owner-gated Render Free expiry decision",
+      "pr_number": 775,
+      "pr_head_sha": "e12915ea1f053b4c240c11170eb201e4db45d3d5",
+      "merge_sha": "7f23f5635fecdbdc342dfaada259e4cc0c2adc3f",
+      "ci_run_id": 45355683819,
+      "verification": "VERIFIED 2026-11-24 (GitHub): PR #775 merged exact head e12915ea1f053b4c240c11170eb201e4db45d3d5 as 7f23f5635fecdbdc342dfaada259e4cc0c2adc3f. Exact-head PR CI 45306060923 SUCCESS; merge-SHA main CI 45355683819 SUCCESS and Push on main 45355682459 SUCCESS.",
+      "limitations": "Documentation-only expiry decision using sanitized read-only Render metadata. The Free PostgreSQL resource was available on 2026-11-24 and reports expiry 2026-12-05T10:33:24.202776Z; metadata is not a database connection, consumer audit, backup, or recovery proof. Issue #713 authorizes planning only. No preservation or retirement path is authorized; no export, migration, upgrade, deletion, suspension, replacement, configuration change or deployment occurred. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [
