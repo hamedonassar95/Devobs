@@ -357,4 +357,6 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
+    if __package__:
+        sys.modules.setdefault(f"{__package__}.benchmark_engine", sys.modules[__name__])
     raise SystemExit(main())
