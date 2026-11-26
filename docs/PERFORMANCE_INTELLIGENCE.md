@@ -267,6 +267,11 @@ explicit Python-version opt-in. Devobs does not select or install interpreters.
 The report schema accepts Python 3.12 and 3.15 only; the 3.15 path is not
 runtime-tested in this environment.
 
+When source SHA and Python version are identical, a statistically significant
+difference is labeled `REPEATABILITY_VARIATION`; it is not labeled an
+improvement or regression because no code or interpreter change separates the
+runs.
+
 ### Prometheus and Grafana
 
 An explicit export converts one validated summary or comparison report into a

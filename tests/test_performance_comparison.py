@@ -47,6 +47,15 @@ class PerformanceComparisonTests(unittest.TestCase):
         with self.assertRaises(comparison.ComparisonValidationError):
             comparison.compare_summaries(_summary("a" * 40), _summary("b" * 40))
 
+    def test_same_source_reports_repeatability_variation_not_improvement(self):
+        result = comparison.compare_summaries(
+            _summary("a" * 40), _summary("a" * 40, scale=1.5), same_host_confirmed=True,
+        )
+        self.assertEqual(result["comparison_kind"], "repeatability")
+        self.assertTrue(all(
+            row["status"] == "REPEATABILITY_VARIATION" for row in result["benchmarks"]
+        ))
+
     def test_cross_python_version_comparison_requires_explicit_opt_in(self):
         baseline = _summary("a" * 40)
         candidate = _summary("a" * 40, python_version="3.15.0")

@@ -198,8 +198,10 @@ metric, benchmark set, platform and architecture, and a same-physical-host
 confirmation. Python-version comparisons need an additional explicit opt-in.
 It calculates a Welch comparison, an unadjusted 95% confidence interval, and a
 Holm adjustment across the benchmark set. Results are advisory and do not gate
-CI, release or deployment. The operator's same-host claim is not independently
-verifiable by the tool.
+CI, release or deployment. When source SHA and Python version match, significant
+differences are labeled `REPEATABILITY_VARIATION`, not an improvement or
+regression. The operator's same-host claim is not independently verifiable by
+the tool.
 
 An optional local Prometheus textfile export accepts a validated JSON summary
 or comparison. It writes `monitoring/performance-metrics/devobs_performance.prom`

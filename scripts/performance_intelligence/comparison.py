@@ -260,11 +260,6 @@ def compare_summaries(baseline_summary: object, candidate_summary: object, *,
     adjusted = _holm_adjust(p_values)
     for benchmark_id, row in raw_rows.items():
         row["adjusted_p_value"] = adjusted[benchmark_id]
-        if adjusted[benchmark_id] < ALPHA:
-            if row["delta_percent"] > 0:
-                row["status"] = "REGRESSION"
-            elif row["delta_percent"] < 0:
-                row["status"] = "IMPROVEMENT"
     if (baseline["python_version"] != candidate["python_version"]
             and baseline["source_sha"] != candidate["source_sha"]):
         comparison_kind = "mixed"
@@ -274,6 +269,14 @@ def compare_summaries(baseline_summary: object, candidate_summary: object, *,
         comparison_kind = "source_revision"
     else:
         comparison_kind = "repeatability"
+    for row in raw_rows.values():
+        if row["adjusted_p_value"] < ALPHA:
+            if comparison_kind == "repeatability":
+                row["status"] = "REPEATABILITY_VARIATION"
+            elif row["delta_percent"] > 0:
+                row["status"] = "REGRESSION"
+            elif row["delta_percent"] < 0:
+                row["status"] = "IMPROVEMENT"
     result = {
         "schema_version": SCHEMA_VERSION,
         "comparison_kind": comparison_kind,
@@ -379,7 +382,9 @@ def validate_comparison(result: object) -> None:
                 or type(row["candidate_sample_count"]) is not int
                 or row["candidate_sample_count"] < MIN_STATISTICAL_SAMPLES
                 or not isinstance(row["status"], str)
-                or row["status"] not in {"REGRESSION", "IMPROVEMENT", "NO_DETECTED_CHANGE"}):
+                or row["status"] not in {
+                    "REGRESSION", "IMPROVEMENT", "NO_DETECTED_CHANGE", "REPEATABILITY_VARIATION",
+                }):
             raise ComparisonValidationError("invalid_comparison_row")
         if row["baseline_mean"] <= 0 or row["candidate_mean"] <= 0:
             raise ComparisonValidationError("invalid_comparison_value")
@@ -387,9 +392,12 @@ def validate_comparison(result: object) -> None:
             raise ComparisonValidationError("invalid_confidence_interval")
         expected_status = "NO_DETECTED_CHANGE"
         if row["adjusted_p_value"] < ALPHA:
-            expected_status = "REGRESSION" if row["delta_percent"] > 0 else (
-                "IMPROVEMENT" if row["delta_percent"] < 0 else "NO_DETECTED_CHANGE"
-            )
+            if result["comparison_kind"] == "repeatability":
+                expected_status = "REPEATABILITY_VARIATION"
+            else:
+                expected_status = "REGRESSION" if row["delta_percent"] > 0 else (
+                    "IMPROVEMENT" if row["delta_percent"] < 0 else "NO_DETECTED_CHANGE"
+                )
         if row["status"] != expected_status:
             raise ComparisonValidationError("invalid_comparison_status")
 
