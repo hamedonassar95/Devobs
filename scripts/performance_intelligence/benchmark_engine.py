@@ -88,11 +88,11 @@ class MeasurementConfig:
         if metric == "time":
             return config
         # pyperf --track-memory emits one measured value per worker process.
-        # Keep smoke small while ensuring a statistical report reaches the
-        # comparison engine's minimum of 20 independent worker samples.
+        # One value per worker avoids repeating an expensive memory profile;
+        # independent worker processes provide the replicate count.
         min_processes = 3 if mode == "smoke" else 20
         return cls(
-            config.mode, max(config.processes, min_processes), config.values, config.warmups,
+            config.mode, max(config.processes, min_processes), 1, config.warmups,
             config.min_time_seconds, config.worker_timeout_seconds, config.timeout_seconds,
         )
 

@@ -147,6 +147,8 @@ class BenchmarkEngineTests(unittest.TestCase):
         config = engine.MeasurementConfig.for_mode("smoke")
         self.assertEqual(engine.MeasurementConfig.for_metric("smoke", "memory").processes, 3)
         self.assertEqual(engine.MeasurementConfig.for_metric("statistical", "memory").processes, 20)
+        self.assertEqual(engine.MeasurementConfig.for_metric("smoke", "memory").values, 1)
+        self.assertEqual(engine.MeasurementConfig.for_metric("statistical", "memory").values, 1)
         command = engine.pyperf_command(
             python_executable="/venv/bin/python",
             benchmark_script=ROOT / "benchmarks" / "devobs_benchmarks.py",
