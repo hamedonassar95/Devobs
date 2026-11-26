@@ -9,6 +9,12 @@ phase. It measures three existing deterministic Devobs operations and does not
 change CI, production services, deployment gates, P01, AI-9, or Codex runtime
 readiness.
 
+[Optional pyperformance integration](docs/PYPERFORMANCE_INTEGRATION.md) adds a
+manually run, network-disabled adapter for eight audited upstream benchmark
+groups, with exact source provenance, SHA-256-verified dependencies, bounded
+execution and sanitized reports. The rest of the upstream suite remains
+disabled pending per-workload dependency and side-effect review.
+
 ## Firebase security and learning — Phase 1
 
 [Firebase offline safety baseline and phased integration plan](docs/security/FIREBASE_PHASE1_BASELINE.md)
