@@ -101,6 +101,43 @@ class PyPerformanceReportingTests(unittest.TestCase):
         with self.assertRaises(reporting.ReportValidationError):
             reporting.validate_native_json(non_finite, {"float"})
 
+    def test_official_pyperf_converted_single_benchmark_normalizes_to_minimal_report(self):
+        upstream = json.dumps({
+            "version": "1.0",
+            "metadata": {"name": "float", "unit": "second"},
+            "benchmarks": [{"runs": [
+                {"warmups": [[1, 0.04]]},
+                {"values": [0.01, 0.02], "warmups": [[2, 0.03]]},
+            ]}],
+        }).encode()
+        normalized = reporting.normalize_converted_native_json(upstream, {"float"})
+        self.assertEqual(reporting.validate_native_json(normalized, {"float"}), {"float": 2})
+        parsed = json.loads(normalized)
+        self.assertEqual(parsed["metadata"], {"unit": "second"})
+        self.assertEqual(parsed["benchmarks"][0]["metadata"], {"name": "float"})
+
+    def test_official_pyperf_converted_suite_requires_named_complete_results(self):
+        upstream = json.dumps({
+            "version": "1.0",
+            "metadata": {"unit": "second"},
+            "benchmarks": [
+                {"metadata": {"name": "float"}, "runs": [{"values": [0.01, 0.02], "warmups": []}]},
+                {"metadata": {"name": "json_dumps"}, "runs": [{"values": [0.03, 0.04], "warmups": []}]},
+            ],
+        }).encode()
+        normalized = reporting.normalize_converted_native_json(upstream, {"float", "json_dumps"})
+        self.assertEqual(
+            reporting.validate_native_json(normalized, {"float", "json_dumps"}),
+            {"float": 2, "json_dumps": 2},
+        )
+        for bad in (
+            upstream.replace(b'"unit": "second"', b'"unit": "second", "hostname": "private"'),
+            upstream.replace(b'"json_dumps"', b'"unreviewed"'),
+            upstream.replace(b'0.01', b'NaN'),
+        ):
+            with self.subTest(bad=bad), self.assertRaises(reporting.ReportValidationError):
+                reporting.normalize_converted_native_json(bad, {"float", "json_dumps"})
+
     def test_existing_outputs_are_not_overwritten_without_explicit_consent(self):
         summary = reporting.build_summary(self.results, **self.metadata)
         native = reporting.sanitized_native_json(

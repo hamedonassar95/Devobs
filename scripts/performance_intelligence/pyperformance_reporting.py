@@ -192,6 +192,72 @@ def sanitized_native_json(samples: list[tuple[str, list[float]]]) -> bytes:
                        sort_keys=True, indent=2, allow_nan=False) + "\n").encode("utf-8")
 
 
+def normalize_converted_native_json(
+    data: bytes, expected_names: set[str] | frozenset[str]
+) -> bytes:
+    """Normalize pyperf's --remove-all-metadata output to the minimal report contract."""
+    if type(expected_names) not in (set, frozenset) or not expected_names:
+        raise ReportValidationError("invalid_expected_benchmarks")
+    try:
+        parsed = json.loads(data)
+    except (UnicodeError, ValueError, TypeError):
+        raise ReportValidationError("invalid_native_report") from None
+    if type(parsed) is not dict or set(parsed) != NATIVE_KEYS or parsed["version"] != "1.0":
+        raise ReportValidationError("invalid_native_report")
+    suite_metadata = parsed["metadata"]
+    if (type(suite_metadata) is not dict or set(suite_metadata) - {"name", "unit"}
+            or suite_metadata.get("unit") != "second"):
+        raise ReportValidationError("unsanitized_native_report")
+    suite_name = suite_metadata.get("name")
+    if suite_name is not None and (not isinstance(suite_name, str) or suite_name not in OUTPUT_NAMES):
+        raise ReportValidationError("invalid_benchmark_identity")
+    benchmarks = parsed["benchmarks"]
+    if type(benchmarks) is not list or not benchmarks or (suite_name and len(benchmarks) != 1):
+        raise ReportValidationError("invalid_native_report")
+    samples_by_name: list[tuple[str, list[float]]] = []
+    seen: set[str] = set()
+    for benchmark in benchmarks:
+        if type(benchmark) is not dict or set(benchmark) not in ({"runs"}, {"metadata", "runs"}):
+            raise ReportValidationError("unsanitized_native_report")
+        benchmark_metadata = benchmark.get("metadata", {})
+        if (type(benchmark_metadata) is not dict
+                or set(benchmark_metadata) - {"name"}):
+            raise ReportValidationError("unsanitized_native_report")
+        benchmark_name = benchmark_metadata.get("name", suite_name)
+        if (not isinstance(benchmark_name, str) or benchmark_name not in OUTPUT_NAMES
+                or benchmark_name not in expected_names or benchmark_name in seen):
+            raise ReportValidationError("invalid_benchmark_identity")
+        runs = benchmark["runs"]
+        if type(runs) is not list or not runs:
+            raise ReportValidationError("invalid_native_report")
+        samples: list[float] = []
+        for run in runs:
+            if (type(run) is not dict or not run or set(run) - {"values", "warmups"}):
+                raise ReportValidationError("unsanitized_native_report")
+            values = run.get("values", [])
+            warmups = run.get("warmups", [])
+            if type(values) is not list or type(warmups) is not list:
+                raise ReportValidationError("invalid_native_report")
+            for value in values:
+                if (isinstance(value, bool) or not isinstance(value, (int, float))
+                        or not math.isfinite(value) or value <= 0):
+                    raise ReportValidationError("invalid_native_report")
+                samples.append(float(value))
+            for warmup in warmups:
+                if (type(warmup) is not list or len(warmup) != 2
+                        or type(warmup[0]) is not int or warmup[0] <= 0
+                        or isinstance(warmup[1], bool) or not isinstance(warmup[1], (int, float))
+                        or not math.isfinite(warmup[1]) or warmup[1] <= 0):
+                    raise ReportValidationError("invalid_native_report")
+        if len(samples) < 2:
+            raise ReportValidationError("invalid_native_sample_count")
+        seen.add(benchmark_name)
+        samples_by_name.append((benchmark_name, samples))
+    if seen != set(expected_names):
+        raise ReportValidationError("incomplete_native_report")
+    return sanitized_native_json(samples_by_name)
+
+
 def validate_native_json(data: bytes, expected_names: set[str] | frozenset[str]) -> dict[str, int]:
     if type(expected_names) not in (set, frozenset) or not expected_names:
         raise ReportValidationError("invalid_expected_benchmarks")

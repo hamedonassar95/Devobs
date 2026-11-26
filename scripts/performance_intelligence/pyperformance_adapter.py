@@ -98,7 +98,7 @@ def _expected_output_names(benchmarks: tuple[str, ...]) -> set[str]:
 def _load_results(path: pathlib.Path, expected: set[str]) -> tuple[bytes, list[reporting.PyPerformanceResult]]:
     try:
         data = path.read_bytes()
-        reporting.validate_native_json(data, expected)
+        normalized = reporting.normalize_converted_native_json(data, expected)
         import pyperf
         with path.open("r", encoding="utf-8") as stream:
             suite = pyperf.BenchmarkSuite.load(stream)
@@ -107,11 +107,17 @@ def _load_results(path: pathlib.Path, expected: set[str]) -> tuple[bytes, list[r
             for item in suite.get_benchmarks()
         ]
         reporting.validate_results(results, expected)
+        api_normalized = reporting.sanitized_native_json([
+            (result.benchmark_name, list(result.samples_seconds)) for result in results
+        ])
+        if api_normalized != normalized:
+            raise PyPerformanceValidationError("pyperf_api_report_mismatch")
+        reporting.validate_native_json(api_normalized, expected)
     except reporting.ReportValidationError as exc:
         raise PyPerformanceValidationError(str(exc)) from None
     except (ImportError, KeyError, OSError, UnicodeError, ValueError, TypeError):
         raise PyPerformanceValidationError("invalid_pyperf_results") from None
-    return data, results
+    return api_normalized, results
 
 
 def _safe_output_dir(output_dir: pathlib.Path) -> pathlib.Path:
@@ -151,6 +157,7 @@ def run(mode: str, benchmark_selection: str | None, source_archive: pathlib.Path
         verify_source_archive(archive_copy)
         source_root = extract_verified_source(archive_copy, work_dir / "verified-source")
         raw = work_dir / "raw-pyperf.json"
+        converted = work_dir / "converted-pyperf.json"
         sanitized = work_dir / "sanitized-pyperf.json"
         env = build_child_environment(work_dir, wheels, source_root)
         command = pyperformance_command(sys.executable, source_root, benchmarks, mode, raw)
@@ -158,14 +165,15 @@ def run(mode: str, benchmark_selection: str | None, source_archive: pathlib.Path
             engine.run_bounded_command(command, config.suite_timeout_seconds, env=env, cwd=work_dir)
             engine.run_bounded_command(
                 [sys.executable, "-m", "pyperf", "convert", "--remove-all-metadata",
-                 str(raw), "-o", str(sanitized)], 60, env=env, cwd=work_dir,
+                 str(raw), "-o", str(converted)], 60, env=env, cwd=work_dir,
             )
+            native, results = _load_results(converted, expected)
+            sanitized.write_bytes(native)
             engine.run_bounded_command(
                 [sys.executable, "-m", "pyperf", "check", str(sanitized)], 30, env=env, cwd=work_dir,
             )
         except engine.BenchmarkExecutionError as exc:
             raise PyPerformanceExecutionError(str(exc)) from None
-        native, results = _load_results(sanitized, expected)
         metadata = engine.safe_metadata(source_sha, mode)
         summary = reporting.build_summary(
             results,

@@ -163,7 +163,10 @@ Each completed run writes three files, named with the Devobs source SHA and
 measurement mode:
 
 1. `*.pyperf.json`: native pyperf JSON converted with
-   `--remove-all-metadata`, then checked with `python -m pyperf check`.
+   `--remove-all-metadata`, normalized to an allowlisted report shape, then
+   checked with `python -m pyperf check`. The normalization accommodates
+   pyperf's single-benchmark and multi-benchmark name placement while keeping
+   only the benchmark name, time unit, samples and warmups.
 2. `*.json`: Devobs summary schema version 1.
 3. `*.csv`: one row per approved output measurement.
 
