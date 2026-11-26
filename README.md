@@ -1,5 +1,14 @@
 # Devobs
 
+## Offline Performance Intelligence foundation
+
+[Performance Intelligence](docs/PERFORMANCE_INTELLIGENCE.md) documents the
+manual, offline-first Python benchmark engine, its pinned optional dependencies,
+privacy-minimized reports, reproducibility limits, and the next integration
+phase. It measures three existing deterministic Devobs operations and does not
+change CI, production services, deployment gates, P01, AI-9, or Codex runtime
+readiness.
+
 ## Firebase security and learning — Phase 1
 
 [Firebase offline safety baseline and phased integration plan](docs/security/FIREBASE_PHASE1_BASELINE.md)
