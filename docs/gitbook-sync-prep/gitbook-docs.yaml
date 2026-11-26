@@ -1,0 +1,12 @@
+$schema: https://api.gitbook.com/gitbook-docs.yaml
+site:
+  title: Devobs AI Intelligence
+  structure:
+    - type: space
+      # Proposed stable Git Sync key; compare with the current GitBook site before use.
+      key: devobs-gitbook-sync-prep
+      title: تجهيز GitBook لمستودع Devobs
+      path: gitbook-sync-prep
+      default: true
+      content:
+        directory: ./

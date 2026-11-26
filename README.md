@@ -434,6 +434,7 @@ python3 -m unittest discover -s tests -p 'test_free_readiness_one_command.py' -v
 ## مركز الأتمتة
 
 - **تشخيص أمن CI / Gitleaks:** [دليل مراجعة تاريخ Git في GitBook](docs/gitbook-sync-prep/GITLEAKS_HISTORY_DIAGNOSTICS.md) — فصلٌ بين عطل تحقق Git وبين تسريب مؤكّد، دون تعطيل المسح أو نشر أسرار.
+- **تحضير GitBook site-level Git Sync:** [إعداد الموقع ونطاق المحتوى](docs/gitbook-sync-prep/README.md) — ملف إعداد مقترح ومتحقق من مخطط GitBook الرسمي؛ لا يفعّل المزامنة أو النشر، ويتطلب مطابقة بشرية لمفتاح الفضاء وإعداداته الحية.
 
 - **ابدأ من هنا:** [مركز الأتمتة وسير التشغيل الموحد](docs/AUTOMATION_HUB.md)
 - **CineForge-AI CI review-only handoff:** [فحص محدود لنتائج CI دون نقل الكود أو تشغيل خدمات](docs/CINEFORGE_CI_REVIEW_HANDOFF.md) — بوابة مراجعة محلية فقط، ليست تكاملًا حيًا ولا إصلاحًا لخلل GitHub Runner.
