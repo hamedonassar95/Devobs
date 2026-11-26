@@ -290,7 +290,8 @@ def safe_metadata(source_sha: str, mode: str) -> dict[str, str]:
 def _load_pyperf_results(path: pathlib.Path) -> list[BenchmarkResult]:
     try:
         import pyperf
-        suite = pyperf.BenchmarkSuite.load(path)
+        with path.open("r", encoding="utf-8") as stream:
+            suite = pyperf.BenchmarkSuite.load(stream)
         names = {item.benchmark_id: item.name for item in benchmark_definitions()}
         results = [BenchmarkResult(benchmark.get_name(), names[benchmark.get_name()],
                                   tuple(benchmark.get_values()))
@@ -346,6 +347,9 @@ def main(argv: list[str] | None = None) -> int:
         outputs = run(args.mode, args.output_dir, args.overwrite)
     except (BenchmarkValidationError, BenchmarkExecutionError, ValueError, OSError) as exc:
         print(f"Benchmark failed closed: {exc}", file=sys.stderr)
+        return 2
+    except Exception:
+        print("Benchmark failed closed: internal_error", file=sys.stderr)
         return 2
     for path in outputs:
         print(f"Wrote {path.name}")
