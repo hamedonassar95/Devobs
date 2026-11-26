@@ -1,0 +1,3 @@
+# Optional local benchmark tooling. Not a production application dependency.
+pyperf==2.11.0
+psutil==7.2.2
