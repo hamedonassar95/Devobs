@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "fixture_kind": "synthetic_workload_sizes",
+  "event_count": 24,
+  "task_count": 20,
+  "review_case_count": 60
+}
