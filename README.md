@@ -10,10 +10,12 @@ change CI, production services, deployment gates, P01, AI-9, or Codex runtime
 readiness.
 
 [Optional pyperformance integration](docs/PYPERFORMANCE_INTEGRATION.md) adds a
-manually run, network-disabled adapter for eight audited upstream benchmark
-groups, with exact source provenance, SHA-256-verified dependencies, bounded
-execution and sanitized reports. The rest of the upstream suite remains
-disabled pending per-workload dependency and side-effect review.
+manually run, network-disabled adapter for 50 of the 75 groups in the pinned
+upstream catalog, with exact source provenance, SHA-256-verified dependencies,
+bounded execution and sanitized reports. The [complete workload audit](docs/PYPERFORMANCE_WORKLOAD_AUDIT_2026-11-26.md)
+records a disposition for every group; the remaining 25 are explicitly deferred
+for dependencies or side-effect review. The default smoke command remains the
+original eight short groups.
 
 ## Firebase security and learning — Phase 1
 
