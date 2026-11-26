@@ -145,6 +145,8 @@ class BenchmarkEngineTests(unittest.TestCase):
 
     def test_memory_measurement_uses_pyperf_tracking_flag(self):
         config = engine.MeasurementConfig.for_mode("smoke")
+        self.assertEqual(engine.MeasurementConfig.for_metric("smoke", "memory").processes, 3)
+        self.assertEqual(engine.MeasurementConfig.for_metric("statistical", "memory").processes, 20)
         command = engine.pyperf_command(
             python_executable="/venv/bin/python",
             benchmark_script=ROOT / "benchmarks" / "devobs_benchmarks.py",

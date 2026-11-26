@@ -207,7 +207,11 @@ pyperf 2.11.0 `--track-memory`. The pinned implementation samples
 `Private_Dirty`; the summary calls this `peak_private_bytes`. This is sampled
 process-private memory, not RSS, total host memory, or a continuous system
 metric. Sampling has overhead and can miss shorter peaks. Memory and execution
-time are separate runs and must not be compared with each other.
+time are separate runs and must not be compared with each other. pyperf emits
+one memory sample per worker process: Devobs memory smoke mode uses three
+workers, and statistical mode uses twenty so its reports meet the comparison
+minimum. The upstream adapter's pyperf fast/rigorous presets determine its
+worker count independently.
 
 Example Devobs run:
 

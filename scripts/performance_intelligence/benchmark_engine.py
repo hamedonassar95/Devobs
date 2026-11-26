@@ -80,6 +80,22 @@ class MeasurementConfig:
             raise BenchmarkValidationError("invalid_measurement_mode")
         return presets[mode]
 
+    @classmethod
+    def for_metric(cls, mode: str, metric: str) -> "MeasurementConfig":
+        config = cls.for_mode(mode)
+        if metric not in {"time", "memory"}:
+            raise BenchmarkValidationError("invalid_measurement_metric")
+        if metric == "time":
+            return config
+        # pyperf --track-memory emits one measured value per worker process.
+        # Keep smoke small while ensuring a statistical report reaches the
+        # comparison engine's minimum of 20 independent worker samples.
+        min_processes = 3 if mode == "smoke" else 20
+        return cls(
+            config.mode, max(config.processes, min_processes), config.values, config.warmups,
+            config.min_time_seconds, config.worker_timeout_seconds, config.timeout_seconds,
+        )
+
 
 def validate_metadata(metadata: dict[str, object]) -> None:
     if type(metadata) is not dict or set(metadata) != METADATA_KEYS:
@@ -343,9 +359,7 @@ def _load_pyperf_memory_results(path: pathlib.Path) -> list[object]:
 
 def run(mode: str, output_dir: pathlib.Path, overwrite: bool = False,
         metric: str = "time") -> tuple[pathlib.Path, ...]:
-    config = MeasurementConfig.for_mode(mode)
-    if metric not in {"time", "memory"}:
-        raise BenchmarkValidationError("invalid_measurement_metric")
+    config = MeasurementConfig.for_metric(mode, metric)
     if metric == "memory" and platform.system().lower() != "linux":
         raise BenchmarkValidationError("memory_tracking_linux_only")
     metadata = safe_metadata(source_revision(), mode)
