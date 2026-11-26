@@ -1,5 +1,13 @@
 # Devobs
 
+## Knowledge Intelligence architecture baseline
+
+[Knowledge Intelligence audit and phased roadmap](docs/knowledge-intelligence/README.md)
+records the source-verified platform baseline, capability gaps, architecture
+options, cost model, risks, and proposed acceptance criteria. It is
+documentation-only: no vector store, document ingestion, model provider, cloud
+resource, or production behavior is activated by this audit.
+
 ## Offline Performance Intelligence foundation
 
 [Performance Intelligence](docs/PERFORMANCE_INTELLIGENCE.md) documents the
