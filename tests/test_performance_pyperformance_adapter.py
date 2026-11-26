@@ -6,6 +6,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -90,6 +91,33 @@ class PyPerformanceAdapterTests(unittest.TestCase):
         self.assertIn("--track-memory", command)
         self.assertIn("--benchmarks=float", command)
         self.assertFalse(any("--python=" in item and item.endswith("arbitrary") for item in command))
+
+    def test_single_upstream_memory_report_is_normalized_before_summary(self):
+        native = {
+            "version": "1.0", "metadata": {"name": "float", "unit": "byte"},
+            "benchmarks": [{"runs": [{"values": [1200.0, 1300.0], "warmups": []}]}],
+        }
+
+        class FakeBenchmark:
+            @staticmethod
+            def get_name():
+                return "float"
+
+            @staticmethod
+            def get_values():
+                return (1200.0, 1300.0)
+
+        fake_suite = SimpleNamespace(get_benchmarks=lambda: [FakeBenchmark()])
+        fake_pyperf = SimpleNamespace(
+            BenchmarkSuite=SimpleNamespace(load=lambda _stream: fake_suite),
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            report = Path(temporary) / "converted.json"
+            report.write_text(json.dumps(native), encoding="utf-8")
+            with mock.patch.dict(sys.modules, {"pyperf": fake_pyperf}):
+                normalized, results = adapter._load_memory_results(report, {"float"})
+        self.assertEqual(len(results), 1)
+        self.assertEqual(json.loads(normalized)["metadata"], {"unit": "byte"})
 
     def test_memory_mode_rejects_non_linux_before_using_external_artifacts(self):
         with mock.patch.object(adapter.platform, "system", return_value="Darwin"):

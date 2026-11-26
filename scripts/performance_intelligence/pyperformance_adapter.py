@@ -135,7 +135,9 @@ def _load_results(path: pathlib.Path, expected: set[str]) -> tuple[bytes, list[r
 def _load_memory_results(path: pathlib.Path, expected: set[str]) -> tuple[bytes, list[object]]:
     try:
         data = path.read_bytes()
-        from performance_intelligence.resource_reporting import MemoryResult, native_samples
+        from performance_intelligence.resource_reporting import (
+            MemoryResult, native_samples, normalize_native_json,
+        )
         import pyperf
         with path.open("r", encoding="utf-8") as stream:
             suite = pyperf.BenchmarkSuite.load(stream)
@@ -144,7 +146,8 @@ def _load_memory_results(path: pathlib.Path, expected: set[str]) -> tuple[bytes,
             for item in suite.get_benchmarks()
         ]
         expected_ids = {f"pyperformance.{name}.v1" for name in expected}
-        source_samples = native_samples(data, expected_ids)
+        native = normalize_native_json(data, expected_ids)
+        source_samples = native_samples(native, expected_ids)
         if ({item.benchmark_name for item in results} != expected
                 or source_samples != {item.benchmark_id: item.samples_bytes for item in results}):
             raise PyPerformanceValidationError("incomplete_memory_suite")
@@ -152,7 +155,7 @@ def _load_memory_results(path: pathlib.Path, expected: set[str]) -> tuple[bytes,
         raise
     except (ImportError, KeyError, OSError, UnicodeError, ValueError, TypeError):
         raise PyPerformanceValidationError("invalid_pyperf_memory_results") from None
-    return data, results
+    return native, results
 
 
 def _safe_output_dir(output_dir: pathlib.Path) -> pathlib.Path:

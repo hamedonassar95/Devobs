@@ -218,6 +218,72 @@ def native_samples(data: bytes, expected_ids: set[str]) -> dict[str, tuple[float
     return samples_by_id
 
 
+def normalize_native_json(data: bytes, expected_ids: set[str]) -> bytes:
+    """Reduce pyperf's converted memory JSON to the allowlisted report shape."""
+    allowed_ids = set(BENCHMARK_NAMES) | {f"pyperformance.{name}.v1" for name in OUTPUT_NAMES}
+    if (not isinstance(data, bytes) or len(data) > 16 * 1024 * 1024
+            or type(expected_ids) is not set or not expected_ids
+            or any(not isinstance(item, str) for item in expected_ids)
+            or not expected_ids <= allowed_ids):
+        raise ResourceReportError("invalid_native_report")
+    try:
+        parsed = json.loads(data)
+    except (UnicodeError, ValueError, TypeError):
+        raise ResourceReportError("invalid_native_report") from None
+    if (type(parsed) is not dict or set(parsed) != {"version", "metadata", "benchmarks"}
+            or parsed["version"] != "1.0" or type(parsed["metadata"]) is not dict
+            or set(parsed["metadata"]) - {"unit", "name"}
+            or parsed["metadata"].get("unit") != "byte"):
+        raise ResourceReportError("invalid_native_report")
+    root_name = parsed["metadata"].get("name")
+    rows = parsed["benchmarks"]
+    if (root_name is not None and not isinstance(root_name, str)) or type(rows) is not list or not rows:
+        raise ResourceReportError("invalid_native_report")
+    normalized = []
+    seen: set[str] = set()
+    for row in rows:
+        if (type(row) is not dict or set(row) - {"metadata", "runs"}
+                or "runs" not in row or type(row["runs"]) is not list or not row["runs"]):
+            raise ResourceReportError("invalid_native_report")
+        row_metadata = row.get("metadata", {})
+        if type(row_metadata) is not dict or set(row_metadata) - {"name"}:
+            raise ResourceReportError("invalid_native_report")
+        row_name = row_metadata.get("name")
+        if root_name is not None:
+            if len(rows) != 1 or (row_name is not None and row_name != root_name):
+                raise ResourceReportError("invalid_native_report")
+            name = root_name
+        else:
+            name = row_name
+        if not isinstance(name, str):
+            raise ResourceReportError("invalid_native_report")
+        benchmark_id = name if name in BENCHMARK_NAMES else f"pyperformance.{name}.v1"
+        if benchmark_id not in expected_ids or benchmark_id in seen:
+            raise ResourceReportError("invalid_native_report")
+        clean_runs = []
+        for run in row["runs"]:
+            if type(run) is not dict or set(run) - {"values", "warmups"}:
+                raise ResourceReportError("invalid_native_report")
+            values = run.get("values", [])
+            warmups = run.get("warmups", [])
+            if (type(values) is not list or type(warmups) is not list
+                    or any(isinstance(value, bool) or not isinstance(value, (int, float))
+                           or not math.isfinite(value) or value <= 0 for value in values)):
+                raise ResourceReportError("invalid_native_report")
+            for warmup in warmups:
+                if (type(warmup) is not list or len(warmup) != 2
+                        or any(isinstance(value, bool) or not isinstance(value, (int, float))
+                               or not math.isfinite(value) or value <= 0 for value in warmup)):
+                    raise ResourceReportError("invalid_native_report")
+            clean_runs.append({"values": values, "warmups": warmups})
+        normalized.append({"metadata": {"name": name}, "runs": clean_runs})
+        seen.add(benchmark_id)
+    if seen != expected_ids:
+        raise ResourceReportError("incomplete_native_report")
+    payload = {"version": "1.0", "metadata": {"unit": "byte"}, "benchmarks": normalized}
+    return (json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False) + "\n").encode()
+
+
 def validate_native_json(data: bytes, expected_ids: set[str]) -> dict[str, int]:
     return {benchmark_id: len(samples) for benchmark_id, samples in native_samples(data, expected_ids).items()}
 

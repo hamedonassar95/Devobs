@@ -337,24 +337,27 @@ def _load_pyperf_results(path: pathlib.Path) -> list[BenchmarkResult]:
     return results
 
 
-def _load_pyperf_memory_results(path: pathlib.Path) -> list[object]:
+def _load_pyperf_memory_results(path: pathlib.Path) -> tuple[bytes, list[object]]:
     try:
         import pyperf
-        from performance_intelligence.resource_reporting import MemoryResult, native_samples
+        from performance_intelligence.resource_reporting import (
+            MemoryResult, native_samples, normalize_native_json,
+        )
         with path.open("r", encoding="utf-8") as stream:
             suite = pyperf.BenchmarkSuite.load(stream)
         definitions = {item.benchmark_id: item.name for item in benchmark_definitions()}
         results = [MemoryResult(
             benchmark.get_name(), definitions[benchmark.get_name()], tuple(benchmark.get_values())
         ) for benchmark in suite.get_benchmarks()]
-        raw_samples = native_samples(path.read_bytes(), set(BENCHMARK_NAMES))
+        native = normalize_native_json(path.read_bytes(), set(BENCHMARK_NAMES))
+        raw_samples = native_samples(native, set(BENCHMARK_NAMES))
     except (ImportError, KeyError, OSError, ValueError, TypeError):
         raise BenchmarkValidationError("invalid_pyperf_memory_results") from None
     if (len(results) != len(BENCHMARK_NAMES)
             or {item.benchmark_id for item in results} != set(BENCHMARK_NAMES)
             or raw_samples != {item.benchmark_id: item.samples_bytes for item in results}):
         raise BenchmarkValidationError("incomplete_memory_suite")
-    return results
+    return native, results
 
 
 def run(mode: str, output_dir: pathlib.Path, overwrite: bool = False,
@@ -388,20 +391,23 @@ def run(mode: str, output_dir: pathlib.Path, overwrite: bool = False,
             [sys.executable, "-m", "pyperf", "convert", "--remove-all-metadata",
              str(raw), "-o", str(sanitized)], config.timeout_seconds,
         )
-        run_bounded_command([sys.executable, "-m", "pyperf", "check", str(sanitized)], 30)
         if metric == "memory":
             from .resource_reporting import build_summary as build_memory_summary
             from .resource_reporting import write_run_report as write_memory_report
 
+            native, memory_results = _load_pyperf_memory_results(sanitized)
+            sanitized.write_bytes(native)
+            run_bounded_command([sys.executable, "-m", "pyperf", "check", str(sanitized)], 30)
             summary = build_memory_summary(
-                _load_pyperf_memory_results(sanitized), source_sha=metadata["source_sha"],
+                memory_results, source_sha=metadata["source_sha"],
                 suite_name="devobs", suite_version="1", suite_source_sha=metadata["source_sha"],
                 python_version=metadata["python_version"], platform=metadata["platform"],
                 architecture=metadata["architecture"], measurement_mode=mode,
             )
             return write_memory_report(
-                summary, sanitized.read_bytes(), output_dir, repository_root=ROOT, overwrite=overwrite,
+                summary, native, output_dir, repository_root=ROOT, overwrite=overwrite,
             )
+        run_bounded_command([sys.executable, "-m", "pyperf", "check", str(sanitized)], 30)
         results = _load_pyperf_results(sanitized)
         summary = build_summary(results, **metadata)
         return write_run_reports(
