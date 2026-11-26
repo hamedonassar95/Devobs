@@ -38,11 +38,12 @@ official [`psf/pyperf`](https://github.com/psf/pyperf)
 package used here is also MIT licensed; Devobs consumes the pinned package and
 does not copy its implementation.
 
-The inherited pyperformance project provides an interpreter benchmark suite,
-benchmark workloads/data, and suite tooling. Those interpreter benchmarks are
-not added here: the requested foundation is limited to three already-existing
-Devobs pure operations, and the supplied implementation plan explicitly defers
-pyperformance interpreter integration. No upstream benchmark files or data are
+The upstream [pyperformance documentation](https://pyperformance.readthedocs.io/)
+describes an interpreter benchmark suite, benchmark workloads/data, and suite
+tooling. Those interpreter benchmarks are not added here: the requested
+foundation is limited to three already-existing Devobs pure operations, and the
+supplied implementation plan explicitly defers pyperformance interpreter
+integration. No upstream benchmark files or data are
 executed or imported. A separate reviewed phase can evaluate the suite's
 platform, dependency, license, runtime and data requirements before optional
 integration. Accordingly, this PR does **not** claim that the full upstream
@@ -53,7 +54,7 @@ suite has been transferred.
 | pyperf-based calibrated and repeated local timing | Implemented for the three named offline Devobs functions |
 | pyperformance interpreter workload corpus | Deferred; no upstream workload code or data imported |
 | Run/compare across Python interpreter builds | Not implemented; a future adapter is documented |
-| System tuning and hardware normalization | Deliberately not automated; operator-controlled comparison guidance only |
+| pyperf host tuning and hardware normalization helpers | Deliberately not automated; operator-controlled comparison guidance only |
 | Fork-specific runtime additions | None found in the inspected fork-to-parent diff |
 
 Full transfer of the upstream suite is not included in this bounded foundation
