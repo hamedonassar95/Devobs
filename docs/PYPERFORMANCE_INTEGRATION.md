@@ -66,9 +66,12 @@ and is the source of the runtime allowlist.
 
 The allowlist is enforced in code and reports. Users cannot pass arbitrary
 benchmark names, manifests, source paths, Python executables, or shell commands.
-Smoke mode defaults to the original short eight-group set or accepts an
-explicit selection of up to eight reviewed groups. Statistical mode requires
-an explicit selection of at most three groups to stay within the outer timeout.
+Smoke mode defaults to two small representative groups (`float` and
+`json_dumps`) and accepts an explicit selection of up to eight reviewed groups.
+Statistical mode requires an explicit selection of at most three groups to
+stay within the outer timeout. Some upstream groups expand into many measured
+benchmarks; therefore the default remains intentionally small, while broader
+smoke selections stay opt-in.
 
 The unrestricted upstream suite remains **not enabled**. Deferred workloads
 need third-party packages, undeclared dependencies, local server/socket

@@ -57,7 +57,7 @@ class PyPerformanceAdapterTests(unittest.TestCase):
                          ("float", "json_dumps"))
         self.assertEqual(adapter.validate_benchmark_selection(None, "smoke"),
                          adapter.DEFAULT_SMOKE_BENCHMARKS)
-        self.assertEqual(len(adapter.DEFAULT_SMOKE_BENCHMARKS), 8)
+        self.assertEqual(adapter.DEFAULT_SMOKE_BENCHMARKS, ("float", "json_dumps"))
         for raw, mode in (("arbitrary", "smoke"), ("float,float", "smoke"), ("", "smoke"),
                           ("float,json_dumps,regex_dna,regex_v8", "statistical"), (None, "unknown")):
             with self.subTest(raw=raw, mode=mode), self.assertRaises(adapter.PyPerformanceValidationError):

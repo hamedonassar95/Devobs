@@ -37,8 +37,7 @@ from performance_intelligence.pyperformance_artifacts import (
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 DEFAULT_SMOKE_BENCHMARKS = (
-    "base64", "float", "json_dumps", "json_loads", "regex_compile",
-    "regex_dna", "regex_effbot", "regex_v8",
+    "float", "json_dumps",
 )
 
 
