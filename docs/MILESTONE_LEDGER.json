@@ -3445,6 +3445,17 @@
       "ci_run_id": 45396892901,
       "verification": "VERIFIED 2026-11-24 (GitHub): PR #780 merged exact head cfe63d17a7df8fd85e6483363c2610e138e5a455 as main SHA 7d0a5e16964be7d2a331ee3cd563b50a64125a7a. Exact-head PR CI 45396892901 and push CI 45396878372 SUCCESS; exact-head CodeQL 45396887125 SUCCESS. Post-merge main CI 45397660809 and CodeQL 45397660098 SUCCESS. Production release and controlled incident drill remained skipped by policy.",
       "limitations": "Documentation and inventory-link regression test only; no runtime integration or UI code copied. Existing Devobs GitHub CI reader remains read-only, opt-in and loopback-restricted. Ops dispatch run 45378593746 failed before its send step, which was skipped; the source-repository mismatch is verified while the exact failure-log cause remains UNVERIFIED. No PAT, secret, live database, Firebase, provider setting, paid service, deployment or external write was accessed or changed. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-pyperformance-offline-suite-pr784",
+      "area": "QUALITY",
+      "title": "feat(performance): add offline pyperformance suite adapter",
+      "pr_number": 784,
+      "pr_head_sha": "9ac52dd93931359d6a9a0326c267a052b5ffe771",
+      "merge_sha": "03f2ddfa564092d9cab1dfc5c9a0a008e9761a20",
+      "ci_run_id": 45801704391,
+      "verification": "VERIFIED 2026-11-26 (GitHub): PR #784 merged exact head 9ac52dd93931359d6a9a0326c267a052b5ffe771 as main SHA 03f2ddfa564092d9cab1dfc5c9a0a008e9761a20. Exact-head PR CI 45801704391 and CodeQL 45801700787 SUCCESS. Post-merge main CI 45804140071 and CodeQL 45804138191 SUCCESS. Production release and controlled incident drill were skipped by policy.",
+      "limitations": "PR #784 added a manual offline adapter for eight pinned upstream pyperformance workload groups. It did not enable automatic CI benchmarks, baseline/candidate regression decisions, production actions or AI recommendations. This new branch expands the reviewed allowlist to 50 of 75 groups and inventories all 75; the other 25 remain deferred. No source from the upstream benchmark suite is copied into the application. No cloud service, credential, secret, deployment, P01, AI-9 or Codex runtime gate changed. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [

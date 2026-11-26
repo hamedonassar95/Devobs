@@ -21,14 +21,39 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.data = copy.deepcopy(self.record)
 
     def assert_current_summary(self, summary):
-        self.assertEqual(summary["merged_milestones"], 313)
-        self.assertEqual(summary["latest_pr"], 780)
+        self.assertEqual(summary["merged_milestones"], 314)
+        self.assertEqual(summary["latest_pr"], 784)
 
     def test_current_merged_evidence_and_gates_validate(self):
         result = validate(self.data)
         self.assertGreaterEqual(result["merged_milestones"], 3)
         self.assertGreaterEqual(result["open_gates"], 2)
         self.assertEqual(result["latest_pr"], self.data["milestones"][-1]["pr_number"])
+
+    def test_pr784_merge_is_recorded_with_exact_ci_and_gates_preserved(self):
+        result = validate(self.data)
+        records = {entry["pr_number"]: entry for entry in self.data["milestones"]}
+        entry = records[784]
+        self.assertEqual(entry["id"], "verified-pyperformance-offline-suite-pr784")
+        self.assertEqual(entry["pr_head_sha"], "9ac52dd93931359d6a9a0326c267a052b5ffe771")
+        self.assertEqual(entry["merge_sha"], "03f2ddfa564092d9cab1dfc5c9a0a008e9761a20")
+        self.assertEqual(entry["ci_run_id"], 45801704391)
+        self.assertIn("CodeQL 45801700787 SUCCESS", entry["verification"])
+        self.assertIn("main CI 45804140071", entry["verification"])
+        self.assertIn("CodeQL 45804138191 SUCCESS", entry["verification"])
+        self.assertIn("50 of 75", entry["limitations"])
+        self.assertIn("P01 BLOCKED / NO-GO", entry["limitations"])
+        self.assertIn("AI-9 BLOCKED", entry["limitations"])
+        self.assertIn("Codex runtime OPEN", entry["limitations"])
+        self.assert_current_summary(result)
+        self.assertEqual(
+            {gate["id"]: gate["status"] for gate in self.data["gates"]},
+            {
+                "ai9-detection-quality": "BLOCKED",
+                "p01-managed-saas": "BLOCKED",
+                "codex-agent-runtime-acceptance": "OPEN",
+            },
+        )
 
     def test_pr658_merge_is_recorded_with_exact_shas_ci_and_gates_preserved(self):
         result = validate(self.data)

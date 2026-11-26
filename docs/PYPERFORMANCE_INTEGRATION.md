@@ -54,31 +54,27 @@ These dependencies are optional and separate from production requirements.
 
 ## Workload scope
 
-The adapter accepts only these upstream workload groups, inspected at the
-pinned commit. Their `pyproject.toml` files require `pyperf` and no other
-per-benchmark package; their code uses Python's standard library and fixed or
-seeded benchmark inputs.
-
-| Upstream group and source | Output measurements | Input / behavior reviewed |
-| --- | --- | --- |
-| [`base64`](https://github.com/python/pyperformance/blob/c3550b5bae544706a4541234a05ea105de5f9984/pyperformance/data-files/benchmarks/bm_base64/run_benchmark.py) | 11 encode/decode cases | Fixed-seed deterministic byte inputs |
-| [`float`](https://github.com/python/pyperformance/blob/c3550b5bae544706a4541234a05ea105de5f9984/pyperformance/data-files/benchmarks/bm_float/run_benchmark.py) | `float` | Deterministic artificial numeric workload |
-| [`json_dumps`](https://github.com/python/pyperformance/blob/c3550b5bae544706a4541234a05ea105de5f9984/pyperformance/data-files/benchmarks/bm_json_dumps/run_benchmark.py) | `json_dumps` | Fixed synthetic dictionaries and lists |
-| [`json_loads`](https://github.com/python/pyperformance/blob/c3550b5bae544706a4541234a05ea105de5f9984/pyperformance/data-files/benchmarks/bm_json_loads/run_benchmark.py) | `json_loads` | Fixed-seed synthetic objects |
-| [`regex_compile`](https://github.com/python/pyperformance/blob/c3550b5bae544706a4541234a05ea105de5f9984/pyperformance/data-files/benchmarks/bm_regex_compile/run_benchmark.py) | `regex_compile` | Fixed regular-expression patterns |
-| [`regex_dna`](https://github.com/python/pyperformance/blob/c3550b5bae544706a4541234a05ea105de5f9984/pyperformance/data-files/benchmarks/bm_regex_dna/run_benchmark.py) | `regex_dna` | Deterministically generated sequence inputs |
-| [`regex_effbot`](https://github.com/python/pyperformance/blob/c3550b5bae544706a4541234a05ea105de5f9984/pyperformance/data-files/benchmarks/bm_regex_effbot/run_benchmark.py) | `regex_effbot` | Fixed benchmark strings and expressions |
-| [`regex_v8`](https://github.com/python/pyperformance/blob/c3550b5bae544706a4541234a05ea105de5f9984/pyperformance/data-files/benchmarks/bm_regex_compile/bm_regex_v8.py) | `regex_v8` | Static benchmark patterns; no network access |
+The pinned upstream archive contains 75 benchmark groups. Static review at
+that exact commit found 50 groups that can run without per-benchmark packages
+or external services. All 50 are now allowlisted with an explicit output map;
+the other 25 remain inventoried but are rejected by the adapter. The complete
+group-by-group source, output and deferral evidence is in the
+[PyPerformance workload audit](PYPERFORMANCE_WORKLOAD_AUDIT_2026-11-26.md).
+The machine-readable inventory is
+[`pyperformance_workload_inventory.json`](../scripts/performance_intelligence/pyperformance_workload_inventory.json)
+and is the source of the runtime allowlist.
 
 The allowlist is enforced in code and reports. Users cannot pass arbitrary
 benchmark names, manifests, source paths, Python executables, or shell commands.
-Smoke mode can run the approved set or a subset. Statistical mode requires an
-explicit selection of at most three groups to stay within the outer timeout.
+Smoke mode defaults to the original short eight-group set or accepts an
+explicit selection of up to eight reviewed groups. Statistical mode requires
+an explicit selection of at most three groups to stay within the outer timeout.
 
-The full upstream suite remains **not enabled**. Some workloads have third-party
-requirements, external binaries, server or socket behavior, large data files,
-or more complex build steps. Each one must be inspected and added to a new
-reviewed dependency lock before it can run offline. The adapter does not expose
+The unrestricted upstream suite remains **not enabled**. Deferred workloads
+need third-party packages, undeclared dependencies, local server/socket
+behavior, external programs or more involved side effects. Each one needs its
+own reviewed dependency lock and bounded test before it can run offline. The
+adapter does not expose
 `compile`, `compile_all`, `upload`, arbitrary `show`/`compare` paths, or venv
 creation/recreation/removal. `pyperformance`'s default suite setup can install
 per-benchmark requirements, so running its unrestricted command is outside this
@@ -194,12 +190,14 @@ separate schema and review.
 
 ## Future integrations and rollback
 
-The following stay planned: audit and lock the remaining upstream workloads;
-baseline/candidate comparison; statistical regression detection; Linux memory
+The 75-group source audit and current offline allowlist are recorded in
+[`PYPERFORMANCE_WORKLOAD_AUDIT_2026-11-26.md`](PYPERFORMANCE_WORKLOAD_AUDIT_2026-11-26.md).
+The 25 deferred groups need workload-specific dependency/side-effect reviews.
+Baseline/candidate comparison; statistical regression detection; Linux memory
 metrics; reusable CI workflows; deterministic recommendations; optional AI
 analysis with human approval; and Prometheus/Grafana reporting through existing
-telemetry interfaces. This change adds no OpenTelemetry duplicate, workflow,
-scheduled job, external AI call or production gate.
+telemetry interfaces remain planned. This change adds no OpenTelemetry
+duplicate, workflow, scheduled job, external AI call or production gate.
 
 Rollback is local: stop invoking the adapter and remove the optional temporary
 environment, wheelhouse, source archive and reports using ordinary local

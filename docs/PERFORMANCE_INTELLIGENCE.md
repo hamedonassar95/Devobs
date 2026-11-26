@@ -48,16 +48,17 @@ places all temporary environments and reports outside the repository.
 The upstream package is versioned `1.14.0` at the pinned source commit, while
 PyPI's `1.14.0` release predates that commit. The adapter therefore records both
 the package version and the exact verified upstream commit. The full suite is
-**not** enabled: the current scope allows only reviewed standard-library
-workloads. Other benchmark dependencies and behaviors remain blocked pending
-their own review; `compile`, `compile_all`, `upload`, and venv removal are not
-exposed by the adapter.
+**not** enabled: the current scope allows 50 reviewed standard-library
+workloads. The pinned inventory covers all 75 upstream groups; 25 remain
+deferred for missing dependency locks or workload-specific process, socket or
+side-effect review. See the [complete workload audit](PYPERFORMANCE_WORKLOAD_AUDIT_2026-11-26.md).
+`compile`, `compile_all`, `upload`, and venv removal are not exposed by the adapter.
 
 | Capability in the upstream project | This Devobs phase |
 | --- | --- |
 | pyperf-based calibrated and repeated local timing | Implemented for the three named offline Devobs functions |
-| pyperformance interpreter workload corpus | Optional pinned source integration; 8 reviewed benchmark groups can run offline |
-| Full upstream workload corpus and third-party dependency set | Not enabled; each additional workload requires dependency and side-effect review |
+| pyperformance interpreter workload corpus | Optional pinned source integration; 50 reviewed benchmark groups can run offline, with 25 groups explicitly deferred |
+| Full upstream workload corpus and third-party dependency set | Not enabled; deferred groups require separate dependency and side-effect review |
 | Run/compare across Python interpreter builds | pyperformance's upstream tools remain available only for separately reviewed local use; Devobs does not expose arbitrary interpreters |
 | pyperf host tuning and hardware normalization helpers | Deliberately not automated; operator-controlled comparison guidance only |
 | Fork-specific runtime additions | None found in the inspected fork-to-parent diff |
