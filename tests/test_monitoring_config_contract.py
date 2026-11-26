@@ -39,7 +39,9 @@ class MonitoringConfigContractTests(unittest.TestCase):
         self.assertIn("cap_drop:\n      - ALL", exporter)
         self.assertIn("no-new-privileges:true", exporter)
         self.assertNotIn("ports:", exporter)
-        self.assertEqual(exporter.count("read_only: true"), 4)
+        self.assertEqual(exporter.count("read_only: true"), 5)
+        self.assertIn("--collector.textfile.directory=/var/lib/node_exporter/textfile", exporter)
+        self.assertIn("source: ./performance-metrics", exporter)
         for flag in ("path.procfs=/host/proc", "path.sysfs=/host/sys", "path.rootfs=/host"):
             self.assertIn(flag, exporter)
 

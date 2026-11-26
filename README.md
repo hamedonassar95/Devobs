@@ -3,11 +3,11 @@
 ## Offline Performance Intelligence foundation
 
 [Performance Intelligence](docs/PERFORMANCE_INTELLIGENCE.md) documents the
-manual, offline-first Python benchmark engine, its pinned optional dependencies,
-privacy-minimized reports, reproducibility limits, and the next integration
-phase. It measures three existing deterministic Devobs operations and does not
-change CI, production services, deployment gates, P01, AI-9, or Codex runtime
-readiness.
+manual, offline-first Python benchmark engine, pinned optional dependencies,
+privacy-minimized reports, Linux sampled-memory measurements, same-host
+statistical comparisons, and manual Prometheus/Grafana export. It measures
+deterministic local workloads only; it does not change CI, production services,
+deployment gates, P01, AI-9, or Codex runtime readiness.
 
 [Optional pyperformance integration](docs/PYPERFORMANCE_INTEGRATION.md) adds a
 manually run, network-disabled adapter for 50 of the 75 groups in the pinned

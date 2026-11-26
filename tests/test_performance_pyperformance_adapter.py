@@ -79,6 +79,26 @@ class PyPerformanceAdapterTests(unittest.TestCase):
                     sys.executable, source, ("unknown",), "smoke", Path(temporary) / "raw.json"
                 )
 
+    def test_upstream_memory_mode_uses_only_fixed_memory_flag(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            source = Path(temporary) / "source"
+            source.mkdir()
+            command = adapter.pyperformance_command(
+                sys.executable, source, ("float",), "smoke", Path(temporary) / "raw.json",
+                metric="memory",
+            )
+        self.assertIn("--track-memory", command)
+        self.assertIn("--benchmarks=float", command)
+        self.assertFalse(any("--python=" in item and item.endswith("arbitrary") for item in command))
+
+    def test_memory_mode_rejects_non_linux_before_using_external_artifacts(self):
+        with mock.patch.object(adapter.platform, "system", return_value="Darwin"):
+            with self.assertRaisesRegex(adapter.PyPerformanceValidationError, "linux_only"):
+                adapter.run(
+                    "smoke", "float", Path("/missing/source"), Path("/missing/wheels"),
+                    Path("/tmp/out"), metric="memory",
+                )
+
     def test_run_fails_closed_for_missing_environment_and_worker_failure(self):
         with mock.patch.object(adapter, "require_runtime_toolchain",
                                 side_effect=adapter.PyPerformanceExecutionError("toolchain_unavailable")):

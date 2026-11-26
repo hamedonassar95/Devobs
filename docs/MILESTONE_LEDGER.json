@@ -3456,6 +3456,17 @@
       "ci_run_id": 45801704391,
       "verification": "VERIFIED 2026-11-26 (GitHub): PR #784 merged exact head 9ac52dd93931359d6a9a0326c267a052b5ffe771 as main SHA 03f2ddfa564092d9cab1dfc5c9a0a008e9761a20. Exact-head PR CI 45801704391 and CodeQL 45801700787 SUCCESS. Post-merge main CI 45804140071 and CodeQL 45804138191 SUCCESS. Production release and controlled incident drill were skipped by policy.",
       "limitations": "PR #784 added a manual offline adapter for eight pinned upstream pyperformance workload groups. It did not enable automatic CI benchmarks, baseline/candidate regression decisions, production actions or AI recommendations. This new branch expands the reviewed allowlist to 50 of 75 groups and inventories all 75; the other 25 remain deferred. No source from the upstream benchmark suite is copied into the application. No cloud service, credential, secret, deployment, P01, AI-9 or Codex runtime gate changed. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-pyperformance-offline-suite-reconciliation-pr785",
+      "area": "QUALITY",
+      "title": "chore: reconcile pyperformance offline-suite evidence",
+      "pr_number": 785,
+      "pr_head_sha": "3f8c9c14936bb47cab388b5136daee041ca7d801",
+      "merge_sha": "1fc88930a9e66a318009b92f38510907b1793b1a",
+      "ci_run_id": 45811317188,
+      "verification": "VERIFIED 2026-11-26 (GitHub): PR #785 merged exact head 3f8c9c14936bb47cab388b5136daee041ca7d801 as main SHA 1fc88930a9e66a318009b92f38510907b1793b1a. Exact-head CI 45811214836 and 45811317188 SUCCESS; CodeQL 45811311121 SUCCESS. Post-merge main CI 45812551102 and CodeQL 45812549606 SUCCESS.",
+      "limitations": "PR #785 reconciled the already-merged offline pyperformance inventory and exact CI evidence; it added no runtime implementation or automatic benchmark workflow. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN remain unchanged."
     }
   ],
   "gates": [

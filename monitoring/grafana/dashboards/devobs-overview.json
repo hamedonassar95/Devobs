@@ -296,6 +296,101 @@
       ],
       "title": "Local API request rate",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Latest manually exported offline benchmark report. It is not a live service measurement and updates only when an operator exports another report.",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 4,
+          "min": 0,
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 32
+      },
+      "id": 9,
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "devobs_benchmark_mean_seconds",
+          "legendFormat": "{{suite}} {{benchmark_id}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Offline benchmark mean duration",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Sampled peak private bytes from a manually executed Linux memory benchmark. This is distinct from continuous host memory telemetry.",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0,
+          "min": 0,
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 32
+      },
+      "id": 10,
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "devobs_benchmark_peak_private_bytes_mean",
+          "legendFormat": "{{suite}} {{benchmark_id}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Offline benchmark memory",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Candidate minus baseline mean as a percentage. Positive values mean slower execution or more private memory. Exports are advisory and never gates.",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "id": 11,
+      "targets": [
+        {
+          "editorMode": "code",
+          "expr": "devobs_benchmark_change_percent",
+          "legendFormat": "{{benchmark_id}} {{comparison_kind}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Offline baseline/candidate comparison",
+      "type": "timeseries"
     }
   ],
   "refresh": "30s",

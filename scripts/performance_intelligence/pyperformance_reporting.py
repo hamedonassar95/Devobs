@@ -7,6 +7,7 @@ import json
 import math
 import os
 import pathlib
+import re
 import statistics
 import tempfile
 from dataclasses import dataclass
@@ -88,9 +89,7 @@ def _validate_metadata(metadata: dict[str, object]) -> None:
         raise ReportValidationError("invalid_source_revision")
     version = metadata["python_version"]
     if (not isinstance(version, str) or len(version) > 24
-            or not version.startswith("3.12.")
-            or not all(part.isdigit() for part in version.split("."))
-            or len(version.split(".")) != 3):
+            or not re.fullmatch(r"3\.(?:12|15)\.\d{1,3}", version)):
         raise ReportValidationError("invalid_python_version")
     if not isinstance(metadata["platform"], str) or metadata["platform"] not in {"linux", "macos", "windows"}:
         raise ReportValidationError("invalid_platform")

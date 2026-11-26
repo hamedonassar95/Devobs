@@ -21,8 +21,8 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.data = copy.deepcopy(self.record)
 
     def assert_current_summary(self, summary):
-        self.assertEqual(summary["merged_milestones"], 314)
-        self.assertEqual(summary["latest_pr"], 784)
+        self.assertEqual(summary["merged_milestones"], 315)
+        self.assertEqual(summary["latest_pr"], 785)
 
     def test_current_merged_evidence_and_gates_validate(self):
         result = validate(self.data)
@@ -45,6 +45,28 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("P01 BLOCKED / NO-GO", entry["limitations"])
         self.assertIn("AI-9 BLOCKED", entry["limitations"])
         self.assertIn("Codex runtime OPEN", entry["limitations"])
+        self.assert_current_summary(result)
+        self.assertEqual(
+            {gate["id"]: gate["status"] for gate in self.data["gates"]},
+            {
+                "ai9-detection-quality": "BLOCKED",
+                "p01-managed-saas": "BLOCKED",
+                "codex-agent-runtime-acceptance": "OPEN",
+            },
+        )
+
+    def test_pr785_pyperformance_reconciliation_is_recorded_and_gates_stay_closed(self):
+        result = validate(self.data)
+        records = {entry["pr_number"]: entry for entry in self.data["milestones"]}
+        entry = records[785]
+        self.assertEqual(entry["id"], "verified-pyperformance-offline-suite-reconciliation-pr785")
+        self.assertEqual(entry["pr_head_sha"], "3f8c9c14936bb47cab388b5136daee041ca7d801")
+        self.assertEqual(entry["merge_sha"], "1fc88930a9e66a318009b92f38510907b1793b1a")
+        self.assertEqual(entry["ci_run_id"], 45811317188)
+        self.assertIn("45811214836 and 45811317188 SUCCESS", entry["verification"])
+        self.assertIn("CodeQL 45811311121 SUCCESS", entry["verification"])
+        self.assertIn("main CI 45812551102", entry["verification"])
+        self.assertIn("CodeQL 45812549606 SUCCESS", entry["verification"])
         self.assert_current_summary(result)
         self.assertEqual(
             {gate["id"]: gate["status"] for gate in self.data["gates"]},

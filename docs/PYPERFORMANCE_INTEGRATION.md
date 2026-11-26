@@ -130,7 +130,7 @@ Run one short bounded smoke workload:
 ```sh
 PYTHONPATH=scripts /tmp/devobs-pyperformance-venv/bin/python \
   -m performance_intelligence.pyperformance_adapter run \
-  --mode smoke --benchmark float \
+    --mode smoke --benchmark float --metric time \
   --source-archive /tmp/devobs-pyperformance-source/c3550b5bae544706a4541234a05ea105de5f9984 \
   --wheelhouse /tmp/devobs-pyperformance-wheelhouse \
   --output-dir /tmp/devobs-pyperformance-results
@@ -152,6 +152,14 @@ not statistically useful evidence. `statistical` uses upstream `--rigorous`,
 but remains sensitive to machine load, power policy, thermal state, OS
 scheduling and interpreter build. Neither mode automatically compares a
 baseline or claims a regression/improvement.
+
+Memory can be selected independently with `--metric memory` on Linux. This adds
+pyperformance's fixed `--track-memory` option. The pinned pyperf 2.11.0 Linux
+sampler reads the current worker's `/proc/self/smaps` and samples the sum of
+`Private_Clean` and `Private_Dirty` approximately every 10 ms. Reports label it
+`peak_private_bytes`; it is not RSS or total host memory and may miss a peak
+shorter than the sampling interval. Use the same mode and metric for a
+comparison.
 
 ## Reports
 
@@ -183,21 +191,31 @@ Use pyperf's documented read-only inspection commands on generated native JSON:
   /tmp/devobs-pyperformance-results/devobs-pyperformance-<sha>-smoke.pyperf.json
 ```
 
-The suite's upstream compare/show features remain available for later deliberate
-local analysis, but the adapter does not accept arbitrary report paths or
-baseline files. Baseline/candidate comparison and regression policy need a
-separate schema and review.
+The suite's upstream compare/show commands remain unavailable through this
+adapter. Devobs provides a separate bounded comparison command for validated
+summary reports; it requires at least 20 values per benchmark, matching suite,
+metric, benchmark set, platform and architecture, and a same-physical-host
+confirmation. Python-version comparisons need an additional explicit opt-in.
+It calculates a Welch comparison, an unadjusted 95% confidence interval, and a
+Holm adjustment across the benchmark set. Results are advisory and do not gate
+CI, release or deployment. The operator's same-host claim is not independently
+verifiable by the tool.
+
+An optional local Prometheus textfile export accepts a validated JSON summary
+or comparison. It writes `monitoring/performance-metrics/devobs_performance.prom`
+only when invoked, and replacement requires `--overwrite`. The existing Node
+Exporter `linux-host` profile reads the file using its textfile collector; no
+benchmark or exporter runs on a schedule. See
+[`monitoring/README.md`](../monitoring/README.md) for local setup and rollback.
 
 ## Future integrations and rollback
 
 The 75-group source audit and current offline allowlist are recorded in
 [`PYPERFORMANCE_WORKLOAD_AUDIT_2026-11-26.md`](PYPERFORMANCE_WORKLOAD_AUDIT_2026-11-26.md).
 The 25 deferred groups need workload-specific dependency/side-effect reviews.
-Baseline/candidate comparison; statistical regression detection; Linux memory
-metrics; reusable CI workflows; deterministic recommendations; optional AI
-analysis with human approval; and Prometheus/Grafana reporting through existing
-telemetry interfaces remain planned. This change adds no OpenTelemetry
-duplicate, workflow, scheduled job, external AI call or production gate.
+Reusable CI workflows; deterministic recommendations; and optional AI analysis
+with human approval remain planned. This change adds no OpenTelemetry duplicate,
+workflow, scheduled job, external AI call or production gate.
 
 Rollback is local: stop invoking the adapter and remove the optional temporary
 environment, wheelhouse, source archive and reports using ordinary local
@@ -208,8 +226,9 @@ Codex runtime acceptance remains OPEN.
 ### بالعربية
 
 أضفنا تكاملًا اختياريًا ومحدودًا مع `pyperformance` الرسمي. يعمل يدويًا فقط،
-ويقبل ثماني مجموعات فُحصت عند commit محدد، ويتحقق من SHA للمصدر والعجلات، ويمنع
-اتصال pip بالشبكة أثناء القياس. لا نشغّل بقية المجموعة الكاملة لأن بعض اختبارات
-المصدر تحتاج حزمًا أو أدوات أو سلوكًا لم يُراجع بعد. لا يتغير تشغيل التطبيق أو
-CI، وقياس `smoke` لا يثبت تحسنًا. يلزم مراجعة مستقلة قبل توسيع القائمة أو ربط
-النتائج ببوابات الإصدار.
+ويقبل 50 مجموعة مراجعة من أصل 75، ويتحقق من SHA للمصدر والعجلات، ويمنع اتصال
+pip بالشبكة أثناء القياس. يمكنه قياس زمن التنفيذ أو الذاكرة الخاصة المقدرة على
+Linux، ومقارنة التقارير الإحصائية المتوافقة، وتصديرها يدويًا إلى جامع
+Prometheus المحلي. نتائج المقارنة استشارية ولا تتحكم بـCI أو النشر. لا نشغّل
+بقية المجموعات لأن اعتمادياتها أو آثارها الجانبية لم تُراجع. لا يتغير تشغيل
+التطبيق أو CI، وقياس `smoke` لا يثبت تحسنًا.

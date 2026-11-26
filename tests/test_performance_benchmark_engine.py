@@ -83,10 +83,12 @@ class BenchmarkEngineTests(unittest.TestCase):
             "measurement_mode": "smoke",
         }
         engine.validate_metadata(metadata)
+        engine.validate_metadata(metadata | {"python_version": "3.15.0"})
         for invalid in (
             {key: value for key, value in metadata.items() if key != "source_sha"},
             {**metadata, "hostname": "private-host"},
             {**metadata, "python_version": "unknown"},
+            {**metadata, "python_version": "3.13.0"},
         ):
             with self.subTest(invalid=invalid), self.assertRaises(
                 engine.BenchmarkValidationError
@@ -140,6 +142,27 @@ class BenchmarkEngineTests(unittest.TestCase):
         self.assertIn("--processes", command)
         self.assertIn("--values", command)
         self.assertNotIn("shell", command)
+
+    def test_memory_measurement_uses_pyperf_tracking_flag(self):
+        config = engine.MeasurementConfig.for_mode("smoke")
+        command = engine.pyperf_command(
+            python_executable="/venv/bin/python",
+            benchmark_script=ROOT / "benchmarks" / "devobs_benchmarks.py",
+            output_path=Path("/tmp/raw-memory.json"),
+            config=config,
+            metric="memory",
+        )
+        self.assertIn("--track-memory", command)
+        with self.assertRaises(engine.BenchmarkValidationError):
+            engine.pyperf_command(
+                "/venv/bin/python", ROOT / "benchmarks" / "devobs_benchmarks.py",
+                Path("/tmp/raw.json"), config, metric="shell",
+            )
+
+    def test_memory_run_rejects_non_linux_without_starting_a_benchmark(self):
+        with mock.patch.object(engine.platform, "system", return_value="Darwin"):
+            with self.assertRaisesRegex(engine.BenchmarkValidationError, "linux_only"):
+                engine.run("smoke", Path("/tmp/out"), metric="memory")
 
 
 if __name__ == "__main__":

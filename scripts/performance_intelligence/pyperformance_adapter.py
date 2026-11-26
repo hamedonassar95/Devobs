@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import pathlib
+import platform
 import shutil
 import sys
 import tempfile
@@ -16,6 +17,7 @@ from performance_intelligence import benchmark_engine as engine
 from performance_intelligence import pyperformance_reporting as reporting
 from performance_intelligence.pyperformance_contract import (
     PY_PERFORMANCE_COMMIT,
+    PY_PERFORMANCE_VERSION,
     SAFE_BENCHMARK_NAMES,
     SAFE_BENCHMARK_OUTPUTS,
 )
@@ -77,14 +79,18 @@ def validate_benchmark_selection(raw: str | None, mode: str) -> tuple[str, ...]:
 
 def pyperformance_command(python_executable: str, source_root: pathlib.Path,
                           benchmark_names: tuple[str, ...], mode: str,
-                          output_path: pathlib.Path) -> list[str]:
+                          output_path: pathlib.Path, metric: str = "time") -> list[str]:
     config = MeasurementConfig.for_mode(mode)
+    if metric not in {"time", "memory"}:
+        raise PyPerformanceValidationError("invalid_measurement_metric")
+    if metric == "memory" and platform.system().lower() != "linux":
+        raise PyPerformanceValidationError("memory_tracking_linux_only")
     if (not isinstance(source_root, pathlib.Path) or not source_root.is_dir() or source_root.is_symlink()
             or not benchmark_names or any(name not in SAFE_BENCHMARK_NAMES for name in benchmark_names)
             or len(benchmark_names) > config.max_benchmarks):
         raise PyPerformanceValidationError("benchmark_not_allowlisted_or_limit_exceeded")
     mode_flag = "--fast" if mode == "smoke" else "--rigorous"
-    return [
+    command = [
         python_executable, "-m", "pyperformance", "run", mode_flag,
         f"--timeout={config.benchmark_timeout_seconds}",
         f"--benchmarks={','.join(benchmark_names)}",
@@ -92,6 +98,9 @@ def pyperformance_command(python_executable: str, source_root: pathlib.Path,
         f"--inherit-environ={','.join(POSIX_INHERITED_PIP)}",
         f"--output={output_path}",
     ]
+    if metric == "memory":
+        command.append("--track-memory")
+    return command
 
 
 def _expected_output_names(benchmarks: tuple[str, ...]) -> set[str]:
@@ -123,6 +132,29 @@ def _load_results(path: pathlib.Path, expected: set[str]) -> tuple[bytes, list[r
     return api_normalized, results
 
 
+def _load_memory_results(path: pathlib.Path, expected: set[str]) -> tuple[bytes, list[object]]:
+    try:
+        data = path.read_bytes()
+        from performance_intelligence.resource_reporting import MemoryResult, native_samples
+        import pyperf
+        with path.open("r", encoding="utf-8") as stream:
+            suite = pyperf.BenchmarkSuite.load(stream)
+        results = [
+            MemoryResult(f"pyperformance.{item.get_name()}.v1", item.get_name(), tuple(item.get_values()))
+            for item in suite.get_benchmarks()
+        ]
+        expected_ids = {f"pyperformance.{name}.v1" for name in expected}
+        source_samples = native_samples(data, expected_ids)
+        if ({item.benchmark_name for item in results} != expected
+                or source_samples != {item.benchmark_id: item.samples_bytes for item in results}):
+            raise PyPerformanceValidationError("incomplete_memory_suite")
+    except PyPerformanceValidationError:
+        raise
+    except (ImportError, KeyError, OSError, UnicodeError, ValueError, TypeError):
+        raise PyPerformanceValidationError("invalid_pyperf_memory_results") from None
+    return data, results
+
+
 def _safe_output_dir(output_dir: pathlib.Path) -> pathlib.Path:
     output_dir = pathlib.Path(output_dir)
     if output_dir.exists() and output_dir.is_symlink():
@@ -137,8 +169,12 @@ def _safe_output_dir(output_dir: pathlib.Path) -> pathlib.Path:
 
 def run(mode: str, benchmark_selection: str | None, source_archive: pathlib.Path,
         wheelhouse: pathlib.Path, output_dir: pathlib.Path,
-        overwrite: bool = False) -> tuple[pathlib.Path, ...]:
+        overwrite: bool = False, metric: str = "time") -> tuple[pathlib.Path, ...]:
     config = MeasurementConfig.for_mode(mode)
+    if metric not in {"time", "memory"}:
+        raise PyPerformanceValidationError("invalid_measurement_metric")
+    if metric == "memory" and platform.system().lower() != "linux":
+        raise PyPerformanceValidationError("memory_tracking_linux_only")
     benchmarks = validate_benchmark_selection(benchmark_selection, mode)
     require_runtime_toolchain()
     validate_source_lock()
@@ -146,7 +182,11 @@ def run(mode: str, benchmark_selection: str | None, source_archive: pathlib.Path
     source_archive = verify_source_archive(pathlib.Path(source_archive))
     validate_wheelhouse(pathlib.Path(wheelhouse))
     output_dir = _safe_output_dir(pathlib.Path(output_dir))
-    reporting.preflight_destinations(output_dir, source_sha, mode, overwrite)
+    if metric == "time":
+        reporting.preflight_destinations(output_dir, source_sha, mode, overwrite)
+    else:
+        from performance_intelligence.resource_reporting import preflight_run_destinations
+        preflight_run_destinations(output_dir, source_sha, mode, overwrite, "pyperformance")
     expected = _expected_output_names(benchmarks)
     with tempfile.TemporaryDirectory(prefix="devobs-pyperf-", dir=tempfile.gettempdir()) as temporary:
         work_dir = pathlib.Path(temporary)
@@ -163,14 +203,17 @@ def run(mode: str, benchmark_selection: str | None, source_archive: pathlib.Path
         converted = work_dir / "converted-pyperf.json"
         sanitized = work_dir / "sanitized-pyperf.json"
         env = build_child_environment(work_dir, wheels, source_root)
-        command = pyperformance_command(sys.executable, source_root, benchmarks, mode, raw)
+        command = pyperformance_command(sys.executable, source_root, benchmarks, mode, raw, metric)
         try:
             engine.run_bounded_command(command, config.suite_timeout_seconds, env=env, cwd=work_dir)
             engine.run_bounded_command(
                 [sys.executable, "-m", "pyperf", "convert", "--remove-all-metadata",
                  str(raw), "-o", str(converted)], 60, env=env, cwd=work_dir,
             )
-            native, results = _load_results(converted, expected)
+            if metric == "time":
+                native, results = _load_results(converted, expected)
+            else:
+                native, results = _load_memory_results(converted, expected)
             sanitized.write_bytes(native)
             engine.run_bounded_command(
                 [sys.executable, "-m", "pyperf", "check", str(sanitized)], 30, env=env, cwd=work_dir,
@@ -178,6 +221,18 @@ def run(mode: str, benchmark_selection: str | None, source_archive: pathlib.Path
         except engine.BenchmarkExecutionError as exc:
             raise PyPerformanceExecutionError(str(exc)) from None
         metadata = engine.safe_metadata(source_sha, mode)
+        if metric == "memory":
+            from performance_intelligence.resource_reporting import build_summary, write_run_report
+            summary = build_summary(
+                results, source_sha=source_sha, suite_name="pyperformance",
+                suite_version=PY_PERFORMANCE_VERSION, suite_source_sha=PY_PERFORMANCE_COMMIT,
+                python_version=metadata["python_version"], platform=metadata["platform"],
+                architecture=metadata["architecture"], measurement_mode=mode,
+            )
+            output_dir.mkdir(parents=True, exist_ok=True)
+            return write_run_report(
+                summary, native, output_dir, repository_root=ROOT, overwrite=overwrite,
+            )
         summary = reporting.build_summary(
             results,
             source_sha=source_sha,
@@ -196,6 +251,8 @@ def main(argv: list[str] | None = None) -> int:
     subparsers = parser.add_subparsers(dest="action", required=True)
     run_parser = subparsers.add_parser("run", help="run only reviewed offline pyperformance workloads")
     run_parser.add_argument("--mode", choices=("smoke", "statistical"), default="smoke")
+    run_parser.add_argument("--metric", choices=("time", "memory"), default="time",
+                            help="execution time or sampled peak private memory (Linux only)")
     run_parser.add_argument("--benchmark", help="comma-separated reviewed benchmark names")
     run_parser.add_argument("--source-archive", type=pathlib.Path, required=True)
     run_parser.add_argument("--wheelhouse", type=pathlib.Path, required=True)
@@ -205,7 +262,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         outputs = run(args.mode, args.benchmark, args.source_archive, args.wheelhouse,
-                      args.output_dir, args.overwrite)
+                      args.output_dir, args.overwrite, args.metric)
     except (PyPerformanceValidationError, PyPerformanceExecutionError,
             reporting.ReportWriteError, engine.BenchmarkValidationError,
             engine.BenchmarkExecutionError, OSError, ValueError):
