@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 import tempfile
 import unittest
@@ -111,6 +112,20 @@ class BenchmarkEngineTests(unittest.TestCase):
         with self.assertRaisesRegex(engine.BenchmarkExecutionError, "worker_failed"):
             engine.run_bounded_command(
                 [sys.executable, "-c", "raise SystemExit(3)"], timeout_seconds=5
+            )
+
+    def test_bounded_process_accepts_only_explicit_environment_and_working_directory(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            result = engine.run_bounded_command(
+                [sys.executable, "-c", "import os; print(os.getenv('DEVOBS_FIXTURE')); print(os.getcwd())"],
+                timeout_seconds=5,
+                env={"DEVOBS_FIXTURE": "synthetic", "PATH": os.defpath},
+                cwd=Path(temporary),
+            )
+        self.assertEqual(result.stdout.splitlines(), ["synthetic", temporary])
+        with self.assertRaisesRegex(engine.BenchmarkValidationError, "process_environment"):
+            engine.run_bounded_command(
+                [sys.executable, "-c", "pass"], timeout_seconds=5, env={"BAD": "contains\0null"}
             )
 
     def test_benchmark_commands_are_argument_vectors_without_shell(self):

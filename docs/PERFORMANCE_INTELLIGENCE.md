@@ -38,30 +38,33 @@ official [`psf/pyperf`](https://github.com/psf/pyperf)
 package used here is also MIT licensed; Devobs consumes the pinned package and
 does not copy its implementation.
 
-The upstream [pyperformance documentation](https://pyperformance.readthedocs.io/)
-describes an interpreter benchmark suite, benchmark workloads/data, and suite
-tooling. Those interpreter benchmarks are not added here: the requested
-foundation is limited to three already-existing Devobs pure operations, and the
-supplied implementation plan explicitly defers pyperformance interpreter
-integration. No upstream benchmark files or data are
-executed or imported. A separate reviewed phase can evaluate the suite's
-platform, dependency, license, runtime and data requirements before optional
-integration. Accordingly, this PR does **not** claim that the full upstream
-suite has been transferred.
+The optional [pyperformance suite integration](PYPERFORMANCE_INTEGRATION.md)
+adds a separate, manually invoked adapter for the pinned upstream source
+revision. It does not copy upstream source into Devobs. The adapter verifies the
+source archive SHA-256, accepts only a fixed list of reviewed workloads, uses an
+exact hash-verified wheelhouse, disables package indexes during execution, and
+places all temporary environments and reports outside the repository.
+
+The upstream package is versioned `1.14.0` at the pinned source commit, while
+PyPI's `1.14.0` release predates that commit. The adapter therefore records both
+the package version and the exact verified upstream commit. The full suite is
+**not** enabled: the current scope allows only reviewed standard-library
+workloads. Other benchmark dependencies and behaviors remain blocked pending
+their own review; `compile`, `compile_all`, `upload`, and venv removal are not
+exposed by the adapter.
 
 | Capability in the upstream project | This Devobs phase |
 | --- | --- |
 | pyperf-based calibrated and repeated local timing | Implemented for the three named offline Devobs functions |
-| pyperformance interpreter workload corpus | Deferred; no upstream workload code or data imported |
-| Run/compare across Python interpreter builds | Not implemented; a future adapter is documented |
+| pyperformance interpreter workload corpus | Optional pinned source integration; 8 reviewed benchmark groups can run offline |
+| Full upstream workload corpus and third-party dependency set | Not enabled; each additional workload requires dependency and side-effect review |
+| Run/compare across Python interpreter builds | pyperformance's upstream tools remain available only for separately reviewed local use; Devobs does not expose arbitrary interpreters |
 | pyperf host tuning and hardware normalization helpers | Deliberately not automated; operator-controlled comparison guidance only |
 | Fork-specific runtime additions | None found in the inspected fork-to-parent diff |
 
-Full transfer of the upstream suite is not included in this bounded foundation
-PR. The supplied implementation scope explicitly defers interpreter-suite
-integration and forbids copying the upstream benchmark implementation. A
-separate review must reconcile that scope before any suite import or adapter is
-added.
+This is an optional adapter, not a wholesale fork or complete suite transfer.
+The integration guide records the source revision, artifact digests, approved
+workload subset, exact setup commands, limitations and next review steps.
 
 ## Dependency and installation
 

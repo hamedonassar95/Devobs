@@ -214,10 +214,12 @@ def pyperf_command(python_executable: str, benchmark_script: pathlib.Path,
             "--timeout", str(config.worker_timeout_seconds)]
 
 
-def _execute_process(command: list[str], timeout_seconds: int) -> subprocess.CompletedProcess[str]:
+def _execute_process(command: list[str], timeout_seconds: int, *,
+                     env: dict[str, str] | None = None,
+                     cwd: pathlib.Path | None = None) -> subprocess.CompletedProcess[str]:
     process = subprocess.Popen(  # nosec B603 - fixed benchmark script argv; shell stays disabled.
         command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-        start_new_session=(os.name == "posix"),
+        start_new_session=(os.name == "posix"), env=env, cwd=cwd,
     )
     try:
         stdout, stderr = process.communicate(timeout=timeout_seconds)
@@ -234,12 +236,21 @@ def _execute_process(command: list[str], timeout_seconds: int) -> subprocess.Com
     return subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
 
 
-def run_bounded_command(command: list[str], timeout_seconds: int) -> subprocess.CompletedProcess[str]:
+def run_bounded_command(command: list[str], timeout_seconds: int, *,
+                        env: dict[str, str] | None = None,
+                        cwd: pathlib.Path | None = None) -> subprocess.CompletedProcess[str]:
     if (type(command) is not list or not command or any(type(part) is not str or not part for part in command)
             or type(timeout_seconds) is not int or not 1 <= timeout_seconds <= 900):
         raise BenchmarkValidationError("invalid_process_request")
+    if env is not None and (type(env) is not dict or any(
+        type(key) is not str or not key or "=" in key or type(value) is not str or "\0" in value
+        for key, value in env.items()
+    )):
+        raise BenchmarkValidationError("invalid_process_environment")
+    if cwd is not None and (not isinstance(cwd, pathlib.Path) or not cwd.is_dir() or cwd.is_symlink()):
+        raise BenchmarkValidationError("invalid_process_working_directory")
     try:
-        result = _execute_process(command, timeout_seconds)
+        result = _execute_process(command, timeout_seconds, env=env, cwd=cwd)
     except subprocess.TimeoutExpired:
         raise BenchmarkExecutionError("benchmark_timeout") from None
     except OSError:

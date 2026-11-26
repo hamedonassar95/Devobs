@@ -1,0 +1,5 @@
+# Optional upstream suite runtime dependencies, matching the pinned upstream
+# requirements/requirements.txt at the commit documented in the integration guide.
+-r requirements-performance.lock
+packaging==26.4 \
+    --hash=sha256:81383611a09c1bc0b08b76e0fd5829d7c6824c65b27a6aee339da133f4233ea2
