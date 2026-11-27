@@ -1,4 +1,18 @@
-# Proposed acceptance criteria
+# KI-0 verification and proposed future acceptance criteria
+
+## KI-0 local contract acceptance
+
+The validator contract is considered locally covered when its focused tests
+pass for the checked-in synthetic fixtures, duplicate keys, malformed and
+oversized inputs, missing scopes, invalid classifications/licenses/retention,
+denied/pending/unknown approval states, conflicting declarations, fixed error
+output, and no network access. This demonstrates policy-envelope handling
+only. It does **not** test source authentication, real authorization, source
+rights, data deletion, runtime tenant isolation, database RLS, retrieval, or
+production behavior. The branch's exact test results are recorded in its PR.
+
+The thresholds below remain proposed targets for later implementation; no
+retrieval target has been measured by KI-0.
 
 All values below are **proposed targets** for later implementation. No target
 has been measured by this architecture audit. The first evaluator must publish

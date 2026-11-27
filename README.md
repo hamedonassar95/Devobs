@@ -8,6 +8,12 @@ options, cost model, risks, and proposed acceptance criteria. It is
 documentation-only: no vector store, document ingestion, model provider, cloud
 resource, or production behavior is activated by this audit.
 
+[KI-0 knowledge governance contract](docs/knowledge-intelligence/KNOWLEDGE_GOVERNANCE.md)
+adds a versioned, local-only source policy schema, privacy contract, threat
+model, and deterministic validator using synthetic fixtures. A `PASS` means
+structural consistency only; it does not authenticate approvals or prove
+runtime tenant isolation. No real source content is ingested or fetched.
+
 ## Offline Performance Intelligence foundation
 
 [Performance Intelligence](docs/PERFORMANCE_INTELLIGENCE.md) documents the
