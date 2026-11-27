@@ -143,23 +143,25 @@ python3 scripts/evaluate_knowledge_retrieval.py \
 ```
 
 Measured locally on Python `3.12.14`, Linux `x86_64`, 45 eligible chunks. The
-query order used fixed seed `20261127`. Index construction used 10 independent
+query order was deterministically sorted by SHA-256 of each query prefixed with
+fixed seed `20261127`; this avoids a pseudo-random generator while keeping the
+synthetic query sequence reproducible. Index construction used 10 independent
 wall-time samples; query latency used 100 samples, with median and nearest-rank
 P95. `tracemalloc` was run separately from latency timing.
 
 | Measurement | Result |
 | --- | ---: |
-| Index-build mean, 10 samples | 0.055328 s |
-| Index-build median, 10 samples | 0.055226 s |
-| Query-latency median, 100 samples | 0.000013691 s |
-| Query-latency P95, 100 samples | 0.000022744 s |
-| Peak Python allocation while building index | 251,947 bytes |
-| Peak Python allocation for one query | 2,751 bytes |
+| Index-build mean, 10 samples | 0.056787 s |
+| Index-build median, 10 samples | 0.055439 s |
+| Query-latency median, 100 samples | 0.000014191 s |
+| Query-latency P95, 100 samples | 0.000021232 s |
+| Peak Python allocation while building index | 253,543 bytes |
+| Peak Python allocation for one query | 1,807 bytes |
 
 These are small local synthetic measurements, not CI thresholds, cross-runner
 comparisons, or production latency promises. The benchmark ran against code
-source commit `8682b059b71f0312364b0525877dd47ea44e8824`; later commits update
-tests and documentation without changing the measured implementation.
+source commit `fd98ad71bc67c9064cafe159874793c9f775d219`; later commits update
+documentation without changing the measured implementation.
 
 ## Reproduction and limitations
 
