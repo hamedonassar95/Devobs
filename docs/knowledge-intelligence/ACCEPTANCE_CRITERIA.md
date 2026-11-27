@@ -30,7 +30,8 @@ source and a single linear version history.
 
 KI-0–KI-2 local contract evidence does not establish search quality. The
 retrieval, isolation, storage and operational thresholds below remain proposed
-targets for later implementation; no retrieval target has been measured.
+targets; the KI-3 branch adds a small measured synthetic retrieval baseline
+without turning these targets into production readiness evidence.
 
 ## KI-2 deterministic local ingestion
 
@@ -59,10 +60,46 @@ or a claim of improvement. Synthetic policy checks do not test trusted tenant
 authentication, runtime isolation, durable deduplication, secure erasure,
 backup deletion or distributed revocation.
 
-All values below are **proposed targets** for later implementation. No target
-has been measured by this architecture audit. The first evaluator must publish
-the corpus/query manifest, source revisions, evaluator version, hardware and
-repeatable command before reporting any result.
+## KI-3 lexical retrieval baseline
+
+The local KI-3 implementation is accepted as a research baseline only when it
+reuses KI-0 policy validation, KI-1 manifest/content-span validation, and KI-2
+in-memory lifecycle behavior; rejects missing, malformed, unauthorized, or
+scope-inconsistent inputs; excludes revoked/deleted and out-of-scope records
+before computing BM25 statistics; and returns only validated source/version/
+chunk references with UTF-8 byte offsets. BM25 score is a ranking value, not a
+probability. Source content remains inert and is not included in results.
+
+The frozen fixture version `ki3-synthetic-v1` contains 47 checked-in synthetic
+records, 45 eligible chunks for the evaluation tenant/repository, 30 labeled
+evaluation queries, four separate development queries, graded relevance, and
+two cross-scope sentinels. Its exact corpus/query/relevance file digest is
+`39e350014831ff06d1e279453df7b1d5f0316b512ff8ed0f9421f8d59b90a48c`. The
+measured Recall@10 is `0.8908`, below the proposed `>= 0.90` target. This is a
+small synthetic set; no relevance labels or BM25 parameters were changed to
+raise the score. The target therefore remains unmet, and the result does not
+establish natural-query quality.
+
+The evaluator emits per-query and aggregate Precision@K, Recall@K, HitRate@K,
+MRR, graded nDCG@K, citation-reference accuracy, empty-result correctness and
+scope-exclusion correctness for K=1, 3, 5, and 10. Citation validity checks
+resolve against the loaded synthetic manifest and bytes; it does not prove
+source authenticity. Scope tests validate declared fixture scope only, not
+authenticated runtime isolation. The performance benchmark is manually run,
+bounded, and reported without timing thresholds in CI.
+
+KI-3 is not a service, runtime API, durable index, storage adapter, embedding
+system, or production authorization control. No network, external inference,
+customer content, database, cloud resource, or deployment is part of this
+prototype. Rollback removes the isolated KI-3 module, evaluator, tests and
+fixtures; KI-0–KI-2 contracts remain unchanged.
+
+The remaining values below are **proposed targets** for later implementation;
+they were not measured by the Phase 01 architecture audit. KI-3's exploratory
+synthetic retrieval measurements above are reported separately and do not
+validate these targets for real workloads. Future evaluators must publish the
+corpus/query manifest, source revisions, evaluator version, hardware and
+repeatable command with every measured result.
 
 | Area | Proposed measurable target | Measurement contract |
 | --- | --- | --- |

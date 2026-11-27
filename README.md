@@ -25,6 +25,14 @@ in dry-run mode. It uses no network or document-content persistence. The current
 KI-1 contract limits documents to 65,536 bytes and disallows overlapping chunks;
 this is a local prototype, not a production ingestion API.
 
+[KI-3 lexical retrieval and evaluation baseline](docs/knowledge-intelligence/RETRIEVAL_ENGINE.md)
+adds a deterministic, in-memory BM25 retriever over validated synthetic KI-2
+records. Its frozen evaluation set, dataset SHA-256, actual metrics, and local
+latency/memory measurements are in the
+[evaluation report](docs/knowledge-intelligence/RETRIEVAL_EVALUATION.md).
+The branch is pending review; this does not establish authenticated tenant
+isolation, production search quality, storage, or runtime readiness.
+
 ## Offline Performance Intelligence foundation
 
 [Performance Intelligence](docs/PERFORMANCE_INTELLIGENCE.md) documents the
