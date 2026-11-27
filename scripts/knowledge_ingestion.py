@@ -737,6 +737,8 @@ def run_benchmark(
             tracemalloc.start()
             started = time.perf_counter()
             result = engine.ingest_document(**request_args)
+            if not isinstance(result, IngestionResult):
+                _fail("benchmark_measurement_missing")
             processing_samples.append(time.perf_counter() - started)
             _current, peak = tracemalloc.get_traced_memory()
             peak_allocations.append(peak)
@@ -745,7 +747,8 @@ def run_benchmark(
             validate_manifest(result.manifest)
             validation_samples.append(time.perf_counter() - started)
             last_result = result
-        assert last_result is not None
+        if last_result is None:
+            _fail("benchmark_measurement_missing")
         measurements.append({
             "document_bytes": size,
             "status": "MEASURED",

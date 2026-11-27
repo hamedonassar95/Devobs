@@ -514,6 +514,12 @@ class KnowledgeIngestionTests(unittest.TestCase):
         self.assert_error("invalid_benchmark_sizes", run_benchmark,
                           sizes=[1, 2, 3, 4, 5], repetitions=1)
 
+    def test_60_benchmark_missing_measurement_fails_closed(self):
+        with mock.patch.object(ingestion_module, "KnowledgeIngestionEngine") as engine_class:
+            engine_class.return_value.ingest_document.return_value = None
+            self.assert_error("benchmark_measurement_missing", run_benchmark,
+                              sizes=[1024], repetitions=1)
+
 
 if __name__ == "__main__":
     unittest.main()
