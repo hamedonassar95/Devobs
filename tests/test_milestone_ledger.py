@@ -21,8 +21,8 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.data = copy.deepcopy(self.record)
 
     def assert_current_summary(self, summary):
-        self.assertEqual(summary["merged_milestones"], 318)
-        self.assertEqual(summary["latest_pr"], 788)
+        self.assertEqual(summary["merged_milestones"], 319)
+        self.assertEqual(summary["latest_pr"], 789)
 
     def test_current_merged_evidence_and_gates_validate(self):
         result = validate(self.data)
@@ -101,6 +101,30 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("CodeQL check 140270646681 SUCCESS", entry["verification"])
         self.assertIn("post-merge main CI 45929601744 SUCCESS", entry["verification"])
         self.assertIn("65,536 bytes", entry["limitations"])
+        self.assertIn("P01 BLOCKED / NO-GO", entry["limitations"])
+        self.assertIn("AI-9 BLOCKED", entry["limitations"])
+        self.assertIn("Codex runtime OPEN", entry["limitations"])
+        self.assert_current_summary(result)
+        self.assertEqual(
+            {gate["id"]: gate["status"] for gate in self.data["gates"]},
+            {
+                "ai9-detection-quality": "BLOCKED",
+                "p01-managed-saas": "BLOCKED",
+                "codex-agent-runtime-acceptance": "OPEN",
+            },
+        )
+
+    def test_pr789_ki2_merge_has_exact_ci_codeql_and_gates_preserved(self):
+        result = validate(self.data)
+        entry = {item["pr_number"]: item for item in self.data["milestones"]}[789]
+        self.assertEqual(entry["id"], "verified-knowledge-ingestion-ki2-pr789")
+        self.assertEqual(entry["pr_head_sha"], "e75f88d615b2066d5b560200de1e4afcc4a99b6d")
+        self.assertEqual(entry["merge_sha"], "d1ccb4d681a775404a0ac1e74977d9c2507fd83e")
+        self.assertEqual(entry["ci_run_id"], 45935847760)
+        self.assertIn("CodeQL 45935843199 SUCCESS", entry["verification"])
+        self.assertIn("Post-merge main CI 45939715685 SUCCESS", entry["verification"])
+        self.assertIn("main CodeQL 45939715054 SUCCESS", entry["verification"])
+        self.assertIn("65,536-byte", entry["limitations"])
         self.assertIn("P01 BLOCKED / NO-GO", entry["limitations"])
         self.assertIn("AI-9 BLOCKED", entry["limitations"])
         self.assertIn("Codex runtime OPEN", entry["limitations"])
