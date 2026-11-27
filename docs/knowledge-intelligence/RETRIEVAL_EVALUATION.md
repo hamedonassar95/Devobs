@@ -184,19 +184,22 @@ agent behavior is covered.
 
 ## Separate dependency-risk follow-up
 
-Two previously reported Dependabot items remain separate follow-up risks; this
-KI-3 change adds no dependencies and changes no lockfile:
+KI-3 adds no dependencies and changes no lockfile. GitHub's push response on
+2026-11-27 reported **two moderate vulnerabilities** on the default branch,
+but did not return alert identities or dependency paths. The read-only
+Dependabot alerts API query returned HTTP 403 (`Resource not accessible by
+integration`), so package names, advisory IDs, affected/patched versions and
+current remediation status remain **UNVERIFIED**.
 
-1. A historical **HIGH** alert was reported as `dependabot/1`, but its package,
-   advisory identity, and current disposition remain **UNVERIFIED**. A
-   withdrawn `picomatch` advisory exists in the repository, but available
-   evidence does not prove that it is the same alert.
-2. The owner-reported `minimatch`/`uuid` dependency-update blocker associated
-   with Dependabot Updates run `45249445403` remains **UNVERIFIED** at current
-   package/advisory/path level.
+1. **Default-branch aggregate:** two moderate alerts are reported by GitHub;
+   the individual alert records and their correspondence to previous notes are
+   unverified.
+2. **Previously reported dependency blocker:** the owner-reported
+   `minimatch`/`uuid` update issue associated with Dependabot Updates run
+   `45249445403` still lacks verified current dependency paths and advisory
+   status. Available evidence does not establish whether it is one of the two
+   current alerts.
 
-A read-only GitHub Dependabot alerts API query during this work returned HTTP
-403 (`Resource not accessible by integration`). These are two distinct
-reported records, but available evidence does not establish whether they
-represent separate underlying advisories. Do not suppress either alert or
-modify unrelated dependencies in KI-3.
+Do not suppress alerts or change unrelated dependencies in KI-3. A prior
+local note about a withdrawn `picomatch` advisory also remains unlinked to the
+current alert records.
