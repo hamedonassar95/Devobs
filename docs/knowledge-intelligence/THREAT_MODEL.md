@@ -1,8 +1,9 @@
-# KI-0–KI-2 knowledge-source threat model
+# KI-0–KI-3 knowledge-source and retrieval threat model
 
 **Scope:** the local source-policy and manifest schemas/validators, KI-2
-synthetic ingestion engine and fixtures only. This is not a threat model for a
-deployed retrieval service, database, or model runtime.
+synthetic ingestion engine, KI-3 lexical retrieval/evaluation code and fixtures
+only. This is not a threat model for a deployed retrieval service, database,
+or model runtime.
 
 ## Assets and trust boundaries
 
@@ -27,7 +28,7 @@ deployed retrieval service, database, or model runtime.
 | URI causes SSRF or content is executed | No network access, URI resolution, shell, or source execution. | Future ingestion requires isolated parser, URI allowlist and SSRF controls. |
 | Forged `APPROVED` or tenant/owner ID | Output is explicitly `STRUCTURE_ONLY`; no authority decision is claimed. | Trusted identity and signed/action-bound approval are prerequisites for KI-1. |
 | Cross-tenant data exposure | Tenant and repository scopes are mandatory in policy. | No runtime data store exists here; synthetic validation does not prove isolation. Require independent auth and storage tests. |
-| Prompt injection in retrieved content | Privacy contract states content is untrusted and cannot grant policy or tool authority. | No retriever exists; add adversarial fixtures and renderer/tool-boundary tests before retrieval. |
+| Prompt injection in retrieved content | KI-3 does not return document text or expose an agent/tool interface; existing privacy contract treats source text as inert data. | Future UI/agent integration needs adversarial fixtures and renderer/tool-boundary tests before returning or acting on retrieved text. |
 | Copyright or license misuse | Explicit license status and source-type combinations; unknown status rejected. | A declaration cannot prove rights; a human must review source license and purpose. |
 | Data persists after consent expires | Required retention and deletion declarations with bounded combinations. | No deletion engine, index, cache, backup, or timer exists. Verify lifecycle end to end before real data. |
 | Sensitive source text appears in errors | Fixed error codes; no echo of source values. | Future logs and consumers need separate privacy review. |
@@ -37,6 +38,11 @@ deployed retrieval service, database, or model runtime.
 | Repeated or changed content bypasses policy | Stable IDs and scope keys, immutable source policy within the in-memory engine, linear version references, and revocation/deletion checks. | State is volatile and process-local; there is no concurrency, durable deduplication or distributed revocation. |
 | Prompt injection inside a document changes agent authority | Content is neither executed nor included in output; this engine has no agent/tool interface. | Future retrieval must keep content inert and separately defend rendering, citations and agent tool boundaries. |
 | Large documents evade the current manifest contract | Engine adopts KI-1 v1's 65,536-byte limit, 2,048 chunk cap, zero overlap and final manifest size/count validation. | Larger inputs or overlap require a reviewed schema/adapter change; do not bypass KI-1. |
+| Out-of-scope text changes scores or reveals content frequency | KI-3 filters consistent declared tenant/repository scope before building BM25 document frequencies, average length, rankings, or result records; it does not return text. | Scope values are caller-supplied claims, not authentication or runtime isolation. Require trusted identity and independent storage authorization before any real data. |
+| Malformed or stale citation points to unrelated bytes | KI-3 validates KI-1 manifests against explicit synthetic bytes, chunk hashes, version IDs, and UTF-8 byte boundaries before indexing only the current version. | Matching hashes do not prove source authenticity or license; production provenance and authorization remain absent. |
+| Arabic search is overstated as language understanding | KI-3 uses NFKC/case-folded lexical tokens retaining Unicode letters, marks and numbers; it does not stem, lemmatize, or remove Arabic diacritics. | Morphological variants can miss; no Arabic quality claim beyond tokenization fixtures is made. |
+| Lexical score is misread as confidence | The evaluator labels BM25 as a ranking score, not a probability; evaluation and metrics are deterministic and offline. | Synthetic relevance and a 30-query result do not establish natural-query retrieval quality. Recall@10 remains below its exploratory target. |
+| Excessive query or corpus consumes local resources | KI-3 bounds query UTF-8 bytes to 4,096, top_k to 20, in-scope records to 100, and chunks to KI-1's 5,000 ceiling. | This is not a multi-user service or process sandbox; do not expose it to untrusted callers as an API. |
 
 ## Trust and failure rules
 

@@ -1,9 +1,9 @@
 # Knowledge Intelligence implementation roadmap
 
 **Baseline checked:** 2026-11-27, `origin/main` at
-`442012702a60ebf1bb1df43c4aa9e08fb94cab03`.
-**Current work:** KI-2 deterministic local ingestion on
-`feature/ki-2-knowledge-ingestion`, pending review. This plan does not authorize
+`d1ccb4d681a775404a0ac1e74977d9c2507fd83e`.
+**Current work:** KI-3 lexical retrieval on
+`feature/ki-3-lexical-retrieval`, pending review. This plan does not authorize
 production data, cloud resources, paid services, or deployment.
 
 ## Evidence status
@@ -18,9 +18,16 @@ production data, cloud resources, paid services, or deployment.
   exact-head CodeQL check `140270646681`, and post-merge main CI `45929601744`
   succeeded. KI-1 v1 is limited to synthetic metadata, a 65,536-byte document
   ceiling, 500 versions, 5,000 manifest chunks and non-overlapping chunk spans.
-- **KI-2 — IMPLEMENTED LOCALLY, REVIEW PENDING:** converts explicit synthetic
-  UTF-8 input to a KI-1 manifest, in-memory only. Its detailed behavior and
-  measured smoke benchmark are in [INGESTION_ENGINE.md](INGESTION_ENGINE.md).
+- **KI-2 — MERGED:** PR #789, head
+  `e75f88d615b2066d5b560200de1e4afcc4a99b6d`, merge
+  `d1ccb4d681a775404a0ac1e74977d9c2507fd83e`. Exact-head CI `45935847760`,
+  CodeQL `45935843199`, post-merge main CI `45939715685`, and main CodeQL
+  `45939715054` succeeded. KI-2 converts explicit synthetic UTF-8 input into a
+  KI-1 manifest, in memory only; see [INGESTION_ENGINE.md](INGESTION_ENGINE.md).
+- **KI-3 — IMPLEMENTED ON THIS BRANCH, REVIEW PENDING:** adds a local BM25
+  retriever and a frozen 45-chunk / 30-query evaluation fixture. Its measured
+  Recall@10 is below the exploratory target; see
+  [RETRIEVAL_EVALUATION.md](RETRIEVAL_EVALUATION.md).
 - **P01:** BLOCKED / NO-GO. **AI-9:** BLOCKED. **Codex runtime:** OPEN. None of
   these statuses are changed by knowledge-intelligence work.
 
@@ -30,8 +37,8 @@ production data, cloud resources, paid services, or deployment.
 | --- | --- | --- | --- |
 | KI-0 | Versioned source-admission, privacy and provenance policy | Architecture audit | Merged; governance |
 | KI-1 | Deterministic source, document-version and chunk manifest | KI-0 | Merged; schema/validator |
-| KI-2 | Bounded synthetic UTF-8 ingestion into validated KI-1 manifests | KI-0 + KI-1 | Current branch; ingestion engine |
-| KI-3 | Deterministic lexical retrieval with frozen synthetic evaluation | KI-1 + KI-2 review | Next; retrieval/evaluation |
+| KI-2 | Bounded synthetic UTF-8 ingestion into validated KI-1 manifests | KI-0 + KI-1 | Merged; ingestion engine |
+| KI-3 | Deterministic BM25 lexical retrieval with frozen synthetic evaluation | KI-0 + KI-1 + KI-2 | Current branch; retrieval/evaluation |
 | KI-4 | Evaluate optional local embedding adapter against KI-3 | KI-3 fixture + model/license review | Planned; embedding adapter |
 | KI-5 | Isolated local storage/RLS experiment with synthetic data | KI-1 + KI-3 contracts | Planned; storage adapter |
 | KI-6 | Hybrid retrieval, citation validation and deletion contract | KI-3, KI-4, KI-5 | Planned; retrieval API |
@@ -70,21 +77,28 @@ production data, cloud resources, paid services, or deployment.
 
 - **Objective:** establish a reproducible non-model retrieval baseline before
   embeddings.
-- **Reuse:** KI-1 manifest and KI-2-generated synthetic fixtures; existing
-  repository evaluation and duplicate-case patterns.
-- **Scope:** a frozen, small synthetic corpus and queries; deterministic token
-  or metadata retrieval; source-version and byte-span citations; tenant/repo
-  scope filters; explicit abstention; no model call and no production API.
-- **Acceptance:** record Recall@10, MRR, latency and exact citation-span
-  correctness against a versioned fixture; include unauthorized cross-scope
-  negative cases; diagnostics and reports exclude raw content.
-- **Verification:** focused offline tests, fixture integrity checks, relevant
-  AI-quality/governance checks and `git diff --check`. Targets are proposed in
-  `ACCEPTANCE_CRITERIA.md`, not assumed.
-- **Rollback:** revert the local lexical adapter and evaluator; retain KI-0–2
-  contracts. No persistent index exists.
-- **Resources/approval:** local CPU only. Human review freezes the synthetic
-  evaluation design before measuring it.
+- **Reuse:** KI-0 `validate_policy`, KI-1 `validate_manifest` and stable
+  identifiers, and KI-2 `KnowledgeIngestionEngine` manifest/lifecycle contract.
+  Existing Graphify remains repository-code graph analysis and is not duplicated.
+- **Scope:** standard-library Unicode tokenization and BM25 over the latest
+  explicitly supplied synthetic KI-2 version; filter one declared
+  tenant/repository before document frequencies and scores; preserve exact
+  source hashes, provenance, and KI-1 UTF-8 byte citations. No model call,
+  network, persistent index, API, or raw-content result.
+- **Acceptance:** report Precision@K, Recall@K, HitRate@K, MRR, graded nDCG@K,
+  citation-reference accuracy, empty-result correctness, scope-exclusion
+  correctness and a bounded local performance sample. The frozen 30-query
+  synthetic result is exploratory and does not meet the proposed Recall@10
+  target; no labels or parameters were adjusted to inflate it.
+- **Verification:** new deterministic tests, KI-0/1/2 suites, repository
+  governance/security checks, frozen dataset SHA-256, measured benchmark, and
+  `git diff --check`. Exact run results belong in the KI-3 review record.
+- **Rollback:** revert the local lexical adapter, fixtures and evaluator;
+  retain KI-0–2 contracts. No persistent index exists.
+- **Resources/approval:** local CPU only. The dataset and labels are frozen in
+  this branch for review; measurements are reported without tuning. Any future
+  edits to labels, query composition, or default BM25 parameters require review
+  and a new dataset digest before their results are compared.
 
 ## KI-4 — Optional local embeddings
 
