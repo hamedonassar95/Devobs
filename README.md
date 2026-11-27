@@ -14,6 +14,11 @@ model, and deterministic validator using synthetic fixtures. A `PASS` means
 structural consistency only; it does not authenticate approvals or prove
 runtime tenant isolation. No real source content is ingested or fetched.
 
+[KI-1 source manifest contract](docs/knowledge-intelligence/SOURCE_MANIFEST.md)
+connects KI-0 policies to deterministic, versioned synthetic documents and
+UTF-8 byte-offset chunks. Local validation does not authenticate authorization
+or establish runtime tenant isolation; no production ingestion is enabled.
+
 ## Offline Performance Intelligence foundation
 
 [Performance Intelligence](docs/PERFORMANCE_INTELLIGENCE.md) documents the

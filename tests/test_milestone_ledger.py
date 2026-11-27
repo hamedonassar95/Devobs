@@ -21,8 +21,8 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.data = copy.deepcopy(self.record)
 
     def assert_current_summary(self, summary):
-        self.assertEqual(summary["merged_milestones"], 314)
-        self.assertEqual(summary["latest_pr"], 784)
+        self.assertEqual(summary["merged_milestones"], 317)
+        self.assertEqual(summary["latest_pr"], 787)
 
     def test_current_merged_evidence_and_gates_validate(self):
         result = validate(self.data)
@@ -45,6 +45,41 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.assertIn("P01 BLOCKED / NO-GO", entry["limitations"])
         self.assertIn("AI-9 BLOCKED", entry["limitations"])
         self.assertIn("Codex runtime OPEN", entry["limitations"])
+        self.assert_current_summary(result)
+        self.assertEqual(
+            {gate["id"]: gate["status"] for gate in self.data["gates"]},
+            {
+                "ai9-detection-quality": "BLOCKED",
+                "p01-managed-saas": "BLOCKED",
+                "codex-agent-runtime-acceptance": "OPEN",
+            },
+        )
+
+    def test_pr785_786_787_merges_are_reconciled_without_gate_changes(self):
+        result = validate(self.data)
+        records = {entry["pr_number"]: entry for entry in self.data["milestones"]}
+        expected = {
+            785: ("3f8c9c14936bb47cab388b5136daee041ca7d801",
+                 "1fc88930a9e66a318009b92f38510907b1793b1a", 45811317188,
+                 "45812551102", "45812549606"),
+            786: ("1c9db8a7f952fe4e865c29888c7e21df9dd1436f",
+                 "c36ae362fce0a078836e8f4b9e5a53369f108c36", 45914068395,
+                 "45915753102", "45914066473"),
+            787: ("5bc957b8a4fa101f75b03bb620ae2c0d0165254b",
+                 "fc6ea340206bb970169a3b1c182fbe83f3a0803f", 45919139172,
+                 "45922964364", "45922963590"),
+        }
+        for pr, (head, merge, run, main_ci, codeql) in expected.items():
+            with self.subTest(pr=pr):
+                entry = records[pr]
+                self.assertEqual(entry["pr_head_sha"], head)
+                self.assertEqual(entry["merge_sha"], merge)
+                self.assertEqual(entry["ci_run_id"], run)
+                self.assertIn(f"main CI {main_ci} SUCCESS", entry["verification"])
+                self.assertIn(f"CodeQL {codeql} SUCCESS", entry["verification"])
+                self.assertIn("P01 BLOCKED / NO-GO", entry["limitations"])
+                self.assertIn("AI-9 BLOCKED", entry["limitations"])
+                self.assertIn("Codex runtime OPEN", entry["limitations"])
         self.assert_current_summary(result)
         self.assertEqual(
             {gate["id"]: gate["status"] for gate in self.data["gates"]},

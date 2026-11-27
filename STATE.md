@@ -1,3 +1,26 @@
+## KI-1 knowledge source manifest baseline (2026-11-27)
+
+- **VERIFIED (GitHub):** PR #787 merged exact head
+  `5bc957b8a4fa101f75b03bb620ae2c0d0165254b` as `origin/main`
+  `fc6ea340206bb970169a3b1c182fbe83f3a0803f`. Exact-head CI
+  `45919139172`, post-merge main CI `45922964364`, and CodeQL
+  `45922963590` succeeded. KI-0 schema and validator are present at this base.
+- **RECONCILIATION proposed on this branch:** append verified PR #785, #786,
+  and #787 evidence to the milestone ledger: 314 → 317 records, latest PR
+  #787. P01 remains BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN.
+- **KI-1 scope:** a local synthetic-only manifest/schema/validator links
+  explicit inline KI-0 policies to one document per source, linear versions,
+  and UTF-8 byte-offset chunks. No ingestion, external URI resolution,
+  database, embedding, production configuration, or deployment is included.
+- **UNVERIFIED follow-up risks:** Dependabot alerts API returned HTTP 403, so
+  the two previously reported paths—`firebase-tools → glob → minimatch` and
+  `firebase-tools → gaxios → uuid`—could not be confirmed as currently open.
+  No dependencies were changed.
+- **Verification limits to reassess:** No Markdown linter was found; `check_site.py`
+  checks HTML/site behavior, not Markdown. Local Gitleaks availability and the
+  repository coverage check will be reported separately; missing local tooling
+  must not be counted as a scan result.
+
 ## Verified merged PR #784; offline pyperformance foundation (2026-11-26)
 
 - **VERIFIED (GitHub):** [PR #784](https://github.com/hamedonassar95/Devobs/pull/784) merged exact head `9ac52dd93931359d6a9a0326c267a052b5ffe771` as main SHA `03f2ddfa564092d9cab1dfc5c9a0a008e9761a20` at 2026-11-26T10:44:32Z. Exact-head PR CI [45801704391](https://github.com/hamedonassar95/Devobs/actions/runs/45801704391) and CodeQL [45801700787](https://github.com/hamedonassar95/Devobs/actions/runs/45801700787) succeeded. Post-merge main CI [45804140071](https://github.com/hamedonassar95/Devobs/actions/runs/45804140071) and CodeQL [45804138191](https://github.com/hamedonassar95/Devobs/actions/runs/45804138191) succeeded; release and incident-drill jobs were skipped by policy.

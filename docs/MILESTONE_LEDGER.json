@@ -3456,6 +3456,39 @@
       "ci_run_id": 45801704391,
       "verification": "VERIFIED 2026-11-26 (GitHub): PR #784 merged exact head 9ac52dd93931359d6a9a0326c267a052b5ffe771 as main SHA 03f2ddfa564092d9cab1dfc5c9a0a008e9761a20. Exact-head PR CI 45801704391 and CodeQL 45801700787 SUCCESS. Post-merge main CI 45804140071 and CodeQL 45804138191 SUCCESS. Production release and controlled incident drill were skipped by policy.",
       "limitations": "PR #784 added a manual offline adapter for eight pinned upstream pyperformance workload groups. It did not enable automatic CI benchmarks, baseline/candidate regression decisions, production actions or AI recommendations. This new branch expands the reviewed allowlist to 50 of 75 groups and inventories all 75; the other 25 remain deferred. No source from the upstream benchmark suite is copied into the application. No cloud service, credential, secret, deployment, P01, AI-9 or Codex runtime gate changed. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-pyperformance-workload-expansion-pr785",
+      "area": "QUALITY",
+      "title": "feat(performance): expand reviewed pyperformance workloads",
+      "pr_number": 785,
+      "pr_head_sha": "3f8c9c14936bb47cab388b5136daee041ca7d801",
+      "merge_sha": "1fc88930a9e66a318009b92f38510907b1793b1a",
+      "ci_run_id": 45811317188,
+      "verification": "VERIFIED 2026-11-26 (GitHub): PR #785 merged exact head 3f8c9c14936bb47cab388b5136daee041ca7d801 as main SHA 1fc88930a9e66a318009b92f38510907b1793b1a. Exact-head CI 45811317188 SUCCESS and CodeQL 45811311121 SUCCESS; post-merge main CI 45812551102 SUCCESS and CodeQL 45812549606 SUCCESS.",
+      "limitations": "Manual, offline benchmark workload selection only; no scheduled benchmarks, measured performance improvement, automatic regression decision, production action or paid inference. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-knowledge-intelligence-architecture-audit-pr786",
+      "area": "DOCUMENTATION",
+      "title": "docs: establish knowledge intelligence architecture baseline",
+      "pr_number": 786,
+      "pr_head_sha": "1c9db8a7f952fe4e865c29888c7e21df9dd1436f",
+      "merge_sha": "c36ae362fce0a078836e8f4b9e5a53369f108c36",
+      "ci_run_id": 45914068395,
+      "verification": "VERIFIED 2026-11-27 (GitHub): PR #786 merged exact head 1c9db8a7f952fe4e865c29888c7e21df9dd1436f as main SHA c36ae362fce0a078836e8f4b9e5a53369f108c36. Exact-head CI 45914068395 and CodeQL 45914066473 SUCCESS; post-merge main CI 45915753102 SUCCESS.",
+      "limitations": "Architecture audit and roadmap documentation only. Technology candidates were not installed; no source corpus, database, embedding, hosted service or production runtime was added. The KI-0 policy and local validator were implemented separately by PR #787. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-knowledge-source-governance-ki0-pr787",
+      "area": "AI_GOVERNANCE",
+      "title": "feat(knowledge): establish KI-0 governance contract",
+      "pr_number": 787,
+      "pr_head_sha": "5bc957b8a4fa101f75b03bb620ae2c0d0165254b",
+      "merge_sha": "fc6ea340206bb970169a3b1c182fbe83f3a0803f",
+      "ci_run_id": 45919139172,
+      "verification": "VERIFIED 2026-11-27 (GitHub): PR #787 merged exact head 5bc957b8a4fa101f75b03bb620ae2c0d0165254b as main SHA fc6ea340206bb970169a3b1c182fbe83f3a0803f. Exact-head CI 45919139172 SUCCESS and CodeQL 45919136767 SUCCESS; post-merge main CI 45922964364 SUCCESS and CodeQL 45922963590 SUCCESS.",
+      "limitations": "KI-0 validates a local policy envelope and synthetic fixtures only; APPROVED is a declaration, not authenticated authority. No source ingestion, tenant authentication, runtime isolation, database, production configuration or deployment was activated. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [

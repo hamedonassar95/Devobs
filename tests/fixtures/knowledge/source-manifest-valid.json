@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "manifest_mode": "SYNTHETIC_OFFLINE",
+  "policies": [
+    {
+      "schema_version": 1,
+      "source_id": "synthetic-source-001",
+      "source_type": "synthetic_fixture",
+      "source_version": "fixture-v1",
+      "source_uri": "fixture://synthetic-source-001",
+      "content_sha256": "3362bd1d4e53e4796a6a4621ca2f22479c3f4329af969d682d9b99f0a15b1a08",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/synthetic-repo",
+      "owner_id": "synthetic-owner-001",
+      "classification": "INTERNAL",
+      "license_status": "NOT_APPLICABLE",
+      "ingestion_authorized": true,
+      "retention_policy": {
+        "mode": "EPHEMERAL_TEST",
+        "max_age_seconds": 3600
+      },
+      "deletion_policy": "DELETE_ON_COMPLETION",
+      "provenance": {
+        "recorded_at": "2026-11-27T00:00:00Z",
+        "recorded_by": "synthetic-reviewer-001",
+        "approval_reference": "synthetic-approval-001"
+      },
+      "approval_status": "APPROVED"
+    }
+  ],
+  "sources": [
+    {
+      "schema_version": 1,
+      "source_id": "src_88d7719be658f566017b351d7c5af7018d07c5fa427cd5e3131dfc91eda151aa",
+      "source_type": "synthetic_fixture",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/synthetic-repo",
+      "policy_reference": "synthetic-source-001",
+      "provenance": {
+        "recorded_at": "2026-11-27T00:00:00Z",
+        "recorded_by": "synthetic-reviewer-001",
+        "approval_reference": "synthetic-approval-001"
+      },
+      "source_status": "ACTIVE"
+    }
+  ],
+  "document_versions": [
+    {
+      "document_id": "doc_df22c6a7eabff678c7ad8bbf7b65219a6f5eb9c7f715ceb4583f8eb2444be609",
+      "source_id": "src_88d7719be658f566017b351d7c5af7018d07c5fa427cd5e3131dfc91eda151aa",
+      "version_id": "ver_76c657a396a14a855ee41740a9d0da2913ec93e0eafaedd1d17982a658e49e14",
+      "document_key": "synthetic-note-001",
+      "content_sha256": "3362bd1d4e53e4796a6a4621ca2f22479c3f4329af969d682d9b99f0a15b1a08",
+      "content_type": "text/plain; charset=utf-8",
+      "byte_size": 46,
+      "created_at": "2026-11-27T00:00:00Z",
+      "previous_version_id": null,
+      "synthetic_content": "عينة اصطناعية: Café ☕ — KI-1."
+    }
+  ],
+  "chunks": [
+    {
+      "chunk_id": "chunk_815459784f55780688fba3c8d488c5c4b9b5aa344c2d210cf7f4d89df426a874",
+      "document_id": "doc_df22c6a7eabff678c7ad8bbf7b65219a6f5eb9c7f715ceb4583f8eb2444be609",
+      "version_id": "ver_76c657a396a14a855ee41740a9d0da2913ec93e0eafaedd1d17982a658e49e14",
+      "chunk_index": 0,
+      "content_sha256": "3362bd1d4e53e4796a6a4621ca2f22479c3f4329af969d682d9b99f0a15b1a08",
+      "start_offset": 0,
+      "end_offset": 46,
+      "offset_unit": "UTF8_BYTE",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/synthetic-repo"
+    }
+  ]
+}

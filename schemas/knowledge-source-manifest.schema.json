@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Devobs Knowledge Source Manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "manifest_mode",
+    "policies",
+    "sources",
+    "document_versions",
+    "chunks"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "manifest_mode": {"const": "SYNTHETIC_OFFLINE"},
+    "policies": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {"$ref": "#/$defs/policy"}
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {"$ref": "#/$defs/source"}
+    },
+    "document_versions": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 500,
+      "items": {"$ref": "#/$defs/documentVersion"}
+    },
+    "chunks": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5000,
+      "items": {"$ref": "#/$defs/chunk"}
+    }
+  },
+  "$defs": {
+    "policy": {
+      "type": "object",
+      "description": "An inline local policy record. Exact fields and policy decisions are validated by the KI-0 validator; this schema intentionally does not duplicate that contract."
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "source_id",
+        "source_type",
+        "tenant_id",
+        "repository_id",
+        "policy_reference",
+        "provenance",
+        "source_status"
+      ],
+      "properties": {
+        "schema_version": {"const": 1},
+        "source_id": {"type": "string", "pattern": "^src_[0-9a-f]{64}$"},
+        "source_type": {"type": "string", "enum": ["synthetic_fixture", "public_document", "public_repository_file", "internal_document", "confidential_document", "restricted_document"]},
+        "tenant_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"},
+        "repository_id": {"type": "string", "pattern": "^[A-Za-z0-9_.-]{1,100}/[A-Za-z0-9_.-]{1,100}$"},
+        "policy_reference": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"},
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["recorded_at", "recorded_by", "approval_reference"],
+          "properties": {
+            "recorded_at": {"type": "string", "format": "date-time", "maxLength": 35},
+            "recorded_by": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"},
+            "approval_reference": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"}
+          }
+        },
+        "source_status": {"type": "string", "enum": ["ACTIVE", "REVOKED", "PENDING", "UNKNOWN"]}
+      }
+    },
+    "documentVersion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document_id", "source_id", "version_id", "document_key", "content_sha256", "content_type", "byte_size", "created_at", "previous_version_id"],
+      "properties": {
+        "document_id": {"type": "string", "pattern": "^doc_[0-9a-f]{64}$"},
+        "source_id": {"type": "string", "pattern": "^src_[0-9a-f]{64}$"},
+        "version_id": {"type": "string", "pattern": "^ver_[0-9a-f]{64}$"},
+        "document_key": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"},
+        "content_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "content_type": {"type": "string", "enum": ["text/plain; charset=utf-8", "text/markdown; charset=utf-8", "application/json"]},
+        "byte_size": {"type": "integer", "minimum": 1, "maximum": 65536},
+        "created_at": {"type": "string", "format": "date-time", "maxLength": 35},
+        "previous_version_id": {"oneOf": [{"type": "string", "pattern": "^ver_[0-9a-f]{64}$"}, {"type": "null"}]},
+        "synthetic_content": {"type": "string", "maxLength": 65536, "description": "Synthetic fixture bytes represented as UTF-8 text; never use for production content."}
+      }
+    },
+    "chunk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["chunk_id", "document_id", "version_id", "chunk_index", "content_sha256", "start_offset", "end_offset", "offset_unit", "tenant_id", "repository_id"],
+      "properties": {
+        "chunk_id": {"type": "string", "pattern": "^chunk_[0-9a-f]{64}$"},
+        "document_id": {"type": "string", "pattern": "^doc_[0-9a-f]{64}$"},
+        "version_id": {"type": "string", "pattern": "^ver_[0-9a-f]{64}$"},
+        "chunk_index": {"type": "integer", "minimum": 0, "maximum": 4999},
+        "content_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "start_offset": {"type": "integer", "minimum": 0, "maximum": 65536},
+        "end_offset": {"type": "integer", "minimum": 1, "maximum": 65536},
+        "offset_unit": {"const": "UTF8_BYTE"},
+        "tenant_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"},
+        "repository_id": {"type": "string", "pattern": "^[A-Za-z0-9_.-]{1,100}/[A-Za-z0-9_.-]{1,100}$"}
+      }
+    }
+  }
+}
