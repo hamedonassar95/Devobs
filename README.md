@@ -27,10 +27,13 @@ this is a local prototype, not a production ingestion API.
 
 [KI-3 lexical retrieval and evaluation baseline](docs/knowledge-intelligence/RETRIEVAL_ENGINE.md)
 adds a deterministic, in-memory BM25 retriever over validated synthetic KI-2
-records. Its frozen evaluation set, dataset SHA-256, actual metrics, and local
-latency/memory measurements are in the
+records. The evaluation remediation uses versioned fixture `ki3-synthetic-v2`
+while preserving the original v1 digest and baseline; methodology and relevance
+labels are unchanged. Dataset SHA-256, actual metrics, and local latency/memory
+measurements are in the
 [evaluation report](docs/knowledge-intelligence/RETRIEVAL_EVALUATION.md).
-The branch is pending review; this does not establish authenticated tenant
+PR #790 remains pending review and blocked until its own required checks pass;
+this remediation does not rewrite history or establish authenticated tenant
 isolation, production search quality, storage, or runtime readiness.
 
 ## Offline Performance Intelligence foundation

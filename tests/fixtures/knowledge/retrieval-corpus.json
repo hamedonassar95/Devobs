@@ -1,5 +1,5 @@
 {
-  "dataset_version": "ki3-synthetic-v1",
+  "dataset_version": "ki3-synthetic-v2",
   "corpus_source_label": "authored-for-devobs-ki3",
   "scope": {
     "tenant_id": "synthetic-tenant-001",
@@ -204,7 +204,7 @@
       "lifecycle_state": "ACTIVE"
     },
     {
-      "document_key": "knowledge-utf8-chunk-offset",
+      "document_key": "utf8-offset-example",
       "text": "Knowledge chunks use half-open UTF-8 byte offsets and must not split a multibyte code point.",
       "tenant_id": "synthetic-tenant-001",
       "repository_id": "synthetic-org/operations",

@@ -70,15 +70,18 @@ before computing BM25 statistics; and returns only validated source/version/
 chunk references with UTF-8 byte offsets. BM25 score is a ranking value, not a
 probability. Source content remains inert and is not included in results.
 
-The frozen fixture version `ki3-synthetic-v1` contains 47 checked-in synthetic
-records, 45 eligible chunks for the evaluation tenant/repository, 30 labeled
-evaluation queries, four separate development queries, graded relevance, and
-two cross-scope sentinels. Its exact corpus/query/relevance file digest is
-`39e350014831ff06d1e279453df7b1d5f0316b512ff8ed0f9421f8d59b90a48c`. The
-measured Recall@10 is `0.8908`, below the proposed `>= 0.90` target. This is a
-small synthetic set; no relevance labels or BM25 parameters were changed to
-raise the score. The target therefore remains unmet, and the result does not
-establish natural-query quality.
+The original fixture `ki3-synthetic-v1` digest remains recorded as
+`39e350014831ff06d1e279453df7b1d5f0316b512ff8ed0f9421f8d59b90a48c`. Current
+revision `ki3-synthetic-v2` contains the same 47 synthetic records, 45 eligible
+chunks for the evaluation tenant/repository, 30 labeled evaluation queries,
+four separate development queries, graded relevance, and two cross-scope
+sentinels. Its exact corpus/query/relevance digest is
+`d093d5a4f6747e5f8e23048a28d3adfa11a5548deee7640d430cb80b5502f013`. The v2
+revision changes a synthetic corpus identifier and its existing q18 reference;
+the q18 grade, all query text, all other relevance labels, BM25 parameters,
+ranking behavior, metrics, and development/evaluation separation are unchanged.
+Measured Recall@10 remains `0.8908`, below the proposed `>= 0.90` target. This
+small synthetic set does not establish natural-query quality.
 
 The evaluator emits per-query and aggregate Precision@K, Recall@K, HitRate@K,
 MRR, graded nDCG@K, citation-reference accuracy, empty-result correctness and

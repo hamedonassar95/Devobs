@@ -1,5 +1,5 @@
 {
-  "dataset_version": "ki3-synthetic-v1",
+  "dataset_version": "ki3-synthetic-v2",
   "query_set": "evaluation",
   "queries": [
     {"query_id":"q01","text":"github actions workflow permissions","tenant_id":"synthetic-tenant-001","repository_id":"synthetic-org/operations"},

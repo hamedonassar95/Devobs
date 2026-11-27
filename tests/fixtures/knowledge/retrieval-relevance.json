@@ -1,5 +1,5 @@
 {
-  "dataset_version": "ki3-synthetic-v1",
+  "dataset_version": "ki3-synthetic-v2",
   "labels": {
     "q01": {"ci-github-workflow":3,"ci-minimal-permissions":2,"mixed-github-ar":2},
     "q02": {"ci-contract-validation":3,"ci-integration-tests":3,"ci-github-workflow":2},
@@ -18,7 +18,7 @@
     "q15": {"knowledge-source-provenance":3,"knowledge-version-hash":1},
     "q16": {"knowledge-version-hash":3,"ci-artifact-provenance":2},
     "q17": {"knowledge-retention-deletion":3},
-    "q18": {"knowledge-citation-scope":3,"knowledge-utf8-chunk-offset":2},
+    "q18": {"knowledge-citation-scope":3,"utf8-offset-example":2},
     "q19": {"knowledge-lexical-retrieval":3},
     "q20": {"agent-task-coordination":3,"agent-file-ownership":1},
     "q21": {"agent-file-ownership":3,"agent-task-coordination":1},

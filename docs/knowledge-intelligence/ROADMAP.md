@@ -2,9 +2,13 @@
 
 **Baseline checked:** 2026-11-27, `origin/main` at
 `d1ccb4d681a775404a0ac1e74977d9c2507fd83e`.
-**Current work:** KI-3 lexical retrieval on
-`feature/ki-3-lexical-retrieval`, pending review. This plan does not authorize
-production data, cloud resources, paid services, or deployment.
+**Current work:** KI-3 secret-scan remediation on
+`feature/ki-3-secret-scan-remediation`, based on PR #790 head
+`f9f7ce61d31e8ef44a113c4653d97fd9638d97ec`. PR #790 remains open, unmerged,
+and blocked pending its own required checks. The remediation does not rewrite
+history and does not itself clear findings from PR #790's historical range.
+This plan does not authorize production data, cloud resources, paid services,
+or deployment.
 
 ## Evidence status
 
@@ -24,10 +28,13 @@ production data, cloud resources, paid services, or deployment.
   CodeQL `45935843199`, post-merge main CI `45939715685`, and main CodeQL
   `45939715054` succeeded. KI-2 converts explicit synthetic UTF-8 input into a
   KI-1 manifest, in memory only; see [INGESTION_ENGINE.md](INGESTION_ENGINE.md).
-- **KI-3 — IMPLEMENTED ON THIS BRANCH, REVIEW PENDING:** adds a local BM25
-  retriever and a frozen 45-chunk / 30-query evaluation fixture. Its measured
-  Recall@10 is below the exploratory target; see
-  [RETRIEVAL_EVALUATION.md](RETRIEVAL_EVALUATION.md).
+- **KI-3 — IMPLEMENTED, REVIEW PENDING:** adds a local BM25 retriever and a
+  versioned 45-chunk / 30-query synthetic evaluation. The current remediation
+  preserves v1's metric methodology and relevance labels in v2; its measured
+  Recall@10 remains below the exploratory target. See
+  [RETRIEVAL_EVALUATION.md](RETRIEVAL_EVALUATION.md). The remediation does not
+  claim PR #790 is unblocked; its historical Gitleaks range may require a
+  separately reviewed clean-branch strategy.
 - **P01:** BLOCKED / NO-GO. **AI-9:** BLOCKED. **Codex runtime:** OPEN. None of
   these statuses are changed by knowledge-intelligence work.
 

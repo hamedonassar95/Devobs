@@ -1,5 +1,5 @@
 {
-  "dataset_version": "ki3-synthetic-v1",
+  "dataset_version": "ki3-synthetic-v2",
   "query_set": "development-only",
   "queries": [
     {"query_id":"dev01","text":"container image rollout health","tenant_id":"synthetic-tenant-001","repository_id":"synthetic-org/operations"},

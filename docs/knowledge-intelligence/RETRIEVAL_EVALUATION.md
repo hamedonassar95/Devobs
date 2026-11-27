@@ -1,14 +1,49 @@
 # KI-3 — frozen synthetic retrieval evaluation
 
-**Evaluation version:** `ki3-synthetic-v1`
+**Evaluation version:** `ki3-synthetic-v2`
 
 **Dataset SHA-256:**
-`39e350014831ff06d1e279453df7b1d5f0316b512ff8ed0f9421f8d59b90a48c`
+`d093d5a4f6747e5f8e23048a28d3adfa11a5548deee7640d430cb80b5502f013`
 
-**Evaluation code source:** KI-3 implementation commit
+**Baseline evaluation implementation:** KI-3 implementation commit
 `8682b059b71f0312364b0525877dd47ea44e8824`
 **Status:** measured local synthetic baseline; not natural-query quality or
 production readiness.
+
+## Revision history and secret-scan remediation
+
+The original `ki3-synthetic-v1` dataset digest is preserved as
+`39e350014831ff06d1e279453df7b1d5f0316b512ff8ed0f9421f8d59b90a48c`.
+The test-only remediation replaces a credential-like synthetic marker with
+harmless natural-language text while preserving the error-redaction assertion.
+For dataset integrity, revision v2 renames one synthetic corpus identifier;
+the q18 relevance reference follows that identifier and its grade remains 2.
+Dataset-version metadata was advanced to v2. No evaluation query text, grade,
+BM25 parameter, metric formula, ranking/tie-break rule, or development/
+evaluation separation changed. The corpus still has 47 records, with 45
+eligible chunks, and the evaluation still has 30 queries.
+
+The pinned CI scanner is Gitleaks `8.24.3` (archive SHA-256
+`9991e0b2903da4c8f6122b5c3186448b927a5da4deef1fe45271c3793f4ee29c`). The
+repository uses its default rules; no repository-specific Gitleaks config or
+allowlist was found. The hosted report contained four redacted
+`generic-api-key` finding instances for two source locations: the synthetic
+error-redaction test and a synthetic corpus identifier. Each location appeared
+in its original addition and again in the PR merge-commit diff. The findings
+were confirmed as synthetic test/fixture content, not credentials. The source commits were
+`5880f438c88ec7d301e6dd23ec07eaece1ca8361` and
+`126afb348d41a06cbb528ff4511e9745c1562e20`; the repeated merge-diff entries
+were in `d6b5bd3b29926fa41a1fa584959e0d1b2a4503d2`.
+
+This source cleanup does not rewrite history. Therefore it does not by itself
+clear Gitleaks findings from PR #790's earlier commit range. PR #790 remains
+blocked until its own checks pass on an owner-reviewed updated head; if its
+historical range remains flagged, a separately reviewed clean-branch delivery
+strategy is required. No finding is suppressed or allowlisted.
+
+The complete evaluation was rerun against v2 before reporting the comparison.
+Actual v1/v2 metrics are shown below; this is an integrity-preserving fixture
+revision, not a retrieval optimization.
 
 ## Dataset and separation
 
@@ -88,6 +123,17 @@ python3 scripts/evaluate_knowledge_retrieval.py
 | 3 | 0.4889 | 0.8276 | 1.0000 | 1.0000 | 0.9367 | 1.0000 | 1.0000 | 1.0000 |
 | 5 | 0.3133 | 0.8736 | 1.0000 | 1.0000 | 0.9472 | 1.0000 | 1.0000 | 1.0000 |
 | 10 | 0.1600 | 0.8908 | 1.0000 | 1.0000 | 0.9488 | 1.0000 | 1.0000 | 1.0000 |
+
+| Metric | v1 | v2 | Change |
+| --- | ---: | ---: | ---: |
+| Recall@10 | 0.8908 | 0.8908 | 0.0000 |
+| MRR | 1.0000 | 1.0000 | 0.0000 |
+| Citation-reference accuracy | 1.0000 | 1.0000 | 0.0000 |
+
+All reported aggregate metrics at K=1, 3, 5, and 10 are unchanged between
+v1 and v2. The new digest is the expected consequence of the versioned fixture
+metadata and identifier replacement; it does not claim different retrieval
+quality.
 
 The proposed exploratory Recall@10 target is `>= 0.90`; measured Recall@10 is
 `0.8908`, so the target is **not met**. This result is left unchanged. The

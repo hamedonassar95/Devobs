@@ -357,12 +357,12 @@ class KnowledgeRetrievalTests(unittest.TestCase):
             self.assertTrue(self.build([record_for("read only retrieval", key="read-only")]).search("read"))
 
     def test_42_validation_errors_do_not_echo_sensitive_source_text(self):
-        secret_marker = "SYNTHETIC_PRIVATE_SENTINEL_7654321"
-        record = record_for(secret_marker, key="sanitized-error")
+        source_text = "ordinary validation text for error-redaction coverage"
+        record = record_for(source_text, key="sanitized-error")
         record["content_by_version"][record["manifest"]["document_versions"][0]["version_id"]] = b"mismatch"
         with self.assertRaises(RetrievalError) as raised:
             self.build([record])
-        self.assertNotIn(secret_marker, str(raised.exception))
+        self.assertNotIn(source_text, str(raised.exception))
 
     def test_43_corpus_record_limit_is_enforced_before_processing(self):
         with self.assertRaisesRegex(RetrievalError, "corpus_record_limit_exceeded"):

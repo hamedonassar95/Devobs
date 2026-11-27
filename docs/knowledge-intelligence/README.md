@@ -98,9 +98,12 @@ contain validated references and scores, never raw source content. Scope values
 are caller declarations and are not authenticated tenant isolation.
 
 See [the retrieval engine contract](RETRIEVAL_ENGINE.md) and
-[the frozen evaluation and measured baseline](RETRIEVAL_EVALUATION.md). The
-evaluation set is synthetic and small; its Recall@10 result is below the
-exploratory target and is not evidence of natural-query or production quality.
+[the versioned evaluation and measured baseline](RETRIEVAL_EVALUATION.md).
+The secret-scan remediation advances only the synthetic fixture revision while
+preserving the original v1 digest, query set, labels, and evaluation
+methodology. PR #790 remains blocked pending its own required checks; the
+evaluation set is synthetic and small, and its Recall@10 result is below the
+exploratory target, not evidence of natural-query or production quality.
 
 Existing source documents remain authoritative for their specific contracts;
 this audit links to them rather than copying them. Start with
