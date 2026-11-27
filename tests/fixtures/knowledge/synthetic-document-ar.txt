@@ -1,0 +1,3 @@
+هذه وثيقة اصطناعية لاختبار إدخال المعرفة محلياً.
+Devobs KI-2 handles Arabic UTF-8 bytes without rewriting them.
+لا تحتوي هذه العينة على بيانات حقيقية أو أسرار.

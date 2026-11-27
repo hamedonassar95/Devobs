@@ -21,8 +21,8 @@ class MilestoneLedgerTests(unittest.TestCase):
         self.data = copy.deepcopy(self.record)
 
     def assert_current_summary(self, summary):
-        self.assertEqual(summary["merged_milestones"], 317)
-        self.assertEqual(summary["latest_pr"], 787)
+        self.assertEqual(summary["merged_milestones"], 318)
+        self.assertEqual(summary["latest_pr"], 788)
 
     def test_current_merged_evidence_and_gates_validate(self):
         result = validate(self.data)
@@ -80,6 +80,30 @@ class MilestoneLedgerTests(unittest.TestCase):
                 self.assertIn("P01 BLOCKED / NO-GO", entry["limitations"])
                 self.assertIn("AI-9 BLOCKED", entry["limitations"])
                 self.assertIn("Codex runtime OPEN", entry["limitations"])
+        self.assert_current_summary(result)
+        self.assertEqual(
+            {gate["id"]: gate["status"] for gate in self.data["gates"]},
+            {
+                "ai9-detection-quality": "BLOCKED",
+                "p01-managed-saas": "BLOCKED",
+                "codex-agent-runtime-acceptance": "OPEN",
+            },
+        )
+
+    def test_pr788_ki1_merge_has_exact_ci_and_codeql_evidence(self):
+        result = validate(self.data)
+        records = {entry["pr_number"]: entry for entry in self.data["milestones"]}
+        entry = records[788]
+        self.assertEqual(entry["id"], "verified-knowledge-source-manifest-ki1-pr788")
+        self.assertEqual(entry["pr_head_sha"], "971e6e464917a86fcc840692f897fd7996d5afed")
+        self.assertEqual(entry["merge_sha"], "442012702a60ebf1bb1df43c4aa9e08fb94cab03")
+        self.assertEqual(entry["ci_run_id"], 45926972145)
+        self.assertIn("CodeQL check 140270646681 SUCCESS", entry["verification"])
+        self.assertIn("post-merge main CI 45929601744 SUCCESS", entry["verification"])
+        self.assertIn("65,536 bytes", entry["limitations"])
+        self.assertIn("P01 BLOCKED / NO-GO", entry["limitations"])
+        self.assertIn("AI-9 BLOCKED", entry["limitations"])
+        self.assertIn("Codex runtime OPEN", entry["limitations"])
         self.assert_current_summary(result)
         self.assertEqual(
             {gate["id"]: gate["status"] for gate in self.data["gates"]},

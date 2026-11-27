@@ -28,8 +28,36 @@ authenticated authorization, runtime tenant isolation, deletion execution,
 or production readiness. The v1 validator supports one synthetic document per
 source and a single linear version history.
 
-The thresholds below remain proposed targets for later implementation; no
-retrieval target has been measured by KI-0.
+KI-0–KI-2 local contract evidence does not establish search quality. The
+retrieval, isolation, storage and operational thresholds below remain proposed
+targets for later implementation; no retrieval target has been measured.
+
+## KI-2 deterministic local ingestion
+
+KI-2 is accepted as a **local prototype** when its focused tests pass and it:
+
+- uses the existing KI-0 policy and KI-1 manifest validators without duplicating
+  their policy decisions;
+- accepts only bounded, explicitly supplied synthetic UTF-8 bytes and supported
+  text content types; rejects empty, malformed, oversized or unsupported input;
+- emits stable source/document/version/chunk identifiers, SHA-256 digests and
+  contiguous, non-overlapping UTF-8 byte spans that correspond to the exact
+  original bytes;
+- returns a full manifest only after KI-1 validation succeeds, and produces no
+  partial success on failure;
+- defaults to dry-run, makes no network connection, persists no document text,
+  and reports sanitized errors without echoing content;
+- keeps deduplication, revocation and deletion state in memory, clearly labeling
+  lifecycle assurance `IN_MEMORY_ONLY` and authorization `STRUCTURE_ONLY`.
+
+The v1 manifest limits remain authoritative: document <= 65,536 bytes,
+non-overlapping chunks, and KI-1 version/manifest count and size limits. KI-2
+requires zero overlap. Benchmarks at 100 KiB and 1 MiB are reported as not run
+because those inputs exceed the current KI-1 contract. The 1 KiB and 10 KiB
+smoke measurements are single-environment diagnostics, not performance targets
+or a claim of improvement. Synthetic policy checks do not test trusted tenant
+authentication, runtime isolation, durable deduplication, secure erasure,
+backup deletion or distributed revocation.
 
 All values below are **proposed targets** for later implementation. No target
 has been measured by this architecture audit. The first evaluator must publish

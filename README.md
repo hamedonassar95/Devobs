@@ -19,6 +19,12 @@ connects KI-0 policies to deterministic, versioned synthetic documents and
 UTF-8 byte-offset chunks. Local validation does not authenticate authorization
 or establish runtime tenant isolation; no production ingestion is enabled.
 
+[KI-2 local ingestion prototype](docs/knowledge-intelligence/INGESTION_ENGINE.md)
+turns explicitly supplied synthetic UTF-8 files into KI-1-validated manifests
+in dry-run mode. It uses no network or document-content persistence. The current
+KI-1 contract limits documents to 65,536 bytes and disallows overlapping chunks;
+this is a local prototype, not a production ingestion API.
+
 ## Offline Performance Intelligence foundation
 
 [Performance Intelligence](docs/PERFORMANCE_INTELLIGENCE.md) documents the

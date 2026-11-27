@@ -1,7 +1,10 @@
 # KI-1 knowledge source manifest
 
-**Status:** implemented on `feature/ki-1-knowledge-source-manifest`; review and
-merge are pending. This is a local contract, not an ingestion service.
+**Status:** merged in PR #788. Head
+`971e6e464917a86fcc840692f897fd7996d5afed` merged as
+`442012702a60ebf1bb1df43c4aa9e08fb94cab03`. Exact-head CI
+`45926972145`, CodeQL check `140270646681`, and post-merge main CI
+`45929601744` succeeded. This is a local contract, not an ingestion service.
 
 ## Contract
 

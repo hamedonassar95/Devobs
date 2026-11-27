@@ -3489,6 +3489,17 @@
       "ci_run_id": 45919139172,
       "verification": "VERIFIED 2026-11-27 (GitHub): PR #787 merged exact head 5bc957b8a4fa101f75b03bb620ae2c0d0165254b as main SHA fc6ea340206bb970169a3b1c182fbe83f3a0803f. Exact-head CI 45919139172 SUCCESS and CodeQL 45919136767 SUCCESS; post-merge main CI 45922964364 SUCCESS and CodeQL 45922963590 SUCCESS.",
       "limitations": "KI-0 validates a local policy envelope and synthetic fixtures only; APPROVED is a declaration, not authenticated authority. No source ingestion, tenant authentication, runtime isolation, database, production configuration or deployment was activated. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
+    },
+    {
+      "id": "verified-knowledge-source-manifest-ki1-pr788",
+      "area": "AI_GOVERNANCE",
+      "title": "feat(knowledge): implement KI-1 source manifest",
+      "pr_number": 788,
+      "pr_head_sha": "971e6e464917a86fcc840692f897fd7996d5afed",
+      "merge_sha": "442012702a60ebf1bb1df43c4aa9e08fb94cab03",
+      "ci_run_id": 45926972145,
+      "verification": "VERIFIED 2026-11-27 (GitHub): PR #788 merged exact head 971e6e464917a86fcc840692f897fd7996d5afed as main SHA 442012702a60ebf1bb1df43c4aa9e08fb94cab03. Exact-head CI 45926972145 SUCCESS and CodeQL check 140270646681 SUCCESS; post-merge main CI 45929601744 SUCCESS. Main push CI 45929600623 also completed SUCCESS.",
+      "limitations": "KI-1 defines a local, synthetic-only source/document/chunk manifest and validator. It does not ingest or retain document content, authenticate identities or approvals, prove runtime tenant isolation, perform durable deletion, or activate storage or production configuration. KI-1 v1 limits content to 65,536 bytes and disallows overlapping chunk spans. P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN."
     }
   ],
   "gates": [

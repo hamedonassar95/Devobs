@@ -1,8 +1,8 @@
-# KI-0 knowledge-source threat model
+# KI-0–KI-2 knowledge-source threat model
 
-**Scope:** the local source-policy schema, Python validator, and synthetic
-fixtures only. This is not a threat model for a deployed retrieval service,
-database, or model runtime.
+**Scope:** the local source-policy and manifest schemas/validators, KI-2
+synthetic ingestion engine and fixtures only. This is not a threat model for a
+deployed retrieval service, database, or model runtime.
 
 ## Assets and trust boundaries
 
@@ -14,6 +14,8 @@ database, or model runtime.
 | Checked-in JSON Schema | Version-controlled contract; validator checks its expected fields/enums before accepting input. |
 | Future source content | Untrusted data, even if public or approved; never executable policy or tool authority. |
 | Future authorization service | Not implemented; must verify identity, scope, rights, approval, expiry and revocation independently. |
+| KI-2 local file input | Caller-selected path and bytes are untrusted; bounded regular files only, strict UTF-8; source bytes are transient in process memory. |
+| KI-2 generated manifest | Output is content-free metadata, validated by KI-1 before success; it is not an authenticated approval or trusted provenance statement. |
 
 ## Threats and controls
 
@@ -30,6 +32,11 @@ database, or model runtime.
 | Data persists after consent expires | Required retention and deletion declarations with bounded combinations. | No deletion engine, index, cache, backup, or timer exists. Verify lifecycle end to end before real data. |
 | Sensitive source text appears in errors | Fixed error codes; no echo of source values. | Future logs and consumers need separate privacy review. |
 | `RESTRICTED` is accidentally admitted | Recognized but rejected as unsupported in v1. | Do not add restricted-source support without a new reviewed schema version. |
+| Local ingestion reads unbounded or special files | Explicit paths only, regular-file check, no-follow on the final path component, pre-read and read-time byte limits, strict UTF-8 and fixed content types. | This is not a filesystem sandbox; do not provide untrusted users a runtime API or shared-host access. |
+| UTF-8 offsets/hash metadata drift from source bytes | Chunk at valid code-point boundaries, retain byte offsets, hash original byte slices and validate the full KI-1 manifest before output. | Source authenticity and the history before input are not proven by matching SHA-256 values. |
+| Repeated or changed content bypasses policy | Stable IDs and scope keys, immutable source policy within the in-memory engine, linear version references, and revocation/deletion checks. | State is volatile and process-local; there is no concurrency, durable deduplication or distributed revocation. |
+| Prompt injection inside a document changes agent authority | Content is neither executed nor included in output; this engine has no agent/tool interface. | Future retrieval must keep content inert and separately defend rendering, citations and agent tool boundaries. |
+| Large documents evade the current manifest contract | Engine adopts KI-1 v1's 65,536-byte limit, 2,048 chunk cap, zero overlap and final manifest size/count validation. | Larger inputs or overlap require a reviewed schema/adapter change; do not bypass KI-1. |
 
 ## Trust and failure rules
 
@@ -40,7 +47,9 @@ database, or model runtime.
   approval, or agent tool permissions.
 - Do not enable real ingestion until identity, source rights, isolation,
   retention, deletion, audit, prompt-injection, and rollback controls are
-  implemented and independently reviewed.
+  implemented and independently reviewed. KI-2's `STRUCTURE_ONLY`
+  authorization and `IN_MEMORY_ONLY` lifecycle labels are not substitutes for
+  those controls.
 
 ## Reused repository controls
 
