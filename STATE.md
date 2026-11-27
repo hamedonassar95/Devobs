@@ -1,25 +1,14 @@
-## KI-1 knowledge source manifest baseline (2026-11-27)
+## Verified merged PR #788; KI-1 knowledge source manifest (2026-11-27)
 
-- **VERIFIED (GitHub):** PR #787 merged exact head
-  `5bc957b8a4fa101f75b03bb620ae2c0d0165254b` as `origin/main`
-  `fc6ea340206bb970169a3b1c182fbe83f3a0803f`. Exact-head CI
-  `45919139172`, post-merge main CI `45922964364`, and CodeQL
-  `45922963590` succeeded. KI-0 schema and validator are present at this base.
-- **RECONCILIATION proposed on this branch:** append verified PR #785, #786,
-  and #787 evidence to the milestone ledger: 314 → 317 records, latest PR
-  #787. P01 remains BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN.
-- **KI-1 scope:** a local synthetic-only manifest/schema/validator links
-  explicit inline KI-0 policies to one document per source, linear versions,
-  and UTF-8 byte-offset chunks. No ingestion, external URI resolution,
-  database, embedding, production configuration, or deployment is included.
-- **UNVERIFIED follow-up risks:** Dependabot alerts API returned HTTP 403, so
-  the two previously reported paths—`firebase-tools → glob → minimatch` and
-  `firebase-tools → gaxios → uuid`—could not be confirmed as currently open.
-  No dependencies were changed.
-- **Verification limits to reassess:** No Markdown linter was found; `check_site.py`
-  checks HTML/site behavior, not Markdown. Local Gitleaks availability and the
-  repository coverage check will be reported separately; missing local tooling
-  must not be counted as a scan result.
+- **VERIFIED (GitHub):** [PR #788](https://github.com/hamedonassar95/Devobs/pull/788) merged exact head `971e6e464917a86fcc840692f897fd7996d5afed` as main SHA `442012702a60ebf1bb1df43c4aa9e08fb94cab03` at `2026-11-27T02:39:15Z`. Exact-head CI [45926972145](https://github.com/hamedonassar95/Devobs/actions/runs/45926972145) succeeded; CodeQL check [140270646681](https://github.com/hamedonassar95/Devobs/runs/140270646681) succeeded. Post-merge main CI [45929601744](https://github.com/hamedonassar95/Devobs/actions/runs/45929601744) and main push CI [45929600623](https://github.com/hamedonassar95/Devobs/actions/runs/45929600623) succeeded on the exact merge SHA.
+- **VERIFIED (scope):** KI-1 adds a local synthetic-only source/document-version/chunk manifest and validator over KI-0. The v1 contract is metadata-only, limited to 65,536-byte documents, permits at most 500 versions and 5,000 manifest chunks, and rejects overlapping chunk spans. It does not ingest or persist source content, authenticate an approver or tenant, prove runtime isolation, perform durable deletion, or enable storage/production configuration.
+- **RECONCILIATION:** The milestone ledger records 318 merged milestones, latest PR #788. **P01 BLOCKED / NO-GO, AI-9 BLOCKED, Codex runtime OPEN** are unchanged.
+- **UNVERIFIED follow-up risk:** Two previously reported moderate Dependabot alerts were not revalidated at advisory/path level in this work; their current status is not asserted. No dependencies were changed for those alerts.
+
+## KI-2 deterministic ingestion work
+
+- **IN PROGRESS on `feature/ki-2-knowledge-ingestion`:** local-only implementation based on `442012702a60ebf1bb1df43c4aa9e08fb94cab03`. It reuses KI-0 and KI-1 validators. Focused KI-2 tests passed **59/59**, combined KI-0/1/2 tests passed **132/132**, and ledger tests passed **98/98**. Manual five-sample benchmark measured synthetic 1 KiB and 10 KiB inputs; 100 KiB and 1 MiB were not run because they exceed KI-1's 65,536-byte limit. Full local discovery ran 1,962 tests with 37 skips but exited 1 on two import errors because `psycopg` and `opentelemetry` are not installed; no dependencies were installed. See the KI-2 pull request for exact-head hosted CI and complete verification evidence.
+- **LIMITS:** KI-1 v1's 65,536-byte cap and non-overlap requirement constrain this prototype. It does not prove authenticated authorization, runtime tenant isolation, durable deduplication/deletion or production readiness. No cloud, database, credential, paid service, deployment or production setting was accessed or changed. Gates remain unchanged.
 
 ## Verified merged PR #784; offline pyperformance foundation (2026-11-26)
 

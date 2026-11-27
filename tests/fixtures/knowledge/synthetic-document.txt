@@ -1,0 +1,3 @@
+Synthetic Devobs knowledge ingestion fixture.
+This file contains deterministic test text only.
+It is not a customer document, production log, or source of operational truth.

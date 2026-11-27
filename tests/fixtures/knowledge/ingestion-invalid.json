@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "source_policy": {
+    "schema_version": 1,
+    "source_id": "synthetic-ingestion-source-001",
+    "source_type": "synthetic_fixture",
+    "source_version": "fixture-v1",
+    "source_uri": "fixture://synthetic-ingestion-source-001",
+    "content_sha256": "257fa50dd0bc374756f6a4c62d9ae2fd06ed081bff6f2b33e8488a905746af64",
+    "tenant_id": "synthetic-tenant-001",
+    "repository_id": "synthetic-org/synthetic-repo",
+    "owner_id": "synthetic-owner-001",
+    "classification": "INTERNAL",
+    "license_status": "NOT_APPLICABLE",
+    "ingestion_authorized": true,
+    "retention_policy": {"mode": "EPHEMERAL_TEST", "max_age_seconds": 3600},
+    "deletion_policy": "DELETE_ON_COMPLETION",
+    "provenance": {
+      "recorded_at": "2026-11-27T00:00:00Z",
+      "recorded_by": "synthetic-reviewer-001",
+      "approval_reference": "synthetic-approval-001"
+    },
+    "approval_status": "PENDING"
+  },
+  "source_version": "fixture-v1",
+  "document_key": "synthetic-note-001",
+  "tenant_id": "synthetic-tenant-001",
+  "repository_id": "synthetic-org/synthetic-repo",
+  "content_type": "text/plain; charset=utf-8",
+  "created_at": "2026-11-27T00:00:00Z",
+  "chunking": {"target_chunk_bytes": 1024, "overlap_bytes": 0, "max_chunks": 2048}
+}

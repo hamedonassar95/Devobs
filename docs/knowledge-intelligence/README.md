@@ -22,12 +22,11 @@ TF-IDF vectors are temporary clustering features, not reusable embeddings.
 Graphify indexes repository structure and code relationships, not customer or
 business documents.
 
-At the time of this Phase 01 audit, the recommended next milestone was a local,
-synthetic-data retrieval contract and evaluation fixture. The roadmap now places
-KI-1 source/version/chunk validation after the KI-0 governance contract. KI-1
-must still establish provenance, tenant filters, and deletion semantics before
-the lexical baseline; this does not authorize a migration, provider, or
-deployment.
+This Phase 01 audit is a historical snapshot. KI-0 and KI-1 were subsequently
+merged in PRs #787 and #788. KI-2 adds a bounded, local-only synthetic document
+ingestion prototype that emits validated KI-1 manifests; it is not a general
+ingestion service and does not authorize real data, runtime access, a provider,
+or deployment.
 
 ## Status labels
 
@@ -75,11 +74,16 @@ production readiness. No source content is ingested or fetched.
 
 The [KI-1 source manifest](SOURCE_MANIFEST.md) connects the merged KI-0 policy
 validator to deterministic synthetic source, document-version, and chunk
-records. The validator is local-only, has bounded inputs, and checks exact
-UTF-8 fixture bytes when present. Its structural approval checks are not
-authentication or runtime tenant isolation. The implementation is on a
-feature branch pending review; no ingestion, embeddings, storage, or production
-activation is included.
+records. PR #788 merged this contract and validator. Structural approval checks
+are not authentication or runtime tenant isolation.
+
+## KI-2 local ingestion prototype
+
+The [KI-2 ingestion engine](INGESTION_ENGINE.md) reads only explicitly named
+synthetic UTF-8 files, chunks by UTF-8 byte boundaries, and validates the full
+result through KI-0 and KI-1. It is dry-run only, does not persist document
+content, and is not a runtime API. KI-1 v1 caps documents at 65,536 bytes and
+rejects overlapping chunks, so the engine fails closed outside those limits.
 
 Existing source documents remain authoritative for their specific contracts;
 this audit links to them rather than copying them. Start with
