@@ -1,0 +1,361 @@
+{
+  "dataset_version": "ki3-synthetic-v1",
+  "corpus_source_label": "authored-for-devobs-ki3",
+  "scope": {
+    "tenant_id": "synthetic-tenant-001",
+    "repository_id": "synthetic-org/operations"
+  },
+  "policy_defaults": {
+    "schema_version": 1,
+    "source_type": "synthetic_fixture",
+    "owner_id": "synthetic-owner-001",
+    "classification": "INTERNAL",
+    "license_status": "NOT_APPLICABLE",
+    "ingestion_authorized": true,
+    "retention_policy": {
+      "mode": "EPHEMERAL_TEST",
+      "max_age_seconds": 3600
+    },
+    "deletion_policy": "DELETE_ON_COMPLETION",
+    "approval_status": "APPROVED"
+  },
+  "source_version": "retrieval-v1",
+  "content_type": "text/plain; charset=utf-8",
+  "created_at": "2026-11-27T00:00:00Z",
+  "chunking": {
+    "target_chunk_bytes": 4096,
+    "overlap_bytes": 0,
+    "max_chunks": 2048
+  },
+  "records": [
+    {
+      "document_key": "ci-github-workflow",
+      "text": "GitHub Actions CI workflows validate Python packages, run unit tests, and block release when required checks fail.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "ci-minimal-permissions",
+      "text": "A CI pipeline uses least-privilege GitHub token permissions and read-only repository access unless a reviewed job needs more.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "ci-contract-validation",
+      "text": "Contract validation checks JSON schemas, policy invariants, and deterministic output before a continuous integration job succeeds.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "ci-integration-tests",
+      "text": "Integration tests use synthetic fixtures and local services to verify application boundaries without production credentials.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "ci-artifact-provenance",
+      "text": "Build artifact provenance records the source commit, workflow run, package identity, and SHA-256 digest for later verification.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "ci-staging-promotion",
+      "text": "A reviewed release moves a validated artifact through staging with human approval and a documented rollback plan.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "ci-flaky-test-triage",
+      "text": "Flaky test triage separates intermittent runner failures from deterministic regressions and retains the original failing evidence.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "container-image-digest",
+      "text": "A container image should be referenced by immutable digest so a deployment uses the exact scanned build artifact.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "container-nonroot-user",
+      "text": "A hardened Dockerfile runs the application as a non-root user and keeps writable filesystem paths narrowly scoped.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "container-layer-cache",
+      "text": "Container layer caching speeds local builds, while cache keys must include dependency lockfile changes.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "container-healthcheck",
+      "text": "A container health check reports process readiness and does not expose secret values or internal environment details.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "container-vulnerability-scan",
+      "text": "An image vulnerability scan records the base image digest and fails on the repository-defined severity threshold.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "k8s-readiness-probe",
+      "text": "Kubernetes readiness probes remove a pod from service until the application can safely receive requests.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "k8s-namespace-isolation",
+      "text": "Kubernetes namespaces organize workloads but do not replace network policy, identity controls, or tenant authorization.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "k8s-resource-limits",
+      "text": "Kubernetes CPU and memory requests and limits bound workload scheduling and container resource consumption.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "k8s-network-policy",
+      "text": "A Kubernetes network policy restricts pod ingress and egress to explicitly approved application paths.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "k8s-rollout",
+      "text": "A deployment rollout changes replicas gradually and reports progress before an operator approves production release.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "obs-prometheus-metrics",
+      "text": "Prometheus scrapes bounded application metrics and labels without customer text or high-cardinality identifiers.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "obs-alert-routing",
+      "text": "Alert routing sends actionable service health signals to an owned response path with severity and runbook context.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "obs-distributed-tracing",
+      "text": "OpenTelemetry trace context links spans across local services while sensitive request bodies remain excluded.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "obs-structured-logs",
+      "text": "Structured logs use stable event fields and correlation identifiers but never include credentials or raw document contents.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "obs-slo-latency",
+      "text": "A service level objective tracks request latency percentiles over a declared window and separates measurements from targets.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "obs-dashboard-freshness",
+      "text": "An observability dashboard displays the observation timestamp and labels stale data instead of implying real-time status.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "knowledge-source-provenance",
+      "text": "A knowledge source manifest links a synthetic source policy, document version, SHA-256 hash, and provenance reference.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "knowledge-version-hash",
+      "text": "Document version integrity compares exact UTF-8 bytes with a SHA-256 digest; the digest does not prove source authenticity.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "utf8-offset-example",
+      "text": "Knowledge chunks use half-open UTF-8 byte offsets and must not split a multibyte code point.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "knowledge-retention-deletion",
+      "text": "A retention policy defines expiry and deletion handling, while an in-memory prototype cannot prove durable erasure.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "knowledge-citation-scope",
+      "text": "A retrieval citation identifies the source, document, version, chunk hash, byte span, and provenance reference.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "knowledge-lexical-retrieval",
+      "text": "BM25 lexical retrieval ranks matching chunks by term frequency, inverse document frequency, and normalized chunk length.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "agent-task-coordination",
+      "text": "Agent coordination assigns each task an owner, bounded objective, dependency, and verification evidence.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "agent-file-ownership",
+      "text": "Parallel agents use isolated branches and non-overlapping file ownership to prevent conflicting repository changes.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "agent-human-approval",
+      "text": "A human approval queue keeps production changes pending until an authorized reviewer approves the exact commit and scope.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "agent-prompt-injection",
+      "text": "Retrieved prompt injection is untrusted data and cannot grant tool permissions, override system policy, or authorize actions.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "agent-bounded-timeout",
+      "text": "A worker timeout and process budget bound automated task execution and return a fixed failure without partial success.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "agent-audit-history",
+      "text": "An agent audit record links a proposal to its source evidence, policy version, approval state, and immutable commit reference.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "arabic-ci",
+      "text": "اختبارات التكامل المستمر تتحقق من الشيفرة والملفات الاصطناعية قبل السماح بمرحلة الإصدار.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "arabic-k8s",
+      "text": "تستخدم مساحة الأسماء في Kubernetes لتنظيم الحاويات، بينما تحدد سياسة الشبكة الاتصالات المسموح بها.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "arabic-agents",
+      "text": "يحتاج تنسيق الوكلاء إلى مالك واضح للمهمة وموافقة بشرية قبل أي تغيير إنتاجي.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "mixed-github-ar",
+      "text": "تتحقق GitHub Actions من CI وتفرض صلاحيات قليلة وتوثق SHA لكل نتيجة اختبار.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "mixed-kube-ar",
+      "text": "تراقب Kubernetes readiness probe جاهزية الخدمة قبل توجيه الطلبات إلى الحاوية.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "mixed-prom-ar",
+      "text": "تعرض Prometheus مؤشرات latency ونتائج alert دون تخزين محتوى المستخدم.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "irrelevant-similar-git",
+      "text": "Git history stores commits and branches; a diagram of repository labels does not measure test execution.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "irrelevant-invoice",
+      "text": "An invoice lists a purchase date, subtotal, and payment status for a synthetic office supply order.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "irrelevant-workflow-diagram",
+      "text": "A workflow diagram illustrates boxes and arrows for a fictional library book return process.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "irrelevant-observability-note",
+      "text": "An observability note describes a telescope focus adjustment and a star catalog observation.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "out-of-scope-tenant-sentinel",
+      "text": "synthetic cross tenant sentinel externalterm externalterm externalterm should never change BM25 statistics.",
+      "tenant_id": "synthetic-tenant-002",
+      "repository_id": "synthetic-org/operations",
+      "lifecycle_state": "ACTIVE"
+    },
+    {
+      "document_key": "out-of-scope-repository-sentinel",
+      "text": "synthetic other repository sentinel externalterm externalterm externalterm must remain excluded.",
+      "tenant_id": "synthetic-tenant-001",
+      "repository_id": "synthetic-org/external",
+      "lifecycle_state": "ACTIVE"
+    }
+  ]
+}
