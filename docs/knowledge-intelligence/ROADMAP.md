@@ -1,8 +1,10 @@
 # Implementation roadmap
 
-**Plan only.** None of these milestones is implemented or authorized for
-production. Work should remain local and use synthetic data until its acceptance
-evidence is reviewed.
+**Status at this branch:** KI-0's versioned policy contract, local validator,
+and synthetic regression tests are implemented as a feature-branch proposal;
+they remain pending review and are not authorized for production. KI-1 through
+KI-6 remain planned. Work must remain local and use synthetic data until the
+acceptance evidence and source scope are reviewed.
 
 ## Execution order
 
@@ -15,6 +17,30 @@ evidence is reviewed.
 | KI-4 | Evaluate local PostgreSQL/pgvector adapter and tenant RLS | KI-1 schema and synthetic DB tests | Storage adapter |
 | KI-5 | Implement hybrid retrieval, citation checks and deletion semantics | KI-2, KI-3, KI-4 | Retrieval API |
 | KI-6 | Add optional advisory-only agent/observability integration | KI-5 and all security/eval gates | Agent/operations |
+
+## KI-0 implementation record
+
+- **Branch proposal:** `feature/ki-0-knowledge-governance`, based on verified
+  main `c36ae362fce0a078836e8f4b9e5a53369f108c36` after PR #786 merged.
+- **Files:** `schemas/knowledge-source-policy.schema.json`,
+  `scripts/check_knowledge_source_policy.py`, synthetic fixtures and unit tests,
+  plus the [governance](KNOWLEDGE_GOVERNANCE.md),
+  [privacy](PRIVACY_CONTRACT.md), and [threat](THREAT_MODEL.md) contracts.
+- **Scope:** local metadata validation only. It does not read source content,
+  authenticate identities or approval, fetch URIs, or enforce runtime tenant
+  isolation.
+- **Acceptance:** all required fields and combinations are explicit; malformed,
+  missing, duplicate, conflicting, oversized, or unauthorized policy inputs
+  fail closed; diagnostics do not echo payloads; tests use synthetic data only.
+- **Verification:** `python3 -m unittest tests.test_knowledge_source_policy -v`,
+  repository governance/ownership checks, and `git diff --check`; exact results
+  are recorded in the PR after execution.
+- **Rollback:** revert the isolated KI-0 commit; no persistent or hosted state
+  was created.
+- **Resources:** existing local Python runtime and repository; no new package,
+  service, or cloud resource.
+- **Human approval:** review the contract before any non-synthetic source is
+  considered. This branch does not grant approval.
 
 KI-3 and KI-4 may run in parallel after KI-1's schema and KI-2's evaluation
 fixture are frozen. They must own distinct files. KI-5 integrates the two
@@ -43,14 +69,16 @@ separate branches only after independent review; do not share writable worktrees
   provenance must be retained, and what content is excluded.
 - **Reuse:** docs/AI_INTELLIGENCE_CORE.md, source event contract, current
   repository policy and local Graphify manifest.
-- **Scope:** Document canonical source IDs, trusted-source admission, threat
-  labels, secret/privacy exclusion, retention/deletion owner, limits and
-  version fields. No data collection or import.
+- **Scope:** Freeze the versioned source policy envelope and its explicit
+  combinations, privacy/threat boundaries, and deterministic local validator.
+  No data collection or import.
 - **Owner:** Architecture/governance component.
-- **Acceptance:** Every source class has owner, scope, permitted operation,
-  revision format, data class and deletion rule; unknown sources fail closed.
-- **Verification:** Review the decision matrix; run the repository docs and
-  policy checks. No runtime benchmark.
+- **Acceptance:** Required tenant and repository scope; explicit source type,
+  license, classification, approval, retention, deletion, and provenance fields;
+  unsupported and inconsistent states fail closed. `PASS` is structural only.
+- **Verification:** `python3 -m unittest tests.test_knowledge_source_policy -v`,
+  schema/fixture checks, documentation checks, and `git diff --check`. No runtime
+  benchmark or isolation claim.
 - **Rollback:** Revert only the documentation commit; no runtime state changes.
 - **Resources:** Existing workstation and repository only.
 - **Human approval:** Owner approves source classes and purpose before any
@@ -80,6 +108,19 @@ separate branches only after independent review; do not share writable worktrees
 - **Resources:** Synthetic files, CPU and disk bounded by explicit fixture size.
 - **Human approval:** Required before admitting any source outside synthetic
   fixtures.
+
+#### KI-1 readiness prerequisites
+
+Before KI-1 starts, reviewers must accept and freeze the v1 policy schema and
+explicitly retain its `STRUCTURE_ONLY` limitation. The first implementation
+must process only checked-in synthetic bytes, calculate and compare the digest
+from those exact bytes, create stable source-version and chunk provenance, and
+prove deterministic duplicate handling and deletion with offline tests. It
+must not fetch the declared URI, add real source content, call an embedding or
+other external API, add a database, or change production configuration. Any
+non-synthetic source requires a separate rights, identity, purpose, retention,
+deletion, and human-approval review before it is read. Missing or unverified
+prerequisites block KI-1.
 
 ### KI-2 — Lexical baseline and frozen evaluation
 

@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Devobs Knowledge Source Policy v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source_id",
+    "source_type",
+    "source_version",
+    "source_uri",
+    "content_sha256",
+    "tenant_id",
+    "repository_id",
+    "owner_id",
+    "classification",
+    "license_status",
+    "ingestion_authorized",
+    "retention_policy",
+    "deletion_policy",
+    "provenance",
+    "approval_status"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "source_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"},
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "synthetic_fixture",
+        "public_document",
+        "public_repository_file",
+        "internal_document",
+        "confidential_document",
+        "restricted_document"
+      ]
+    },
+    "source_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:+-]{0,127}$"
+    },
+    "source_uri": {"type": "string", "minLength": 1, "maxLength": 2048},
+    "content_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "tenant_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"},
+    "repository_id": {"type": "string", "pattern": "^[A-Za-z0-9_.-]{1,100}/[A-Za-z0-9_.-]{1,100}$"},
+    "owner_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"},
+    "classification": {
+      "type": "string",
+      "enum": ["PUBLIC", "INTERNAL", "CONFIDENTIAL", "RESTRICTED"]
+    },
+    "license_status": {
+      "type": "string",
+      "enum": [
+        "NOT_APPLICABLE",
+        "PUBLIC_DOMAIN",
+        "PERMISSIVE",
+        "EXPLICIT_PERMISSION",
+        "INTERNAL_USE_AUTHORIZED",
+        "CONFIDENTIAL_SCOPE_APPROVED"
+      ]
+    },
+    "ingestion_authorized": {"type": "boolean"},
+    "retention_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "max_age_seconds"],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["EPHEMERAL_TEST", "SOURCE_RIGHTS", "OWNER_APPROVED"]
+        },
+        "max_age_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 31536000
+        }
+      }
+    },
+    "deletion_policy": {
+      "type": "string",
+      "enum": [
+        "DELETE_ON_COMPLETION",
+        "DELETE_ON_REVOCATION",
+        "DELETE_ON_REQUEST_AND_EXPIRY"
+      ]
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["recorded_at", "recorded_by", "approval_reference"],
+      "properties": {
+        "recorded_at": {"type": "string", "format": "date-time", "maxLength": 35},
+        "recorded_by": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"},
+        "approval_reference": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$"}
+      }
+    },
+    "approval_status": {
+      "type": "string",
+      "enum": ["APPROVED", "PENDING", "DENIED", "UNKNOWN"]
+    }
+  }
+}

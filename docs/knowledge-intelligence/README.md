@@ -22,11 +22,12 @@ TF-IDF vectors are temporary clustering features, not reusable embeddings.
 Graphify indexes repository structure and code relationships, not customer or
 business documents.
 
-The recommended next single milestone is a local, synthetic-data retrieval
-contract and evaluation fixture. It should establish provenance, tenant filters,
-deletion semantics, and a measured lexical baseline before selecting an
-embedding model or adding a database extension. This recommendation does not
-authorize a migration, provider, or deployment.
+At the time of this Phase 01 audit, the recommended next milestone was a local,
+synthetic-data retrieval contract and evaluation fixture. The roadmap now places
+KI-1 source/version/chunk validation after the KI-0 governance contract. KI-1
+must still establish provenance, tenant filters, and deletion semantics before
+the lexical baseline; this does not authorize a migration, provider, or
+deployment.
 
 ## Status labels
 
@@ -55,6 +56,19 @@ hosted behavior, live connectivity, product quality, or operational readiness.
 8. [Cost model](COST_MODEL.md)
 9. [Risk register](RISK_REGISTER.md)
 10. [ADR 0001: storage selection](adr/0001-storage-selection.md)
+
+## KI-0 source governance contract
+
+The follow-on [KI-0 governance contract](KNOWLEDGE_GOVERNANCE.md) defines a
+strict, versioned local source-policy envelope. The [privacy contract](PRIVACY_CONTRACT.md)
+and [threat model](THREAT_MODEL.md) describe its trust limits. The
+[roadmap](ROADMAP.md) now distinguishes the KI-0 implementation branch from
+future planned milestones, and [acceptance criteria](ACCEPTANCE_CRITERIA.md)
+continues to label all retrieval targets as proposed rather than measured.
+
+The validator uses only the Python standard library and synthetic fixtures.
+Its `STRUCTURE_ONLY` result is not authorization, runtime tenant isolation, or
+production readiness. No source content is ingested or fetched.
 
 Existing source documents remain authoritative for their specific contracts;
 this audit links to them rather than copying them. Start with

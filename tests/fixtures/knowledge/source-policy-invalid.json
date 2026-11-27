@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "source_id": "synthetic-source-pending",
+  "source_type": "synthetic_fixture",
+  "source_version": "fixture-v1",
+  "source_uri": "fixture://synthetic-source-pending",
+  "content_sha256": "02339b6c5b2be61ab2cc9fa79eac22c40a99a7a0156bff36e6baa854283af4bd",
+  "tenant_id": "synthetic-tenant-001",
+  "repository_id": "synthetic-org/synthetic-repo",
+  "owner_id": "synthetic-owner-001",
+  "classification": "INTERNAL",
+  "license_status": "NOT_APPLICABLE",
+  "ingestion_authorized": false,
+  "retention_policy": {
+    "mode": "EPHEMERAL_TEST",
+    "max_age_seconds": 3600
+  },
+  "deletion_policy": "DELETE_ON_COMPLETION",
+  "provenance": {
+    "recorded_at": "2026-11-27T00:00:00Z",
+    "recorded_by": "synthetic-reviewer-001",
+    "approval_reference": "synthetic-approval-pending"
+  },
+  "approval_status": "PENDING"
+}
