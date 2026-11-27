@@ -14,6 +14,7 @@ from scripts.evaluate_knowledge_retrieval import (
     EvaluationError,
     MAX_FIXTURE_BYTES,
     _load_fixture,
+    _deterministic_query_order,
     citation_reference_accuracy,
     dataset_sha256,
     empty_result_correctness,
@@ -175,6 +176,14 @@ class KnowledgeRetrievalEvaluationTests(unittest.TestCase):
             self.assertGreater(result[field], 0)
         self.assertIn("index_peak_python_allocation_bytes", result)
         self.assertIn("single_query_peak_python_allocation_bytes", result)
+
+    def test_23a_benchmark_query_order_is_deterministic_and_complete(self):
+        queries = ["Arabic قياس", "english pipeline", "mixed تشغيل CI"]
+        first = _deterministic_query_order(queries)
+        second = _deterministic_query_order(queries)
+        self.assertEqual(first, second)
+        self.assertEqual(sorted(first), sorted(queries))
+        self.assertEqual(queries, ["Arabic قياس", "english pipeline", "mixed تشغيل CI"])
 
     def test_24_evaluation_does_not_write_persistent_reports(self):
         with mock.patch.object(Path, "write_text", side_effect=AssertionError("write attempted")), \

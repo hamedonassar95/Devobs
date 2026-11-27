@@ -9,7 +9,6 @@ import hashlib
 import json
 import math
 import platform
-import random
 import statistics
 import stat
 import sys
@@ -69,6 +68,7 @@ DEFAULT_BENCHMARK_ITERATIONS = 100
 MIN_BENCHMARK_ITERATIONS = 10
 MAX_BENCHMARK_ITERATIONS = 500
 INDEX_BUILD_ITERATIONS = 10
+BENCHMARK_ORDER_SEED = b"20261127"
 
 
 def _fail(code: str) -> None:
@@ -437,6 +437,17 @@ def _percentile_95(samples: Sequence[float]) -> float:
     return ordered[max(0, rank - 1)]
 
 
+def _deterministic_query_order(queries: Sequence[str]) -> list[str]:
+    """Interleave a fixed query set without a pseudo-random generator."""
+    return sorted(
+        queries,
+        key=lambda query: (
+            hashlib.sha256(BENCHMARK_ORDER_SEED + b"\0" + query.encode("utf-8")).digest(),
+            query,
+        ),
+    )
+
+
 def run_performance_benchmark(iterations: int = DEFAULT_BENCHMARK_ITERATIONS) -> dict[str, object]:
     if type(iterations) is not int or not MIN_BENCHMARK_ITERATIONS <= iterations <= MAX_BENCHMARK_ITERATIONS:
         _fail("benchmark_iteration_count_invalid")
@@ -447,10 +458,7 @@ def run_performance_benchmark(iterations: int = DEFAULT_BENCHMARK_ITERATIONS) ->
     if len(scopes) != 1:
         _fail("benchmark_requires_one_scope")
     selected_queries = [query["text"] for query in queries]
-    rng = random.Random(20261127)
-    order = list(range(len(selected_queries)))
-    rng.shuffle(order)
-    selected_queries = [selected_queries[index] for index in order]
+    selected_queries = _deterministic_query_order(selected_queries)
 
     build_samples = []
     for _ in range(INDEX_BUILD_ITERATIONS):
