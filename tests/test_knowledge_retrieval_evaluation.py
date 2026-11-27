@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import socket
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -11,6 +12,8 @@ from unittest import mock
 from scripts.evaluate_knowledge_retrieval import (
     EXPECTED_DATASET_SHA256,
     EvaluationError,
+    MAX_FIXTURE_BYTES,
+    _load_fixture,
     citation_reference_accuracy,
     dataset_sha256,
     empty_result_correctness,
@@ -178,6 +181,25 @@ class KnowledgeRetrievalEvaluationTests(unittest.TestCase):
                 mock.patch.object(Path, "write_bytes", side_effect=AssertionError("write attempted")):
             result = evaluate_dataset()
         self.assertIn("aggregate_metrics", result)
+
+    def test_25_cli_fixture_reader_rejects_duplicate_json_keys(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "duplicate.json"
+            path.write_text('{"safe":1,"safe":2}', encoding="utf-8")
+            with self.assertRaisesRegex(EvaluationError, "duplicate_json_key"):
+                _load_fixture(path)
+
+    def test_26_dataset_overrides_reject_excess_size_and_nesting(self):
+        query = [{"query_id": "q", "text": "term", "tenant_id": "t", "repository_id": "o/r"}]
+        with self.assertRaisesRegex(EvaluationError, "dataset_override_too_large"):
+            evaluate_dataset(corpus={"large": "x" * MAX_FIXTURE_BYTES}, queries=query, relevance={"q": {}})
+        nested = value = {}
+        for _ in range(34):
+            child = {}
+            value["child"] = child
+            value = child
+        with self.assertRaisesRegex(EvaluationError, "fixture_too_deep"):
+            evaluate_dataset(corpus=nested, queries=query, relevance={"q": {}})
 
 
 if __name__ == "__main__":
