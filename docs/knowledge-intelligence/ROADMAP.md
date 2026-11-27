@@ -1,10 +1,11 @@
 # Implementation roadmap
 
-**Status at this branch:** KI-0's versioned policy contract, local validator,
-and synthetic regression tests are implemented as a feature-branch proposal;
-they remain pending review and are not authorized for production. KI-1 through
-KI-6 remain planned. Work must remain local and use synthetic data until the
-acceptance evidence and source scope are reviewed.
+**Status at this branch:** KI-0 is merged in PR #787 at
+`fc6ea340206bb970169a3b1c182fbe83f3a0803f`. KI-1's manifest contract and
+local validator are implemented on `feature/ki-1-knowledge-source-manifest`
+and remain pending review. KI-2 through KI-6 remain planned. The KI-1 code
+accepts only local synthetic fixtures; this roadmap does not authorize
+production ingestion or runtime activation.
 
 ## Execution order
 
@@ -20,8 +21,12 @@ acceptance evidence and source scope are reviewed.
 
 ## KI-0 implementation record
 
-- **Branch proposal:** `feature/ki-0-knowledge-governance`, based on verified
-  main `c36ae362fce0a078836e8f4b9e5a53369f108c36` after PR #786 merged.
+- **VERIFIED (GitHub):** PR #787 merged head
+  `5bc957b8a4fa101f75b03bb620ae2c0d0165254b` as
+  `fc6ea340206bb970169a3b1c182fbe83f3a0803f`. Exact-head CI
+  `45919139172`, CodeQL `45919136767`, post-merge main CI `45922964364`,
+  and main CodeQL `45922963590` succeeded.
+- **Branch:** `feature/ki-0-knowledge-governance`, based on main after PR #786.
 - **Files:** `schemas/knowledge-source-policy.schema.json`,
   `scripts/check_knowledge_source_policy.py`, synthetic fixtures and unit tests,
   plus the [governance](KNOWLEDGE_GOVERNANCE.md),
@@ -86,41 +91,41 @@ separate branches only after independent review; do not share writable worktrees
 
 ### KI-1 — Deterministic ingestion contract
 
-- **Objective:** Add a local parser contract for one approved synthetic source
-  with immutable version and chunk provenance.
-- **Reuse:** scripts/devobs_intelligence/contracts.py and existing bounded JSON
-  parsing patterns.
-- **Proposed files:** scripts/devobs_intelligence/knowledge/source_contract.py;
-  tests/knowledge/test_source_contract.py; tests/fixtures/knowledge/source.json.
-- **Scope:** Validate source identity, size, encoding, revision, content digest,
-  parser version, retention class and stable chunk offsets. Reject unsupported
-  input; never execute embedded content.
-- **Dependencies:** KI-0.
-- **Owner:** Offline ingestion adapter.
-- **Acceptance:** Repeated same revision yields identical manifest/chunk IDs;
-  changed content yields a new version; malformed, oversized and secret-marked
-  fixtures fail closed; no external network or provider call.
-- **Verification:** Proposed: python3 -m unittest tests.knowledge.test_source_contract -v;
-  python3 -m compileall -q scripts/devobs_intelligence/knowledge tests/knowledge;
-  git diff --check.
-- **Rollback:** Remove the feature module/tests and keep the existing incident
-  event pipeline unchanged.
-- **Resources:** Synthetic files, CPU and disk bounded by explicit fixture size.
-- **Human approval:** Required before admitting any source outside synthetic
-  fixtures.
+- **Status:** Implemented on the feature branch; pending review/merge.
+- **Objective:** Connect an inline KI-0 policy record to one synthetic source,
+  immutable document versions, and ordered byte-offset chunks.
+- **Reuse:** `scripts/check_knowledge_source_policy.py::validate_policy` and its
+  KI-0 policy schema; no duplicate policy decision logic.
+- **Files:** `schemas/knowledge-source-manifest.schema.json`,
+  `scripts/check_knowledge_source_manifest.py`,
+  `tests/test_knowledge_source_manifest.py`, and synthetic fixtures under
+  `tests/fixtures/knowledge/`.
+- **Scope:** Deterministic IDs, canonical JSON, KI-0 local policy validation,
+  reference/scope checks, linear version history, SHA-256 content and chunk
+  checks when fixture bytes are present, and explicit input/count limits.
+- **Acceptance:** Offline tests cover valid and invalid policies, duplicate
+  identifiers, references, scopes, hashes, UTF-8 byte offsets, version chains,
+  limits, sanitized diagnostics, deterministic output, and the UNVERIFIED
+  report when content bytes are absent. PASS does not authenticate a source or
+  approver and does not prove runtime isolation.
+- **Verification:** `python3 -m unittest tests.test_knowledge_source_manifest
+  -v`; `python3 -m unittest tests.test_knowledge_source_policy -v`;
+  JSON Schema validation; Python compile checks; repository governance and
+  documentation checks; `git diff --check`.
+- **Rollback:** Revert the isolated KI-1 commit(s); no persisted state exists.
+- **Resources:** Existing local Python runtime and small synthetic fixtures.
+- **Human approval:** Required before any source outside synthetic fixtures is
+  considered; no such source is supported by this KI-1 implementation.
 
-#### KI-1 readiness prerequisites
+#### KI-2 readiness prerequisites
 
-Before KI-1 starts, reviewers must accept and freeze the v1 policy schema and
-explicitly retain its `STRUCTURE_ONLY` limitation. The first implementation
-must process only checked-in synthetic bytes, calculate and compare the digest
-from those exact bytes, create stable source-version and chunk provenance, and
-prove deterministic duplicate handling and deletion with offline tests. It
-must not fetch the declared URI, add real source content, call an embedding or
-other external API, add a database, or change production configuration. Any
-non-synthetic source requires a separate rights, identity, purpose, retention,
-deletion, and human-approval review before it is read. Missing or unverified
-prerequisites block KI-1.
+Reviewers must freeze the KI-1 schema and synthetic evaluation fixture, retain
+the `STRUCTURE_ONLY` authorization limit, and design tests for tenant-scoped
+retrieval, exact citations, deletion, and duplicate handling. KI-1 does not
+fetch source URIs, authenticate policies, admit non-synthetic content, call
+embeddings, create a database, or change production configuration. Any later
+non-synthetic source requires separate rights, identity, purpose, retention,
+deletion, and human-approval evidence before it is read.
 
 ### KI-2 — Lexical baseline and frozen evaluation
 

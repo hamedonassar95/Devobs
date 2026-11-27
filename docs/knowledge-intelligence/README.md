@@ -56,6 +56,7 @@ hosted behavior, live connectivity, product quality, or operational readiness.
 8. [Cost model](COST_MODEL.md)
 9. [Risk register](RISK_REGISTER.md)
 10. [ADR 0001: storage selection](adr/0001-storage-selection.md)
+11. [KI-1 source manifest contract](SOURCE_MANIFEST.md)
 
 ## KI-0 source governance contract
 
@@ -70,6 +71,16 @@ The validator uses only the Python standard library and synthetic fixtures.
 Its `STRUCTURE_ONLY` result is not authorization, runtime tenant isolation, or
 production readiness. No source content is ingested or fetched.
 
+## KI-1 source manifest
+
+The [KI-1 source manifest](SOURCE_MANIFEST.md) connects the merged KI-0 policy
+validator to deterministic synthetic source, document-version, and chunk
+records. The validator is local-only, has bounded inputs, and checks exact
+UTF-8 fixture bytes when present. Its structural approval checks are not
+authentication or runtime tenant isolation. The implementation is on a
+feature branch pending review; no ingestion, embeddings, storage, or production
+activation is included.
+
 Existing source documents remain authoritative for their specific contracts;
 this audit links to them rather than copying them. Start with
 [AI Intelligence Core](../AI_INTELLIGENCE_CORE.md),
@@ -82,18 +93,20 @@ this audit links to them rather than copying them. Start with
 
 ## Guardrails
 
-- Existing applications, schemas, deployment targets, CI, dependencies, and
-  production gates are unchanged.
+- Existing application/runtime schemas, deployment targets, CI, dependencies,
+  and production gates are unchanged. This KI-1 proposal adds only a local
+  manifest contract schema and validator.
 - No purchased PDF was copied, uploaded, or included. Bibliographic references
   are separated from independently written engineering requirements.
 - No live databases, secrets, credentials, customer records, or hosted
   authentication were inspected.
 - No technology in the comparison was installed or provisioned.
 - P01 remains blocked/no-go, AI-9 remains blocked, and the Codex runtime gate
-  remains open. The last ledger snapshot is at PR #784; PR #785 merged after
-  that snapshot without reconciling STATE.md or the ledger. See the
-  [source register](SOURCE_REGISTER.md) before treating governance metadata as
-  current.
+  remains open. The Phase 01 verification table below is a historical snapshot
+  at its recorded source revision. This KI-1 branch separately reconciles
+  merged PRs #785-#787 in `STATE.md` and the milestone ledger; do not infer
+  service readiness from that bookkeeping update. See the
+  [source register](SOURCE_REGISTER.md) for the audit's source boundary.
 - All acceptance values are proposed targets, not measured results.
 
 ## Verification snapshot
@@ -120,7 +133,7 @@ this audit links to them rather than copying them. Start with
 
 ## Recommended next task
 
-Implement only the first local synthetic retrieval contract: one source
-manifest, one deterministic lexical baseline, a versioned citation record, and
-cross-tenant negative tests. Freeze that contract and test set before any model,
-vector database, hosted service, or production authorization work.
+After KI-1 is reviewed and merged, implement only KI-2: a deterministic lexical
+retrieval baseline and frozen synthetic evaluation set. Preserve the contract
+and test set before any model, vector database, hosted service, or production
+authorization work.

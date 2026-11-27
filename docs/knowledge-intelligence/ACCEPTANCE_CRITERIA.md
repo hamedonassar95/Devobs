@@ -1,4 +1,4 @@
-# KI-0 verification and proposed future acceptance criteria
+# Knowledge Intelligence acceptance criteria
 
 ## KI-0 local contract acceptance
 
@@ -10,6 +10,23 @@ output, and no network access. This demonstrates policy-envelope handling
 only. It does **not** test source authentication, real authorization, source
 rights, data deletion, runtime tenant isolation, database RLS, retrieval, or
 production behavior. The branch's exact test results are recorded in its PR.
+
+## KI-1 source manifest contract
+
+The local v1 manifest is acceptable only when it resolves policy references
+from explicit inline records through the existing KI-0 validator; rejects
+non-synthetic, pending, denied, unknown, revoked, or inconsistent states; and
+validates deterministic IDs, canonical serialization, version chains, record
+uniqueness, references, limits, and tenant/repository scope consistency.
+Present fixture bytes must match their declared SHA-256, byte size, UTF-8 chunk
+boundaries, and chunk hashes. When bytes are absent, integrity must be reported
+as `UNVERIFIED_NO_CONTENT_BYTES`.
+
+The KI-1 tests use synthetic values only. A successful validator result is
+structural evidence: it is not source authenticity, trusted approval,
+authenticated authorization, runtime tenant isolation, deletion execution,
+or production readiness. The v1 validator supports one synthetic document per
+source and a single linear version history.
 
 The thresholds below remain proposed targets for later implementation; no
 retrieval target has been measured by KI-0.
