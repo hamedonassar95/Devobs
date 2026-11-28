@@ -3,12 +3,14 @@
 **Evaluation version:** `ki3-synthetic-v1`
 
 **Dataset SHA-256:**
-`39e350014831ff06d1e279453df7b1d5f0316b512ff8ed0f9421f8d59b90a48c`
+`a7269c6b45f2e146c7bb38cb29a07d8e08f736921d64071957b0e9ee99a1fcc0`
 
 **Evaluation code source:** KI-3 implementation commit
-`8682b059b71f0312364b0525877dd47ea44e8824`
+`d8b73b75644c04a4752b0028303cfd02084b9938`
 **Status:** measured local synthetic baseline; not natural-query quality or
 production readiness.
+
+The UTF-8 offset example uses the synthetic document key `utf8-offset-example`. That key is ordinary fixture text, not a credential. Query text, the q18 relevance grade, BM25 parameters, ranking rules, and the measured metrics are unchanged. The digest above is the digest of the three checked-in fixture files.
 
 ## Dataset and separation
 
@@ -160,7 +162,7 @@ P95. `tracemalloc` was run separately from latency timing.
 
 These are small local synthetic measurements, not CI thresholds, cross-runner
 comparisons, or production latency promises. The benchmark ran against code
-source commit `fd98ad71bc67c9064cafe159874793c9f775d219`; later commits update
+source commit `e5952469d82f7abb258e876ed95da72984843c39`; later commits update
 documentation without changing the measured implementation.
 
 ## Reproduction and limitations

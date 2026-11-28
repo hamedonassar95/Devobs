@@ -74,7 +74,7 @@ The frozen fixture version `ki3-synthetic-v1` contains 47 checked-in synthetic
 records, 45 eligible chunks for the evaluation tenant/repository, 30 labeled
 evaluation queries, four separate development queries, graded relevance, and
 two cross-scope sentinels. Its exact corpus/query/relevance file digest is
-`39e350014831ff06d1e279453df7b1d5f0316b512ff8ed0f9421f8d59b90a48c`. The
+`a7269c6b45f2e146c7bb38cb29a07d8e08f736921d64071957b0e9ee99a1fcc0`. The
 measured Recall@10 is `0.8908`, below the proposed `>= 0.90` target. This is a
 small synthetic set; no relevance labels or BM25 parameters were changed to
 raise the score. The target therefore remains unmet, and the result does not
