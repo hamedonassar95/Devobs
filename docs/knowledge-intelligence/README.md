@@ -23,9 +23,10 @@ Graphify indexes repository structure and code relationships, not customer or
 business documents.
 
 This Phase 01 audit is a historical snapshot. KI-0 and KI-1 were subsequently
-merged in PRs #787 and #788. KI-2 adds a bounded, local-only synthetic document
-ingestion prototype that emits validated KI-1 manifests; it is not a general
-ingestion service and does not authorize real data, runtime access, a provider,
+merged in PRs #787 and #788; KI-2 was merged in PR #789. The KI-2 ingestion
+prototype is local-only and synthetic-only. KI-3 is under review on its own
+feature branch and adds a deterministic lexical baseline; neither phase is a
+general production service or authorizes real data, runtime access, a provider,
 or deployment.
 
 ## Status labels
@@ -64,7 +65,8 @@ strict, versioned local source-policy envelope. The [privacy contract](PRIVACY_C
 and [threat model](THREAT_MODEL.md) describe its trust limits. The
 [roadmap](ROADMAP.md) now distinguishes the KI-0 implementation branch from
 future planned milestones, and [acceptance criteria](ACCEPTANCE_CRITERIA.md)
-continues to label all retrieval targets as proposed rather than measured.
+labels future retrieval thresholds as proposed and reports KI-3 synthetic
+measurements separately from production acceptance.
 
 The validator uses only the Python standard library and synthetic fixtures.
 Its `STRUCTURE_ONLY` result is not authorization, runtime tenant isolation, or
@@ -85,6 +87,21 @@ result through KI-0 and KI-1. It is dry-run only, does not persist document
 content, and is not a runtime API. KI-1 v1 caps documents at 65,536 bytes and
 rejects overlapping chunks, so the engine fails closed outside those limits.
 
+## KI-3 lexical retrieval baseline
+
+PR #789 merged KI-2 at `d1ccb4d681a775404a0ac1e74977d9c2507fd83e`. The
+`feature/ki-3-lexical-retrieval` review branch builds on that exact main SHA.
+The KI-3 change reuses KI-0 policy validation, KI-1 manifest and UTF-8
+byte-span validation, and KI-2 lifecycle behavior. It adds a deterministic
+in-memory BM25 index over explicitly supplied synthetic records only. Results
+contain validated references and scores, never raw source content. Scope values
+are caller declarations and are not authenticated tenant isolation.
+
+See [the retrieval engine contract](RETRIEVAL_ENGINE.md) and
+[the frozen evaluation and measured baseline](RETRIEVAL_EVALUATION.md). The
+evaluation set is synthetic and small; its Recall@10 result is below the
+exploratory target and is not evidence of natural-query or production quality.
+
 Existing source documents remain authoritative for their specific contracts;
 this audit links to them rather than copying them. Start with
 [AI Intelligence Core](../AI_INTELLIGENCE_CORE.md),
@@ -98,8 +115,8 @@ this audit links to them rather than copying them. Start with
 ## Guardrails
 
 - Existing application/runtime schemas, deployment targets, CI, dependencies,
-  and production gates are unchanged. This KI-1 proposal adds only a local
-  manifest contract schema and validator.
+  and production gates are unchanged by the knowledge phases. KI-0 through
+  KI-3 remain local and synthetic; KI-3 does not add a runtime API.
 - No purchased PDF was copied, uploaded, or included. Bibliographic references
   are separated from independently written engineering requirements.
 - No live databases, secrets, credentials, customer records, or hosted
@@ -111,7 +128,9 @@ this audit links to them rather than copying them. Start with
   merged PRs #785-#787 in `STATE.md` and the milestone ledger; do not infer
   service readiness from that bookkeeping update. See the
   [source register](SOURCE_REGISTER.md) for the audit's source boundary.
-- All acceptance values are proposed targets, not measured results.
+- The Phase 01 audit's acceptance values remain proposed targets. The separate
+  KI-3 report records actual small synthetic retrieval and timing measurements;
+  it does not establish natural-query or production quality.
 
 ## Verification snapshot
 
@@ -137,7 +156,8 @@ this audit links to them rather than copying them. Start with
 
 ## Recommended next task
 
-After KI-1 is reviewed and merged, implement only KI-2: a deterministic lexical
-retrieval baseline and frozen synthetic evaluation set. Preserve the contract
-and test set before any model, vector database, hosted service, or production
-authorization work.
+After KI-3 is reviewed, the next independent task is KI-4: evaluate one
+optional, local embedding adapter against this frozen lexical baseline only
+after model revision, license, artifact hash, offline availability, resource
+budget, and human review are established. Do not activate a model, vector
+database, hosted service, real source content, or production authorization.

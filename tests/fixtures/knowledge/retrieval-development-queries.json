@@ -1,0 +1,10 @@
+{
+  "dataset_version": "ki3-synthetic-v1",
+  "query_set": "development-only",
+  "queries": [
+    {"query_id":"dev01","text":"container image rollout health","tenant_id":"synthetic-tenant-001","repository_id":"synthetic-org/operations"},
+    {"query_id":"dev02","text":"مؤشرات Prometheus وقياس زمن الاستجابة","tenant_id":"synthetic-tenant-001","repository_id":"synthetic-org/operations"},
+    {"query_id":"dev03","text":"source policy validation approval","tenant_id":"synthetic-tenant-001","repository_id":"synthetic-org/operations"},
+    {"query_id":"dev04","text":"invoice sentinel externalterm","tenant_id":"synthetic-tenant-001","repository_id":"synthetic-org/operations"}
+  ]
+}
